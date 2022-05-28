@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { OUT_DIR, UNPACKED_OUT_DIR } from "./config.mjs";
-import { copyDir, rmDir } from "./fs.mjs";
+import { copyDir, getFilesByExtension, rmDir } from "./fs.mjs";
 
 const isWatch = process.argv.includes("--watch");
 
@@ -30,9 +30,10 @@ async function build() {
 
   await rmDir(OUT_DIR);
 
+  const mainEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".ts");
   const mainBuild = esbuild
     .build({
-      entryPoints: ["src/modules/client/popup.ts", "src/modules/client/options.ts"],
+      entryPoints: mainEntries,
       bundle: true,
       format: "esm",
       sourcemap: "inline",
@@ -43,7 +44,7 @@ async function build() {
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] ui built`));
 
-  const webWorkerBuild = esbuild
+  const workerBuild = esbuild
     .build({
       entryPoints: ["src/modules/server/worker.ts"],
       bundle: true,
@@ -56,9 +57,10 @@ async function build() {
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] worker built`));
 
+  const styleEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".css");
   const styleBuild = esbuild
     .build({
-      entryPoints: ["src/modules/client/popup.css", "src/modules/client/options.css"],
+      entryPoints: styleEntries,
       bundle: true,
       sourcemap: "inline",
       watch: getWatcher(isWatch, "styles"),
@@ -109,7 +111,7 @@ async function build() {
       })();
   })();
 
-  await Promise.all([mainBuild, webWorkerBuild, styleBuild, assetBuild, manifestBuild]);
+  await Promise.all([mainBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
 }
 
 build();
