@@ -12,3 +12,6 @@ FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-16
 
 # [Optional] Uncomment if you want to install more global node modules
 # RUN su node -c "npm install -g <your-package-list-here>"
+
+# Improve git client usability
+RUN git config --global pager.branch false
