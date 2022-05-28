@@ -23,10 +23,12 @@ export default async function main() {
     console.log(currentTab);
     if (!currentTab.id) return;
 
+    const start = performance.now();
     const results = await chrome.scripting.executeScript({
       target: { tabId: currentTab.id },
-      files: ["./modules/content-script/dom-reader.js"],
+      files: ["./modules/content-script/get-document-html.js"],
     });
+    console.log(`[rpc] ${performance.now() - start}`);
 
     console.log(results);
   });
