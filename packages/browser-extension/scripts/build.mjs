@@ -51,8 +51,8 @@ async function build() {
       bundle: true,
       format: "iife",
       sourcemap: "inline",
-      globalName: "_contentScriptReturn",
-      footer: { js: "_contentScriptReturn.default" }, // this allows the default export to be returned to global scope
+      globalName: "_contentScriptGlobal",
+      footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
       watch: getWatcher(isWatch, "content script"),
       minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/content-script"),

@@ -4,4 +4,4 @@ async function main() {
   return fullHtml;
 }
 
-export default main();
+export default main;
