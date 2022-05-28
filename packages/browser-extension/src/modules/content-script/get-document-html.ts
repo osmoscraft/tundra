@@ -1,6 +1,5 @@
 async function main() {
-  const fullHtml = document.documentElement.outerHTML;
-  return fullHtml;
+  return document.documentElement.outerHTML;
 }
 
 export default main;
