@@ -3,15 +3,7 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "settings": {
-    "terminal.integrated.defaultProfile.linux": "zsh",
-    "editor.formatOnSave": true,
-    "editor.insertSpaces": false,
-    "editor.tabSize": 2,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true
-    }
-  },
+  "settings": {},
   "postCreateCommand": ". ${NVM_DIR}/nvm.sh && nvm install 16",
   "remoteUser": "node",
   "forwardPorts": [8080],

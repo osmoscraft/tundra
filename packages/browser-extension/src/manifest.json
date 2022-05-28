@@ -1,0 +1,13 @@
+{
+  "name": "TinyKB",
+  "description": "A personal knowledge for the browser.",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {},
+  "options_page": "options.html",
+  "permissions": ["storage"],
+  "host_permissions": []
+}

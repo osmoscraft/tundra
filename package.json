@@ -1,0 +1,28 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run dev -w packages/browser-extension",
+    "build": "npm run build -w packages/browser-extension"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osmoscraft/tinykb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/osmoscraft/tinykb/issues"
+  },
+  "homepage": "https://github.com/osmoscraft/tinykb#readme",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "prettier": "^2.6.2"
+  }
+}
