@@ -42,7 +42,23 @@ async function build() {
       outdir: path.join(UNPACKED_OUT_DIR, "modules/client"),
     })
     .catch(() => process.exit(1))
-    .then(() => console.log(`[build] ui built`));
+    .then(() => console.log(`[build] main built`));
+
+  const contentScriptEntries = await getFilesByExtension(path.resolve("src/modules/content-script"), ".ts");
+  const contentScriptBuild = esbuild
+    .build({
+      entryPoints: contentScriptEntries,
+      bundle: true,
+      format: "iife",
+      sourcemap: "inline",
+      globalName: "_contentScriptReturn",
+      footer: { js: "_contentScriptReturn.default" }, // this allows the default export to be returned to global scope
+      watch: getWatcher(isWatch, "content script"),
+      minify: !isWatch,
+      outdir: path.join(UNPACKED_OUT_DIR, "modules/content-script"),
+    })
+    .catch(() => process.exit(1))
+    .then(() => console.log(`[build] content script built`));
 
   const workerBuild = esbuild
     .build({
@@ -111,7 +127,7 @@ async function build() {
       })();
   })();
 
-  await Promise.all([mainBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
+  await Promise.all([mainBuild, contentScriptBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
 }
 
 build();

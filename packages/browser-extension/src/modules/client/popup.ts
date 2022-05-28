@@ -5,4 +5,31 @@ worker.port.addEventListener("message", (message) => console.log(message));
 
 worker.port.start();
 
-export default {};
+async function getCurrentTab() {
+  let queryOptions = { active: true, currentWindow: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
+
+export default async function main() {
+  const parse = document.querySelector<HTMLButtonElement>(`[data-input="parse"]`)!;
+
+  chrome.runtime.onMessage.addListener((e) => {
+    console.log(`[runtime msg]`, e);
+  });
+
+  parse.addEventListener("click", async () => {
+    const currentTab = await getCurrentTab();
+    console.log(currentTab);
+    if (!currentTab.id) return;
+
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: currentTab.id },
+      files: ["./modules/content-script/dom-reader.js"],
+    });
+
+    console.log(results);
+  });
+}
+
+main();
