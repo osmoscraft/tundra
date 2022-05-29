@@ -1,3 +1,5 @@
+import { getDocumentHtml } from "../content-script/get-document-html";
+
 const worker = new SharedWorker("./modules/service/worker.js", { name: "shared-worker" });
 console.log("hello popup");
 
@@ -26,11 +28,11 @@ export default async function main() {
     const start = performance.now();
     const results = await chrome.scripting.executeScript({
       target: { tabId: currentTab.id },
-      files: ["./modules/content-script/get-document-html.js"],
+      func: getDocumentHtml,
     });
     console.log(`[rpc] ${performance.now() - start}`);
 
-    console.log(results);
+    console.log(results[0].result?.length);
   });
 }
 

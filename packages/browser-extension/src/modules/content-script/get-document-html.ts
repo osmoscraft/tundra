@@ -1,5 +1,3 @@
-async function main() {
+export function getDocumentHtml() {
   return document.documentElement.outerHTML;
 }
-
-export default main;
