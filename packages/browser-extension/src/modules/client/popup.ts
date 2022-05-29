@@ -1,10 +1,8 @@
 import { getDocumentHtml } from "../content-script/get-document-html";
+import { WorkerClient } from "../ipc/client";
 
-const worker = new SharedWorker("./modules/service/worker.js", { name: "shared-worker" });
-console.log("hello popup");
-
-worker.port.addEventListener("message", (message) => console.log(message));
-
+const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
+const workerClient = new WorkerClient(worker.port);
 worker.port.start();
 
 async function getCurrentTab() {
@@ -15,10 +13,6 @@ async function getCurrentTab() {
 
 export default async function main() {
   const parse = document.querySelector<HTMLButtonElement>(`[data-input="parse"]`)!;
-
-  chrome.runtime.onMessage.addListener((e) => {
-    console.log(`[runtime msg]`, e);
-  });
 
   parse.addEventListener("click", async () => {
     const currentTab = await getCurrentTab();
@@ -33,6 +27,9 @@ export default async function main() {
     console.log(`[rpc] ${performance.now() - start}`);
 
     console.log(results[0].result?.length);
+
+    const parseResult = await workerClient.request("parse-document-html", results[0].result);
+    console.log(`[parse result]`, parseResult);
   });
 }
 

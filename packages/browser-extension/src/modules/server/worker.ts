@@ -1,24 +1,23 @@
 /// <reference lib="WebWorker" />
 
-// TODO remove when there is any import
-export type {};
-const ports: MessagePort[] = [];
-const bc = new BroadcastChannel("shared-channel");
+import { WorkerServer } from "../ipc/server";
+
+const broadcastChannel = new BroadcastChannel("shared-channel");
 
 declare const self: SharedWorkerGlobalScope;
 
-const ab = new Array(10000).fill("x");
+async function main() {
+  self.addEventListener("connect", (connectEvent) => {
+    const port = connectEvent.ports[0];
 
-self.addEventListener("connect", (connectEvent) => {
-  const port = connectEvent.ports[0];
-  ports.push(port);
-  console.log(`New connection, total = ${ports.length}`);
+    const workerServer = new WorkerServer(port);
 
-  // start receiving
-  port.start();
+    workerServer.onRequest("parse-document-html", async () => {
+      return "parse page mock result";
+    });
 
-  port.addEventListener("message", () => {
-    port.postMessage(ab);
-    bc.postMessage(ab);
+    port.start();
   });
-});
+}
+
+main();
