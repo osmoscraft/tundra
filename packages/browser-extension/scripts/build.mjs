@@ -24,7 +24,7 @@ const getWatcher = (isWatch, name) =>
     : undefined;
 
 async function build() {
-  console.log("[build] start building extension...");
+  console.log("[build] build started");
 
   console.log(`[build] remove ${OUT_DIR}`);
 
@@ -43,6 +43,22 @@ async function build() {
     })
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] main built`));
+
+  const contentScriptEntries = await getFilesByExtension(path.resolve("src/modules/content-scripts"), ".ts");
+  const contentScriptBuild = esbuild
+    .build({
+      entryPoints: contentScriptEntries,
+      bundle: true,
+      format: "iife",
+      sourcemap: "inline",
+      globalName: "_contentScriptGlobal",
+      footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
+      watch: getWatcher(isWatch, "content script"),
+      minify: !isWatch,
+      outdir: path.join(UNPACKED_OUT_DIR, "modules/content-scripts"),
+    })
+    .catch(() => process.exit(1))
+    .then(() => console.log(`[build] content script built`));
 
   const workerBuild = esbuild
     .build({
@@ -111,7 +127,8 @@ async function build() {
       })();
   })();
 
-  await Promise.all([mainBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
+  await Promise.all([mainBuild, contentScriptBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
+  console.log(`[build] build success`);
 }
 
 build();

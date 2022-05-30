@@ -2,7 +2,6 @@ import * as cheerio from "cheerio";
 import type { RequestHandler } from "../../lib/worker-ipc/proxy-server";
 
 export interface ParseDocumentHtmlInput {
-  html: string;
   url: string;
 }
 export interface ParseDocumentHtmlOutput {
