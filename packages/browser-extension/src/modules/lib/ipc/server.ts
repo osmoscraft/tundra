@@ -1,8 +1,13 @@
 export type BaseRequestRoutes = Record<string, [InputType: any, OutputType: any]>;
 
 export type RequestRouteHandler<RouteMap extends BaseRequestRoutes, RouteName extends keyof RouteMap> = (
-  ...data: RouteMap[RouteName][0] extends void ? [] : [RouteMap[RouteName][0]]
+  props: RequestRouteHandlerProps<RouteMap, RouteName>
 ) => Promise<RouteMap[RouteName][1] extends void ? void : RouteMap[RouteName][1]>;
+
+export type RequestRouteHandlerProps<RouteMap extends BaseRequestRoutes, RouteName extends keyof RouteMap> = {
+  data: RouteMap[RouteName][0];
+  context: {}; // Not implemented
+};
 
 export class WorkerServer<RequestRoutes extends BaseRequestRoutes> {
   constructor(private eventTarget: MessagePort | Worker) {}
@@ -14,7 +19,7 @@ export class WorkerServer<RequestRoutes extends BaseRequestRoutes> {
       if (!route === requestRoute) return;
 
       try {
-        const responseData = await handler(...([data] as any));
+        const responseData = await handler({ data, context: {} });
 
         this.eventTarget.postMessage({
           nonce,
