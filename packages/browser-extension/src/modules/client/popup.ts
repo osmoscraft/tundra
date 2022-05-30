@@ -1,9 +1,9 @@
 import { getDocumentHtml } from "../content-script/get-document-html";
 import { WorkerClient } from "../ipc/client";
-import { Routes } from "../server/worker";
+import { RequestRoutes } from "../server/worker";
 
 const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
-const workerClient = new WorkerClient<Routes>(worker.port);
+const workerClient = new WorkerClient<RequestRoutes>(worker.port);
 worker.port.start();
 
 async function getCurrentTab() {
@@ -29,7 +29,7 @@ export default async function main() {
 
     console.log(results[0].result?.length);
 
-    const parseResult = await workerClient.request("parse-document-html", results[0].result);
+    const parseResult = await workerClient.request("parse-document-html", { html: results[0].result });
     console.log(`[parse result]`, parseResult);
   });
 }

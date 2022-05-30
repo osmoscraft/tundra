@@ -1,10 +1,9 @@
-import { BaseRouteMap } from "./server";
+import { BaseRequestRoutes } from "./server";
 
-export class WorkerClient<T extends BaseRouteMap> {
+export class WorkerClient<T extends BaseRequestRoutes> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request<RouteName extends keyof T>(route: RouteName, ...data: T[RouteName][0] extends void ? [] : [T[RouteName][0]]): Promise<T[RouteName][1]>;
-  async request<RouteName extends keyof T>(route: RouteName, data?: T[RouteName][0]): Promise<T[RouteName][1]> {
+  async request<RouteName extends keyof T>(route: RouteName, ...dataArgs: T[RouteName][0] extends void ? [] : [T[RouteName][0]]): Promise<T[RouteName][1]> {
     return new Promise((resolve, reject) => {
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
@@ -29,7 +28,7 @@ export class WorkerClient<T extends BaseRouteMap> {
 
       this.eventTarget.postMessage({
         route,
-        data,
+        data: dataArgs[0],
         nonce,
       });
     });
