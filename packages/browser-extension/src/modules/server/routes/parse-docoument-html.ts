@@ -1,7 +1,13 @@
-import type { RequestRoutes } from "../../interface/routes";
-import { RequestRouteHandler } from "../../lib/ipc/server";
+import type { RequestHandler } from "../../lib/ipc/server";
 
-export const handleParseDocumentHtml: RequestRouteHandler<RequestRoutes["parse-document-html"]> = async ({ data }) => {
+export interface ParseDocumentHtmlInput {
+  html: string;
+}
+export interface ParseDocumentHtmlOutput {
+  title: string;
+}
+
+export const handleParseDocumentHtml: RequestHandler<ParseDocumentHtmlInput, ParseDocumentHtmlOutput> = async ({ data }) => {
   return {
     title: `Mock document title from html of length ${data.html.length}`,
   };

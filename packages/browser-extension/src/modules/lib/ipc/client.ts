@@ -1,19 +1,11 @@
-import { BaseRequestSchema } from "./server";
-
-export type RequestConfig<TInput> = TInput extends void
-  ? {
-      data: undefined;
-    }
-  : {
-      data: TInput;
-    };
-
-export class WorkerClient<TRequestSchema extends BaseRequestSchema> {
+export class WorkerClient {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request<TRoute extends keyof TRequestSchema>(route: TRoute, config: RequestConfig<TRequestSchema[TRoute][0]>): Promise<TRequestSchema[TRoute][1]> {
+  async request(route: string): Promise<void>;
+  async request<TOut = any>(route: string): Promise<TOut>;
+  async request<TIn = any, TOut = any>(route: string, data: TIn): Promise<TOut>;
+  async request<TIn = any, TOut = any>(route: string, data?: TIn): Promise<TOut> {
     return new Promise((resolve, reject) => {
-      const { data } = config;
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
 

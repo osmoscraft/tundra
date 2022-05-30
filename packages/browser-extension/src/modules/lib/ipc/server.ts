@@ -1,20 +1,7 @@
-export type BaseRequestSchema = Record<string, [TIn: any, TOut: any]>;
-
-export type RequestRouteHandler<TFunctionSignature extends [TIn: any, TOut: any]> = (
-  props: RequestRouteHandlerProps<TFunctionSignature[0]>
-) => Promise<TFunctionSignature[1]>;
-
-export type RequestRouteHandlerProps<TInput> = {
-  data: TInput;
-};
-
-export class WorkerServer<TRequestSchema extends BaseRequestSchema> {
+export class WorkerServer {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  onRequest<TRoute extends keyof TRequestSchema>(
-    route: TRoute,
-    handler: RequestRouteHandler<[TRequestSchema[TRoute][0], TRequestSchema[TRoute][1] extends void ? void : TRequestSchema[TRoute][1]]>
-  ) {
+  onRequest(route: string, handler: RequestHandler) {
     this.eventTarget.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
@@ -45,3 +32,5 @@ export class WorkerServer<TRequestSchema extends BaseRequestSchema> {
     });
   }
 }
+
+export type RequestHandler<TIn = any, TOut = any> = (props: { data: TIn }) => Promise<TOut>;
