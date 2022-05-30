@@ -1,25 +1,27 @@
-export type BaseRequestRoutes = Record<string, [InputType: any, OutputType: any]>;
+export type BaseRequestSchema = Record<string, [TIn: any, TOut: any]>;
 
-export type RequestRouteHandler<RouteMap extends BaseRequestRoutes, RouteName extends keyof RouteMap> = (
-  props: RequestRouteHandlerProps<RouteMap, RouteName>
-) => Promise<RouteMap[RouteName][1] extends void ? void : RouteMap[RouteName][1]>;
+export type RequestRouteHandler<TFunctionSignature extends [TIn: any, TOut: any]> = (
+  props: RequestRouteHandlerProps<TFunctionSignature[0]>
+) => Promise<TFunctionSignature[1]>;
 
-export type RequestRouteHandlerProps<RouteMap extends BaseRequestRoutes, RouteName extends keyof RouteMap> = {
-  data: RouteMap[RouteName][0];
-  context: {}; // Not implemented
+export type RequestRouteHandlerProps<TInput> = {
+  data: TInput;
 };
 
-export class WorkerServer<RequestRoutes extends BaseRequestRoutes> {
+export class WorkerServer<TRequestSchema extends BaseRequestSchema> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  onRequest<RouteName extends keyof RequestRoutes>(route: RouteName, handler: RequestRouteHandler<RequestRoutes, RouteName>) {
+  onRequest<TRoute extends keyof TRequestSchema>(
+    route: TRoute,
+    handler: RequestRouteHandler<[TRequestSchema[TRoute][0], TRequestSchema[TRoute][1] extends void ? void : TRequestSchema[TRoute][1]]>
+  ) {
     this.eventTarget.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
       if (!route === requestRoute) return;
 
       try {
-        const responseData = await handler({ data, context: {} });
+        const responseData = await handler({ data });
 
         this.eventTarget.postMessage({
           nonce,
@@ -41,9 +43,5 @@ export class WorkerServer<RequestRoutes extends BaseRequestRoutes> {
         });
       }
     });
-  }
-
-  onSubscribe() {
-    throw new Error("Not implemented");
   }
 }

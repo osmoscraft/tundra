@@ -1,10 +1,19 @@
-import { BaseRequestRoutes } from "./server";
+import { BaseRequestSchema } from "./server";
 
-export class WorkerClient<T extends BaseRequestRoutes> {
+export type RequestConfig<TInput> = TInput extends void
+  ? {
+      data: undefined;
+    }
+  : {
+      data: TInput;
+    };
+
+export class WorkerClient<TRequestSchema extends BaseRequestSchema> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request<RouteName extends keyof T>(route: RouteName, ...dataArgs: T[RouteName][0] extends void ? [] : [T[RouteName][0]]): Promise<T[RouteName][1]> {
+  async request<TRoute extends keyof TRequestSchema>(route: TRoute, config: RequestConfig<TRequestSchema[TRoute][0]>): Promise<TRequestSchema[TRoute][1]> {
     return new Promise((resolve, reject) => {
+      const { data } = config;
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
 
@@ -28,13 +37,9 @@ export class WorkerClient<T extends BaseRequestRoutes> {
 
       this.eventTarget.postMessage({
         route,
-        data: dataArgs[0],
+        data,
         nonce,
       });
     });
-  }
-
-  subscribe() {
-    throw new Error("Not implemented");
   }
 }
