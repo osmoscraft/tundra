@@ -1,4 +1,4 @@
-import type { RequestHandler } from "../../lib/ipc/server";
+import type { RequestHandler } from "../../lib/worker-ipc/proxy-server";
 
 export interface ParseDocumentHtmlInput {
   html: string;

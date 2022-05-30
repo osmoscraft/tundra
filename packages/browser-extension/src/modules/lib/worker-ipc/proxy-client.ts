@@ -1,10 +1,13 @@
-export class WorkerClient {
+import type { PickKeysByValueType } from "../type-utils/pick-keys-by-value-type";
+import type { BaseProxySchema, RequestHandler } from "./proxy-server";
+
+export class ProxyClient<TSchema extends BaseProxySchema> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request(route: string): Promise<void>;
-  async request<TOut = any>(route: string): Promise<TOut>;
-  async request<TIn = any, TOut = any>(route: string, data: TIn): Promise<TOut>;
-  async request<TIn = any, TOut = any>(route: string, data?: TIn): Promise<TOut> {
+  async request<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(
+    route: TRoute,
+    ...dataList: TSchema[TRoute] extends RequestHandler<undefined> ? [] : TSchema[TRoute] extends RequestHandler<infer TIn> ? [data: TIn] : []
+  ): Promise<TSchema[TRoute] extends RequestHandler<any, infer TOut> ? TOut : any> {
     return new Promise((resolve, reject) => {
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
@@ -29,7 +32,7 @@ export class WorkerClient {
 
       this.eventTarget.postMessage({
         route,
-        data,
+        data: dataList[0],
         nonce,
       });
     });

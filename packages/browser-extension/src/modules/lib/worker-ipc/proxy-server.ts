@@ -1,7 +1,9 @@
-export class WorkerServer {
+import type { PickKeysByValueType } from "../type-utils/pick-keys-by-value-type";
+
+export class ProxyServer<TSchema extends BaseProxySchema> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  onRequest(route: string, handler: RequestHandler) {
+  onRequest<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(route: TRoute, handler: TSchema[TRoute]) {
     this.eventTarget.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
@@ -32,5 +34,7 @@ export class WorkerServer {
     });
   }
 }
+
+export type BaseProxySchema = Record<string, RequestHandler>;
 
 export type RequestHandler<TIn = any, TOut = any> = (props: { data: TIn }) => Promise<TOut>;
