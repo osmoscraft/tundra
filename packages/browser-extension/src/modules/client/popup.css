@@ -1,8 +1,10 @@
+@import url("./styles/c-article-card.css");
+
 body {
   height: 400px;
   width: 600px;
 }
 
-* {
+:where(*, *::before, *::after) {
   box-sizing: border-box;
 }

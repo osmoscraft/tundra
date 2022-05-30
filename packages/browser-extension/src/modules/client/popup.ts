@@ -1,38 +1,31 @@
 import { ProxyClient } from "../lib/worker-ipc/proxy-client";
 import type { ProxySchema } from "../server/worker";
-import { getDocumentHtml } from "./lib/get-document-html";
-
-const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
-const proxyClient = new ProxyClient<ProxySchema>(worker.port);
-worker.port.start();
-
-async function getCurrentTab() {
-  let queryOptions = { active: true, currentWindow: true };
-  let [tab] = await chrome.tabs.query(queryOptions);
-  return tab;
-}
+import { getCurrentTab } from "./lib/get-current-tab";
+import { parse } from "./lib/parse-local";
 
 export default async function main() {
-  const parse = document.querySelector<HTMLButtonElement>(`[data-input="parse"]`)!;
+  const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
+  const proxyClient = new ProxyClient<ProxySchema>(worker.port);
 
-  parse.addEventListener("click", async () => {
-    const currentTab = await getCurrentTab();
-    console.log(currentTab);
-    if (!currentTab.id) return;
+  worker.port.start();
 
-    const start = performance.now();
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: currentTab.id },
-      func: getDocumentHtml,
-    });
-    console.log(`[rpc] ${performance.now() - start}`);
+  parseCurrentDocument(proxyClient);
+}
 
-    console.log(results[0].result?.length);
+async function parseCurrentDocument(proxyClient: ProxyClient<ProxySchema>) {
+  const currentTabId = (await getCurrentTab())?.id;
+  if (!currentTabId) throw new Error("Cannot find any active tab");
 
-    const parseResult = await proxyClient.request("parse-document-html", { html: results[0].result });
-    console.log(`[parse result]`, parseResult);
-    document.querySelector<HTMLHeadingElement>(".js-title")!.innerText = parseResult.title ?? "(Untitle)";
+  const localParseResult = await parse(currentTabId);
+
+  const remoteParseResult = await proxyClient.request("parse-document-html", {
+    url: localParseResult.url,
+    html: localParseResult.html,
   });
+
+  document.querySelector<HTMLHeadingElement>(`[data-value="title"]`)!.innerText = remoteParseResult.title ?? localParseResult.title;
+  document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value =
+    remoteParseResult.canonicalUrl ?? localParseResult.canonicalUrl ?? localParseResult.url;
 }
 
 main();

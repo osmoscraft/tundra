@@ -15,9 +15,15 @@ bc.addEventListener("message", (message) => {
 
 worker.port.start();
 
-document.querySelector<HTMLButtonElement>(`button[data-input='ping']`)!.onclick = () => {
-  start = performance.now();
-  worker.port.postMessage("ping");
-};
+window.addEventListener("click", (e) => {
+  const actionTrigger = (e.target as HTMLElement)?.closest("[data-action]");
+  switch (actionTrigger?.getAttribute("data-action")) {
+    case "inspect-worker":
+      chrome.tabs.create({
+        url: "chrome://inspect/#workers",
+      });
+      break;
+  }
+});
 
 export default {};
