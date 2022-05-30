@@ -31,6 +31,7 @@ export default async function main() {
 
     const parseResult = await proxyClient.request("parse-document-html", { html: results[0].result });
     console.log(`[parse result]`, parseResult);
+    document.querySelector<HTMLHeadingElement>(".js-title")!.innerText = parseResult.title ?? "(Untitle)";
   });
 }
 
