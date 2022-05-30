@@ -1,20 +1,10 @@
 /// <reference lib="WebWorker" />
 
+import type { RequestRoutes } from "../interface/routes";
 import { WorkerServer } from "../ipc/server";
-import { handleParseDocumentHtml } from "./handlers/parse-docoument-html";
+import { handleParseDocumentHtml } from "./routes/parse-docoument-html";
 
 declare const self: SharedWorkerGlobalScope;
-
-export type RequestRoutes = {
-  "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
-};
-
-interface ParseDocumentHtmlInput {
-  html: string;
-}
-interface ParseDocumentHtmlOutput {
-  title: string;
-}
 
 async function main() {
   self.addEventListener("connect", (connectEvent) => {

@@ -1,5 +1,5 @@
+import type { RequestRoutes } from "../../interface/routes";
 import { RequestRouteHandler } from "../../ipc/server";
-import { RequestRoutes } from "../worker";
 
 export const handleParseDocumentHtml: RequestRouteHandler<RequestRoutes, "parse-document-html"> = async (data) => {
   return {

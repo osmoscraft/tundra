@@ -1,6 +1,6 @@
 import { getDocumentHtml } from "../content-script/get-document-html";
+import type { RequestRoutes } from "../interface/routes";
 import { WorkerClient } from "../ipc/client";
-import { RequestRoutes } from "../server/worker";
 
 const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
 const workerClient = new WorkerClient<RequestRoutes>(worker.port);
