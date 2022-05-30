@@ -1,8 +1,9 @@
 import { getDocumentHtml } from "../content-script/get-document-html";
 import { WorkerClient } from "../ipc/client";
+import { Routes } from "../server/worker";
 
 const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
-const workerClient = new WorkerClient(worker.port);
+const workerClient = new WorkerClient<Routes>(worker.port);
 worker.port.start();
 
 async function getCurrentTab() {

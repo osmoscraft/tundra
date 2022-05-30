@@ -1,7 +1,13 @@
-export class WorkerClient {
+import type { BaseRouteMap } from "./server";
+
+export class WorkerClient<T extends BaseRouteMap> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request(route: string, data?: any) {
+  async request<RouteName extends keyof T["requests"]>(
+    route: RouteName,
+    ...data: T["requests"][RouteName][0] extends void ? [] : [T["requests"][RouteName][0]]
+  ): Promise<T["requests"][RouteName][1]>;
+  async request<RouteName extends keyof T["requests"]>(route: RouteName, data?: T["requests"][RouteName][0]): Promise<T["requests"][RouteName][1]> {
     return new Promise((resolve, reject) => {
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
@@ -11,12 +17,13 @@ export class WorkerClient {
         if (nonce !== responseNonce) return;
 
         this.eventTarget.removeEventListener("message", handleMessage);
+        const duration = responseTimestamp - requestTimestamp;
 
         if (error) {
-          console.log(`[request] ERR ${route}`);
+          console.error(`[request] ERR ${route} | ${duration}ms`, error);
           reject(error);
         } else {
-          console.log(`[request] OK ${route} | ${responseTimestamp - requestTimestamp}ms`);
+          console.log(`[request] OK ${route} | ${duration}ms`);
           resolve(data);
         }
       };
@@ -32,6 +39,6 @@ export class WorkerClient {
   }
 
   subscribe() {
-    // TODO implement
+    throw new Error("Not implemented");
   }
 }

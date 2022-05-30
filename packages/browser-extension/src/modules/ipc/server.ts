@@ -1,7 +1,17 @@
-export class WorkerServer {
+export interface BaseRouteMap {
+  requests: {
+    [key: string]: [input: any, output: any];
+  };
+  subscriptions: never; // Not implemented
+}
+
+export type RequestInput<RouteMap extends BaseRouteMap, Route extends keyof RouteMap["requests"]> = RouteMap["requests"][Route][0];
+export type RequestOutput<RouteMap extends BaseRouteMap, Route extends keyof RouteMap["requests"]> = RouteMap["requests"][Route][1];
+
+export class WorkerServer<T extends BaseRouteMap> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  onRequest(route: string, handler: (data: any) => Promise<any>) {
+  onRequest<RouteName extends keyof T["requests"]>(route: RouteName, handler: (data: any) => Promise<any>) {
     this.eventTarget.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
@@ -33,6 +43,6 @@ export class WorkerServer {
   }
 
   onSubscribe() {
-    // TODO implement
+    throw new Error("Not implemented");
   }
 }
