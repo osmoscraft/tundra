@@ -1,7 +1,7 @@
 /// <reference lib="WebWorker" />
 
 import type { RequestRoutes } from "../interface/routes";
-import { WorkerServer } from "../ipc/server";
+import { WorkerServer } from "../lib/ipc/server";
 import { handleParseDocumentHtml } from "./routes/parse-docoument-html";
 
 declare const self: SharedWorkerGlobalScope;
