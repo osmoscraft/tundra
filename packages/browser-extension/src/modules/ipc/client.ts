@@ -1,13 +1,10 @@
-import type { BaseRouteMap } from "./server";
+import { BaseRouteMap } from "./server";
 
 export class WorkerClient<T extends BaseRouteMap> {
   constructor(private eventTarget: MessagePort | Worker) {}
 
-  async request<RouteName extends keyof T["requests"]>(
-    route: RouteName,
-    ...data: T["requests"][RouteName][0] extends void ? [] : [T["requests"][RouteName][0]]
-  ): Promise<T["requests"][RouteName][1]>;
-  async request<RouteName extends keyof T["requests"]>(route: RouteName, data?: T["requests"][RouteName][0]): Promise<T["requests"][RouteName][1]> {
+  async request<RouteName extends keyof T>(route: RouteName, ...data: T[RouteName][0] extends void ? [] : [T[RouteName][0]]): Promise<T[RouteName][1]>;
+  async request<RouteName extends keyof T>(route: RouteName, data?: T[RouteName][0]): Promise<T[RouteName][1]> {
     return new Promise((resolve, reject) => {
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();

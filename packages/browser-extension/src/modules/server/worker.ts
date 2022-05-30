@@ -1,16 +1,13 @@
 /// <reference lib="WebWorker" />
 
-import type { BaseRouteMap } from "../ipc/server";
 import { WorkerServer } from "../ipc/server";
 
 declare const self: SharedWorkerGlobalScope;
 
-export interface Routes extends BaseRouteMap {
-  requests: {
-    "test-route": [void, void];
-    "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
-  };
-}
+export type Routes = {
+  "test-route": [void, void];
+  "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
+};
 
 interface ParseDocumentHtmlInput {
   html: string;
