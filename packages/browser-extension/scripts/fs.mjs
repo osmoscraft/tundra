@@ -19,6 +19,16 @@ export async function getFilesRecursive(dir) {
 }
 
 /**
+ * @param {string} dir
+ * @param {string} extension including the "."
+ */
+export async function getFilesByExtension(dir, extension) {
+  const dirents = await fs.readdir(dir, { withFileTypes: true });
+  const files = dirents.filter((file) => !file.isDirectory() && path.extname(file.name) === extension).map((file) => path.join(dir, file.name));
+  return files;
+}
+
+/**
  *
  * @param {string} srcDir
  * @param {string} targetDir

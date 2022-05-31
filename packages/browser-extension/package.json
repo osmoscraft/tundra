@@ -10,5 +10,8 @@
     "@types/chrome": "^0.0.188",
     "@types/node": "^16.11.36",
     "esbuild": "^0.14.39"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.11"
   }
 }

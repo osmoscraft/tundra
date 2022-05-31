@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { OUT_DIR, UNPACKED_OUT_DIR } from "./config.mjs";
-import { copyDir, rmDir } from "./fs.mjs";
+import { copyDir, getFilesByExtension, rmDir } from "./fs.mjs";
 
 const isWatch = process.argv.includes("--watch");
 
@@ -24,15 +24,16 @@ const getWatcher = (isWatch, name) =>
     : undefined;
 
 async function build() {
-  console.log("[build] start building extension...");
+  console.log("[build] build started");
 
   console.log(`[build] remove ${OUT_DIR}`);
 
   await rmDir(OUT_DIR);
 
+  const mainEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".ts");
   const mainBuild = esbuild
     .build({
-      entryPoints: ["src/modules/client/popup.ts", "src/modules/client/options.ts"],
+      entryPoints: mainEntries,
       bundle: true,
       format: "esm",
       sourcemap: "inline",
@@ -41,9 +42,25 @@ async function build() {
       outdir: path.join(UNPACKED_OUT_DIR, "modules/client"),
     })
     .catch(() => process.exit(1))
-    .then(() => console.log(`[build] ui built`));
+    .then(() => console.log(`[build] main built`));
 
-  const webWorkerBuild = esbuild
+  const contentScriptEntries = await getFilesByExtension(path.resolve("src/modules/content-scripts"), ".ts");
+  const contentScriptBuild = esbuild
+    .build({
+      entryPoints: contentScriptEntries,
+      bundle: true,
+      format: "iife",
+      sourcemap: "inline",
+      globalName: "_contentScriptGlobal",
+      footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
+      watch: getWatcher(isWatch, "content script"),
+      minify: !isWatch,
+      outdir: path.join(UNPACKED_OUT_DIR, "modules/content-scripts"),
+    })
+    .catch(() => process.exit(1))
+    .then(() => console.log(`[build] content script built`));
+
+  const workerBuild = esbuild
     .build({
       entryPoints: ["src/modules/server/worker.ts"],
       bundle: true,
@@ -56,9 +73,10 @@ async function build() {
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] worker built`));
 
+  const styleEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".css");
   const styleBuild = esbuild
     .build({
-      entryPoints: ["src/modules/client/popup.css", "src/modules/client/options.css"],
+      entryPoints: styleEntries,
       bundle: true,
       sourcemap: "inline",
       watch: getWatcher(isWatch, "styles"),
@@ -109,7 +127,8 @@ async function build() {
       })();
   })();
 
-  await Promise.all([mainBuild, webWorkerBuild, styleBuild, assetBuild, manifestBuild]);
+  await Promise.all([mainBuild, contentScriptBuild, workerBuild, styleBuild, assetBuild, manifestBuild]);
+  console.log(`[build] build success`);
 }
 
 build();
