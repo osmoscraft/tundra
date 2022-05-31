@@ -7,7 +7,7 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
     this.eventTarget.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
-      if (!route === requestRoute) return;
+      if (route !== requestRoute) return;
 
       try {
         const responseData = await handler({ data });

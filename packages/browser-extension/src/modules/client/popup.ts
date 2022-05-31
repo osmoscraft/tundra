@@ -6,9 +6,9 @@ import { parseCurrentDocument } from "./lib/parse-current-document";
 export default async function main() {
   const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
   const proxyClient = new ProxyClient<ProxySchema>(worker.port);
-
   worker.port.start();
 
+  handleDataAction(proxyClient);
   parse(proxyClient);
 }
 
@@ -24,9 +24,27 @@ async function parse(proxyClient: ProxyClient<ProxySchema>) {
     parseCurrentDocument(currentTab.id),
   ]);
 
-  document.querySelector<HTMLHeadingElement>(`[data-value="title"]`)!.innerText = remoteParseResult.title ?? localParseResult.title;
+  document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value = remoteParseResult.title ?? localParseResult.title;
   document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value =
     remoteParseResult.canonicalUrl ?? localParseResult.canonicalUrl ?? localParseResult.url;
+}
+
+function handleDataAction(proxyClient: ProxyClient<ProxySchema>) {
+  window.addEventListener("click", async (e) => {
+    const actionTrigger = (e.target as HTMLElement)?.closest("[data-action]");
+    switch (actionTrigger?.getAttribute("data-action")) {
+      case "capture":
+        const id = await proxyClient.request("create-node", {
+          mediaType: "application/json",
+          content: JSON.stringify({
+            title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
+            url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
+          }),
+        });
+        console.log(id);
+        break;
+    }
+  });
 }
 
 main();
