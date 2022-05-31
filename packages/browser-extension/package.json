@@ -12,6 +12,8 @@
     "esbuild": "^0.14.39"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.11"
+    "@isomorphic-git/lightning-fs": "^4.6.0",
+    "cheerio": "^1.0.0-rc.11",
+    "isomorphic-git": "^1.17.2"
   }
 }
