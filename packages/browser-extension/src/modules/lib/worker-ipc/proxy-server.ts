@@ -1,7 +1,10 @@
 import type { PickKeysByValueType } from "../type-utils/pick-keys-by-value-type";
 
-export class ProxyServer<TSchema extends BaseProxySchema> {
-  constructor(private eventTarget: MessagePort | Worker) {}
+export interface ProxyServerConfig<TContext> {
+  onGetContext: () => Promise<TContext>;
+}
+export class ProxyServer<TSchema extends BaseProxySchema, TContext> {
+  constructor(private eventTarget: MessagePort | Worker, private config?: ProxyServerConfig<TContext>) {}
 
   onRequest<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(route: TRoute, handler: TSchema[TRoute]) {
     this.eventTarget.addEventListener("message", async (event) => {
@@ -10,7 +13,8 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
       if (route !== requestRoute) return;
 
       try {
-        const responseData = await handler({ data });
+        const context = await this.config?.onGetContext();
+        const responseData = await handler({ input: data, context });
 
         this.eventTarget.postMessage({
           nonce,
@@ -18,6 +22,8 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
           timestamp: Date.now(),
         });
       } catch (error) {
+        console.error(error);
+
         // We can't forward native error to the client due to Firefox limitation
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1556604
         const serializableError = {
@@ -37,4 +43,4 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
 
 export type BaseProxySchema = Record<string, RequestHandler>;
 
-export type RequestHandler<TIn = any, TOut = any> = (props: { data: TIn }) => Promise<TOut>;
+export type RequestHandler<TIn = any, TOut = any, TContext = any> = (props: { input: TIn; context: TContext }) => Promise<TOut>;

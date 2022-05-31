@@ -9,8 +9,8 @@ export interface ParseDocumentHtmlOutput {
   title?: string;
 }
 
-export const handleParseDocumentHtml: RequestHandler<ParseDocumentHtmlInput, ParseDocumentHtmlOutput> = async ({ data }) => {
-  const fetchedHtml = await (await fetch(data.url)).text();
+export const handleParseDocumentHtml: RequestHandler<ParseDocumentHtmlInput, ParseDocumentHtmlOutput> = async ({ input }) => {
+  const fetchedHtml = await (await fetch(input.url)).text();
 
   const $ = cheerio.load(fetchedHtml);
   const title = $("title").first().text();

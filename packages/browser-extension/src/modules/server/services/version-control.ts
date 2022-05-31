@@ -1,21 +1,23 @@
 import LightningFS from "@isomorphic-git/lightning-fs";
 // import http from "isomorphic-git/http/web";
 import git from "../lib/isomorphic-git/index.umd.min";
+import type { FileSystem } from "./file-system";
 
-export class GitService {
+export class VersionControl {
   private fs = new LightningFS("tinykb-fs");
-  constructor() {}
+
+  constructor(private fileSystem: FileSystem) {}
 
   async ensureRepo(repoName: string) {
     try {
       await git.log({
-        fs: this.fs,
+        fs: this.fileSystem.fs,
         dir: `/repos/${repoName}`,
       });
     } catch (error) {
       if (error instanceof git.Errors.NotFoundError) {
         git.init({
-          fs: this.fs,
+          fs: this.fileSystem.fs,
           dir: `/repos/${repoName}`,
         });
       } else {
@@ -36,13 +38,5 @@ export class GitService {
     //   },
 
     // const results = await fs.promises.readdir("/");
-  }
-
-  async addFile(repoName: string, path: string, content: any) {
-    return git.add({
-      fs: this.fs,
-      dir: `/repos/${repoName}`,
-      filepath: path,
-    });
   }
 }

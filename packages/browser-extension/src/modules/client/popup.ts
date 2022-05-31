@@ -10,6 +10,10 @@ export default async function main() {
 
   handleDataAction(proxyClient);
   parse(proxyClient);
+
+  const getNodesResponse = await proxyClient.request("get-nodes", {});
+  console.log(getNodesResponse);
+  showNodeList(getNodesResponse.nodes);
 }
 
 async function parse(proxyClient: ProxyClient<ProxySchema>) {
@@ -45,6 +49,14 @@ function handleDataAction(proxyClient: ProxyClient<ProxySchema>) {
         break;
     }
   });
+}
+
+function showNodeList(nodes: any[]) {
+  const nodeList = document.querySelector<HTMLUListElement>("#node-list");
+  if (!nodeList) throw new Error("Node list not found");
+
+  const nodesHtml = nodes.map((node) => `<li>${node?.title}</li>`).join("");
+  nodeList.innerHTML = nodesHtml;
 }
 
 main();
