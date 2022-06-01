@@ -21,16 +21,10 @@ async function parse(proxyClient: ProxyClient<ProxySchema>) {
   if (!currentTab?.id) throw new Error("Cannot find any active tab");
   if (!currentTab?.url) throw new Error("Cannot access current tab url");
 
-  const [remoteParseResult, localParseResult] = await Promise.all([
-    proxyClient.request("parse-document-html", {
-      url: currentTab.url,
-    }),
-    parseCurrentDocument(currentTab.id),
-  ]);
+  const localParseResult = await parseCurrentDocument(currentTab.id);
 
-  document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value = remoteParseResult.title ?? localParseResult.title;
-  document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value =
-    remoteParseResult.canonicalUrl ?? localParseResult.canonicalUrl ?? localParseResult.url;
+  document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value = localParseResult.title;
+  document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value = localParseResult.canonicalUrl ?? localParseResult.url;
 }
 
 function handleDataAction(proxyClient: ProxyClient<ProxySchema>) {

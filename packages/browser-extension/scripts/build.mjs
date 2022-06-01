@@ -44,7 +44,7 @@ async function build() {
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] main built`));
 
-  const contentScriptEntries = await getFilesByExtension(path.resolve("src/pages/content-scripts"), ".ts");
+  const contentScriptEntries = await getFilesByExtension(path.resolve("src/content-scripts"), ".ts");
   const contentScriptBuild = esbuild
     .build({
       entryPoints: contentScriptEntries,
@@ -55,7 +55,7 @@ async function build() {
       footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
       watch: getWatcher(isWatch, "content script"),
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "pages/content-scripts"),
+      outdir: path.join(UNPACKED_OUT_DIR, "content-scripts"),
     })
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] content script built`));

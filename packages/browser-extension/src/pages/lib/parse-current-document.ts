@@ -1,4 +1,4 @@
-import type { DocumentDetails } from "../content-scripts/get-document-details";
+import type { DocumentDetails } from "../../content-scripts/get-document-details";
 import { withTimer } from "./with-timer";
 
 export async function parseCurrentDocument(tabId: number) {
@@ -6,9 +6,9 @@ export async function parseCurrentDocument(tabId: number) {
     () =>
       chrome.scripting.executeScript({
         target: { tabId },
-        files: ["./pages/content-scripts/get-document-details.js"],
+        files: ["content-scripts/get-document-details.js"],
       }),
-    (d) => console.log(`[execute-script] ${d}ms`)
+    (d) => console.log(`[execute-script] file ${d}ms`)
   )();
 
   const result = documentDetailsResult.result;

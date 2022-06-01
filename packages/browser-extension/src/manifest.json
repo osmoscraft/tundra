@@ -21,6 +21,6 @@
   "background": {
     "service_worker": "workers/service-worker.js"
   },
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "webNavigation"],
   "host_permissions": ["*://*/*"]
 }
