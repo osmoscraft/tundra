@@ -1,6 +1,6 @@
 import type { RequestHandler } from "../../lib/worker-ipc/proxy-server";
 import { tempRepoName } from "../services/config";
-import type { ProxyServerContext } from "../worker";
+import type { ProxyServerContext } from "../shared-worker";
 
 export interface CreateNodeInput {
   mediaType: "application/json"; // With potential extensibility to html, yaml, markdown, plaintext

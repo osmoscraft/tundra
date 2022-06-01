@@ -30,7 +30,7 @@ async function build() {
 
   await rmDir(OUT_DIR);
 
-  const mainEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".ts");
+  const mainEntries = await getFilesByExtension(path.resolve("src/pages"), ".ts");
   const mainBuild = esbuild
     .build({
       entryPoints: mainEntries,
@@ -39,12 +39,12 @@ async function build() {
       sourcemap: "inline",
       watch: getWatcher(isWatch, "main"),
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/client"),
+      outdir: path.join(UNPACKED_OUT_DIR, "pages"),
     })
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] main built`));
 
-  const contentScriptEntries = await getFilesByExtension(path.resolve("src/modules/content-scripts"), ".ts");
+  const contentScriptEntries = await getFilesByExtension(path.resolve("src/pages/content-scripts"), ".ts");
   const contentScriptBuild = esbuild
     .build({
       entryPoints: contentScriptEntries,
@@ -55,25 +55,26 @@ async function build() {
       footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
       watch: getWatcher(isWatch, "content script"),
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/content-scripts"),
+      outdir: path.join(UNPACKED_OUT_DIR, "pages/content-scripts"),
     })
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] content script built`));
 
+  const workerScriptEntries = await getFilesByExtension(path.resolve("src/workers"), ".ts");
   const workerBuild = esbuild
     .build({
-      entryPoints: ["src/modules/server/worker.ts"],
+      entryPoints: workerScriptEntries,
       bundle: true,
       format: "iife",
       sourcemap: "inline",
       watch: getWatcher(isWatch, "worker"),
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/server"),
+      outdir: path.join(UNPACKED_OUT_DIR, "workers"),
     })
     .catch(() => process.exit(1))
     .then(() => console.log(`[build] worker built`));
 
-  const styleEntries = await getFilesByExtension(path.resolve("src/modules/client"), ".css");
+  const styleEntries = await getFilesByExtension(path.resolve("src/pages"), ".css");
   const styleBuild = esbuild
     .build({
       entryPoints: styleEntries,
@@ -81,7 +82,7 @@ async function build() {
       sourcemap: "inline",
       watch: getWatcher(isWatch, "styles"),
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/client"),
+      outdir: path.join(UNPACKED_OUT_DIR, "pages"),
     })
     .catch(() => process.exit(1))
     .then(() => {

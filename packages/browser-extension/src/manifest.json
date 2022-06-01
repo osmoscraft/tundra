@@ -18,6 +18,9 @@
     "128": "/images/icon@128.png"
   },
   "options_page": "options.html",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "background": {
+    "service_worker": "workers/service-worker.js"
+  },
+  "permissions": ["activeTab", "scripting"],
   "host_permissions": ["*://*/*"]
 }

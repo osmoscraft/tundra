@@ -1,4 +1,4 @@
-import type { PickKeysByValueType } from "../type-utils/pick-keys-by-value-type";
+import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 
 export interface ProxyServerConfig<TContext> {
   onGetContext: () => Promise<TContext>;

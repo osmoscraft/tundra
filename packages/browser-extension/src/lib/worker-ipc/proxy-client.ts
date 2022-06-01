@@ -1,4 +1,4 @@
-import type { PickKeysByValueType } from "../type-utils/pick-keys-by-value-type";
+import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 import type { BaseProxySchema, RequestHandler } from "./proxy-server";
 
 export class ProxyClient<TSchema extends BaseProxySchema> {

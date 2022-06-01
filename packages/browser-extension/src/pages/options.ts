@@ -1,5 +1,5 @@
 const bc = new BroadcastChannel("shared-channel");
-const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
+const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
 
 let start = 0;
 

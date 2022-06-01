@@ -1,10 +1,10 @@
 import { ProxyClient } from "../lib/worker-ipc/proxy-client";
-import type { ProxySchema } from "../server/worker";
+import type { ProxySchema } from "../workers/shared-worker";
 import { getCurrentTab } from "./lib/get-current-tab";
 import { parseCurrentDocument } from "./lib/parse-current-document";
 
 export default async function main() {
-  const worker = new SharedWorker("./modules/server/worker.js", { name: "tinykb-worker" });
+  const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
   const proxyClient = new ProxyClient<ProxySchema>(worker.port);
   worker.port.start();
 
