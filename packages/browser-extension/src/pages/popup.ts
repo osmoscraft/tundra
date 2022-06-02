@@ -1,7 +1,6 @@
 import { ProxyClient } from "../lib/worker-ipc/proxy-client";
 import type { ProxySchema } from "../workers/shared-worker";
 import { getCurrentTab } from "./lib/get-current-tab";
-import { parseCurrentDocument } from "./lib/parse-current-document";
 
 export default async function main() {
   const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
@@ -9,22 +8,20 @@ export default async function main() {
   worker.port.start();
 
   handleDataAction(proxyClient);
-  parse(proxyClient);
+  parse();
 
   const getNodesResponse = await proxyClient.request("get-nodes", {});
-  console.log(getNodesResponse);
   showNodeList(getNodesResponse.nodes);
 }
 
-async function parse(proxyClient: ProxyClient<ProxySchema>) {
+async function parse() {
   const currentTab = await getCurrentTab();
-  if (!currentTab?.id) throw new Error("Cannot find any active tab");
-  if (!currentTab?.url) throw new Error("Cannot access current tab url");
+  if (!currentTab?.url) return;
 
-  const localParseResult = await parseCurrentDocument(currentTab.id);
+  const { url, title = "" } = currentTab;
 
-  document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value = localParseResult.title;
-  document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value = localParseResult.canonicalUrl ?? localParseResult.url;
+  document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value = title;
+  document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value = url;
 }
 
 function handleDataAction(proxyClient: ProxyClient<ProxySchema>) {
