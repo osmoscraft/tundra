@@ -14,7 +14,7 @@ Some SPA routed web app does not reflect the latest URL in the document `<head>`
    - `storage` for tracking which tabs are dirty
    - `scripting` for marking a document as dirty
 
-# Decision
+## High-touch solution
 
 - Use `webNavigation` and `scripting` together.
 - When push/replace state happens, `webNavigation` fires, and injects a script to set a flag on the document object.
@@ -23,3 +23,16 @@ Some SPA routed web app does not reflect the latest URL in the document `<head>`
 - Future improvements:
   1. Distinguish push vs. replace. The latter shouldn't require the fetch
   2. Reducing fetch latency by pre-cache the URL. But we need to avoid this on metered network.
+  3. Use mutation observer to detect `<head>` element change and determine whether it's out of sync
+
+## Low-touch soluion
+
+- Use url and title from activeTab, which are always fresh
+- Don't worry about other metadata fields, including canonical URL and description
+- Future improvement
+  - On demand, request scripting permissing to crawl the DOM
+  - On the backend, asynchronously crawl the URL and update the "final" record
+
+# Decision
+
+Go with low-touch solution. Augment with backend crawling if needed.
