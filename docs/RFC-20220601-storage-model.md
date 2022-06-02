@@ -63,3 +63,23 @@
   - Audit wrapper complexity
   - Parsing step required for querying
   - Difficult to debug storage content
+
+## Combined solution
+
+- FS Module:
+  - LightningFS or BrowserFS, with File based model
+  - All write operations go through an audit layer
+  - Not aware of business logic (no idea about graph, nodes, edges)
+  - Expose file watcher hooks
+- Graph Module:
+  - On-disk persistence with Indexed DB (potentially Dexie)
+  - Optional query enhancement with FlexSearch
+    - Index can be persisted as binary in a standalone Indexed DB
+  - Using wathcer hooks to update Graph Module and search index
+- Sync module:
+  - Optional add-on
+  - Integrate with FS Module read and write API
+- Dependency graph
+  FS Module <- Sync Module
+  FS Module <- Graph Module
+  Graph Module -x- Sync module
