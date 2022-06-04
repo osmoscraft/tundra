@@ -2,19 +2,19 @@ import type { PromisifiedFS } from "@isomorphic-git/lightning-fs";
 
 type ChangeRecord = WriteFileRecord | UnlinkRecord | MkdirRecord | RmdirRecord;
 type WriteFileRecord = {
-  method: "writeFile";
+  action: "writeFile";
   args: Parameters<PromisifiedFS["writeFile"]>;
 };
 type UnlinkRecord = {
-  method: "unlink";
+  action: "unlink";
   args: Parameters<PromisifiedFS["unlink"]>;
 };
 type MkdirRecord = {
-  method: "mkdir";
+  action: "mkdir";
   args: Parameters<PromisifiedFS["mkdir"]>;
 };
 type RmdirRecord = {
-  method: "rmdir";
+  action: "rmdir";
   args: Parameters<PromisifiedFS["rmdir"]>;
 };
 
@@ -49,7 +49,7 @@ export class ObservableFileSystem {
     return (async (...args: Parameters<PromisifiedFS[Method]>) => {
       const result = await (this.config.fsp[method] as any)(...args);
       this.config.onChange({
-        method,
+        action: method,
         args,
       } as ChangeRecord);
 
