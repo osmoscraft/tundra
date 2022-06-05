@@ -1,20 +1,18 @@
 import type { RequestHandler } from "../../lib/worker-ipc/proxy-server";
-import { tempRepoName } from "../services/config";
-import type { ProxyServerContext } from "../shared-worker";
+import type { GraphNode } from "../services/graph";
 
 export interface GetNodesInput {
   limit?: number;
 }
 export interface GetNodesOutput {
-  nodes: any[];
+  nodes: GraphNode[];
 }
 
-export const handleGetNodes: RequestHandler<GetNodesInput, GetNodesOutput, ProxyServerContext> = async ({ input, context }) => {
-  const files = await context.fileSystem.listFiles(tempRepoName);
-  // FIXME this won't work with dynamic media type
-  const nodes = files.map((file) => JSON.parse(file));
-
+export const handleGetNodes: RequestHandler<GetNodesInput, GetNodesOutput> = async ({ input }) => {
   return {
-    nodes,
+    nodes: [
+      { id: "1", title: "test node 1", url: "https://bing.com" },
+      { id: "2", title: "test node 2", url: "https://bing.com" },
+    ],
   };
 };

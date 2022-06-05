@@ -2,14 +2,11 @@
 
 import LightningFS from "@isomorphic-git/lightning-fs";
 import { ProxyServer, RequestHandler } from "../lib/worker-ipc/proxy-server";
-import { CreateNodeInput, CreateNodeOutput, handleCreateNode } from "./routes/create-node";
-import { GetNodesInput, GetNodesOutput, handleGetNodes } from "./routes/get-nodes";
-import { handleParseDocumentHtml, ParseDocumentHtmlInput, ParseDocumentHtmlOutput } from "./routes/parse-docoument-html";
-import { tempRepoName } from "./services/config";
-import { FileSystem } from "./services/file-system";
-import { Graph } from "./services/graph";
-import { ObservableFileSystem } from "./services/observable-file-system";
-import { VersionControl } from "./services/version-control";
+import type { CreateNodeInput, CreateNodeOutput } from "./routes/create-node";
+import type { GetNodesInput, GetNodesOutput } from "./routes/get-nodes";
+import type { ParseDocumentHtmlInput, ParseDocumentHtmlOutput } from "./routes/parse-docoument-html";
+import { Graph, GraphNode, RequestWriteDetails } from "./services/graph";
+import { ChangeDetails, ObservableFileSystem } from "./services/observable-file-system";
 
 declare const self: SharedWorkerGlobalScope;
 
@@ -19,71 +16,52 @@ export type ProxySchema = {
   "get-nodes": RequestHandler<GetNodesInput, GetNodesOutput>;
 };
 
-export interface ProxyServerContextV2 {
-  ofs: ObservableFileSystem;
-  graph: Graph;
-}
-
-async function main2() {
+async function main() {
   const graph = new Graph({});
   const ofs = new ObservableFileSystem({
     fsp: new LightningFS().promises,
-    onChange: (record) => {
-      // map fs change to graph operation
-      switch (record.action) {
-        case "writeFile":
-          graph.writeNode();
-      }
-    },
+  });
+
+  graph.addEventListener("request-write", (e) => {
+    const requestDetails = (e as CustomEvent<RequestWriteDetails>).detail;
+    const filePath = requestDetails.id + ".json";
+    const content = requestDetails.content;
+    ofs.writeFile(filePath, content);
+  });
+
+  ofs.addEventListener("change", (e) => {
+    const changeRecord = (e as CustomEvent<ChangeDetails>).detail;
+    switch (changeRecord.action) {
+      case "writeFile":
+        const [id, content] = changeRecord.args;
+        graph.writeNode(parseNode(id, content as string));
+        break;
+    }
   });
 
   self.addEventListener("connect", (connectEvent) => {
     const port = connectEvent.ports[0];
 
-    const proxyServer = new ProxyServer<ProxySchema, ProxyServerContextV2>(port, {
-      onGetContext: async () => ({
-        ofs,
-        graph,
-      }),
-    });
+    const proxyServer = new ProxyServer<ProxySchema>(port);
 
-    proxyServer.onRequest("get-nodes", handleGetNodes);
-    proxyServer.onRequest("parse-document-html", handleParseDocumentHtml);
-    proxyServer.onRequest("create-node", handleCreateNode);
+    proxyServer.onRequest("get-nodes", async ({ input }) => ({
+      nodes: [],
+    }));
+
+    proxyServer.onRequest("create-node", async ({ input }) => {
+      return { id: "123" };
+    });
 
     port.start();
   });
 }
 
-export interface ProxyServerContext {
-  fileSystem: FileSystem;
-  versionControl: VersionControl;
-}
-
-async function main() {
-  const fileSystem = new FileSystem();
-
-  const versionControl = new VersionControl(fileSystem);
-
-  fileSystem.ensureRepo(tempRepoName);
-
-  self.addEventListener("connect", (connectEvent) => {
-    const port = connectEvent.ports[0];
-
-    const proxyServer = new ProxyServer<ProxySchema, ProxyServerContext>(port, {
-      onGetContext: async () => ({
-        fileSystem,
-        versionControl,
-      }),
-    });
-
-    proxyServer.onRequest("get-nodes", handleGetNodes);
-    proxyServer.onRequest("parse-document-html", handleParseDocumentHtml);
-    proxyServer.onRequest("create-node", handleCreateNode);
-
-    port.start();
-    // TODO investigate how to port.close() and prevent mem leak
-  });
+function parseNode(id: string, content: string): GraphNode {
+  return {
+    id,
+    title: "Mock",
+    url: "https://bing.com",
+  };
 }
 
 main();

@@ -1,11 +1,38 @@
 export interface GraphConfig {}
 
-export class Graph {
-  constructor(private config: GraphConfig) {}
+export interface GraphNode {
+  id: string;
+  title: string;
+  url: string;
+}
+
+export interface RequestWriteDetails {
+  id: string;
+  content: string;
+}
+
+export class Graph extends EventTarget {
+  constructor(private config: GraphConfig) {
+    super();
+  }
 
   readNode() {}
+
   deleteNode() {}
-  writeNode() {}
+
+  writeNode(node: GraphNode) {
+    const content = JSON.stringify(node);
+    this.dispatchEvent(
+      new CustomEvent("request-write", {
+        detail: {
+          id: node.id,
+          content,
+        },
+      })
+    );
+  }
+
   listNodes() {}
+
   searchNodes() {}
 }

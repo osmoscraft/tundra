@@ -1,6 +1,6 @@
 import LightningFS from "@isomorphic-git/lightning-fs";
 // import http from "isomorphic-git/http/web";
-import git from "../lib/isomorphic-git/index.umd.min";
+import git from "../vendor/isomorphic-git/index.umd.min";
 import type { FileSystem } from "./file-system";
 import { ObservableFileSystem } from "./observable-file-system";
 
@@ -8,7 +8,6 @@ export class VersionControl {
   private fs = {
     promises: new ObservableFileSystem({
       fsp: new LightningFS("tinykb-fs").promises,
-      onChange: () => {},
     }),
   };
 

@@ -1,28 +1,31 @@
 import type { PromisifiedFS } from "@isomorphic-git/lightning-fs";
 
-type ChangeRecord = WriteFileRecord | UnlinkRecord | MkdirRecord | RmdirRecord;
-type WriteFileRecord = {
+export type ChangeDetails = WriteFileDetails | UnlinkDetailes | MkdirDetails | RmdirDetails;
+type BaseChangeDetails = {
+  action: string;
+  args: any[];
+};
+interface WriteFileDetails extends BaseChangeDetails {
   action: "writeFile";
   args: Parameters<PromisifiedFS["writeFile"]>;
-};
-type UnlinkRecord = {
+}
+interface UnlinkDetailes extends BaseChangeDetails {
   action: "unlink";
   args: Parameters<PromisifiedFS["unlink"]>;
-};
-type MkdirRecord = {
+}
+interface MkdirDetails extends BaseChangeDetails {
   action: "mkdir";
   args: Parameters<PromisifiedFS["mkdir"]>;
-};
-type RmdirRecord = {
+}
+interface RmdirDetails extends BaseChangeDetails {
   action: "rmdir";
   args: Parameters<PromisifiedFS["rmdir"]>;
-};
+}
 
 export interface FileSystemWrapperConfig {
   fsp: PromisifiedFS;
-  onChange: (record: ChangeRecord) => void;
 }
-export class ObservableFileSystem {
+export class ObservableFileSystem extends EventTarget {
   init: PromisifiedFS["init"];
   readdir: PromisifiedFS["readdir"];
   readFile: PromisifiedFS["readFile"];
@@ -34,6 +37,8 @@ export class ObservableFileSystem {
   rmdir: PromisifiedFS["rmdir"];
 
   constructor(private config: FileSystemWrapperConfig) {
+    super();
+
     this.init = this.config.fsp.init.bind(this.config.fsp);
     this.readdir = this.config.fsp.readdir.bind(this.config.fsp);
     this.readFile = this.config.fsp.readFile.bind(this.config.fsp);
@@ -45,13 +50,17 @@ export class ObservableFileSystem {
     this.rmdir = this.wrap("rmdir");
   }
 
-  private wrap<Method extends Extract<keyof PromisifiedFS, string>>(method: Method): PromisifiedFS[Method] {
-    return (async (...args: Parameters<PromisifiedFS[Method]>) => {
-      const result = await (this.config.fsp[method] as any)(...args);
-      this.config.onChange({
-        action: method,
-        args,
-      } as ChangeRecord);
+  private wrap<Action extends Extract<keyof PromisifiedFS, string>>(action: Action): PromisifiedFS[Action] {
+    return (async (...args: Parameters<PromisifiedFS[Action]>) => {
+      const result = await (this.config.fsp[action] as any)(...args);
+      this.dispatchEvent(
+        new CustomEvent<BaseChangeDetails>("change", {
+          detail: {
+            action,
+            args,
+          },
+        })
+      );
 
       return result;
     }) as any;

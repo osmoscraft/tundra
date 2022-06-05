@@ -1,10 +1,8 @@
 import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 
-export interface ProxyServerConfig<TContext> {
-  onGetContext: () => Promise<TContext>;
-}
-export class ProxyServer<TSchema extends BaseProxySchema, TContext> {
-  constructor(private eventTarget: MessagePort | Worker, private config?: ProxyServerConfig<TContext>) {}
+export interface ProxyServerConfig {}
+export class ProxyServer<TSchema extends BaseProxySchema> {
+  constructor(private eventTarget: MessagePort | Worker, private config?: ProxyServerConfig) {}
 
   onRequest<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(route: TRoute, handler: TSchema[TRoute]) {
     this.eventTarget.addEventListener("message", async (event) => {
@@ -13,8 +11,7 @@ export class ProxyServer<TSchema extends BaseProxySchema, TContext> {
       if (route !== requestRoute) return;
 
       try {
-        const context = await this.config?.onGetContext();
-        const responseData = await handler({ input: data, context });
+        const responseData = await handler({ input: data });
 
         this.eventTarget.postMessage({
           nonce,
@@ -43,4 +40,4 @@ export class ProxyServer<TSchema extends BaseProxySchema, TContext> {
 
 export type BaseProxySchema = Record<string, RequestHandler>;
 
-export type RequestHandler<TIn = any, TOut = any, TContext = any> = (props: { input: TIn; context: TContext }) => Promise<TOut>;
+export type RequestHandler<TIn = any, TOut = any> = (props: { input: TIn }) => Promise<TOut>;
