@@ -35,4 +35,12 @@ export class Graph extends EventTarget {
   listNodes() {}
 
   searchNodes() {}
+
+  parseNode(id: string, content: string): GraphNode {
+    return {
+      id,
+      title: "Mock",
+      url: "https://bing.com",
+    };
+  }
 }

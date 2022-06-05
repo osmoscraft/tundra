@@ -1,19 +1,19 @@
 /// <reference lib="WebWorker" />
 
 import LightningFS from "@isomorphic-git/lightning-fs";
-import { ProxyServer, RequestHandler } from "../lib/worker-ipc/proxy-server";
+import { getRequestHandler } from "./lib/message";
 import type { CreateNodeInput, CreateNodeOutput } from "./routes/create-node";
 import type { GetNodesInput, GetNodesOutput } from "./routes/get-nodes";
 import type { ParseDocumentHtmlInput, ParseDocumentHtmlOutput } from "./routes/parse-docoument-html";
-import { Graph, GraphNode, RequestWriteDetails } from "./services/graph";
+import { Graph, RequestWriteDetails } from "./services/graph";
 import { ChangeDetails, ObservableFileSystem } from "./services/observable-file-system";
 
 declare const self: SharedWorkerGlobalScope;
 
-export type ProxySchema = {
-  "parse-document-html": RequestHandler<ParseDocumentHtmlInput, ParseDocumentHtmlOutput>;
-  "create-node": RequestHandler<CreateNodeInput, CreateNodeOutput>;
-  "get-nodes": RequestHandler<GetNodesInput, GetNodesOutput>;
+export type MessageSchema = {
+  "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
+  "create-node": [CreateNodeInput, CreateNodeOutput];
+  "get-nodes": [GetNodesInput, GetNodesOutput];
 };
 
 async function main() {
@@ -34,34 +34,33 @@ async function main() {
     switch (changeRecord.action) {
       case "writeFile":
         const [id, content] = changeRecord.args;
-        graph.writeNode(parseNode(id, content as string));
+        graph.writeNode(graph.parseNode(id, content as string));
         break;
     }
+  });
+
+  const handleGetNodes = getRequestHandler<MessageSchema, "get-nodes">(async () => {
+    return {
+      nodes: [],
+    };
   });
 
   self.addEventListener("connect", (connectEvent) => {
     const port = connectEvent.ports[0];
 
-    const proxyServer = new ProxyServer<ProxySchema>(port);
+    port.addEventListener("message", async (message) => {
+      const { type, data } = message;
 
-    proxyServer.onRequest("get-nodes", async ({ input }) => ({
-      nodes: [],
-    }));
-
-    proxyServer.onRequest("create-node", async ({ input }) => {
-      return { id: "123" };
+      switch (type as keyof MessageSchema) {
+        case "get-nodes":
+          const response = await handleGetNodes(data);
+          port.postMessage(response);
+          break;
+      }
     });
 
     port.start();
   });
-}
-
-function parseNode(id: string, content: string): GraphNode {
-  return {
-    id,
-    title: "Mock",
-    url: "https://bing.com",
-  };
 }
 
 main();

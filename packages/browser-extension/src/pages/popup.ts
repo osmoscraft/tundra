@@ -1,10 +1,10 @@
 import { ProxyClient } from "../lib/worker-ipc/proxy-client";
-import type { ProxySchema } from "../workers/shared-worker";
+import type { MessageSchema } from "../workers/shared-worker";
 import { getCurrentTab } from "./lib/get-current-tab";
 
 export default async function main() {
   const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
-  const proxyClient = new ProxyClient<ProxySchema>(worker.port);
+  const proxyClient = new ProxyClient<MessageSchema>(worker.port);
   worker.port.start();
 
   handleDataAction(proxyClient);
@@ -24,7 +24,7 @@ async function parse() {
   document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value = url;
 }
 
-function handleDataAction(proxyClient: ProxyClient<ProxySchema>) {
+function handleDataAction(proxyClient: ProxyClient<MessageSchema>) {
   window.addEventListener("click", async (e) => {
     const actionTrigger = (e.target as HTMLElement)?.closest("[data-action]");
     switch (actionTrigger?.getAttribute("data-action")) {
