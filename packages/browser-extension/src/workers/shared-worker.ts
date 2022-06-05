@@ -1,19 +1,19 @@
 /// <reference lib="WebWorker" />
 
 import LightningFS from "@isomorphic-git/lightning-fs";
-import { getRequestHandler } from "./lib/message";
+import { getMessageHandler } from "./lib/message";
 import type { CreateNodeInput, CreateNodeOutput } from "./routes/create-node";
-import type { GetNodesInput, GetNodesOutput } from "./routes/get-nodes";
+import type { GetNodesOutput } from "./routes/get-nodes";
 import type { ParseDocumentHtmlInput, ParseDocumentHtmlOutput } from "./routes/parse-docoument-html";
 import { Graph, RequestWriteDetails } from "./services/graph";
 import { ChangeDetails, ObservableFileSystem } from "./services/observable-file-system";
 
 declare const self: SharedWorkerGlobalScope;
 
-export type MessageSchema = {
+export type RouteSchema = {
   "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
   "create-node": [CreateNodeInput, CreateNodeOutput];
-  "get-nodes": [GetNodesInput, GetNodesOutput];
+  "get-nodes": [undefined, GetNodesOutput];
 };
 
 async function main() {
@@ -39,9 +39,18 @@ async function main() {
     }
   });
 
-  const handleGetNodes = getRequestHandler<MessageSchema, "get-nodes">(async () => {
+  const handleGetNodes = getMessageHandler<RouteSchema, "get-nodes">(async () => {
     return {
-      nodes: [],
+      nodes: [
+        { title: "node 1", id: "1", url: "https://www.bing.com" },
+        { title: "node 2", id: "2", url: "https://www.bing.com" },
+      ],
+    };
+  });
+
+  const handleCreateNode = getMessageHandler<RouteSchema, "create-node">(async () => {
+    return {
+      id: "111",
     };
   });
 
@@ -49,13 +58,13 @@ async function main() {
     const port = connectEvent.ports[0];
 
     port.addEventListener("message", async (message) => {
-      const { type, data } = message;
+      const { data } = message;
 
-      switch (type as keyof MessageSchema) {
+      switch (data.route as keyof RouteSchema) {
         case "get-nodes":
-          const response = await handleGetNodes(data);
-          port.postMessage(response);
-          break;
+          return port.postMessage(await handleGetNodes(message));
+        case "create-node":
+          return port.postMessage(await handleCreateNode(message));
       }
     });
 
