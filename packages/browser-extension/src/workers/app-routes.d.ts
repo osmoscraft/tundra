@@ -1,7 +1,8 @@
-import type { BaseProxySchema, RouteHandler } from "./messaging/proxy-server";
+import type { BaseProxySchema, RouteHandler } from "./lib/messaging/proxy-server";
 export interface AppRoutes extends BaseProxySchema {
   "create-node": RouteHandler<CreateNodeInput, CreateNodeOutput>;
   "get-nodes": RouteHandler<GetNodesInput, GetNodesOutput>;
+  "get-status": RouteHandler<undefined, GetStatusOutput>;
 }
 
 export interface CreateNodeInput {
@@ -22,4 +23,8 @@ export interface GetNodesOutput {
     title: string;
     url: string;
   }[];
+}
+
+export interface GetStatusOtuput {
+  status: any;
 }
