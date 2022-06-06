@@ -14,11 +14,11 @@ export default async function main() {
     switch (actionTrigger?.getAttribute("data-action")) {
       case "capture":
         const content = JSON.stringify({
-          id: crypto.randomUUID(),
           title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
         });
         await proxy.request(worker.port, "create-node", {
+          id: crypto.randomUUID(),
           content,
         });
         break;

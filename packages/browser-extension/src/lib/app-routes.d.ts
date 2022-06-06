@@ -5,6 +5,7 @@ export interface AppRoutes extends BaseProxySchema {
 }
 
 export interface CreateNodeInput {
+  id: string;
   content: string;
 }
 

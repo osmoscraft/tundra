@@ -3,6 +3,7 @@
 import LightningFS from "@isomorphic-git/lightning-fs";
 import type { AppRoutes, CreateNodeInput, CreateNodeOutput, GetNodesInput, GetNodesOutput } from "../lib/app-routes";
 import { ProxyServer, RouteHandler } from "../lib/messaging/proxy-server";
+import { Graph } from "./services/graph";
 import { ObservableFileSystem } from "./services/observable-file-system";
 
 declare const self: SharedWorkerGlobalScope;
@@ -11,32 +12,23 @@ async function main() {
   const fs = new ObservableFileSystem({
     fsp: new LightningFS().promises,
   });
+  fs.init("tinykb-fs");
+  const graph = new Graph({ fs });
   const proxy = new ProxyServer<AppRoutes>();
 
   const handleCreateNode: RouteHandler<CreateNodeInput, CreateNodeOutput> = async ({ input }) => {
-    const { content } = input;
-    const node = JSON.parse(content);
-    // TODO write to disk
+    const { id, content } = input;
+    graph.writeNode(id, content);
 
     return {
-      id: node.id,
+      id,
     };
   };
 
   const handleGetNodes: RouteHandler<GetNodesInput, GetNodesOutput> = async ({ input }) => {
+    const nodes = await graph.listNodes();
     return {
-      nodes: [
-        {
-          title: "test-1",
-          id: "1",
-          url: "https://bing.com",
-        },
-        {
-          title: "test-2",
-          id: "2",
-          url: "https://bing.com",
-        },
-      ],
+      nodes,
     };
   };
 
