@@ -1,10 +1,10 @@
-import { getMessageSender } from "../workers/lib/message";
-import type { RouteSchema } from "../workers/shared-worker";
+import type { AppRoutes } from "../lib/app-routes";
+import { ProxyClient } from "../lib/messaging/proxy-client";
 import { getCurrentTab } from "./lib/get-current-tab";
 
 export default async function main() {
   const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
-  const sendMessage = getMessageSender<RouteSchema>(worker.port);
+  const proxy = new ProxyClient<AppRoutes>();
   worker.port.start();
 
   parse();
@@ -17,7 +17,7 @@ export default async function main() {
           title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
         });
-        const output = await sendMessage("create-node", {
+        const output = await proxy.request(worker.port, "create-node", {
           mediaType: "application/json",
           content,
         });
@@ -26,7 +26,7 @@ export default async function main() {
     }
   });
 
-  const getNodesResult = await sendMessage("get-nodes");
+  const getNodesResult = await proxy.request(worker.port, "get-nodes", {});
   const nodeList = document.querySelector<HTMLUListElement>("#node-list");
   if (!nodeList) throw new Error("Node list not found");
 

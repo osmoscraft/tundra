@@ -1,35 +1,28 @@
 /// <reference lib="WebWorker" />
 
 import LightningFS from "@isomorphic-git/lightning-fs";
-import { getMessageHandler } from "./lib/message";
-import type { CreateNodeInput, CreateNodeOutput } from "./routes/create-node";
-import type { GetNodesOutput } from "./routes/get-nodes";
-import type { ParseDocumentHtmlInput, ParseDocumentHtmlOutput } from "./routes/parse-docoument-html";
+import type { AppRoutes, CreateNodeInput, CreateNodeOutput, GetNodesInput, GetNodesOutput } from "../lib/app-routes";
+import { ProxyServer, RouteHandler } from "../lib/messaging/proxy-server";
 import { Graph, RequestWriteDetails } from "./services/graph";
 import { ChangeDetails, ObservableFileSystem } from "./services/observable-file-system";
 
 declare const self: SharedWorkerGlobalScope;
-
-export type RouteSchema = {
-  "parse-document-html": [ParseDocumentHtmlInput, ParseDocumentHtmlOutput];
-  "create-node": [CreateNodeInput, CreateNodeOutput];
-  "get-nodes": [undefined, GetNodesOutput];
-};
 
 async function main() {
   const graph = new Graph({});
   const ofs = new ObservableFileSystem({
     fsp: new LightningFS().promises,
   });
+  const proxy = new ProxyServer<AppRoutes>();
 
-  graph.addEventListener("request-write", (e) => {
+  const handleGraphRequestWrite: EventListener = (e) => {
     const requestDetails = (e as CustomEvent<RequestWriteDetails>).detail;
     const filePath = requestDetails.id + ".json";
     const content = requestDetails.content;
     ofs.writeFile(filePath, content);
-  });
+  };
 
-  ofs.addEventListener("change", (e) => {
+  const handleFileSystemChange: EventListener = (e) => {
     const changeRecord = (e as CustomEvent<ChangeDetails>).detail;
     switch (changeRecord.action) {
       case "writeFile":
@@ -37,36 +30,28 @@ async function main() {
         graph.writeNode(graph.parseNode(id, content as string));
         break;
     }
-  });
+  };
 
-  const handleGetNodes = getMessageHandler<RouteSchema, "get-nodes">(async () => {
+  const handleCreateNode: RouteHandler<CreateNodeInput, CreateNodeOutput> = async ({ input }) => {
     return {
-      nodes: [
-        { title: "node 1", id: "1", url: "https://www.bing.com" },
-        { title: "node 2", id: "2", url: "https://www.bing.com" },
-      ],
+      id: "mock-id",
     };
-  });
+  };
 
-  const handleCreateNode = getMessageHandler<RouteSchema, "create-node">(async () => {
+  const handleGetNodes: RouteHandler<GetNodesInput, GetNodesOutput> = async ({ input }) => {
     return {
-      id: "111",
+      nodes: [],
     };
-  });
+  };
+
+  graph.addEventListener("request-write", handleGraphRequestWrite);
+  ofs.addEventListener("change", handleFileSystemChange);
 
   self.addEventListener("connect", (connectEvent) => {
     const port = connectEvent.ports[0];
 
-    port.addEventListener("message", async (message) => {
-      const { data } = message;
-
-      switch (data.route as keyof RouteSchema) {
-        case "get-nodes":
-          return port.postMessage(await handleGetNodes(message));
-        case "create-node":
-          return port.postMessage(await handleCreateNode(message));
-      }
-    });
+    proxy.onRequest(port, "create-node", handleCreateNode);
+    proxy.onRequest(port, "get-nodes", handleGetNodes);
 
     port.start();
   });

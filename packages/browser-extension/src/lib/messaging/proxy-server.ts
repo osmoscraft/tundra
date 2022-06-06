@@ -1,11 +1,8 @@
 import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 
-export interface ProxyServerConfig {}
 export class ProxyServer<TSchema extends BaseProxySchema> {
-  constructor(private eventTarget: MessagePort | Worker, private config?: ProxyServerConfig) {}
-
-  onRequest<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(route: TRoute, handler: TSchema[TRoute]) {
-    this.eventTarget.addEventListener("message", async (event) => {
+  onRequest<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(port: MessagePort, route: TRoute, handler: TSchema[TRoute]) {
+    port.addEventListener("message", async (event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
       if (route !== requestRoute) return;
@@ -13,7 +10,7 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
       try {
         const responseData = await handler({ input: data });
 
-        this.eventTarget.postMessage({
+        port.postMessage({
           nonce,
           data: responseData,
           timestamp: Date.now(),
@@ -28,7 +25,7 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
           message: (error as Error).message ?? "No error message available",
         };
 
-        this.eventTarget.postMessage({
+        port.postMessage({
           nonce,
           error: serializableError,
           timestamp: Date.now(),
@@ -38,6 +35,6 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
   }
 }
 
-export type BaseProxySchema = Record<string, RequestHandler>;
+export type BaseProxySchema = Record<string, RouteHandler>;
 
-export type RequestHandler<TIn = any, TOut = any> = (props: { input: TIn }) => Promise<TOut>;
+export type RouteHandler<TIn = any, TOut = any> = (props: { input: TIn }) => Promise<TOut>;
