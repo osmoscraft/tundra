@@ -10,7 +10,7 @@ declare const self: SharedWorkerGlobalScope;
 
 async function main() {
   const graph = new Graph({});
-  const ofs = new ObservableFileSystem({
+  const fs = new ObservableFileSystem({
     fsp: new LightningFS().promises,
   });
   const proxy = new ProxyServer<AppRoutes>();
@@ -19,7 +19,7 @@ async function main() {
     const requestDetails = (e as CustomEvent<RequestWriteDetails>).detail;
     const filePath = requestDetails.id + ".json";
     const content = requestDetails.content;
-    ofs.writeFile(filePath, content);
+    fs.writeFile(filePath, content);
   };
 
   const handleFileSystemChange: EventListener = (e) => {
@@ -33,8 +33,10 @@ async function main() {
   };
 
   const handleCreateNode: RouteHandler<CreateNodeInput, CreateNodeOutput> = async ({ input }) => {
+    const id = crypto.randomUUID(); // TODO use real id generator
+
     return {
-      id: "mock-id",
+      id,
     };
   };
 
@@ -45,7 +47,7 @@ async function main() {
   };
 
   graph.addEventListener("request-write", handleGraphRequestWrite);
-  ofs.addEventListener("change", handleFileSystemChange);
+  fs.addEventListener("change", handleFileSystemChange);
 
   self.addEventListener("connect", (connectEvent) => {
     const port = connectEvent.ports[0];
