@@ -14,14 +14,13 @@ export default async function main() {
     switch (actionTrigger?.getAttribute("data-action")) {
       case "capture":
         const content = JSON.stringify({
+          id: crypto.randomUUID(),
           title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
         });
-        const output = await proxy.request(worker.port, "create-node", {
-          mediaType: "application/json",
+        await proxy.request(worker.port, "create-node", {
           content,
         });
-        console.log(output);
         break;
     }
   });

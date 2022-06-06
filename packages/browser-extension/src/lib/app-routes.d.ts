@@ -5,7 +5,6 @@ export interface AppRoutes extends BaseProxySchema {
 }
 
 export interface CreateNodeInput {
-  mediaType: "application/json";
   content: string;
 }
 
@@ -17,5 +16,9 @@ export interface GetNodesInput {
   limit?: number;
 }
 export interface GetNodesOutput {
-  nodes: GraphNode[];
+  nodes: {
+    id: string;
+    title: string;
+    url: string;
+  }[];
 }
