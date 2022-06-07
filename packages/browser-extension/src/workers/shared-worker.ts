@@ -12,17 +12,18 @@ declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 console.log("[worker] online");
 
 async function main() {
-  const fs = new LightningFS("tinykb-fs").promises;
+  const fs = new LightningFS("tinykb-fs");
+  const fsp = fs.promises;
   const proxy = new ProxyServer<AppRoutes>(self);
 
   const initialiized = (async () => {
-    await ensureDir(fs, "/repos/repo-01");
+    await ensureDir(fsp, "/repos/repo-01");
     await ensureRepo({ fs, git, dir: "/repos/repo-01" });
   })();
 
   proxy.onRequest("create-node", async ({ input }) => {
     await initialiized;
-    await fs.writeFile(`/repos/repo-01/${input.id}.json`, input.content);
+    await fsp.writeFile(`/repos/repo-01/${input.id}.json`, input.content);
 
     return {
       id: input.id,
@@ -31,7 +32,7 @@ async function main() {
 
   proxy.onRequest("get-nodes", async ({ input }) => {
     await initialiized;
-    const files = await readFilesInDir(fs, `/repos/repo-01`);
+    const files = await readFilesInDir(fsp, `/repos/repo-01`);
     const nodes = files.map((file) => JSON.parse(file as string));
 
     return {
@@ -41,7 +42,7 @@ async function main() {
 
   proxy.onRequest("get-status", async ({ input }) => {
     const status = await git.statusMatrix({
-      fs: { promises: fs },
+      fs,
       dir: `/repos/repo-01`,
     });
 

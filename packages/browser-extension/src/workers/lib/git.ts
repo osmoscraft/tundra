@@ -1,14 +1,14 @@
-import type { PromisifiedFS } from "@isomorphic-git/lightning-fs";
 import type Git from "../vendor/isomorphic-git/index.umd.min";
+import type { PromiseFsClient } from "../vendor/isomorphic-git/index.umd.min";
 export interface EnsureRepoProps {
   git: typeof Git;
-  fs: PromisifiedFS;
+  fs: PromiseFsClient;
   dir: string;
 }
 export async function ensureRepo({ git, fs, dir }: EnsureRepoProps) {
   try {
     await git.findRoot({
-      fs: { promises: fs },
+      fs,
       filepath: dir,
     });
   } catch (error) {
