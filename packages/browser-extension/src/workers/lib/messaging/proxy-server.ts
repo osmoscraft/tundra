@@ -1,8 +1,32 @@
 import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 
 export class ProxyServer<TSchema extends BaseProxySchema> {
-  onRequest<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(port: MessagePort, route: TRoute, handler: TSchema[TRoute]) {
-    port.addEventListener("message", async (event) => {
+  private listeners: ((...args: any[]) => any)[] = [];
+
+  constructor(private worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope) {}
+
+  start() {
+    if (this.isDedicatedWorker(this.worker)) {
+      this.bindListeners(this.worker);
+    } else {
+      this.worker.addEventListener("connect", async (connectEvent) => {
+        const port = connectEvent.ports[0];
+        this.bindListeners(port);
+        port.start();
+      });
+    }
+  }
+
+  private bindListeners(port: MessagePort | DedicatedWorkerGlobalScope) {
+    this.listeners.forEach((listener) => this.worker.addEventListener("message", listener.bind(this, port)));
+  }
+
+  private isDedicatedWorker(worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope): worker is DedicatedWorkerGlobalScope {
+    return worker instanceof DedicatedWorkerGlobalScope;
+  }
+
+  onRequest<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(route: TRoute, handler: TSchema[TRoute]) {
+    this.listeners.push(async (port: MessagePort | DedicatedWorkerGlobalScope, event) => {
       const { route: requestRoute, nonce, data } = (event as MessageEvent).data;
 
       if (route !== requestRoute) return;
