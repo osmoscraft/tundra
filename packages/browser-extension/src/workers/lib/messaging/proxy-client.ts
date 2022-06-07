@@ -2,8 +2,23 @@ import type { PickKeysByValueType } from "./pick-keys-by-value-type";
 import type { BaseProxySchema, RouteHandler } from "./proxy-server";
 
 export class ProxyClient<TSchema extends BaseProxySchema> {
+  private port: Worker | MessagePort;
+
+  constructor(worker: Worker | SharedWorker) {
+    if (worker instanceof SharedWorker) {
+      this.port = worker.port;
+    } else {
+      this.port = worker;
+    }
+  }
+
+  start() {
+    if (this.port instanceof MessagePort) {
+      this.port.start();
+    }
+  }
+
   async request<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(
-    port: MessagePort,
     route: TRoute,
     ...dataList: TSchema[TRoute] extends RouteHandler<undefined> ? [] : TSchema[TRoute] extends RouteHandler<infer TIn> ? [data: TIn] : []
   ): Promise<TSchema[TRoute] extends RouteHandler<any, infer TOut> ? TOut : any> {
@@ -15,7 +30,7 @@ export class ProxyClient<TSchema extends BaseProxySchema> {
         const { data, error, nonce: responseNonce, timestamp: responseTimestamp } = (event as MessageEvent).data;
         if (nonce !== responseNonce) return;
 
-        port.removeEventListener("message", handleMessage);
+        this.port.removeEventListener("message", handleMessage);
         const duration = responseTimestamp - requestTimestamp;
 
         if (error) {
@@ -27,9 +42,9 @@ export class ProxyClient<TSchema extends BaseProxySchema> {
         }
       };
 
-      port.addEventListener("message", handleMessage);
+      this.port.addEventListener("message", handleMessage);
 
-      port.postMessage({
+      this.port.postMessage({
         route,
         data: dataList[0],
         nonce,

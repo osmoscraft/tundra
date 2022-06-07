@@ -2,10 +2,15 @@ import type { AppRoutes } from "../workers/app-routes";
 import { ProxyClient } from "../workers/lib/messaging/proxy-client";
 import { getCurrentTab } from "./lib/get-current-tab";
 
+const SHARED_WORKER = false;
+
 export default async function main() {
-  const worker = new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" });
-  const proxy = new ProxyClient<AppRoutes>();
-  worker.port.start();
+  const worker = SHARED_WORKER
+    ? new SharedWorker("./workers/shared-worker.js", { name: "tinykb-worker" })
+    : new Worker("./workers/shared-worker.js", { name: "tinykb-worker" });
+
+  const proxy = new ProxyClient<AppRoutes>(worker);
+  proxy.start();
 
   parse();
 
@@ -17,7 +22,7 @@ export default async function main() {
           title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
         });
-        await proxy.request(worker.port, "create-node", {
+        await proxy.request("create-node", {
           id: crypto.randomUUID(),
           content,
         });
@@ -25,11 +30,11 @@ export default async function main() {
     }
   });
 
-  const getNodesResult = await proxy.request(worker.port, "get-nodes", {});
+  const getNodesResult = await proxy.request("get-nodes", {});
   const nodeList = document.querySelector<HTMLUListElement>("#node-list");
   if (!nodeList) throw new Error("Node list not found");
 
-  const logResult = await proxy.request(worker.port, "get-status");
+  const logResult = await proxy.request("get-status");
   console.log(logResult);
 
   const nodesHtml = getNodesResult.nodes.map((node) => `<li>${node?.title}</li>`).join("");

@@ -18,11 +18,11 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
   }
 
   private bindListeners(port: MessagePort | DedicatedWorkerGlobalScope) {
-    this.listeners.forEach((listener) => this.worker.addEventListener("message", listener.bind(this, port)));
+    this.listeners.forEach((listener) => port.addEventListener("message", listener.bind(this, port)));
   }
 
   private isDedicatedWorker(worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope): worker is DedicatedWorkerGlobalScope {
-    return worker instanceof DedicatedWorkerGlobalScope;
+    return typeof DedicatedWorkerGlobalScope !== "undefined";
   }
 
   onRequest<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(route: TRoute, handler: TSchema[TRoute]) {
