@@ -42,6 +42,7 @@ async function main() {
   });
 
   proxy.onRequest("workspace/commit-all", async () => {
+    // TODO investigate error recovery
     await ensureDir({ fs: fsp, dir: "/workspace" });
     await ensureRepo({ git, fs, dir: "/repos/default", author });
     const workspaceFiles = await fsp.readdir("/workspace");
@@ -50,7 +51,7 @@ async function main() {
     await Promise.all(workspaceFiles.map((filepath) => git.add({ fs, dir: "/repos/default", filepath })));
     await git.commit({ fs, dir: "/repos/default", message: "", author });
 
-    await workspaceFiles.map((file) => fsp.unlink(`/workspace/${file}`));
+    await Promise.all(workspaceFiles.map((file) => fsp.unlink(`/workspace/${file}`)));
 
     return {
       changeCount: workspaceFiles.length,
