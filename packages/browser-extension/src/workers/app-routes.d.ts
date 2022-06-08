@@ -1,30 +1,39 @@
 import type { RouteHandler } from "./lib/messaging/proxy-server";
 export type AppRoutes = {
-  "create-node": RouteHandler<CreateNodeInput, CreateNodeOutput>;
-  "get-nodes": RouteHandler<GetNodesInput, GetNodesOutput>;
-  "get-status": RouteHandler<undefined, GetStatusOutput>;
+  "workspace/create-node": RouteHandler<WorkspaceCreateInput, WorkspaceCreateOutput>;
+  "workspace/list-all": RouteHandler<undefined, WorkspaceListOutput>;
+  "workspace/commit-all": RouteHandler<undefined, WorkspaceCommitOutput>;
+  "repo/list-all": RouteHandler<undefined, RepoListOutput>;
 };
 
-export interface CreateNodeInput {
+// workspace/create-node
+export interface WorkspaceCreateInput {
+  id: string;
+  content: string;
+}
+export interface WorkspaceCreateOutput {
+  id: string;
+}
+
+// workspace/list-all
+export interface WorkspaceListOutput {
+  nodes: WorkspaceNode[];
+}
+export interface WorkspaceNode {
   id: string;
   content: string;
 }
 
-export interface CreateNodeOutput {
+// workspace/commit-all
+export interface WorkspaceCommitOutput {
+  changeCount: number;
+}
+
+// repo/list-all
+export interface RepoListOutput {
+  nodes: RepoNode[];
+}
+export interface RepoNode {
   id: string;
-}
-
-export interface GetNodesInput {
-  limit?: number;
-}
-export interface GetNodesOutput {
-  nodes: {
-    id: string;
-    title: string;
-    url: string;
-  }[];
-}
-
-export interface GetStatusOtuput {
-  status: any;
+  content: string;
 }
