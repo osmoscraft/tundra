@@ -4,6 +4,7 @@ import LightningFS from "@isomorphic-git/lightning-fs";
 import type { AppRoutes, RepoNode, WorkspaceNode } from "./app-routes";
 import { ensureDir } from "./lib/fs";
 import { ensureRepo, GitAuthor } from "./lib/git";
+import { Graph } from "./lib/graph";
 import { ProxyServer } from "./lib/messaging/proxy-server";
 import git from "./vendor/isomorphic-git/index.umd.min";
 
@@ -14,12 +15,21 @@ console.log("[worker] online");
 async function main() {
   const fs = new LightningFS("tinykb-fs");
   const fsp = fs.promises;
+  const graph = new Graph();
   const proxy = new ProxyServer<AppRoutes>(self);
   const author: GitAuthor = { name: "tinykb" };
+
+  // TODO validate workspace on start
+  (() => {
+    // make sure index and file system are at the same commit (undo index if needed)
+    // make sure all workspace nodes are reflected in index, by replaying workspace changes
+  })();
 
   proxy.onRequest("workspace/create-node", async ({ input }) => {
     await ensureDir({ fs: fsp, dir: "/workspace" });
     await fsp.writeFile(`/workspace/${input.id}.json`, input.content);
+    const parsedNode = JSON.parse(input.content);
+    await graph.node.add({ id: input.id, title: parsedNode.title as string, timeModified: parsedNode.timeModified });
 
     return {
       id: input.id,

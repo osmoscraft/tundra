@@ -21,6 +21,7 @@ export default async function main() {
         const content = JSON.stringify({
           title: document.querySelector<HTMLInputElement>(`[data-value="title"]`)!.value,
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
+          timeModified: Date.now(),
         });
         await proxy.request("workspace/create-node", {
           id: crypto.randomUUID(),

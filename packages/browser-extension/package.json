@@ -14,6 +14,7 @@
   "dependencies": {
     "@isomorphic-git/lightning-fs": "^4.6.0",
     "cheerio": "^1.0.0-rc.11",
+    "dexie": "^3.2.2",
     "isomorphic-git": "^1.17.2"
   }
 }
