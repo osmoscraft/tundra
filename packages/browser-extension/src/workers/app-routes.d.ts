@@ -1,22 +1,22 @@
 import type { RouteHandler } from "./lib/messaging/proxy-server";
 export type AppRoutes = {
-  "workspace/create-node": RouteHandler<WorkspaceCreateInput, WorkspaceCreateOutput>;
-  "workspace/list-all": RouteHandler<undefined, WorkspaceListOutput>;
-  "workspace/commit-all": RouteHandler<undefined, WorkspaceCommitOutput>;
-  "repo/list-all": RouteHandler<undefined, RepoListOutput>;
+  createWorkspaceNode: RouteHandler<CreateWorkspaceNodeInput, CreateWorkspaceNodeOutput>;
+  listWorkspaceNodes: RouteHandler<undefined, ListWorkspaceNodesOutput>;
+  commitWorkspaceNodes: RouteHandler<undefined, CommitWorkspaceNodesOutput>;
+  listRepoNodes: RouteHandler<undefined, ListRepoNodesOutput>;
 };
 
-// workspace/create-node
-export interface WorkspaceCreateInput {
+// createWorkspaceNode
+export interface CreateWorkspaceNodeInput {
   id: string;
   content: string;
 }
-export interface WorkspaceCreateOutput {
+export interface CreateWorkspaceNodeOutput {
   id: string;
 }
 
-// workspace/list-all
-export interface WorkspaceListOutput {
+// listWorkspaceNodes
+export interface ListWorkspaceNodesOutput {
   nodes: WorkspaceNode[];
 }
 export interface WorkspaceNode {
@@ -24,13 +24,13 @@ export interface WorkspaceNode {
   content: string;
 }
 
-// workspace/commit-all
-export interface WorkspaceCommitOutput {
+// commitWorkspaceNodes
+export interface CommitWorkspaceNodesOutput {
   changeCount: number;
 }
 
-// repo/list-all
-export interface RepoListOutput {
+// listRepoNodes
+export interface ListRepoNodesOutput {
   nodes: RepoNode[];
 }
 export interface RepoNode {

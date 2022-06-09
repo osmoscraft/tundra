@@ -23,20 +23,20 @@ export default async function main() {
           url: document.querySelector<HTMLInputElement>(`[data-value="url"]`)!.value,
           timeModified: Date.now(),
         });
-        await proxy.request("workspace/create-node", {
+        await proxy.request("createWorkspaceNode", {
           id: crypto.randomUUID(),
           content,
         });
         break;
       case "commit":
-        await proxy.request("workspace/commit-all");
+        await proxy.request("commitWorkspaceNodes");
     }
   });
 
   const workspaceNodeList = document.querySelector<HTMLUListElement>("#ws-list");
   if (!workspaceNodeList) throw new Error("Node list not found");
 
-  const workspace = await proxy.request("workspace/list-all");
+  const workspace = await proxy.request("listWorkspaceNodes");
   console.log(workspace);
 
   workspaceNodeList.innerHTML = workspace.nodes
@@ -47,7 +47,7 @@ export default async function main() {
   const repoNodeList = document.querySelector<HTMLUListElement>("#repo-list");
   if (!repoNodeList) throw new Error("Node list not found");
 
-  const repo = await proxy.request("repo/list-all");
+  const repo = await proxy.request("listRepoNodes");
   console.log(repo);
 
   repoNodeList.innerHTML = repo.nodes

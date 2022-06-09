@@ -20,12 +20,18 @@ async function main() {
   const author: GitAuthor = { name: "tinykb" };
 
   // TODO validate workspace on start
-  (() => {
+  // TODO make sure client waits for server start before starting query
+  (async () => {
+    // list commits
+    await ensureRepo({ git, fs, dir: "/repos/default", author });
+
+    const statusList = await git.log({ fs, dir: "/repos/default" });
+    console.log(statusList);
     // make sure index and file system are at the same commit (undo index if needed)
     // make sure all workspace nodes are reflected in index, by replaying workspace changes
   })();
 
-  proxy.onRequest("workspace/create-node", async ({ input }) => {
+  proxy.onRequest("createWorkspaceNode", async ({ input }) => {
     await ensureDir({ fs: fsp, dir: "/workspace" });
     await fsp.writeFile(`/workspace/${input.id}.json`, input.content);
     const parsedNode = JSON.parse(input.content);
@@ -36,7 +42,7 @@ async function main() {
     };
   });
 
-  proxy.onRequest("workspace/list-all", async () => {
+  proxy.onRequest("listWorkspaceNodes", async () => {
     // TODO query from index instead
     await ensureDir({ fs: fsp, dir: "/workspace" });
     const nodeFiles = await fsp.readdir("/workspace");
@@ -51,7 +57,7 @@ async function main() {
     };
   });
 
-  proxy.onRequest("workspace/commit-all", async () => {
+  proxy.onRequest("commitWorkspaceNodes", async () => {
     // TODO investigate error recovery
     await ensureDir({ fs: fsp, dir: "/workspace" });
     await ensureRepo({ git, fs, dir: "/repos/default", author });
@@ -68,7 +74,7 @@ async function main() {
     };
   });
 
-  proxy.onRequest("repo/list-all", async () => {
+  proxy.onRequest("listRepoNodes", async () => {
     await ensureRepo({ git, fs, dir: "/repos/default", author });
 
     const statusMatrix = await git.statusMatrix({ fs, dir: "/repos/default" });
