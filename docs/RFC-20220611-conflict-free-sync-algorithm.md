@@ -8,7 +8,7 @@ Create an algorithm that allows conflict-free error-recoverable synchronization 
    1. A record is modified in IndexDB, but is simultaneously deleted in Git remote, the modified record will be restored upon sync.
    2. A record is modified in IndexDB, but is simultaneously modified in Git remote, the IndexDB version will override the Git remote version upon sync.
    3. A record is deleted in IndexDB, but is simultaneously modified in Git remote, the record will be deleted upon sync.
-4. The second and third conflict case may be caused by accidents, and will lead to data loss. An undo command should be used to help user recover from such mistakes.
+4. Human errors may lead to the second and third conflict case, which lead to data loss. An undo command should be used to help user recover from such mistakes.
 
 # Notations
 
