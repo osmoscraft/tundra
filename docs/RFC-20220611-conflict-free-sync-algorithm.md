@@ -14,33 +14,33 @@ Create an algorithm that allows conflict-free error-recoverable synchronization 
 
 ## Git branches
 
-Consider Git branch `B` as series of commits. `B_1_n` representing the entire history of the branch, from Commit `1` to Commit `n`.
+Consider Git branch `B` as series of commits. `B_1..n` representing the entire history of the branch, from Commit `1` to Commit `n`.
 
 ```
-B_1_n = [C_1, C_2, C_3, ... C_n]
+B_1..n = [C_1, C_2, C_3, ... C_n]
 ```
 
-There exists a function `BranchToPartial()` for `B_1_n` that takes a any sub-sequence `[C_i...C_j] | 1 <= i && j <= n` and generate Partial `P_i_j`.
+There exists a function `CommitsToPartial()` for `B_1..n` that takes a any sub-sequence `[C_i ... C_j] | 1 <= i && j <= n` and generate Partial `P_i..j`.
 
 ```
-P_i_j <- BranchToPartial(C_i...C_j)
+P_i..j <- CommitsToPartial(C_i ... C_j)
 ```
 
 Two Partials are contiguous when the their beginning commits are in order; and their ending commits are in order; and the beginning commit of the 2nd partial leaves no gap after the ending commit of the 1st Partial. Note that two contiguous Partials may have overlapping commits.
 
 ```
-P_i_j and P_t_k are contigous when i <= t AND j <= k AND t <= j + 1
+P_i..j and P_t..k are contigous when i <= t AND j <= k AND t <= j + 1
 ```
 
-There also exists a function `PartialsToState()` that converts a series of contiguous partials `[P_1_k...P_j_n]` to the entire State of the branch `S_1_n`
+There also exists a function `PartialsToState()` that converts a series of contiguous partials `[P_1..k ... P_j..n]` to the entire State of the branch `S_1..n`
 
 ```
-State of B_1_n = S_1_n <- PartialsToState(P_1_k...P_j_n) where all the Partials are contingous
+State of B_1..n = S_1..n <- PartialsToState(P_1..k ... P_j..n) where all the Partials are contingous
 ```
 
 Partial allows us to convert Branch to State in a conflict-free, error-tolerant way.
 
-Finally, we have a named branch `GitL_1_n` to represent the local branch with commits `1` to `n`, and branch `GitR_1_n` to represent the remote branch with commits `1` to `n`.
+Finally, we have a named branch `GitL_1..n` to represent the local branch with commits `1` to `n`, and branch `GitR_1..n` to represent the remote branch with commits `1` to `n`.
 
 ## State
 
@@ -56,17 +56,16 @@ We can partition `SS` into synced State and unsynced State. The synced State can
 SS_synced ⊆ SS and ∀ r ∈ SS_synced | r.synced = true
 SS_unsynced ⊆ SS and ∀ r ∈ SS_unsynced | r.synced = false
 
-SS_synced = PartialsToState(P_1_k)
+SS_synced = PartialsToState(P_1..k)
 SS = PartialsToState(SS_synced, SS_unsynced)
 ```
 
 In addition, a function `Commit()` converts the unsynced state back to a Partial and Commit pair. Formally
 
 ```
-SS_synced = PartialsToState(P_1_k)
+SS_synced = PartialsToState(P_1..k)
 
-(C_k+1, P_k+1) <- Commit(SS_unsynced) where
-P_k+1 = BranchToPartial(C_k+1)
+(C_k+1, P_k+1) <- Commit(SS_unsynced) where P_k+1 = CommitsToPartial(C_k+1)
 
 SS = PartialsToState(SS_synced, PartialToState(P_k+1))
 ```
@@ -78,10 +77,50 @@ The Commit function allows us to capture the changes from a freely mutated a sta
 Let `PS` denote a pointer to the last commit that the State is reduced from. Let `PR` denote the last commit of a git branch
 
 ```
-PS points to C_n in B_1_n where SS_1_n = PartialsToState(P_1_k...P_j_n)
-PR points to C_n in B_1_n
+PS points to C_n in B_1..n where SS_1..n = PartialsToState(P_1..k ... P_j..n)
+PR points to C_n in B_1..n
 ```
 
 Pointers allow us to recover from failures.
 
 # Algorithm
+
+Assumptions:
+
+1. Local history is compatible with remote history, i.e. the remote commit series can only append after local commit series.
+   ```
+    We have GitL_1..k and GitR_1..k+i where i >= 0
+   ```
+2. The pointers are valid and collapsed.
+   ```
+    PS == PR == C_k where C_k is the latest commit in GitL_1..k
+   ```
+
+Steps:
+
+1. If `PS != PR` goto Step 6.2
+2. If `SS_unsynced` is empty, EXIT
+3. PULL
+   1. Set local branch to be identical to remote branch `GitL_1..k+i`
+   2. On failure, restart from Step 1
+4. COMMIT
+   1. Set `(C_k+i+1, P_k+i+1) <- Commit(SS_unsynced)`
+   2. Append `C_k+i+1` to `GitL_1..k+i` to get `GitL_1..k+i+1`
+   3. On failure from either step, restart from Step 1
+5. PUSH
+   1. Try append `C_k+i+1` to remote
+   2. If remote did not change since step 3, it becomes `GitR_1..k+i+1`
+   3. If remote changed since step 3, confict happens, restart from Step 1
+   4. On failure from any step, restart from Step 1
+6. PUBLISH
+   1. Set `PR <- C_k+i+1`
+   2. Set `StateChangePartial <- CommitsToPartial(C_k..C_k+i+1)`
+   3. Set `SS <- PartialsToState(SS_synced, StateChangePartial)`
+      1. For each changed record, set its `synced` flag to `True` during mutation
+   4. Set `PL <- C_k+i+1`
+   5. On failure from any step, restart from Step 1
+   6. EXIT
+
+# Appendix
+
+- In `SS`, deleted records are represented by tombstone. They are removed during Step 6 PUBLISH
