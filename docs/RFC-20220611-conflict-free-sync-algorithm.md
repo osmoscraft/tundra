@@ -74,14 +74,14 @@ The Commit function allows us to capture the changes from a freely mutated a sta
 
 ## Pointers
 
-Let `PS` denote a pointer to the last commit that the State is reduced from. Let `PR` denote the last commit of a git branch
+Let `PS` denote a pointer to the last commit that the State is reduced from. Let `PB` denote the last commit of a git branch
 
 ```
 PS points to C_n in B_1..n where SS_1..n = PartialsToState(P_1..k ... P_j..n)
-PR points to C_n in B_1..n
+PB points to C_n in B_1..n
 ```
 
-Pointers allow us to recover from failures.
+Pointers allow us to recover from failures during State mutation.
 
 # Algorithm
 
@@ -93,16 +93,16 @@ Assumptions:
    ```
 2. The pointers are valid and collapsed.
    ```
-    PS == PR == C_k where C_k is the latest commit in GitL_1..k
+    PS == PB == C_k where C_k is the latest commit in GitL_1..k
    ```
 
 Steps:
 
-1. If `PS != PR` goto Step 6.2
-2. If `SS_unsynced` is empty, EXIT
-3. PULL
-   1. Set local branch to be identical to remote branch `GitL_1..k+i`
+1. If `PS != PB` goto Step 6.2
+2. PULL
+   1. Set local branch to be identical to remote branch `GitL_1..k+i <- GitR_1..k+i` where `i >=0`
    2. On failure, restart from Step 1
+3. If `SS_unsynced` is empty, goto Step 6
 4. COMMIT
    1. Set `(C_k+i+1, P_k+i+1) <- Commit(SS_unsynced)`
    2. Append `C_k+i+1` to `GitL_1..k+i` to get `GitL_1..k+i+1`
@@ -112,15 +112,16 @@ Steps:
    2. If remote did not change since step 3, it becomes `GitR_1..k+i+1`
    3. If remote changed since step 3, confict happens, restart from Step 1
    4. On failure from any step, restart from Step 1
-6. PUBLISH
-   1. Set `PR <- C_k+i+1`
-   2. Set `StateChangePartial <- CommitsToPartial(C_k..C_k+i+1)`
+6. DIGEST
+   1. Set `PB <- C_latest`
+   2. Set `StateChangePartial <- CommitsToPartial(C_PS..C_PB)`
    3. Set `SS <- PartialsToState(SS_synced, StateChangePartial)`
       1. For each changed record, set its `synced` flag to `True` during mutation
-   4. Set `PL <- C_k+i+1`
+   4. Set `PS <- PB`
    5. On failure from any step, restart from Step 1
    6. EXIT
 
 # Appendix
 
-- In `SS`, deleted records are represented by tombstone. They are removed during Step 6 PUBLISH
+- In `SS`, deleted records are represented by tombstone. They are removed during Step 6 DIGEST
+- When `PS != PB`, `SS` should not be mutated outside of the sync algorithm
