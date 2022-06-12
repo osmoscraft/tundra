@@ -125,3 +125,5 @@ Steps:
 
 - In `SS`, deleted records are represented by tombstone. They are removed during Step 6 DIGEST
 - When `PS != PB`, `SS` should not be mutated outside of the sync algorithm
+- When failure happens during user interaction, prompt error, and allow user to retry
+- When failure happens due to abrupt shutdown, the algorithm can be rerun from start without unwanted side effect
