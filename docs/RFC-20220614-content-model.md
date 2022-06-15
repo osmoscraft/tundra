@@ -23,6 +23,8 @@
 3. Readonly content vs. Editability
    1. Holes in the `contenteditable` tree
 4. ID display vs. readability (markdown as counter-example)
+5. Multi-line vs. Single-line
+   1. Verticle cursor navigation and alignment
 
 ## Ideas
 
@@ -30,10 +32,16 @@
   - Breadcrum for navigation assist
 - `@directive(args)` for behavior
   - Some directives might allow actions: e.g. sort, crawl, etc
+  - Might require AST parser if support multi-line
+- `:attr(val)` for derived attributes
+  - Example: `:refBy(32)`, `:id(1751203)`
+  - Non-editable, but should be selectable
+  - Might be actionable
 - ID handling
   - Generate ID eagerly. Only referenced node displays its ID
   - Generate ID lazily when incoming link is created
     - Drawback: touching multiple files when creating one link
+    - Garbage collection when ref count down to 0
 - Tri-state expander: `-` `+` `●`
 - Animated viewport panning
 - Special nodes
@@ -43,6 +51,18 @@
   - Reference to other node
     - Read-only
     - Synced edit
+- Trais of list
+  - Editable list
+  - Read-only list
+- Traits of text
+  - Editable
+  - Actionable
+  - Copyable
+  - Readable (Base)
+- Two column layout: One for data, another for metadata
+  - data and metadata easily out-of-sync when cut/paste
+
+## Sample content for testing
 
 ```
 + New @inbox
