@@ -61,6 +61,10 @@
   - Readable (Base)
 - Two column layout: One for data, another for metadata
   - data and metadata easily out-of-sync when cut/paste
+- Every frame single-rooted
+  - Root frame is a special frame with hidden root
+  - Creation frame is a special frame with framement handle root (similar to DOM fragment)
+    - Cannot delete top level nodes
 
 ## Sample content for testing
 
