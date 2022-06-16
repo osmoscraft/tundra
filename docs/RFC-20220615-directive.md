@@ -7,9 +7,14 @@
   - Visual noise
   - Visual alignment
   - Cursor momentum direction
+- Inline vs. nested
+  - Handle multiple directives per node
+- Interoperate with [list](./RFC-20220615-list.md)
+- Single line vs. Multiline target
 
 ## Features
 
+@inbox for default host of new nodes
 @ref() for internal link tracking
 @id() passively generated when being referenced (helps preserve node identity)
 @url() for external link
