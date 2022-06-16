@@ -54,10 +54,13 @@
 - Trais of list
   - Editable list
   - Read-only list
+  - Temporary list
+    - Destoryed after session
 - Traits of text
   - Editable
   - Actionable
   - Copyable
+  - Temporary
   - Readable (Base)
 - Two column layout: One for data, another for metadata
   - data and metadata easily out-of-sync when cut/paste
