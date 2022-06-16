@@ -17,6 +17,8 @@
 @tags() for arbitrary tagging
 @todo/@done for todo tracking
 @date() for calendar tracking
+@lang() for programming languages
+@block() for extensible blocks
 
 ## Ideas
 
