@@ -1,13 +1,27 @@
 import type { PickKeysByValueType } from "./pick-keys-by-value-type";
-import type { BaseProxySchema, RequestHandler } from "./proxy-server";
+import type { BaseProxySchema, RouteHandler } from "./proxy-server";
 
 export class ProxyClient<TSchema extends BaseProxySchema> {
-  constructor(private eventTarget: MessagePort | Worker) {}
+  private port: Worker | MessagePort;
 
-  async request<TRoute extends PickKeysByValueType<TSchema, RequestHandler>>(
+  constructor(worker: Worker | SharedWorker) {
+    if (worker instanceof SharedWorker) {
+      this.port = worker.port;
+    } else {
+      this.port = worker;
+    }
+  }
+
+  start() {
+    if (this.port instanceof MessagePort) {
+      this.port.start();
+    }
+  }
+
+  async request<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(
     route: TRoute,
-    ...dataList: TSchema[TRoute] extends RequestHandler<undefined> ? [] : TSchema[TRoute] extends RequestHandler<infer TIn> ? [data: TIn] : []
-  ): Promise<TSchema[TRoute] extends RequestHandler<any, infer TOut> ? TOut : any> {
+    ...dataList: TSchema[TRoute] extends RouteHandler<undefined> ? [] : TSchema[TRoute] extends RouteHandler<infer TIn> ? [data: TIn] : []
+  ): Promise<TSchema[TRoute] extends RouteHandler<any, infer TOut> ? TOut : any> {
     return new Promise((resolve, reject) => {
       const nonce = crypto.randomUUID();
       const requestTimestamp = Date.now();
@@ -16,7 +30,7 @@ export class ProxyClient<TSchema extends BaseProxySchema> {
         const { data, error, nonce: responseNonce, timestamp: responseTimestamp } = (event as MessageEvent).data;
         if (nonce !== responseNonce) return;
 
-        this.eventTarget.removeEventListener("message", handleMessage);
+        this.port.removeEventListener("message", handleMessage);
         const duration = responseTimestamp - requestTimestamp;
 
         if (error) {
@@ -28,9 +42,9 @@ export class ProxyClient<TSchema extends BaseProxySchema> {
         }
       };
 
-      this.eventTarget.addEventListener("message", handleMessage);
+      this.port.addEventListener("message", handleMessage);
 
-      this.eventTarget.postMessage({
+      this.port.postMessage({
         route,
         data: dataList[0],
         nonce,
