@@ -24,8 +24,9 @@ function pullChanges(baseCommit: string, headCommit: string): Change[];
 function applyChanges(changes: Change[]): TrackedItem[];
 
 type TrackedItem = {
+  id: string;
   modifiedOn: Date;
-  syncedOn: Date | null; // null for new item
+  pendingAction: "create" | "update" | "delete" | null;
   content: string | null; // null for delete
 };
 
@@ -45,19 +46,10 @@ Sample implemenation
 ```typescript
 function getChanges(trackedItems) {
   return trackedItems
-    .filter((item) => item.modifiedOn !== item.syncedOn)
+    .filter((item) => item.pendingAction!== null)
     .map((item) => {
-      let action = "update";
-      if (!syncedOn) {
-        action = "create";
-      } else if (content === null) {
-        action = "delete";
-      } else {
-        throw new Error("invalid update request");
-      }
-
       return {
-        action,
+        action: item.pendingAction,
         filepath: item.filepath,
         content: item.content,
       };
