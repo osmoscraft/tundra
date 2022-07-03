@@ -1,6 +1,6 @@
 # Goal
 
-Create an algorithm that allows conflict-free error-recoverable synchronization between a history-less IndexDB store and a Git branch that is backed by aremote.
+Create an algorithm that allows conflict-free error-recoverable synchronization between a history-less IndexDB store and a Git branch that is backed by a remote.
 
 1. Git remote is eventually consistent with changes made in IndexDB.
 2. IndexDB is eventually consistent with changes made in Git remote.

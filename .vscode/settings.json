@@ -1,7 +1,6 @@
 {
   "terminal.integrated.defaultProfile.linux": "zsh",
   "editor.formatOnSave": true,
-  "editor.insertSpaces": false,
   "editor.tabSize": 2,
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
