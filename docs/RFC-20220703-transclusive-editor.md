@@ -65,12 +65,9 @@ File: 003.md
 
 ## In editor
 
-- Link references are automatically managed
-  - Auto-sorting
-  - Auto-deduplication
 - Multiple top-level nodes are allowed
-  - Only the first top-level node is persisted
-  - Other top-level nodes are "borrowed" into the current scope for editing
+  - Only he first top-level node is persisted in the current file
+  - Other top-level nodes are either "backlinks" or "borrowed"
   - Edits are saved into those nodes respecitvely
 - Raw URLs do not need to be linked manually
 
