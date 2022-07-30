@@ -23,20 +23,18 @@ export class AppElement extends HTMLElement {
 
     const url = new URL(location.href);
     const frameId = url.searchParams.get("frame");
-    if (!frameId) return;
+    if (!frameId) {
+      location.search = new URLSearchParams({ frame: "new" }).toString();
+      return;
+    }
 
     const db = await this.db;
     const frames = await db.getAll("frame");
     this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
 
     const frame = await db.get("frame", frameId);
-    if (frame) {
-      this.sidebarElement.load(frame.header);
-      this.frameElement.load(frame.body);
-    } else {
-      this.sidebarElement.load({});
-      this.frameElement.load("New frame");
-    }
+    this.sidebarElement.load(frame?.header ?? {});
+    this.frameElement.load(frame?.body ?? "New frame");
 
     this.navbarElement.addEventListener("createFrame", () => (location.search = new URLSearchParams({ frame: "new" }).toString()));
     this.navbarElement.addEventListener("openFrame", (e) => (location.search = new URLSearchParams({ frame: e.detail }).toString()));
