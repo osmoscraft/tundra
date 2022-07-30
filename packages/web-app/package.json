@@ -12,6 +12,12 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "idb": "^7.0.2"
+    "idb": "^7.0.2",
+    "prosemirror-example-setup": "^1.2.1",
+    "prosemirror-menu": "^1.2.1",
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-schema-basic": "^1.2.0",
+    "prosemirror-state": "^1.4.1",
+    "prosemirror-view": "^1.27.0"
   }
 }
