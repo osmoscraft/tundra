@@ -1,8 +1,8 @@
-import { getGitHubContext, setGitHubContext } from "../git/github-context";
-import { createDelegationHandler } from "../utils/dom-events";
-import { forceClone, testConnection } from "../utils/sync";
-import { loadTemplate } from "../utils/template";
-import "./settings-dialog.css";
+import { getGitHubContext, setGitHubContext } from "../../git/github-context";
+import { createDelegationHandler } from "../../utils/dom-events";
+import { forceClone, testConnection } from "../../utils/sync";
+import { loadTemplate } from "../../utils/template";
+import "./preferences.css";
 
 const template = loadTemplate(/*html*/ `
 <dialog>
@@ -36,7 +36,7 @@ const template = loadTemplate(/*html*/ `
 </dialog>
 `);
 
-export class SettingsElement extends HTMLElement {
+export class PreferencesElement extends HTMLElement {
   connectedCallback() {
     const handleClick = createDelegationHandler("data-command", {
       close: () => this.querySelector<any>("dialog")?.close(),

@@ -7,6 +7,24 @@ export type EditorFrame = {
 export type EditorFrameHeader = Record<string, any>;
 export type EditorFrameBody = string;
 
+export function generateInitialHeader(): EditorFrameHeader {
+  const nowIso = new Date().toISOString();
+
+  return {
+    btime: nowIso,
+    ctime: nowIso,
+  };
+}
+
+export function getLatestTimestampHeader(header: EditorFrameHeader) {
+  const nowIso = new Date().toISOString();
+
+  return {
+    ...header,
+    ctime: nowIso,
+  };
+}
+
 export function transformHeaderBeforeCreate(frame: EditorFrame) {
   const nowIso = new Date().toISOString();
 

@@ -1,33 +1,36 @@
-sidebar-element {
+navbar-element {
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  background-color: #ddd;
+  overflow: auto;
 }
 
-sidebar-element menu {
+navbar-element menu {
   display: grid;
   grid-auto-flow: column;
 }
 
-sidebar-element menu li {
+navbar-element menu li {
   display: grid;
 }
 
-sidebar-element ul {
+navbar-element ul {
   flex-grow: 1;
 }
 
-sidebar-element .nav-item {
+navbar-element .nav-item {
   display: grid;
 }
 
-sidebar-element .nav-item button {
+navbar-element .nav-item button {
   text-align: start;
   background: none;
   border: none;
   padding: 4px;
   cursor: pointer;
 }
-sidebar-element .nav-item button:hover {
+navbar-element .nav-item button:hover {
   text-decoration: underline;
 }
