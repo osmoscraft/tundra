@@ -5,8 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run dev -w packages/browser-extension",
-    "build": "npm run build -w packages/browser-extension"
+    "dev": "npm run dev -w packages/web-app"
   },
   "repository": {
     "type": "git",

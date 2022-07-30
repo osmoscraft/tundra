@@ -1,0 +1,22 @@
+@import url("ui/reset.css");
+@import url("ui/utils.css");
+
+body {
+  min-height: 100vh;
+  line-height: 1.4;
+  font-family: monospace;
+}
+
+.c-app-layout {
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+}
+
+.c-sidebar {
+  background-color: #ddd;
+  overflow: auto;
+}
+
+.c-app-main {
+  overflow: auto;
+}

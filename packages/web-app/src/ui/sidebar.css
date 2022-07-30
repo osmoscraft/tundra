@@ -1,0 +1,33 @@
+sidebar-element {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+sidebar-element menu {
+  display: grid;
+  grid-auto-flow: column;
+}
+
+sidebar-element menu li {
+  display: grid;
+}
+
+sidebar-element ul {
+  flex-grow: 1;
+}
+
+sidebar-element .nav-item {
+  display: grid;
+}
+
+sidebar-element .nav-item button {
+  text-align: start;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+}
+sidebar-element .nav-item button:hover {
+  text-decoration: underline;
+}
