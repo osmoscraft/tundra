@@ -1,4 +1,19 @@
-import { lift, selectParentNode, toggleMark } from "prosemirror-commands";
+import {
+  autoJoin,
+  chainCommands,
+  deleteSelection,
+  exitCode,
+  joinBackward,
+  joinForward,
+  lift,
+  selectAll,
+  selectNodeBackward,
+  selectNodeForward,
+  selectParentNode,
+  selectTextblockEnd,
+  selectTextblockStart,
+  toggleMark,
+} from "prosemirror-commands";
 import { redo, undo } from "prosemirror-history";
 import { undoInputRule } from "prosemirror-inputrules";
 import type { Schema } from "prosemirror-model";
@@ -6,6 +21,38 @@ import { liftListItem, sinkListItem, splitListItem } from "prosemirror-schema-li
 import type { Command } from "prosemirror-state";
 
 const mac = typeof navigator != "undefined" ? /Mac|iP(hone|[oa]d)/.test(navigator.platform) : false;
+
+const backspace = chainCommands(
+  deleteSelection,
+  autoJoin(joinBackward, () => true), // prevent empty bullet list item
+  selectNodeBackward
+);
+const del = chainCommands(
+  deleteSelection,
+  autoJoin(joinForward, () => true),
+  selectNodeForward
+);
+
+export const pcBaseKeymap: { [key: string]: Command } = {
+  "Mod-Enter": exitCode,
+  Backspace: backspace,
+  "Mod-Backspace": backspace,
+  "Shift-Backspace": backspace,
+  Delete: del,
+  "Mod-Delete": del,
+  "Mod-a": selectAll,
+};
+
+export const macBaseKeymap: { [key: string]: Command } = {
+  "Ctrl-h": pcBaseKeymap["Backspace"],
+  "Alt-Backspace": pcBaseKeymap["Mod-Backspace"],
+  "Ctrl-d": pcBaseKeymap["Delete"],
+  "Ctrl-Alt-Backspace": pcBaseKeymap["Mod-Delete"],
+  "Alt-Delete": pcBaseKeymap["Mod-Delete"],
+  "Alt-d": pcBaseKeymap["Mod-Delete"],
+  "Ctrl-a": selectTextblockStart,
+  "Ctrl-e": selectTextblockEnd,
+};
 
 export function buildKeymap(schema: Schema, mapKeys?: { [key: string]: false | string }) {
   let keys: { [key: string]: Command } = {},
@@ -43,5 +90,8 @@ export function buildKeymap(schema: Schema, mapKeys?: { [key: string]: false | s
     bind("Mod-.", sinkListItem(type));
   }
 
-  return keys;
+  return {
+    ...keys,
+    ...(mac ? macBaseKeymap : pcBaseKeymap),
+  };
 }
