@@ -1,0 +1,7 @@
+frame-element {
+  display: block;
+}
+
+frame-element ul {
+  padding-inline-start: 1rem;
+}

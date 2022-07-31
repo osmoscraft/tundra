@@ -18,13 +18,15 @@ Goals
   - Zero or more per file
   - Must be at depth 1+
   - Other related nodes
-  - Children belows to the Primary node, and appears in both Primary node and related nodes
+  - Children below the Primary node, and appears in both Primary node and related nodes
 - Backlinked nodes
   - The primary node of any linked nodes becomes a backlinked node in the editor for those linked nodes
   - Must be at depth 0, after Primary node
 - Borrowed nodes
   - Temporarily displayed for referencing or editing
   - Do not persist
+    - Automatically returns upon save
+    - Local storage may used to extend borrow across browser sessions
   - If the current primary node is added into a borrowed node, the borrowed node becomes a backlinked node
 
 ## In storage
@@ -66,13 +68,15 @@ File: 003.md
 ## In editor
 
 - Multiple top-level nodes are allowed
-  - Only he first top-level node is persisted in the current file
+  - Only the first top-level node is persisted in the current file
   - Other top-level nodes are either "backlinks" or "borrowed"
+    - backlink nodes are nodes that linked to the current primary node
+    - borrow nodes are added during editing time for quickly make a change to nodes without opening them
   - Edits are saved into those nodes respecitvely
 - Raw URLs do not need to be linked manually
 
 ```md
-- [Foo](001)
+- [Foo](001) <----- Primary
   - https://example.com
   - Item 2
   - Item 3
@@ -81,18 +85,18 @@ File: 003.md
     - Because of https://example.com
   - [Lorem](004) and [Ipsum](005)
     - Resolve both by [Bar](002)
-- [Lorem](004)
+- [Lorem](004) <----- Borrowed
   - Lorem is great
-- [Ipsum](005)
+- [Ipsum](005) <----- Borrowed
   - More guest edits mode here
 ```
 
 When viewed from foreign node
 
 ```md
-- [Lorem](004)
+- [Lorem](004) <----- Primary
   - Lorem is great
-- [Foo](001)
+- [Foo](001) <----- Backlink
   - [Lorem](004) and [Ipsum](005)
     - Resolve both by [Bar](002)
 ```
@@ -133,7 +137,7 @@ Now view from Bar, Foo becomes a forward link
   - Affects [Foo](001)
 ```
 
-### Case study: Inject context into a linked node
+### Case study: Inject context into a linked node, without leaving current primary node
 
 Start, Foo view
 

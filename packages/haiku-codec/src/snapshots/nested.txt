@@ -1,0 +1,5 @@
+- Item
+  - Child item
+@@@
+<div data-depth="0">Item</div>
+<div data-depth="1">Child item</div>

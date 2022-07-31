@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div class="layout">
+      <header class="layout__header">
+        <button id="save">Save</button>
+        <div id="file-picker"></div>
+      </header>
+      <textarea aria-label="source" class="layout__left" id="source"></textarea>
+      <div class="layout__right" id="editor" contenteditable="true">Something went wrong. No content is loaded</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
