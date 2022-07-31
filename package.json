@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/osmoscraft/tinykb#readme",
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "devDependencies": {
