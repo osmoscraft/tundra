@@ -10,7 +10,9 @@ const template = loadTemplate(/*html*/ `
   <li><button data-command="pushAll">Push</button></li>
 </menu>
 <ul id="recent-list"></ul>
-<button data-command="openPreferences">Preferences</button>
+<menu>
+  <li><button data-command="openPreferences">Preferences</button></li>
+</menu>
 `);
 
 declare global {
@@ -35,12 +37,12 @@ export class NavbarElement extends HTMLElement {
 
     this.addEventListener("click", (e) => {
       const commandName = (e.target as HTMLElement).getAttribute("data-command")!;
-      this.dispatchEvent(new Event(commandName));
-    });
-
-    this.querySelector("#recent-list")!.addEventListener("click", (e) => {
-      const id = (e.target as HTMLElement).getAttribute("data-id")!;
-      this.dispatchEvent(new CustomEvent("openFrame", { detail: id }));
+      let detail: any = undefined;
+      if (commandName === "openFrame") {
+        const id = (e.target as HTMLElement).getAttribute("data-id")!;
+        detail = id;
+      }
+      this.dispatchEvent(new CustomEvent(commandName, { detail }));
     });
   }
 

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tinykb/haiku-codec": "file:packages/haiku-codec",
+    "@tinykb/haiku-editor": "file:packages/haiku-editor",
     "idb": "^7.0.2"
   }
 }
