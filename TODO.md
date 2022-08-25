@@ -1,0 +1,9 @@
+- Haiku Editor POC
+  - movement (alt + dir)
+    - indent/outdent
+    - swap above/below
+  - link display
+  - link editor (in dialog)
+  - item bullet display
+  - shift enter for br
+  - enter for new item
