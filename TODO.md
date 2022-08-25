@@ -2,6 +2,9 @@
   - [done] single line movement (alt + dir)
     - [done] indent/outdent
     - [done] swap above/below
+  - multi line selection
+    - grow selection: line -> sibling lines -> parent line -> parent sibling lines...
+    - shrink selection: selection undo
   - multi line movement
   - link display
   - link editor (in dialog)
