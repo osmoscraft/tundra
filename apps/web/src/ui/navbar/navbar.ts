@@ -33,7 +33,7 @@ export class NavbarElement extends HTMLElement {
   connectedCallback() {
     this.appendChild(template);
 
-    this.querySelector("menu")!.addEventListener("click", (e) => {
+    this.addEventListener("click", (e) => {
       const commandName = (e.target as HTMLElement).getAttribute("data-command")!;
       this.dispatchEvent(new Event(commandName));
     });
