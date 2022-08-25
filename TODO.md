@@ -1,7 +1,8 @@
 - Haiku Editor POC
-  - movement (alt + dir)
-    - indent/outdent
-    - swap above/below
+  - [done] single line movement (alt + dir)
+    - [done] indent/outdent
+    - [done] swap above/below
+  - multi line movement
   - link display
   - link editor (in dialog)
   - item bullet display
