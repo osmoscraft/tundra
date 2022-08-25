@@ -71,7 +71,7 @@ export function indentLineRelative(line: HTMLElement | null, levels: number) {
   line.dataset.depth = (parseInt(line.dataset.depth!) + levels).toString();
 }
 
-/** Format: [ctrl-][alt-][shift-]keyCode */
+/** Format: [Ctrl-][Alt-][Shift-]keyCode */
 export function getKeyCodeString(e: KeyboardEvent): string {
   return `${e.ctrlKey ? "Ctrl-" : ""}${e.altKey ? "Alt-" : ""}${e.shiftKey ? "Shift-" : ""}${e.code}`;
 }
