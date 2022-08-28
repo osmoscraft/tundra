@@ -58,30 +58,60 @@ interface EditorSelection {
 }
 ```
 
-## Reference core implementation
+## Reference implementaton I - Relaxed data flow
 
 ```typescript
 const dom = document.getElementById("root");
 const state = new EditorState(initialMarkdown);
 const view = new EditorView(dom, state);
 
-// inside view
-class View {
-  start(dom, state) {
-    this.render(state);
-    dom.addEventListener("*", (e) => {
-      const changes = processEvent(e);
-      state.patch(changes);
-      this.render(state);
-    });
-  }
+dom.addEventListener("WILL_CHANGE", (e) => {
+  // cancel, transform, intercept, augment
+  // dispatch
+  editor.dispatch("TRANSACTION");
+});
 
-  render(dom, state) {
-    const needPatch = diff(dom, state);
-    if (needPatch) {
-      // dom imperative updates
-      // selection imperative updates
-    }
+dom.addEventListener("DID_CHANGE", (e) => {
+  // validate, and dispatch patch transactions
+
+  editor.historyPush();
+  editor.dispatch("TRANSACTION");
+});
+
+editor.addEventListener("COMMANDS", (e) => {
+  process(e);
+  editor.dispatch("TRANSACTION");
+
+  // in case of undo/redo
+  editor.historyUndo();
+  editor.historyRedo();
+});
+
+editor.addEventListener("TRANSACTION", (e) => {
+  applyToDom(e);
+  // this could trigger more dom events
+});
+```
+
+## Reference implementation II - Strict data flow
+
+```typescript
+const dom = document.getElementById("root");
+const state = new EditorState(initialMarkdown);
+const view = new EditorView(dom, state);
+
+render(dom, state);
+dom.addEventListener("*", (e) => {
+  const changes = processEvent(e);
+  state.patch(changes);
+  render(dom, state);
+});
+
+function render(dom, state) {
+  const needPatch = diff(dom, state);
+  if (needPatch) {
+    // dom imperative updates
+    // selection imperative updates
   }
 }
 ```
