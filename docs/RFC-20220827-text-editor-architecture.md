@@ -58,6 +58,34 @@ interface EditorSelection {
 }
 ```
 
+## Reference core implementation
+
+```typescript
+const dom = document.getElementById("root");
+const state = new EditorState(initialMarkdown);
+const view = new EditorView(dom, state);
+
+// inside view
+class View {
+  start(dom, state) {
+    this.render(state);
+    dom.addEventListener("*", (e) => {
+      const changes = processEvent(e);
+      state.patch(changes);
+      this.render(state);
+    });
+  }
+
+  render(dom, state) {
+    const needPatch = diff(dom, state);
+    if (needPatch) {
+      // dom imperative updates
+      // selection imperative updates
+    }
+  }
+}
+```
+
 # Appendix
 
 ## Alternative architectures
