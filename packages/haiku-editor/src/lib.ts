@@ -48,18 +48,18 @@ export class HaikuEditorElement extends HTMLElement {
     return markdown;
   }
 
-  indentRelative = (levels: number) => getActiveLines(window.getSelection()).map(indentLineRelative.bind(null, levels));
+  indentRelative = (levels: number) => getLines(getBracket(window.getSelection())).map(indentLineRelative.bind(null, levels));
 
   moveUp() {
-    const activeLine = getActiveLine(window.getSelection());
-    const targetLine = (activeLine?.previousElementSibling as HTMLElement) ?? null;
-    swapTo("afterend", activeLine, targetLine);
+    const [head, tail] = getBracket(window.getSelection());
+    const beforeHead = (head?.previousElementSibling as HTMLElement) ?? null;
+    swapTo("afterend", tail, beforeHead);
   }
 
   moveDown() {
-    const activeLine = getActiveLine(window.getSelection());
-    const targetLine = (activeLine?.nextElementSibling as HTMLElement) ?? null;
-    swapTo("beforebegin", activeLine, targetLine);
+    const [head, tail] = getBracket(window.getSelection());
+    const afterTail = (tail?.nextElementSibling as HTMLElement) ?? null;
+    swapTo("beforebegin", head, afterTail);
   }
 
   addLink(href: string, text: string) {
@@ -78,25 +78,10 @@ export class HaikuEditorElement extends HTMLElement {
   }
 }
 
-export function getActiveLine(selection: Selection | null): HTMLElement | null {
-  if (!selection) return null;
+export function getLines(bracket: HTMLElement[]): HTMLElement[] {
+  const [headElement, tailElement] = bracket;
+  if (!headElement || !tailElement) return [];
 
-  const targetElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
-  if (!targetElement) return null;
-
-  return targetElement;
-}
-
-export function getActiveLines(selection: Selection | null): HTMLElement[] {
-  if (!selection?.anchorNode || !selection.focusNode) return [];
-
-  const backward = isSelectionBackward(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
-
-  const anchorElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
-  const focusElement = (selection.focusNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
-  if (!anchorElement || !focusElement) return [];
-
-  const [headElement, tailElement] = backward ? [focusElement, anchorElement] : [anchorElement, focusElement];
   let currentElement: HTMLElement = headElement;
   const activeLines: HTMLElement[] = [currentElement];
 
@@ -106,6 +91,18 @@ export function getActiveLines(selection: Selection | null): HTMLElement[] {
   }
 
   return activeLines;
+}
+
+export function getBracket(selection: Selection | null): HTMLElement[] {
+  if (!selection?.anchorNode || !selection.focusNode) return [];
+
+  const backward = isSelectionBackward(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
+
+  const anchorElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
+  const focusElement = (selection.focusNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
+  if (!anchorElement || !focusElement) return [];
+
+  return backward ? [focusElement, anchorElement] : [anchorElement, focusElement];
 }
 
 export function indentLineRelative(levels: number, line: HTMLElement | null) {
