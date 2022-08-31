@@ -9,5 +9,10 @@
   - link display
   - link editor (in dialog)
   - item bullet display
-  - shift enter for br
-  - enter for new item
+  - [done] shift enter for br
+  - [done] enter for new item
+- Clean up empty lines on format
+- Mutation tracker
+  - Add any moment, have O(1) access to list of dirty lines
+    - Content dirty (any text change)
+    - Structural dirty (indent changes)

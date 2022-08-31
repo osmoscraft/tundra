@@ -72,6 +72,10 @@ export class HaikuEditorElement extends HTMLElement {
     link.innerText = text;
     range.insertNode(link);
   }
+
+  formatAll() {
+    // run all the rules
+  }
 }
 
 export function getActiveLine(): HTMLElement | null {
