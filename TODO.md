@@ -2,11 +2,8 @@
   - [done] single line movement (alt + dir)
     - [done] indent/outdent
     - [done] swap above/below
-  - multi line selection
-    - grow selection: line -> sibling lines -> parent line -> parent sibling lines...
-    - shrink selection: selection undo
   - [done] multi line indent
-  - multi line swap
+  - [done] multi line swap
   - [done] link display
   - [done] link editor (in dialog)
   - [done] item bullet display
@@ -17,3 +14,6 @@
   - Add any moment, have O(1) access to list of dirty lines
     - Content dirty (any text change)
     - Structural dirty (indent changes)
+- multi line selection
+  - grow selection: line -> sibling lines -> parent line -> parent sibling lines...
+  - shrink selection: selection undo
