@@ -48,16 +48,16 @@ export class HaikuEditorElement extends HTMLElement {
     return markdown;
   }
 
-  indentRelative = (levels: number) => indentLineRelative(getActiveLine(), levels);
+  indentRelative = (levels: number) => getActiveLines(window.getSelection()).map(indentLineRelative.bind(null, levels));
 
   moveUp() {
-    const activeLine = getActiveLine();
+    const activeLine = getActiveLine(window.getSelection());
     const targetLine = (activeLine?.previousElementSibling as HTMLElement) ?? null;
     swapTo("afterend", activeLine, targetLine);
   }
 
   moveDown() {
-    const activeLine = getActiveLine();
+    const activeLine = getActiveLine(window.getSelection());
     const targetLine = (activeLine?.nextElementSibling as HTMLElement) ?? null;
     swapTo("beforebegin", activeLine, targetLine);
   }
@@ -78,8 +78,7 @@ export class HaikuEditorElement extends HTMLElement {
   }
 }
 
-export function getActiveLine(): HTMLElement | null {
-  const selection = window.getSelection();
+export function getActiveLine(selection: Selection | null): HTMLElement | null {
   if (!selection) return null;
 
   const targetElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
@@ -88,9 +87,30 @@ export function getActiveLine(): HTMLElement | null {
   return targetElement;
 }
 
-export function indentLineRelative(line: HTMLElement | null, levels: number) {
+export function getActiveLines(selection: Selection | null): HTMLElement[] {
+  if (!selection?.anchorNode || !selection.focusNode) return [];
+
+  const backward = isSelectionBackward(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
+
+  const anchorElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
+  const focusElement = (selection.focusNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
+  if (!anchorElement || !focusElement) return [];
+
+  const [headElement, tailElement] = backward ? [focusElement, anchorElement] : [anchorElement, focusElement];
+  let currentElement: HTMLElement = headElement;
+  const activeLines: HTMLElement[] = [currentElement];
+
+  while (currentElement !== tailElement) {
+    currentElement = currentElement.nextElementSibling as HTMLElement;
+    activeLines.push(currentElement);
+  }
+
+  return activeLines;
+}
+
+export function indentLineRelative(levels: number, line: HTMLElement | null) {
   if (!line) return;
-  line.dataset.depth = (parseInt(line.dataset.depth!) + levels).toString();
+  line.dataset.depth = Math.max(0, parseInt(line.dataset.depth!) + levels).toString();
 }
 
 /** Format: [Ctrl-][Alt-][Shift-]keyCode */
@@ -101,4 +121,11 @@ export function getKeyCodeString(e: KeyboardEvent): string {
 export function swapTo(pos: InsertPosition, self: HTMLElement | null, other: HTMLElement | null) {
   if (!self || !other) return;
   self.insertAdjacentElement(pos, other);
+}
+
+export function isSelectionBackward(anchorNode: Node, anchorOffset: number, focusNode: Node, focusOffset: number): boolean {
+  const position = anchorNode.compareDocumentPosition(focusNode);
+  const isBackward = (!position && anchorOffset > focusOffset) || position === Node.DOCUMENT_POSITION_PRECEDING;
+
+  return isBackward;
 }

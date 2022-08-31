@@ -5,7 +5,7 @@
   - multi line selection
     - grow selection: line -> sibling lines -> parent line -> parent sibling lines...
     - shrink selection: selection undo
-  - multi line movement
+  - [done] multi line movement
   - [done] link display
   - [done] link editor (in dialog)
   - [done] item bullet display
