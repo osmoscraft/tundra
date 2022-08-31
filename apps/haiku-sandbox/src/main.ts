@@ -28,11 +28,13 @@ async function main() {
         loadFile(file);
         break;
       case "indent":
-        editorElement.setIndentRelative(1);
+        editorElement.indentRelative(1);
         break;
       case "outdent":
-        editorElement.setIndentRelative(-1);
+        editorElement.indentRelative(-1);
         break;
+      case "link":
+        editorElement.addLink("#", "mock link text");
     }
   });
 

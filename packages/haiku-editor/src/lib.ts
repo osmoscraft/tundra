@@ -24,6 +24,13 @@ export class HaikuEditorElement extends HTMLElement {
           this.moveDown();
           e.preventDefault();
           break;
+        case "Ctrl-KeyK":
+          const href = prompt("href");
+          if (!href) return;
+          const text = prompt("text");
+          if (!text) return;
+          this.addLink(href, text);
+          e.preventDefault();
       }
     });
   }
@@ -43,17 +50,28 @@ export class HaikuEditorElement extends HTMLElement {
 
   indentRelative = (levels: number) => indentLineRelative(getActiveLine(), levels);
 
-  moveUp = () => {
+  moveUp() {
     const activeLine = getActiveLine();
     const targetLine = (activeLine?.previousElementSibling as HTMLElement) ?? null;
     swapTo("afterend", activeLine, targetLine);
-  };
+  }
 
-  moveDown = () => {
+  moveDown() {
     const activeLine = getActiveLine();
     const targetLine = (activeLine?.nextElementSibling as HTMLElement) ?? null;
     swapTo("beforebegin", activeLine, targetLine);
-  };
+  }
+
+  addLink(href: string, text: string) {
+    const selection = window.getSelection();
+    if (!selection) return;
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    const link = document.createElement("a");
+    link.href = href;
+    link.innerText = text;
+    range.insertNode(link);
+  }
 }
 
 export function getActiveLine(): HTMLElement | null {
