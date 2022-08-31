@@ -2,51 +2,84 @@ import { readFile } from "fs/promises";
 import { JSDOM } from "jsdom";
 import path from "path";
 import { describe, expect, it } from "vitest";
-import { domToMarkdown, getHtmlToMarkdown, markdownToHtml } from "./lib";
+import { getHtmlToMarkdown, markdownToHtml } from "./lib";
 
 const jsdomParser = (input: string) => new JSDOM(input).window.document;
 
 const jsdomHtmlToMarkdown = getHtmlToMarkdown(jsdomParser);
 
-describe("htmlToMarkdown", () => {
-  it("empty input", async () => {
-    const dom = new JSDOM("").window.document;
-    expect(domToMarkdown(dom)).toBe("\n");
+describe("empty doc", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown("")).toBe("\n");
   });
 
-  it("non-list text", async () => {
-    const dom = new JSDOM("hello").window.document;
-    expect(domToMarkdown(dom)).toBe("\n");
+  it("md to html", () => {
+    expect(markdownToHtml("")).toBe("");
+    expect(markdownToHtml("\n")).toBe("");
   });
 });
 
-describe("markdownToHtml", () => {
-  it("empty input", async () => {
-    expect(markdownToHtml("")).toBe("");
+describe("non-list", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown("hello")).toBe("\n");
   });
 
-  it("non-list markdown", async () => {
+  it("md to html", () => {
     expect(markdownToHtml("hello")).toBe("");
   });
+});
 
-  it("empty list markdown", async () => {
-    expect(markdownToHtml("- ")).toBe(`<div data-depth="0"></div>`);
+describe("empty item", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown(`<div data-depth="0"></div>`)).toBe("- \n");
   });
 
-  it("list markdown", async () => {
+  it("md to html", () => {
+    expect(markdownToHtml("- ")).toBe(`<div data-depth="0"></div>`);
+    expect(markdownToHtml("- \n")).toBe(`<div data-depth="0"></div>`);
+  });
+});
+
+describe("paragraph item", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown(`<div data-depth="0">hello</div>`)).toBe("- hello\n");
+  });
+
+  it("md to html", () => {
     expect(markdownToHtml("- hello")).toBe(`<div data-depth="0">hello</div>`);
   });
+});
 
-  it("nested list markdown", async () => {
+describe("nested paragraph items", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown(`<div data-depth="0">hello</div>\n<div data-depth="1">world</div>`)).toBe("- hello\n  - world\n");
+  });
+
+  it("md to html", () => {
     expect(markdownToHtml("- hello\n  - world")).toBe(`<div data-depth="0">hello</div>\n<div data-depth="1">world</div>`);
   });
+});
 
-  it("item as link", async () => {
-    expect(markdownToHtml("- [foo](https://sample.com)")).toBe(`<div data-depth="0"><a href="https://sample.com">foo</a></div>`);
+describe("link item", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown(`<div data-depth="0"><a href="https://sample.com/">foo</a></div>`)).toBe("- [foo](https://sample.com/)\n");
   });
 
-  it("item that includes a link", async () => {
-    expect(markdownToHtml("- foo: [bar](https://sample.com)")).toBe(`<div data-depth="0">foo: <a href="https://sample.com">bar</a></div>`);
+  it("md to html", () => {
+    expect(markdownToHtml("- [foo](https://sample.com/)")).toBe(`<div data-depth="0"><a href="https://sample.com/">foo</a></div>`);
+  });
+});
+
+describe("inline link", () => {
+  it("html to md", () => {
+    expect(jsdomHtmlToMarkdown(`<div data-depth="0">foo: <a href="https://sample.com/">bar</a> and <a href="https://baz.com/">baz</a></div>`)).toBe(
+      "- foo: [bar](https://sample.com/) and [baz](https://baz.com/)\n"
+    );
+  });
+  it("md to html", () => {
+    expect(markdownToHtml("- foo: [bar](https://sample.com/) and [baz](https://baz.com/)")).toBe(
+      `<div data-depth="0">foo: <a href="https://sample.com/">bar</a> and <a href="https://baz.com/">baz</a></div>`
+    );
   });
 });
 
@@ -59,6 +92,12 @@ describe("e2e", () => {
 
   it("nested list", async () => {
     const { html, markdown } = await loadSnapshot("nested.txt");
+    expect(markdownToHtml(markdown)).toBe(html);
+    expect(jsdomHtmlToMarkdown(html)).toBe(markdown);
+  });
+
+  it("links", async () => {
+    const { html, markdown } = await loadSnapshot("links.txt");
     expect(markdownToHtml(markdown)).toBe(html);
     expect(jsdomHtmlToMarkdown(html)).toBe(markdown);
   });

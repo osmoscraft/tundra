@@ -15,7 +15,7 @@ export function markdownToHtml(md: string) {
 
 export function domToMarkdown(dom: Document) {
   const md = [...dom.querySelectorAll<HTMLElement>("body > div")]
-    .map((lineElement) => `${" ".repeat(parseInt(lineElement.dataset.depth as string) * 2)}- ${lineElement.textContent}`)
+    .map((lineElement) => `${" ".repeat(parseInt(lineElement.dataset.depth as string) * 2)}- ${inlineElementToMarkdown(lineElement)}`)
     .join("\n")
     .concat("\n");
 
@@ -24,6 +24,29 @@ export function domToMarkdown(dom: Document) {
 
 export function inlineMarkdownToHtml(md: string) {
   return md.replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
+}
+
+export function inlineElementToMarkdown(dom: HTMLElement) {
+  const md = [...dom.childNodes]
+    .map((node) => {
+      switch (node.nodeType) {
+        case 1: // Element
+          switch ((node as Element).tagName) {
+            case "A":
+              const aElement = node as HTMLAnchorElement;
+              return `[${aElement.textContent}](${aElement.href})`;
+            default:
+              return "";
+          }
+        case 3: // Text
+          return (node as Text).textContent;
+        default:
+          return "";
+      }
+    })
+    .join("");
+
+  return md;
 }
 
 export function htmlToDom(input: string) {

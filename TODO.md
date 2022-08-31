@@ -6,8 +6,8 @@
     - grow selection: line -> sibling lines -> parent line -> parent sibling lines...
     - shrink selection: selection undo
   - multi line movement
-  - link display
-  - link editor (in dialog)
+  - [done] link display
+  - [done] link editor (in dialog)
   - item bullet display
   - [done] shift enter for br
   - [done] enter for new item
