@@ -1,9 +1,18 @@
+.haiku-editor {
+  font-family: monospace;
+}
+
+.haiku-editor [data-depth]::before {
+  content: " • ";
+  white-space: pre;
+}
+
 .haiku-editor [data-depth="1"] {
-  padding-left: 16px;
+  padding-left: 2ch;
 }
 .haiku-editor [data-depth="2"] {
-  padding-left: 32px;
+  padding-left: 4ch;
 }
 .haiku-editor [data-depth="3"] {
-  padding-left: 48px;
+  padding-left: 6ch;
 }

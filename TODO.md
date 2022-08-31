@@ -8,7 +8,7 @@
   - multi line movement
   - [done] link display
   - [done] link editor (in dialog)
-  - item bullet display
+  - [done] item bullet display
   - [done] shift enter for br
   - [done] enter for new item
 - Clean up empty lines on format
