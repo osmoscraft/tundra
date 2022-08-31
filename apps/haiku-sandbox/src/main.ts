@@ -8,6 +8,7 @@ const lazyImports = {
   simple: () => import("./sample-docs/sample01.md?raw"),
   nested: () => import("./sample-docs/sample02.md?raw"),
   long: () => import("./sample-docs/sample03.md?raw"),
+  rich: () => import("./sample-docs/sample04.md?raw"),
 };
 
 const sourceElement = document.getElementById("source") as HTMLTextAreaElement;
