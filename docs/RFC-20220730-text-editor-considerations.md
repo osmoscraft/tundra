@@ -5,6 +5,7 @@
 - Programmatic + human editing
   - Need to programmatically append, rename, reorder, remove items without mounting the DOM
   - Need to maintain Git change consistency across programmtic and human edits
+  - Need to undo/redo
 - Structured editing
   - Block movement
   - Block selection
@@ -22,6 +23,8 @@
 - Support CJK input
 
 ## Editor lifecycle
+
+This is superceded by [Editor Architecture](./RFC-20220827-text-editor-architecture.md);
 
 1. Read primary node and blacklink md files from disk
 2. Linearize: flatten all nodes into a single md file, the output is the "model" for the editor
@@ -55,3 +58,49 @@
 - Cannot introduce metadata that cannot be represented in plaintext markdown
 - Should allow for future extensibility
   - Linked/Backlinked/Borrowed node
+
+## Literature review
+
+### TinyMCE 6
+
+- No open source design documentation
+
+### ProseMirror
+
+- Content model
+  - Text segments + metadata annotations
+  - One to one mapping between the model and the visible
+- Duo encoding
+  - Tree model (spatial)
+  - Flat token list model (sequential)
+- Mapping
+  - Schema includes pure function that provides dom representation
+- Edits
+  - Each edit is a transform
+  - Transform produces steps
+  - Each step either replace content or add mark (metadata) to content range
+  - "Map" is used to compenstation for position shift after edits
+- Architecture
+  - Editor state
+    - Doc: content model
+    - Selection
+    - Stored mark (e.g. enabled a style but there is no content yet)
+  - View
+    - Display editor state
+    - Collect user input
+    - DOM events are first processed by browser, then by editor
+    - Build-in diffing for efficient update
+    - Undo is still handled by the editor, not by browser
+
+### Medium
+
+- url: https://medium.engineering/why-contenteditable-is-terrible-122d8a40e480
+- Bare ContentEditable fails WYSIWYG axioms
+  - DOM content to visible content is many to one
+  - DOM selection to visible selection is many to many
+  - Visible edits to visible content is many to many
+- Suggestions:
+  - Model the content
+  - Two way map for DOM and content
+  - Define the operations on model
+  - Translate raw input into operations

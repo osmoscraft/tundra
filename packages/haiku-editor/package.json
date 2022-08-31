@@ -1,5 +1,5 @@
 {
-  "name": "@tinykb/haiku-view",
+  "name": "@tinykb/haiku-editor",
   "version": "1.0.0",
   "description": "Semi-structured in-DOM editor optimized for simplicity and performance",
   "main": "index.ts",

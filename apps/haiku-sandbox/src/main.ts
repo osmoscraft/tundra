@@ -1,51 +1,59 @@
-import { htmlToMarkdown, markdownToHtml } from "@tinykb/haiku-codec";
+import { HaikuEditorElement } from "@tinykb/haiku-editor";
+import "@tinykb/haiku-editor/haiku-editor.css";
 import "./styles.css";
+
+customElements.define("haiku-editor-element", HaikuEditorElement);
 
 const lazyImports = {
   simple: () => import("./sample-docs/sample01.md?raw"),
   nested: () => import("./sample-docs/sample02.md?raw"),
   long: () => import("./sample-docs/sample03.md?raw"),
+  rich: () => import("./sample-docs/sample04.md?raw"),
 };
 
 const sourceElement = document.getElementById("source") as HTMLTextAreaElement;
-const editorElement = document.getElementById("editor")!;
+const editorElement = document.querySelector<HaikuEditorElement>("haiku-editor-element")!;
 const filePickerLement = document.getElementById("file-picker")!;
-const saveElement = document.getElementById("save")! as HTMLButtonElement;
 
 main();
 
 async function main() {
+  document.querySelector("menu")!.addEventListener("click", (e) => {
+    const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
+    switch (action) {
+      case "save":
+        sourceElement.value = editorElement.getMarkdown();
+        break;
+      case "openFile":
+        const file = (e.target as HTMLButtonElement).dataset.file as keyof typeof lazyImports;
+        loadFile(file);
+        break;
+      case "indent":
+        editorElement.indentRelative(1);
+        break;
+      case "outdent":
+        editorElement.indentRelative(-1);
+        break;
+      case "link":
+        editorElement.addLink("#", "mock link text");
+    }
+  });
+
   filePickerLement.innerHTML = Object.entries(lazyImports)
-    .map(([name]) => `<button data-file="${name}">${name}</button>`)
+    .map(([name]) => `<button data-action="openFile" data-file="${name}">${name}</button>`)
     .join("");
 
-  filePickerLement.addEventListener("click", async (e) => {
-    const file = (e.target as HTMLButtonElement).dataset.file as keyof typeof lazyImports;
-    loadFile(file);
-  });
-
   sourceElement.addEventListener("change", () => loadText(sourceElement.value));
-
-  saveElement.addEventListener("click", () => {
-    performance.mark("start");
-    const md = htmlToMarkdown(editorElement.innerHTML);
-    console.log(`[html-to-md] ${performance.measure("", "start").duration.toFixed(2)}ms`);
-    sourceElement.value = md;
-  });
 
   loadFile(Object.keys(lazyImports)[0]);
 }
 
 async function loadFile(file: string) {
   const imported = await lazyImports[file as keyof typeof lazyImports]();
-  console.log(imported.default);
   sourceElement.value = imported.default;
   loadText(imported.default);
 }
 
 function loadText(text: string) {
-  performance.mark("start");
-  const html = markdownToHtml(text);
-  console.log(`[md-to-html] ${performance.measure("", "start").duration.toFixed(2)}ms`);
-  editorElement.innerHTML = html;
+  editorElement.setMarkdown(text);
 }

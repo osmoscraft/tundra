@@ -9,11 +9,18 @@
   <body>
     <div class="layout">
       <header class="layout__header">
-        <button id="save">Save</button>
-        <div id="file-picker"></div>
+        <menu>
+          <div id="file-picker"></div>
+          <button data-action="save">Save</button>
+          <button data-action="indent">indent</button>
+          <button data-action="outdent">outdent</button>
+          <button data-action="link">link</button>
+          <button data-action="format-all">format all</button>
+          <button data-action="format-dirty">format dirty</button>
+        </menu>
       </header>
       <textarea aria-label="source" class="layout__left" id="source"></textarea>
-      <div class="layout__right" id="editor" contenteditable="true">Something went wrong. No content is loaded</div>
+      <haiku-editor-element class="haiku-editor layout__right"></haiku-editor-element>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

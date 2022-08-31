@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tinykb/haiku-view": "file:packages/haiku-view",
+    "@tinykb/haiku-editor": "file:packages/haiku-editor",
     "@tinykb/haiku-codec": "file:packages/haiku-codec"
   }
 }

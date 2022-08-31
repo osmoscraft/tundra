@@ -1,0 +1,15 @@
+- My reading list
+  - [Brace new world](https://wikipedia.org)
+    - By: [Aldous Huxley](https://en.wikipedia.org/wiki/Aldous_Huxley)
+  - [Art of programming](https://wikipedia.org)
+- Tasks for today
+  - Shopping
+    - Eggs
+    - Milk
+    - Yogurt
+  - Fixing computer
+    - Replace screen
+    - Clean up fan
+- Errands
+  - Ship package
+  - Research eye tracker
