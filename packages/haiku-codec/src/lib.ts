@@ -1,3 +1,5 @@
+const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/g; // `[title](target)`
+
 export function markdownToHtml(md: string) {
   return md
     .split("\n")
@@ -5,7 +7,8 @@ export function markdownToHtml(md: string) {
     .map((line) => {
       const listMarkPos = line.indexOf("- ");
       const depth = listMarkPos >> 1; // divide by 2 using right shift
-      return `<div data-depth="${depth}">${line.slice(listMarkPos + 2)}</div>`;
+      const inlineContent = line.slice(listMarkPos + 2);
+      return `<div data-depth="${depth}">${inlineMarkdownToHtml(inlineContent)}</div>`;
     })
     .join("\n");
 }
@@ -17,6 +20,10 @@ export function domToMarkdown(dom: Document) {
     .concat("\n");
 
   return md;
+}
+
+export function inlineMarkdownToHtml(md: string) {
+  return md.replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
 }
 
 export function htmlToDom(input: string) {

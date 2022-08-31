@@ -40,6 +40,14 @@ describe("markdownToHtml", () => {
   it("nested list markdown", async () => {
     expect(markdownToHtml("- hello\n  - world")).toBe(`<div data-depth="0">hello</div>\n<div data-depth="1">world</div>`);
   });
+
+  it("item as link", async () => {
+    expect(markdownToHtml("- [foo](https://sample.com)")).toBe(`<div data-depth="0"><a href="https://sample.com">foo</a></div>`);
+  });
+
+  it("item that includes a link", async () => {
+    expect(markdownToHtml("- foo: [bar](https://sample.com)")).toBe(`<div data-depth="0">foo: <a href="https://sample.com">bar</a></div>`);
+  });
 });
 
 describe("e2e", () => {
