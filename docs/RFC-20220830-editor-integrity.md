@@ -55,3 +55,15 @@
 - No empty line
   - Trim all whitespace at the beginning and end of each line
   - Remove all items with `<br>` as the only content
+
+# Markdown schema (WIP)
+
+- Each line must start with 0..2xN spaces followed by "-", followed by any character, ended with linebreak
+  - Need solution for multi-line item
+  - Need solution for code block ```
+- The number of spaces must be rational
+  - First item must not have spaces
+  - Item N and Item N + 1 must satisfy one of the following
+    - silbing
+    - parent-child
+    - level reset
