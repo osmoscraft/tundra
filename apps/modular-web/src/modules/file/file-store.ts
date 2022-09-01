@@ -18,8 +18,8 @@ export interface FrameSchema {
 }
 
 export interface FrameHeaderSchema {
-  created: Date;
-  modified: Date;
+  createdOn: Date;
+  modifiedOn: Date;
 }
 
 export type FileStore = IDBPDatabase<FileStoreSchema>;
