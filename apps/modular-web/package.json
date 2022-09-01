@@ -1,0 +1,15 @@
+{
+  "name": "modular-web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --clearScreen false --port 3000",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tinykb/haiku-codec": "file:packages/haiku-codec",
+    "@tinykb/haiku-editor": "file:packages/haiku-editor",
+    "idb": "^7.0.2"
+  }
+}
