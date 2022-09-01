@@ -6,6 +6,7 @@ import "./app.css";
 import type { FrameElement } from "./frame/frame";
 import { schemaFrameToDisplayFrame, type NavbarElement } from "./navbar/navbar";
 import type { PreferencesElement } from "./preferences/preferences";
+import type { SearchElement } from "./search/search";
 import type { SidebarElement } from "./sidebar/sidebar";
 
 export class AppElement extends HTMLElement {
@@ -15,12 +16,14 @@ export class AppElement extends HTMLElement {
   private frameElement!: FrameElement;
   private navbarElement!: NavbarElement;
   private preferencesElement!: PreferencesElement;
+  private searchElement!: SearchElement;
 
   async connectedCallback() {
     this.sidebarElement = this.querySelector("sidebar-element")!;
     this.frameElement = this.querySelector("frame-element")!;
     this.navbarElement = this.querySelector("navbar-element")!;
     this.preferencesElement = this.querySelector("preferences-element")!;
+    this.searchElement = this.querySelector("search-element")!;
 
     const url = new URL(location.href);
     const frameId = url.searchParams.get("frame");
@@ -56,6 +59,7 @@ export class AppElement extends HTMLElement {
       this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
     });
     this.navbarElement.addEventListener("openPreferences", () => this.preferencesElement.open());
+    this.navbarElement.addEventListener("openSearch", () => this.searchElement.open());
 
     this.frameElement.addEventListener("saveFrame", async (e) => {
       if (!frame) {

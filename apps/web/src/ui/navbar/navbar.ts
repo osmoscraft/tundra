@@ -11,6 +11,7 @@ const template = loadTemplate(/*html*/ `
 </menu>
 <ul id="recent-list"></ul>
 <menu>
+  <li><button data-command="openSearch">Search</button></li>
   <li><button data-command="openPreferences">Preferences</button></li>
 </menu>
 `);
@@ -22,6 +23,7 @@ declare global {
     pullAll: Event;
     pushAll: Event;
     openPreferences: Event;
+    openSearch: Event;
     openFrame: CustomEvent<string>;
   }
 }
