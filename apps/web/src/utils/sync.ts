@@ -21,6 +21,7 @@ import { filePathToId, idToFilename } from "./filename";
 import { ensure } from "./flow-control";
 import { joinByFence, splitByFence } from "./frontmatter";
 import { EditorFrameHeader, getEditorHeaderFromSchemaHeader, getSchemaHeaderFromEditorHeader } from "./header";
+import { tokenize } from "./tokenize";
 
 export async function testConnection() {
   const context = ensure(await getGitHubContext());
@@ -254,13 +255,7 @@ function applyChange(
         id: change.id,
         body,
         header: getSchemaHeaderFromEditorHeader(parsedHeader),
-        tokens: [
-          ...new Set(
-            [...new Intl.Segmenter(undefined, { granularity: "word" }).segment(body)]
-              .map((segment) => segment.segment)
-              .filter((segment) => segment.trim().length)
-          ),
-        ],
+        tokens: tokenize(body),
         status: ChangeStatus.Clean,
       });
       break;
