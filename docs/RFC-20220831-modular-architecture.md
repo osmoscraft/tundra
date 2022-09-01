@@ -1,0 +1,14 @@
+- Core
+  - What: frames content
+  - Least powerful language (plaintext), highly portable
+  - Emit events on all mutations
+  - Passive (avoid self-mutation). All mutations are imperatively driven by modules
+- Modules
+  - Have access to standard APIs
+    - Networking
+    - Remote module loading
+    - Inter-module communication
+    - Module storage
+    - Pakcage update management
+  - Operate on the frames, create meaningful user applications
+  - End-to-end isolates for highest modularity
