@@ -1,5 +1,5 @@
 import type { IDBPObjectStore, IDBPTransaction } from "idb";
-import { ChangeStatus, getDb, TkbSchema } from "../db/db";
+import { AppDb, ChangeStatus, getDb } from "../db/db";
 import {
   compare,
   CompareResultFile,
@@ -225,7 +225,7 @@ async function getRemoteHeadCommit(context: GitHubContext) {
   return headCommit;
 }
 
-type LocalDbTransact = (tx: IDBPTransaction<TkbSchema, ("frame" | "sync")[], "readwrite">) => any;
+type LocalDbTransact = (tx: IDBPTransaction<AppDb, ("frame" | "sync")[], "readwrite">) => any;
 
 async function mutateLocalDb(transact: LocalDbTransact) {
   const db = await getDb();
@@ -237,7 +237,7 @@ async function mutateLocalDb(transact: LocalDbTransact) {
 }
 
 function applyChange(
-  frameStore: IDBPObjectStore<TkbSchema, "frame"[], "frame", "readwrite">,
+  frameStore: IDBPObjectStore<AppDb, "frame"[], "frame", "readwrite">,
   change: {
     id: string;
     content: string;
@@ -254,6 +254,13 @@ function applyChange(
         id: change.id,
         body,
         header: getSchemaHeaderFromEditorHeader(parsedHeader),
+        tokens: [
+          ...new Set(
+            [...new Intl.Segmenter(undefined, { granularity: "word" }).segment(body)]
+              .map((segment) => segment.segment)
+              .filter((segment) => segment.trim().length)
+          ),
+        ],
         status: ChangeStatus.Clean,
       });
       break;

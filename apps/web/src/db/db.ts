@@ -1,28 +1,26 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
-export interface TkbSchema extends DBSchema {
+export interface AppDb extends DBSchema {
   frame: {
-    value: {
-      id: string;
-      body: string;
-      header: {
-        btime: Date;
-        ctime: Date;
-      };
-      status: ChangeStatus;
-    };
+    value: SchemaFrame;
     key: string;
     indexes: {
       byStatus: ChangeStatus;
+      byTokens: string;
     };
   };
   sync: {
-    value: {
-      syncedOn: Date;
-      commit: string;
-    };
+    value: SchemaSyncRecord;
     key: number;
   };
+}
+
+export interface SchemaFrame {
+  id: string;
+  body: string;
+  header: SchemaHeader;
+  status: ChangeStatus;
+  tokens: string[];
 }
 
 export interface SchemaHeader {
@@ -37,19 +35,25 @@ export enum ChangeStatus {
   Delete = 3,
 }
 
-export type TkbDb = IDBPDatabase<TkbSchema>;
+export interface SchemaSyncRecord {
+  syncedOn: Date;
+  commit: string;
+}
+
+export type TkbDb = IDBPDatabase<AppDb>;
 
 let instance: TkbDb;
 
 export async function getDb() {
   if (instance) return instance;
-  instance = await openDB<TkbSchema>("tkb-main-db", 1, {
-    upgrade(db, oldVersion, newVersion, transaction) {
+  instance = await openDB<AppDb>("app-db", 1, {
+    upgrade(db, _oldVersion, _newVersion, _transaction) {
       const frameStore = db.createObjectStore("frame", {
         keyPath: "id",
       });
 
       frameStore.createIndex("byStatus", "status");
+      frameStore.createIndex("byTokens", "tokens", { multiEntry: true });
 
       db.createObjectStore("sync", { autoIncrement: true });
     },

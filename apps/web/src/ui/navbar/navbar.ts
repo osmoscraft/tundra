@@ -1,4 +1,4 @@
-import type { ChangeStatus, TkbSchema } from "../../db/db";
+import type { AppDb, ChangeStatus } from "../../db/db";
 import { loadTemplate } from "../../utils/template";
 import "./navbar.css";
 
@@ -61,7 +61,7 @@ async function renderRecentItems(container: HTMLElement, recentFrames: DisplayFr
     .join("");
 }
 
-export function schemaFrameToDisplayFrame(frame: TkbSchema["frame"]["value"]): DisplayFrame {
+export function schemaFrameToDisplayFrame(frame: AppDb["frame"]["value"]): DisplayFrame {
   return {
     ...frame,
     title: frame.body.slice(0, 128),
