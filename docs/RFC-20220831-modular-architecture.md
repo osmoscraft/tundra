@@ -25,16 +25,11 @@ export async function main() {
   const gui: IGuiModule = {} as any;
 
   gui.addEventListener("loadFrame", chain(gui.load, graph.getFrames));
-  gui.addEventListener("saveFrame", graph.saveFrames);
-  gui.addEventListener("syncAll", chain(sync.pull, sync.push));
-  gui.addEventListener("pull", sync.pull);
-  gui.addEventListener("push", sync.push);
+  gui.addEventListener("saveFrame", pipe(graph.saveFrames, search.digestChanges, sync.digestChanges));
+  gui.addEventListener("sync", pipe(sync.pull, graph.saveFrames, searchDigestChanges, sync.push, sync.digestChanges));
+  gui.addEventListener("pull", pipe(sync.pull, graph.saveFrames, searchDigestChanges, sync.digestChanges));
+  gui.addEventListener("push", pipe(sync.push, sync.digestChanges));
   gui.addEventListener("search", chain(gui.search, search.search));
-
-  graph.addEventListener("framesChanged", sync.digestChanges);
-  graph.addEventListener("framesChanged", search.digestChanges);
-
-  sync.addEventListener("updateAvailable", graph.saveFrames);
 }
 
 export interface IGuiModule extends EventTarget {
