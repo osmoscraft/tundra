@@ -1,7 +1,7 @@
-import { FileModule } from "./modules/file/file.module";
+import { GraphModule } from "./modules/graph/graph.module";
 
 async function main() {
-  const fileModule = new FileModule();
+  const fileModule = new GraphModule();
 
   await fileModule.installModules(["foo", "bar"]);
 
