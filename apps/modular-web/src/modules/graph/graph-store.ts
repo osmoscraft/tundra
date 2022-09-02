@@ -2,12 +2,11 @@ import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 export interface GraphStoreSchema extends DBSchema {
   node: {
-    value: FrameSchema;
+    value: NodeSchema;
     key: string;
     indexes: {
       byStatus: ChangeStatus;
       byTargetNodeId: string;
-      byVisitorId: string;
     };
   };
   syncRecord: {
@@ -16,18 +15,18 @@ export interface GraphStoreSchema extends DBSchema {
   };
 }
 
-export interface FrameSchema {
+export interface NodeSchema {
   id: string;
-  body: string;
+  body: string | null;
   header: HeaderSchema;
   status: ChangeStatus;
   targetNodeIds: string[];
-  visitorIds: string[];
+  isDeleted: boolean;
 }
 
 export interface HeaderSchema {
   dateCreated: Date;
-  dateModified: Date;
+  dateUpdated: Date;
 }
 
 export enum ChangeStatus {
@@ -53,7 +52,6 @@ export async function openGraphStore() {
 
       nodeStore.createIndex("byStatus", "status");
       nodeStore.createIndex("byTargetNodeId", "targetNodeIds", { multiEntry: true });
-      nodeStore.createIndex("byVisitorId", "visitorIds", { multiEntry: true });
 
       db.createObjectStore("syncRecord", { autoIncrement: true });
     },

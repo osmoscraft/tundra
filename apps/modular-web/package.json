@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lyrasearch/lyra": "^0.2.0",
     "@tinykb/haiku-codec": "file:packages/haiku-codec",
     "@tinykb/haiku-editor": "file:packages/haiku-editor",
     "idb": "^7.0.2"
