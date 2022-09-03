@@ -21,7 +21,7 @@ export interface NodeSchema {
   header: HeaderSchema;
   status: ChangeStatus;
   targetNodeIds: string[];
-  isDeleted: boolean;
+  isDeleted?: boolean;
 }
 
 export interface HeaderSchema {

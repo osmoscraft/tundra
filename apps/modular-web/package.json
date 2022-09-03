@@ -11,6 +11,8 @@
     "@lyrasearch/lyra": "^0.2.0",
     "@tinykb/haiku-codec": "file:packages/haiku-codec",
     "@tinykb/haiku-editor": "file:packages/haiku-editor",
-    "idb": "^7.0.2"
+    "@types/ramda": "^0.28.15",
+    "idb": "^7.0.2",
+    "ramda": "^0.28.0"
   }
 }
