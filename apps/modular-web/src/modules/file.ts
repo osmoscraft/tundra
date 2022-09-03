@@ -1,7 +1,7 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import { pipe } from "ramda";
-import { dispatchCustom } from "../../utils/event";
-import { memoizeZeroArity } from "../../utils/memoize";
+import { dispatchCustom } from "../utils/event";
+import { memoizeZeroArity } from "../utils/memoize";
 
 export interface FileStoreSchema extends DBSchema {
   file: {
@@ -53,6 +53,66 @@ function openFileStore() {
   });
 }
 
+const extractFiles = async <T>(event: Promise<CustomEvent<{ files: T }>>) => (await event).detail.files;
+
+export type PutFileRequest = Pick<FileSchema, "id" | "body">;
+async function putFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
+  const tx = (await getStore()).transaction("file", "readwrite");
+  const now = new Date();
+  const changedFiles = requests.map((req) => {
+    const newFile = { ...req, dateCreated: now, dateUpdated: now };
+    tx.objectStore("file").put(newFile);
+    return newFile;
+  });
+  await tx.done;
+
+  return changedFiles;
+}
+
+export type DeleteFileRequest = Pick<FileSchema, "id">;
+async function deleteFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
+  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
+  const now = new Date();
+
+  const deletedFile = requests
+    .map(async (req) => {
+      const targetFile = await tx.objectStore("file").get(req.id);
+      if (!targetFile) return null as any as FileSchema; // will be filtered out
+      const { id, dateCreated, body } = targetFile;
+      const deletedFile = { id, dateCreated, dateUpdated: now, body };
+
+      tx.objectStore("file").delete(targetFile.id);
+      tx.objectStore("deletedFile").add(deletedFile);
+      return deletedFile;
+    })
+    .filter(async (file) => await file);
+  await tx.done;
+
+  return Promise.all(deletedFile);
+}
+
+export type RestoreFileRequest = Pick<FileSchema, "id">;
+async function restoreFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: RestoreFileRequest[]): Promise<FileSchema[]> {
+  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
+  const now = new Date();
+
+  const restoredFiles = requests
+    .map(async (req) => {
+      const targetFile = await tx.objectStore("deletedFile").get(req.id);
+      if (!targetFile) return null as any as FileSchema; // will be filtered out;
+      const { id, dateCreated, body } = targetFile;
+      const restoredFile = { id, dateCreated, dateUpdated: now, body };
+
+      tx.objectStore("deletedFile").delete(targetFile.id);
+      tx.objectStore("file").add(restoredFile);
+      return restoredFile;
+    })
+    .filter(async (file) => await file);
+  await tx.done;
+
+  return Promise.all(restoredFiles);
+}
+
 export function getFileModule() {
   const eventTarget = new EventTarget();
   const getFileStore = memoizeZeroArity(openFileStore);
@@ -75,63 +135,4 @@ export function getFileModule() {
       extractFiles
     ),
   };
-}
-
-const extractFiles = async <T>(event: Promise<CustomEvent<{ files: T }>>) => (await event).detail.files;
-
-export type PutFileRequest = Pick<FileSchema, "id" | "body">;
-async function putFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction("file", "readwrite");
-  const now = new Date();
-  const changedFiles = requests.map((req) => {
-    const newFile = { ...req, dateCreated: now, dateUpdated: now };
-    tx.objectStore("file").put(newFile);
-    return newFile;
-  });
-  await tx.done;
-
-  return changedFiles;
-}
-export type DeleteFileRequest = Pick<FileSchema, "id">;
-
-async function deleteFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
-  const now = new Date();
-
-  const deletedFile = requests
-    .map(async (req) => {
-      const targetFile = await tx.objectStore("file").get(req.id);
-      if (!targetFile) return null as any as FileSchema; // will be filtered out
-      const { id, dateCreated, body } = targetFile;
-      const deletedFile = { id, dateCreated, dateUpdated: now, body };
-
-      tx.objectStore("file").delete(targetFile.id);
-      tx.objectStore("deletedFile").add(deletedFile);
-      return deletedFile;
-    })
-    .filter(async (file) => await file);
-  await tx.done;
-
-  return Promise.all(deletedFile);
-}
-
-async function restoreFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
-  const now = new Date();
-
-  const restoredFiles = requests
-    .map(async (req) => {
-      const targetFile = await tx.objectStore("deletedFile").get(req.id);
-      if (!targetFile) return null as any as FileSchema; // will be filtered out;
-      const { id, dateCreated, body } = targetFile;
-      const restoredFile = { id, dateCreated, dateUpdated: now, body };
-
-      tx.objectStore("deletedFile").delete(targetFile.id);
-      tx.objectStore("file").add(restoredFile);
-      return restoredFile;
-    })
-    .filter(async (file) => await file);
-  await tx.done;
-
-  return Promise.all(restoredFiles);
 }

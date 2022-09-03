@@ -1,4 +1,4 @@
-import { getFileModule } from "./modules/file/file";
+import { getFileModule } from "./modules/file";
 import { getNewId } from "./utils/id";
 
 export async function main() {
