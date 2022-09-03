@@ -1,31 +1,10 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import { pipe, tap } from "ramda";
-import { memoizeZeroArity } from "../utils/memoize";
 
 export interface FileModuleConfig {
+  fileStore: IDBPDatabase<FileStoreSchema>;
   onChange?: (files: FileSchema[]) => any;
   onDelete?: (files: FileSchema[]) => any;
-}
-
-export function getFileModule(config: FileModuleConfig) {
-  const getFileStore = memoizeZeroArity(openFileStore);
-
-  return {
-    getFiles: getFiles.bind(null, getFileStore),
-    getAllFiles: getAllFiles.bind(null, getFileStore),
-    putFiles: pipe(
-      putFiles.bind(null, getFileStore),
-      tap(async (files) => config.onChange?.(await files))
-    ),
-    deleteFiles: pipe(
-      deleteFiles.bind(null, getFileStore),
-      tap(async (files) => config.onDelete?.(await files))
-    ),
-    restoreFiles: pipe(
-      restoreFiles.bind(null, getFileStore),
-      tap(async (files) => config.onChange?.(await files))
-    ),
-  };
 }
 
 export interface FileStoreSchema extends DBSchema {
@@ -59,7 +38,26 @@ export interface DeletedFileSchema {
   dateUpdated: Date;
 }
 
-function openFileStore() {
+export function getFileModule(config: FileModuleConfig) {
+  return {
+    getFiles: getFiles.bind(null, config.fileStore),
+    getAllFiles: getAllFiles.bind(null, config.fileStore),
+    putFiles: pipe(
+      putFiles.bind(null, config.fileStore),
+      tap(async (files) => config.onChange?.(await files))
+    ),
+    deleteFiles: pipe(
+      deleteFiles.bind(null, config.fileStore),
+      tap(async (files) => config.onDelete?.(await files))
+    ),
+    restoreFiles: pipe(
+      restoreFiles.bind(null, config.fileStore),
+      tap(async (files) => config.onChange?.(await files))
+    ),
+  };
+}
+
+export function openFileStore() {
   return openDB<FileStoreSchema>("tkb-file-db", 1, {
     upgrade(db, _oldVersion, _newVersion, _transaction) {
       const fileStore = db.createObjectStore("file", {
@@ -78,27 +76,26 @@ function openFileStore() {
   });
 }
 
-async function getFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, ids: string[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction("file", "readonly");
-  const store = tx.objectStore("file");
-  const files = ids.map((id) => store.get(id)).filter(async (file) => await file) as Promise<FileSchema>[];
+async function getFiles(store: IDBPDatabase<FileStoreSchema>, ids: string[]): Promise<FileSchema[]> {
+  const tx = store.transaction("file", "readonly");
+  const txStore = tx.objectStore("file");
+  const files = ids.map((id) => txStore.get(id)).filter(async (file) => await file) as Promise<FileSchema>[];
   await tx.done;
   return Promise.all(files);
 }
 
-async function getAllFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>): Promise<FileSchema[]> {
-  const store = await getStore();
+async function getAllFiles(store: IDBPDatabase<FileStoreSchema>): Promise<FileSchema[]> {
   return store.getAll("file");
 }
 
 export type PutFileRequest = Pick<FileSchema, "id" | "body">;
-async function putFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction("file", "readwrite");
+async function putFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFileRequest[]): Promise<FileSchema[]> {
+  const tx = store.transaction("file", "readwrite");
   const now = new Date();
-  const store = tx.objectStore("file");
+  const txStore = tx.objectStore("file");
   const changedFiles = requests.map((req) => {
     const newFile = { ...req, dateCreated: now, dateUpdated: now };
-    store.put(newFile);
+    txStore.put(newFile);
     return newFile;
   });
   await tx.done;
@@ -107,20 +104,20 @@ async function putFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, 
 }
 
 export type DeleteFileRequest = Pick<FileSchema, "id">;
-async function deleteFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: PutFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
+async function deleteFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFileRequest[]): Promise<FileSchema[]> {
+  const tx = store.transaction(["file", "deletedFile"], "readwrite");
   const now = new Date();
-  const fileStore = tx.objectStore("file");
+  const txStore = tx.objectStore("file");
   const deletedFileStore = tx.objectStore("deletedFile");
 
   const deletedFile = requests
     .map(async (req) => {
-      const targetFile = await fileStore.get(req.id);
+      const targetFile = await txStore.get(req.id);
       if (!targetFile) return null as any as FileSchema; // will be filtered out
       const { id, dateCreated, body } = targetFile;
       const deletedFile = { id, dateCreated, dateUpdated: now, body };
 
-      fileStore.delete(targetFile.id);
+      txStore.delete(targetFile.id);
       deletedFileStore.add(deletedFile);
       return deletedFile;
     })
@@ -131,10 +128,10 @@ async function deleteFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>
 }
 
 export type RestoreFileRequest = Pick<FileSchema, "id">;
-async function restoreFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema>>, requests: RestoreFileRequest[]): Promise<FileSchema[]> {
-  const tx = (await getStore()).transaction(["file", "deletedFile"], "readwrite");
+async function restoreFiles(store: IDBPDatabase<FileStoreSchema>, requests: RestoreFileRequest[]): Promise<FileSchema[]> {
+  const tx = store.transaction(["file", "deletedFile"], "readwrite");
   const now = new Date();
-  const fileStore = tx.objectStore("file");
+  const txStore = tx.objectStore("file");
   const deletedFileStore = tx.objectStore("deletedFile");
 
   const restoredFiles = requests
@@ -145,7 +142,7 @@ async function restoreFiles(getStore: () => Promise<IDBPDatabase<FileStoreSchema
       const restoredFile = { id, dateCreated, dateUpdated: now, body };
 
       deletedFileStore.delete(targetFile.id);
-      fileStore.add(restoredFile);
+      txStore.add(restoredFile);
       return restoredFile;
     })
     .filter(async (file) => await file);
