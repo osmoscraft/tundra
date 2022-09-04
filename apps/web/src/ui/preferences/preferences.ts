@@ -1,6 +1,6 @@
 import { getGitHubContext, setGitHubContext } from "../../git/github-context";
+import { forceClone, testConnection } from "../../sync/sync";
 import { createDelegationHandler } from "../../utils/dom-events";
-import { forceClone, testConnection } from "../../utils/sync";
 import { loadTemplate } from "../../utils/template";
 import "./preferences.css";
 

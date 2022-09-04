@@ -16,11 +16,13 @@ import {
 } from "../git/github-api";
 import { getGitHubContext, GitHubContext } from "../git/github-context";
 import { ChangeStatus, GraphDBSchema, openGraphDB } from "../graph/db";
-import { b64DecodeUnicode } from "./base64";
-import { filePathToId, idToFilename } from "./filename";
-import { ensure } from "./flow-control";
-import { joinByFence, splitByFence } from "./frontmatter";
-import { EditorFrameHeader, getEditorHeaderFromSchemaHeader, getSchemaHeaderFromEditorHeader } from "./header";
+import { b64DecodeUnicode } from "../utils/base64";
+import { filePathToId, idToFilename } from "../utils/filename";
+import { ensure } from "../utils/flow-control";
+import { joinByFence, splitByFence } from "../utils/frontmatter";
+import { EditorFrameHeader, getEditorHeaderFromSchemaHeader, getSchemaHeaderFromEditorHeader } from "../utils/header";
+
+export class SyncModule extends EventTarget {}
 
 export async function testConnection() {
   const context = ensure(await getGitHubContext());

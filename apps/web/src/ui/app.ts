@@ -1,5 +1,5 @@
 import { GraphModule } from "../graph/graph";
-import { pull, push } from "../utils/sync";
+import { pull, push } from "../sync/sync";
 import "./app.css";
 import type { FrameElement } from "./frame/frame";
 import { schemaFrameToDisplayFrame, type NavbarElement } from "./navbar/navbar";
