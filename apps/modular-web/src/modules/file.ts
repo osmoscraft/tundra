@@ -1,10 +1,10 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
-import { pipe, tap } from "ramda";
+import { andThen, pipe, tap } from "ramda";
 
 export interface FileModuleConfig {
   fileStore: IDBPDatabase<FileStoreSchema>;
-  onChange?: (files: FileSchema[]) => any;
-  onDelete?: (files: FileSchema[]) => any;
+  onChange: (files: FileSchema[]) => any;
+  onDelete: (files: FileSchema[]) => any;
 }
 
 export interface FileStoreSchema extends DBSchema {
@@ -42,18 +42,9 @@ export function getFileModule(config: FileModuleConfig) {
   return {
     getFiles: getFiles.bind(null, config.fileStore),
     getAllFiles: getAllFiles.bind(null, config.fileStore),
-    putFiles: pipe(
-      putFiles.bind(null, config.fileStore),
-      tap(async (files) => config.onChange?.(await files))
-    ),
-    deleteFiles: pipe(
-      deleteFiles.bind(null, config.fileStore),
-      tap(async (files) => config.onDelete?.(await files))
-    ),
-    restoreFiles: pipe(
-      restoreFiles.bind(null, config.fileStore),
-      tap(async (files) => config.onChange?.(await files))
-    ),
+    putFiles: pipe(putFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
+    deleteFiles: pipe(deleteFiles.bind(null, config.fileStore), andThen(tap(config.onDelete))),
+    restoreFiles: pipe(restoreFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
   };
 }
 
