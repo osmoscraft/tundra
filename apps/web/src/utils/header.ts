@@ -1,4 +1,4 @@
-import type { SchemaHeader } from "../db/db";
+import type { HeaderSchema } from "../db/db";
 
 export type EditorFrame = {
   header: EditorFrameHeader;
@@ -11,8 +11,8 @@ export function generateInitialHeader(): EditorFrameHeader {
   const nowIso = new Date().toISOString();
 
   return {
-    btime: nowIso,
-    ctime: nowIso,
+    dateCreated: nowIso,
+    dateModified: nowIso,
   };
 }
 
@@ -21,7 +21,7 @@ export function getLatestTimestampHeader(header: EditorFrameHeader) {
 
   return {
     ...header,
-    ctime: nowIso,
+    dateModified: nowIso,
   };
 }
 
@@ -32,8 +32,8 @@ export function transformHeaderBeforeCreate(frame: EditorFrame) {
     ...frame,
     header: {
       ...frame.header,
-      btime: nowIso,
-      ctime: nowIso,
+      dateCreated: nowIso,
+      dateModified: nowIso,
     },
   };
 }
@@ -45,7 +45,7 @@ export function transformHeaderBeforeUpdate(frame: EditorFrame) {
     ...frame,
     header: {
       ...frame.header,
-      ctime: nowIso,
+      dateModified: nowIso,
     },
   };
 }
@@ -53,15 +53,15 @@ export function transformHeaderBeforeUpdate(frame: EditorFrame) {
 export function getSchemaHeaderFromEditorHeader(editorHeader: EditorFrameHeader) {
   return {
     ...editorHeader,
-    ctime: new Date(editorHeader.ctime),
-    btime: new Date(editorHeader.btime),
+    dateModified: new Date(editorHeader.dateModified),
+    dateCreated: new Date(editorHeader.dateCreated),
   };
 }
 
-export function getEditorHeaderFromSchemaHeader(schemaHeader: SchemaHeader) {
+export function getEditorHeaderFromSchemaHeader(schemaHeader: HeaderSchema) {
   return {
     ...schemaHeader,
-    ctime: schemaHeader.ctime.toISOString(),
-    btime: schemaHeader.btime.toISOString(),
+    dateModified: schemaHeader.dateModified.toISOString(),
+    dateCreated: schemaHeader.dateCreated.toISOString(),
   };
 }

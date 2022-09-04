@@ -1,31 +1,31 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
-export interface AppDb extends DBSchema {
+export interface AppStoreSchema extends DBSchema {
   frame: {
-    value: SchemaFrame;
+    value: FrameSchema;
     key: string;
     indexes: {
       byStatus: ChangeStatus;
-      byTokens: string;
+      byToken: string;
+      byDateModified: Date;
     };
   };
-  sync: {
-    value: SchemaSyncRecord;
+  history: {
+    value: HistoryRecord;
     key: number;
   };
 }
 
-export interface SchemaFrame {
+export interface FrameSchema {
   id: string;
   body: string;
-  header: SchemaHeader;
+  header: HeaderSchema;
   status: ChangeStatus;
-  tokens: string[];
 }
 
-export interface SchemaHeader {
-  btime: Date;
-  ctime: Date;
+export interface HeaderSchema {
+  dateCreated: Date;
+  dateModified: Date;
 }
 
 export enum ChangeStatus {
@@ -35,27 +35,28 @@ export enum ChangeStatus {
   Delete = 3,
 }
 
-export interface SchemaSyncRecord {
-  syncedOn: Date;
+export interface HistoryRecord {
+  dateSynced: Date;
   commit: string;
 }
 
-export type TkbDb = IDBPDatabase<AppDb>;
+export type AppStore = IDBPDatabase<AppStoreSchema>;
 
-let instance: TkbDb;
+let instance: AppStore;
 
 export async function getDb() {
   if (instance) return instance;
-  instance = await openDB<AppDb>("app-db", 1, {
+  instance = await openDB<AppStoreSchema>("app-db", 1, {
     upgrade(db, _oldVersion, _newVersion, _transaction) {
       const frameStore = db.createObjectStore("frame", {
         keyPath: "id",
       });
 
       frameStore.createIndex("byStatus", "status");
-      frameStore.createIndex("byTokens", "tokens", { multiEntry: true });
+      frameStore.createIndex("byDateModified", "dateModified");
+      frameStore.createIndex("byToken", "tokens", { multiEntry: true });
 
-      db.createObjectStore("sync", { autoIncrement: true });
+      db.createObjectStore("history", { autoIncrement: true });
     },
     blocked() {
       // …

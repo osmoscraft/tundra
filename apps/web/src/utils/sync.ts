@@ -1,5 +1,5 @@
 import type { IDBPObjectStore, IDBPTransaction } from "idb";
-import { AppDb, ChangeStatus, getDb } from "../db/db";
+import { AppStoreSchema, ChangeStatus, getDb } from "../db/db";
 import {
   compare,
   CompareResultFile,
@@ -21,7 +21,6 @@ import { filePathToId, idToFilename } from "./filename";
 import { ensure } from "./flow-control";
 import { joinByFence, splitByFence } from "./frontmatter";
 import { EditorFrameHeader, getEditorHeaderFromSchemaHeader, getSchemaHeaderFromEditorHeader } from "./header";
-import { tokenize } from "./tokenize";
 
 export async function testConnection() {
   const context = ensure(await getGitHubContext());
@@ -64,7 +63,7 @@ export async function forceClone() {
 
   await mutateLocalDb((tx) => {
     const frameStore = tx.objectStore("frame");
-    const syncStore = tx.objectStore("sync");
+    const syncStore = tx.objectStore("history");
 
     frameStore.clear();
     syncStore.clear();
@@ -72,7 +71,7 @@ export async function forceClone() {
     changes.map(applyChange.bind(null, frameStore));
 
     syncStore.add({
-      syncedOn: new Date(),
+      dateSynced: new Date(),
       commit: head.sha,
     });
   });
@@ -92,12 +91,12 @@ export async function pull() {
 
   await mutateLocalDb((tx) => {
     const frameStore = tx.objectStore("frame");
-    const syncStore = tx.objectStore("sync");
+    const syncStore = tx.objectStore("history");
 
     changes.map(applyChange.bind(null, frameStore));
 
     syncStore.add({
-      syncedOn: new Date(),
+      dateSynced: new Date(),
       commit: head.sha,
     });
   });
@@ -185,7 +184,7 @@ export async function push() {
 
   await mutateLocalDb(async (tx) => {
     const frameStore = tx.objectStore("frame");
-    const syncStore = tx.objectStore("sync");
+    const syncStore = tx.objectStore("history");
 
     changes.map((change) => {
       frameStore.put({
@@ -195,7 +194,7 @@ export async function push() {
     });
 
     syncStore.add({
-      syncedOn: new Date(),
+      dateSynced: new Date(),
       commit: updatedCommit.sha,
     });
   });
@@ -211,8 +210,8 @@ async function getRemoteBaseCommit(context: GitHubContext) {
 async function getLocalBaseCommit() {
   let commit: string | undefined;
   const db = await getDb();
-  const tx = db.transaction("sync", "readonly");
-  const cursor = await tx.objectStore("sync").openCursor(null, "prev");
+  const tx = db.transaction("history", "readonly");
+  const cursor = await tx.objectStore("history").openCursor(null, "prev");
   if (cursor?.value.commit) {
     commit = cursor?.value.commit;
   }
@@ -226,11 +225,11 @@ async function getRemoteHeadCommit(context: GitHubContext) {
   return headCommit;
 }
 
-type LocalDbTransact = (tx: IDBPTransaction<AppDb, ("frame" | "sync")[], "readwrite">) => any;
+type LocalDbTransact = (tx: IDBPTransaction<AppStoreSchema, ("frame" | "history")[], "readwrite">) => any;
 
 async function mutateLocalDb(transact: LocalDbTransact) {
   const db = await getDb();
-  const tx = db.transaction(["frame", "sync"], "readwrite");
+  const tx = db.transaction(["frame", "history"], "readwrite");
 
   transact(tx);
 
@@ -238,7 +237,7 @@ async function mutateLocalDb(transact: LocalDbTransact) {
 }
 
 function applyChange(
-  frameStore: IDBPObjectStore<AppDb, "frame"[], "frame", "readwrite">,
+  frameStore: IDBPObjectStore<AppStoreSchema, "frame"[], "frame", "readwrite">,
   change: {
     id: string;
     content: string;
@@ -255,7 +254,6 @@ function applyChange(
         id: change.id,
         body,
         header: getSchemaHeaderFromEditorHeader(parsedHeader),
-        tokens: tokenize(body),
         status: ChangeStatus.Clean,
       });
       break;
