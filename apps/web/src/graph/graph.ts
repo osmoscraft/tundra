@@ -46,7 +46,7 @@ export class GraphModule extends EventTarget {
           ...existing,
           ...req,
           header: { dateCreated: existing.header.dateCreated, dateUpdated: now },
-          status: ChangeStatus.Update,
+          status: existing.status === ChangeStatus.Create ? ChangeStatus.Create : ChangeStatus.Update,
         };
 
         store.put(frame);
