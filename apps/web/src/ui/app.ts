@@ -1,4 +1,4 @@
-import { ChangeStatus, getDb } from "../graph/db";
+import { ChangeStatus, openGraphDB } from "../graph/db";
 import { generateInitialHeader, getLatestTimestampHeader, getSchemaHeaderFromEditorHeader } from "../utils/header";
 import { pull, push } from "../utils/sync";
 import "./app.css";
@@ -9,7 +9,7 @@ import type { SearchElement } from "./search/search";
 import type { SidebarElement } from "./sidebar/sidebar";
 
 export class AppElement extends HTMLElement {
-  private db = getDb();
+  private db = openGraphDB();
 
   private sidebarElement!: SidebarElement;
   private frameElement!: FrameElement;

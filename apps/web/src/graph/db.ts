@@ -1,6 +1,6 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
-export interface AppStoreSchema extends DBSchema {
+export interface GraphDBSchema extends DBSchema {
   frame: {
     value: FrameSchema;
     key: string;
@@ -40,13 +40,10 @@ export interface HistoryRecord {
   commit: string;
 }
 
-export type AppStore = IDBPDatabase<AppStoreSchema>;
+export type GraphDB = IDBPDatabase<GraphDBSchema>;
 
-let instance: AppStore;
-
-export async function getDb() {
-  if (instance) return instance;
-  instance = await openDB<AppStoreSchema>("app-db", 1, {
+export async function openGraphDB(): Promise<GraphDB> {
+  return openDB<GraphDBSchema>("tkb-graph-store", 1, {
     upgrade(db, _oldVersion, _newVersion, _transaction) {
       const frameStore = db.createObjectStore("frame", {
         keyPath: "id",
@@ -68,6 +65,4 @@ export async function getDb() {
       // …
     },
   });
-
-  return instance;
 }

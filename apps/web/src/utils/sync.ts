@@ -15,7 +15,7 @@ import {
   updateRef,
 } from "../git/github-api";
 import { getGitHubContext, GitHubContext } from "../git/github-context";
-import { AppStoreSchema, ChangeStatus, getDb } from "../graph/db";
+import { ChangeStatus, GraphDBSchema, openGraphDB } from "../graph/db";
 import { b64DecodeUnicode } from "./base64";
 import { filePathToId, idToFilename } from "./filename";
 import { ensure } from "./flow-control";
@@ -105,7 +105,7 @@ export async function pull() {
 }
 
 export async function push() {
-  const db = await getDb();
+  const db = await openGraphDB();
 
   const prePushTx = db.transaction("frame", "readonly");
   const frameStore = prePushTx.objectStore("frame");
@@ -209,7 +209,7 @@ async function getRemoteBaseCommit(context: GitHubContext) {
 
 async function getLocalBaseCommit() {
   let commit: string | undefined;
-  const db = await getDb();
+  const db = await openGraphDB();
   const tx = db.transaction("history", "readonly");
   const cursor = await tx.objectStore("history").openCursor(null, "prev");
   if (cursor?.value.commit) {
@@ -225,10 +225,10 @@ async function getRemoteHeadCommit(context: GitHubContext) {
   return headCommit;
 }
 
-type LocalDbTransact = (tx: IDBPTransaction<AppStoreSchema, ("frame" | "history")[], "readwrite">) => any;
+type LocalDbTransact = (tx: IDBPTransaction<GraphDBSchema, ("frame" | "history")[], "readwrite">) => any;
 
 async function mutateLocalDb(transact: LocalDbTransact) {
-  const db = await getDb();
+  const db = await openGraphDB();
   const tx = db.transaction(["frame", "history"], "readwrite");
 
   transact(tx);
@@ -237,7 +237,7 @@ async function mutateLocalDb(transact: LocalDbTransact) {
 }
 
 function applyChange(
-  frameStore: IDBPObjectStore<AppStoreSchema, "frame"[], "frame", "readwrite">,
+  frameStore: IDBPObjectStore<GraphDBSchema, "frame"[], "frame", "readwrite">,
   change: {
     id: string;
     content: string;
