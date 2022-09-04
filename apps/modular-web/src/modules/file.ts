@@ -21,6 +21,10 @@ export function getFileModule(config: FileModuleConfig) {
       const restoredFiles = await restoreFiles(config.fileStore, files);
       config.events.dispatchEvent(new CustomEvent("updated", { detail: restoredFiles }));
     },
+    hardReset: async (files: HardResetFileRequest[]) => {
+      const resetFiles = await hardReset(config.fileStore, files);
+      config.events.dispatchEvent(new CustomEvent("reset", { detail: resetFiles }));
+    },
   };
 }
 
@@ -151,4 +155,21 @@ async function restoreFiles(store: IDBPDatabase<FileStoreSchema>, requests: Rest
   await tx.done;
 
   return Promise.all(restoredFiles);
+}
+
+export type HardResetFileRequest = Pick<FileSchema, "id" | "body" | "header">;
+async function hardReset(store: IDBPDatabase<FileStoreSchema>, requests: HardResetFileRequest[]): Promise<FileSchema[]> {
+  const tx = store.transaction(["file", "deletedFile"], "readwrite");
+  tx.objectStore("file").clear();
+  tx.objectStore("deletedFile").clear();
+
+  const txStore = tx.objectStore("file");
+  const changedFiles = requests.map((req) => {
+    const newFile = { ...req, header: req.header };
+    txStore.add(newFile);
+    return newFile;
+  });
+  await tx.done;
+
+  return changedFiles;
 }

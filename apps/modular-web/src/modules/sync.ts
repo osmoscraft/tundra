@@ -1,12 +1,15 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 import { b64DecodeUnicode } from "../utils/base64";
-import { ensure } from "../utils/ensure";
+import { joinByFence, splitByFence } from "../utils/frontmatter";
 import { sha1 } from "../utils/hash";
+import { getEditorHeaderFromSchemaHeader, getSchemaHeaderFromEditorHeader } from "../utils/header";
 import { filePathToId } from "../utils/id";
 import type { FileSchema } from "./file";
-import { compare, CompareResultFile, getBlob, getCommit, getDefaultBranch, getGitHubContext, getTree, GitHubContext, listCommits } from "./github";
+import { compare, CompareResultFile, getBlob, getCommit, getDefaultBranch, getTree, GitHubContext, listCommits } from "./github";
 
 export interface SyncModuleConfig {
+  context: GitHubContext;
+  events: EventTarget;
   syncStore: IDBPDatabase<SyncStoreSchema>;
 }
 
@@ -14,6 +17,27 @@ export function getSyncModule(config: SyncModuleConfig) {
   return {
     handleChange: handleChange.bind(null, config.syncStore),
     handleDelete: handleDelete.bind(null, config.syncStore),
+    testConnection: testConnection.bind(null, config.context),
+    getRemoteAll: async () => {
+      const remoteFiles = await getRemoteAll(config.context);
+      if (!remoteFiles) return;
+
+      const files: FileSchema[] = remoteFiles.map((remoteFile) => {
+        const [header, body] = splitByFence(remoteFile.content);
+        const parsedHeader = JSON.parse(header);
+
+        return {
+          id: remoteFile.id,
+          header: getSchemaHeaderFromEditorHeader(parsedHeader),
+          body,
+        };
+      });
+
+      reset(config.syncStore, files);
+
+      config.events.dispatchEvent(new CustomEvent("remote-cloned", { detail: files }));
+      return files;
+    },
   };
 }
 
@@ -66,9 +90,7 @@ export function openSyncStore() {
 export type ChangedItem = Pick<FileSchema, "id" | "body" | "header">;
 
 export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: ChangedItem[]) {
-  const hashedItems = await Promise.all(
-    items.map(async (item) => ({ ...item, hash: await sha1(`${item.body}${item.header.dateCreated}${item.header.dateUpdated}`) }))
-  );
+  const hashedItems = await Promise.all(items.map(async (item) => ({ ...item, hash: await getItemHash(item) })));
   const tx = store.transaction("change", "readwrite");
   const txStore = tx.objectStore("change");
 
@@ -102,8 +124,23 @@ export async function handleDelete(store: IDBPDatabase<SyncStoreSchema>, items: 
   await tx.done;
 }
 
-export async function testConnection() {
-  const context = ensure(await getGitHubContext());
+export async function reset(store: IDBPDatabase<SyncStoreSchema>, items: ChangedItem[]) {
+  const hashedItems = await Promise.all(items.map(async (item) => ({ ...item, hash: await getItemHash(item) })));
+
+  const tx = store.transaction(["change", "history"], "readwrite");
+  const txStore = tx.objectStore("change");
+
+  tx.objectStore("change").clear();
+  tx.objectStore("history").clear();
+
+  hashedItems.map(async (item) => {
+    txStore.add({ id: item.id, remoteHash: item.hash, status: ChangeStatus.Clean });
+  });
+
+  await tx.done;
+}
+
+export async function testConnection(context: GitHubContext) {
   const branch = await getDefaultBranch(context);
   console.log(`[test-connection] default branch ${branch.name}`);
   if (!branch) return;
@@ -121,8 +158,7 @@ export async function testConnection() {
   console.log(`[test-connection]`, framesTree.tree);
 }
 
-export async function getRemoteAll() {
-  const context = ensure(await getGitHubContext());
+export async function getRemoteAll(context: GitHubContext) {
   const [base, head] = await Promise.all([getRemoteBaseCommit(context), getRemoteHeadCommit(context)]);
   if (!base || !head) return;
 
@@ -156,4 +192,8 @@ async function getRemoteBaseCommit(context: GitHubContext) {
 async function getRemoteHeadCommit(context: GitHubContext) {
   const headCommit = (await listCommits(context)).at(0);
   return headCommit;
+}
+
+async function getItemHash(item: Pick<FileSchema, "id" | "body" | "header">) {
+  return sha1(joinByFence(JSON.stringify(getEditorHeaderFromSchemaHeader(item.header), null, 2), item.body));
 }

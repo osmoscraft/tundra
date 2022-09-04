@@ -2,12 +2,16 @@ import { Index } from "flexsearch";
 import type { FileSchema } from "./file";
 
 export function getSearchModule() {
-  const index = new Index();
+  const indexContainer = { index: new Index() };
 
   return {
-    handleChange: handleChange.bind(null, index),
-    handleDelete: handleDelete.bind(null, index),
-    search: search.bind(null, index),
+    handleChange: handleChange.bind(null, indexContainer.index),
+    handleDelete: handleDelete.bind(null, indexContainer.index),
+    handleReset: (requests: AddRequest[]) => {
+      indexContainer.index = new Index();
+      handleChange(indexContainer.index, requests);
+    },
+    search: search.bind(null, indexContainer.index),
   };
 }
 
