@@ -1,4 +1,4 @@
-import type { AppStoreSchema, ChangeStatus } from "../../db/db";
+import type { AppStoreSchema, ChangeStatus } from "../../graph/db";
 import { loadTemplate } from "../../utils/template";
 import "./navbar.css";
 

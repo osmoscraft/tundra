@@ -1,7 +1,6 @@
-import { ChangeStatus, getDb } from "../db/db";
+import { ChangeStatus, getDb } from "../graph/db";
 import { generateInitialHeader, getLatestTimestampHeader, getSchemaHeaderFromEditorHeader } from "../utils/header";
 import { pull, push } from "../utils/sync";
-import { tokenize } from "../utils/tokenize";
 import "./app.css";
 import type { FrameElement } from "./frame/frame";
 import { schemaFrameToDisplayFrame, type NavbarElement } from "./navbar/navbar";
@@ -68,7 +67,6 @@ export class AppElement extends HTMLElement {
           header: getSchemaHeaderFromEditorHeader(generateInitialHeader()),
           body: e.detail,
           status: ChangeStatus.Create,
-          tokens: tokenize(e.detail),
         });
 
         const searchParams = new URLSearchParams(location.search);
@@ -83,7 +81,6 @@ export class AppElement extends HTMLElement {
           header: getSchemaHeaderFromEditorHeader(getLatestTimestampHeader(frame.header)),
           body: e.detail,
           status: existingFrame.status === ChangeStatus.Create ? ChangeStatus.Create : ChangeStatus.Update,
-          tokens: tokenize(e.detail),
         });
 
         location.reload();

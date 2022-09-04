@@ -8,8 +8,8 @@ const template = loadTemplate(/*html*/ `
 `);
 
 export interface SidebarMetadata {
-  ctime?: Date;
-  btime?: Date;
+  dateCreated?: Date;
+  dateModified?: Date;
 }
 
 export class SidebarElement extends HTMLElement {

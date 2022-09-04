@@ -1,5 +1,4 @@
 import type { IDBPObjectStore, IDBPTransaction } from "idb";
-import { AppStoreSchema, ChangeStatus, getDb } from "../db/db";
 import {
   compare,
   CompareResultFile,
@@ -16,6 +15,7 @@ import {
   updateRef,
 } from "../git/github-api";
 import { getGitHubContext, GitHubContext } from "../git/github-context";
+import { AppStoreSchema, ChangeStatus, getDb } from "../graph/db";
 import { b64DecodeUnicode } from "./base64";
 import { filePathToId, idToFilename } from "./filename";
 import { ensure } from "./flow-control";

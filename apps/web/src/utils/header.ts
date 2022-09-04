@@ -1,4 +1,4 @@
-import type { HeaderSchema } from "../db/db";
+import type { HeaderSchema } from "../graph/db";
 
 export type EditorFrame = {
   header: EditorFrameHeader;
