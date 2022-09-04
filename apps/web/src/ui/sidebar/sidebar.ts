@@ -9,7 +9,7 @@ const template = loadTemplate(/*html*/ `
 
 export interface SidebarMetadata {
   dateCreated?: Date;
-  dateModified?: Date;
+  dateUpdated?: Date;
 }
 
 export class SidebarElement extends HTMLElement {

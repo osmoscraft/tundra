@@ -12,7 +12,7 @@ export function generateInitialHeader(): EditorFrameHeader {
 
   return {
     dateCreated: nowIso,
-    dateModified: nowIso,
+    dateUpdated: nowIso,
   };
 }
 
@@ -21,7 +21,7 @@ export function getLatestTimestampHeader(header: EditorFrameHeader) {
 
   return {
     ...header,
-    dateModified: nowIso,
+    dateUpdated: nowIso,
   };
 }
 
@@ -33,7 +33,7 @@ export function transformHeaderBeforeCreate(frame: EditorFrame) {
     header: {
       ...frame.header,
       dateCreated: nowIso,
-      dateModified: nowIso,
+      dateUpdated: nowIso,
     },
   };
 }
@@ -45,7 +45,7 @@ export function transformHeaderBeforeUpdate(frame: EditorFrame) {
     ...frame,
     header: {
       ...frame.header,
-      dateModified: nowIso,
+      dateUpdated: nowIso,
     },
   };
 }
@@ -53,7 +53,7 @@ export function transformHeaderBeforeUpdate(frame: EditorFrame) {
 export function getSchemaHeaderFromEditorHeader(editorHeader: EditorFrameHeader) {
   return {
     ...editorHeader,
-    dateModified: new Date(editorHeader.dateModified),
+    dateUpdated: new Date(editorHeader.dateUpdated),
     dateCreated: new Date(editorHeader.dateCreated),
   };
 }
@@ -61,7 +61,7 @@ export function getSchemaHeaderFromEditorHeader(editorHeader: EditorFrameHeader)
 export function getEditorHeaderFromSchemaHeader(schemaHeader: HeaderSchema) {
   return {
     ...schemaHeader,
-    dateModified: schemaHeader.dateModified.toISOString(),
+    dateUpdated: schemaHeader.dateUpdated.toISOString(),
     dateCreated: schemaHeader.dateCreated.toISOString(),
   };
 }

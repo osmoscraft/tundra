@@ -28,7 +28,7 @@ export class GraphModule extends EventTarget {
 
   async createFrames(requests: CreateFrameRequest[]): Promise<FrameSchema[]> {
     const now = new Date();
-    const frames = requests.map((req) => ({ ...req, id: this.getNewId(), header: { dateCreated: now, dateModified: now }, status: ChangeStatus.Create }));
+    const frames = requests.map((req) => ({ ...req, id: this.getNewId(), header: { dateCreated: now, dateUpdated: now }, status: ChangeStatus.Create }));
 
     await transact(await this.getDB(), "frame", "readwrite", (tx) => frames.map((frame) => tx.objectStore("frame").add(frame)));
 
@@ -45,7 +45,7 @@ export class GraphModule extends EventTarget {
         const frame = {
           ...existing,
           ...req,
-          header: { dateCreated: existing.header.dateCreated, dateModified: now },
+          header: { dateCreated: existing.header.dateCreated, dateUpdated: now },
           status: ChangeStatus.Update,
         };
 

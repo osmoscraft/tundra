@@ -7,7 +7,7 @@ export interface GraphDBSchema extends DBSchema {
     indexes: {
       byStatus: ChangeStatus;
       byToken: string;
-      byDateModified: Date;
+      byDateUpdated: Date;
     };
   };
   history: {
@@ -25,7 +25,7 @@ export interface FrameSchema {
 
 export interface HeaderSchema {
   dateCreated: Date;
-  dateModified: Date;
+  dateUpdated: Date;
 }
 
 export enum ChangeStatus {
@@ -50,7 +50,7 @@ export async function openGraphDB(): Promise<GraphDB> {
       });
 
       frameStore.createIndex("byStatus", "status");
-      frameStore.createIndex("byDateModified", "dateModified");
+      frameStore.createIndex("byDateUpdated", "dateUpdated");
       frameStore.createIndex("byToken", "tokens", { multiEntry: true });
 
       db.createObjectStore("history", { autoIncrement: true });
