@@ -10,13 +10,13 @@ export function getGraph(config: GraphConfig) {
   return {
     getFrames: getFrames.bind(null, config.db),
     getAllFrames: getAllFrames.bind(null, config.db),
-    putFrames: async (files: PutFileRequest[]) => {
-      const changedFiles = await putFrames(config.db, files);
-      config.events.dispatchEvent(new CustomEvent("updated", { detail: changedFiles }));
+    putFrames: async (frames: PutFrameRequest[]) => {
+      const changedFrames = await putFrames(config.db, frames);
+      config.events.dispatchEvent(new CustomEvent("updated", { detail: changedFrames }));
     },
-    resetFrames: async (files: HardResetFileRequest[]) => {
-      const resetFiles = await resetFrames(config.db, files);
-      config.events.dispatchEvent(new CustomEvent("reset", { detail: resetFiles }));
+    resetFrames: async (requests: HardResetFrameRequest[]) => {
+      const frames = await resetFrames(config.db, requests);
+      config.events.dispatchEvent(new CustomEvent("reset", { detail: frames }));
     },
   };
 }
@@ -24,42 +24,42 @@ export function getGraph(config: GraphConfig) {
 async function getFrames(store: IDBPDatabase<AppStoreSchema>, ids: string[]): Promise<FrameSchema[]> {
   const tx = store.transaction("frame", "readonly");
   const txStore = tx.objectStore("frame");
-  const files = ids.map((id) => txStore.get(id)).filter(async (file) => await file) as Promise<FrameSchema>[];
+  const frames = ids.map((id) => txStore.get(id)).filter(async (frame) => await frame) as Promise<FrameSchema>[];
   await tx.done;
-  return Promise.all(files);
+  return Promise.all(frames);
 }
 
 async function getAllFrames(store: IDBPDatabase<AppStoreSchema>): Promise<FrameSchema[]> {
   return store.getAll("frame");
 }
 
-export type PutFileRequest = Pick<FrameSchema, "id" | "body">;
-async function putFrames(store: IDBPDatabase<AppStoreSchema>, requests: PutFileRequest[]): Promise<FrameSchema[]> {
+export type PutFrameRequest = Pick<FrameSchema, "id" | "body">;
+async function putFrames(store: IDBPDatabase<AppStoreSchema>, requests: PutFrameRequest[]): Promise<FrameSchema[]> {
   const tx = store.transaction("frame", "readwrite");
   const now = new Date();
   const txStore = tx.objectStore("frame");
-  const changedFiles = requests.map((req) => {
-    const newFile = { ...req, header: { dateCreated: now, dateModified: now }, status: ChangeStatus.Update };
-    txStore.put(newFile);
-    return newFile;
+  const changedFrames = requests.map((req) => {
+    const newFrame = { ...req, header: { dateCreated: now, dateModified: now }, status: ChangeStatus.Update };
+    txStore.put(newFrame);
+    return newFrame;
   });
   await tx.done;
 
-  return changedFiles;
+  return changedFrames;
 }
 
-export type HardResetFileRequest = Pick<FrameSchema, "id" | "body" | "header">;
-async function resetFrames(store: IDBPDatabase<AppStoreSchema>, requests: HardResetFileRequest[]): Promise<FrameSchema[]> {
+export type HardResetFrameRequest = Pick<FrameSchema, "id" | "body" | "header">;
+async function resetFrames(store: IDBPDatabase<AppStoreSchema>, requests: HardResetFrameRequest[]): Promise<FrameSchema[]> {
   const tx = store.transaction(["frame"], "readwrite");
   tx.objectStore("frame").clear();
 
   const txStore = tx.objectStore("frame");
-  const changedFiles = requests.map((req) => {
-    const newFile = { ...req, header: req.header, status: ChangeStatus.Clean };
-    txStore.add(newFile);
-    return newFile;
+  const changedFrames = requests.map((req) => {
+    const newFrame = { ...req, header: req.header, status: ChangeStatus.Clean };
+    txStore.add(newFrame);
+    return newFrame;
   });
   await tx.done;
 
-  return changedFiles;
+  return changedFrames;
 }
