@@ -1,9 +1,8 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 export interface FileModuleConfig {
+  events: EventTarget;
   fileStore: IDBPDatabase<FileStoreSchema>;
-  onChange: (files: FileSchema[]) => any;
-  onDelete: (files: FileSchema[]) => any;
 }
 
 export function getFileModule(config: FileModuleConfig) {
@@ -12,15 +11,15 @@ export function getFileModule(config: FileModuleConfig) {
     getAllFiles: getAllFiles.bind(null, config.fileStore),
     putFiles: async (files: PutFileRequest[]) => {
       const changedFiles = await putFiles(config.fileStore, files);
-      config.onChange(changedFiles);
+      config.events.dispatchEvent(new CustomEvent("updated", { detail: changedFiles }));
     },
     deleteFiles: async (files: DeleteFileRequest[]) => {
       const deletedFiles = await deleteFiles(config.fileStore, files);
-      config.onDelete(deletedFiles);
+      config.events.dispatchEvent(new CustomEvent("deleted", { detail: deletedFiles }));
     },
     restoreFiles: async (files: RestoreFileRequest[]) => {
       const restoredFiles = await restoreFiles(config.fileStore, files);
-      config.onChange(restoredFiles);
+      config.events.dispatchEvent(new CustomEvent("updated", { detail: restoredFiles }));
     },
   };
 }

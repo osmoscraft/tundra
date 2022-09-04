@@ -13,6 +13,7 @@ export interface SyncModuleConfig {
 export function getSyncModule(config: SyncModuleConfig) {
   return {
     handleChange: handleChange.bind(null, config.syncStore),
+    handleDelete: handleDelete.bind(null, config.syncStore),
   };
 }
 
@@ -62,9 +63,9 @@ export function openSyncStore() {
   });
 }
 
-export type TrackedItem = Pick<FileSchema, "id" | "body" | "header">;
+export type ChangedItem = Pick<FileSchema, "id" | "body" | "header">;
 
-export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: TrackedItem[]) {
+export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: ChangedItem[]) {
   const tx = store.transaction("change", "readwrite");
   const txStore = tx.objectStore("change");
 
@@ -75,6 +76,24 @@ export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: 
     } else {
       const hash = await sha1(`${item.body}${item.header.dateCreated}${item.header.dateUpdated}`);
       txStore.put({ ...existingItem, status: existingItem.remoteHash === hash ? ChangeStatus.Clean : ChangeStatus.Update });
+    }
+  });
+
+  await tx.done;
+}
+
+export type DeletedItem = Pick<FileSchema, "id">;
+
+export async function handleDelete(store: IDBPDatabase<SyncStoreSchema>, items: ChangedItem[]) {
+  const tx = store.transaction("change", "readwrite");
+  const txStore = tx.objectStore("change");
+
+  items.map(async (item) => {
+    const existingItem = await txStore.get(item.id);
+    if (!existingItem) {
+      return;
+    } else {
+      txStore.put({ ...existingItem, status: ChangeStatus.Delete });
     }
   });
 
