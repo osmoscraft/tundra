@@ -7,6 +7,16 @@ export interface FileModuleConfig {
   onDelete: (files: FileSchema[]) => any;
 }
 
+export function getFileModule(config: FileModuleConfig) {
+  return {
+    getFiles: getFiles.bind(null, config.fileStore),
+    getAllFiles: getAllFiles.bind(null, config.fileStore),
+    putFiles: pipe(putFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
+    deleteFiles: pipe(deleteFiles.bind(null, config.fileStore), andThen(tap(config.onDelete))),
+    restoreFiles: pipe(restoreFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
+  };
+}
+
 export interface FileStoreSchema extends DBSchema {
   file: {
     value: FileSchema;
@@ -36,16 +46,6 @@ export interface DeletedFileSchema {
   body: string;
   dateCreated: Date;
   dateUpdated: Date;
-}
-
-export function getFileModule(config: FileModuleConfig) {
-  return {
-    getFiles: getFiles.bind(null, config.fileStore),
-    getAllFiles: getAllFiles.bind(null, config.fileStore),
-    putFiles: pipe(putFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
-    deleteFiles: pipe(deleteFiles.bind(null, config.fileStore), andThen(tap(config.onDelete))),
-    restoreFiles: pipe(restoreFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
-  };
 }
 
 export function openFileStore() {
