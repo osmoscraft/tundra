@@ -1,5 +1,6 @@
 import type { IDBPDatabase } from "idb";
 import { transact } from "../utils/db";
+import { ensure } from "../utils/flow-control";
 import { once } from "../utils/once";
 import { ChangeStatus, FrameSchema, GraphDBSchema, openGraphDB } from "./db";
 
@@ -7,7 +8,8 @@ export interface GraphConfig {
   db: IDBPDatabase<GraphDBSchema>;
 }
 
-export type PutFrameRequest = Pick<FrameSchema, "id" | "body">;
+export type CreateFrameRequest = Pick<FrameSchema, "body">;
+export type UpdateFrameRequest = Pick<FrameSchema, "id" | "body">;
 
 export class GraphModule extends EventTarget {
   private getDB = once(openGraphDB);
@@ -24,17 +26,38 @@ export class GraphModule extends EventTarget {
     return (await this.getDB()).getAll("frame");
   }
 
-  async putFrames(requests: PutFrameRequest[]): Promise<FrameSchema[]> {
-    const modifiedFrames = await transact(await this.getDB(), "frame", "readwrite", (tx) => {
-      const now = new Date();
-      const txStore = tx.objectStore("frame");
-      return requests.map((req) => {
-        const newFrame = { ...req, header: { dateCreated: now, dateModified: now }, status: ChangeStatus.Update };
-        txStore.put(newFrame);
-        return newFrame;
+  async createFrames(requests: CreateFrameRequest[]): Promise<FrameSchema[]> {
+    const now = new Date();
+    const frames = requests.map((req) => ({ ...req, id: this.getNewId(), header: { dateCreated: now, dateModified: now }, status: ChangeStatus.Create }));
+
+    await transact(await this.getDB(), "frame", "readwrite", (tx) => frames.map((frame) => tx.objectStore("frame").add(frame)));
+
+    return frames;
+  }
+
+  async updateFrames(requests: UpdateFrameRequest[]): Promise<FrameSchema[]> {
+    const now = new Date();
+
+    const framesAsync = await transact(await this.getDB(), "frame", "readwrite", (tx) => {
+      return requests.map(async (req) => {
+        const store = tx.objectStore("frame");
+        const existing = ensure(await store.get(req.id));
+        const frame = {
+          ...existing,
+          ...req,
+          header: { dateCreated: existing.header.dateCreated, dateModified: now },
+          status: ChangeStatus.Update,
+        };
+
+        store.put(frame);
+        return frame;
       });
     });
 
-    return modifiedFrames;
+    return Promise.all(framesAsync);
+  }
+
+  private getNewId() {
+    return crypto.randomUUID();
   }
 }
