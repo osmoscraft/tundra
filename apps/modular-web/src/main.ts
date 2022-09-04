@@ -24,8 +24,8 @@ export async function main() {
   events.addEventListener("deleted", (e) => searchModule.handleDelete((e as CustomEvent<FileSchema[]>).detail));
 
   const all = await fileModule.getAllFiles();
-  searchModule.handleChange(all);
-  syncModule.handleChange(all);
+  await searchModule.handleChange(all);
+  await syncModule.handleChange(all);
 
   console.log(performance.measure("duration", "start").duration.toFixed(2));
 }

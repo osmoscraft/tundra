@@ -66,16 +66,18 @@ export function openSyncStore() {
 export type ChangedItem = Pick<FileSchema, "id" | "body" | "header">;
 
 export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: ChangedItem[]) {
+  const hashedItems = await Promise.all(
+    items.map(async (item) => ({ ...item, hash: await sha1(`${item.body}${item.header.dateCreated}${item.header.dateUpdated}`) }))
+  );
   const tx = store.transaction("change", "readwrite");
   const txStore = tx.objectStore("change");
 
-  items.map(async (item) => {
+  hashedItems.map(async (item) => {
     const existingItem = await txStore.get(item.id);
     if (!existingItem) {
       txStore.add({ id: item.id, status: ChangeStatus.Create });
     } else {
-      const hash = await sha1(`${item.body}${item.header.dateCreated}${item.header.dateUpdated}`);
-      txStore.put({ ...existingItem, status: existingItem.remoteHash === hash ? ChangeStatus.Clean : ChangeStatus.Update });
+      txStore.put({ ...existingItem, status: existingItem.remoteHash === item.hash ? ChangeStatus.Clean : ChangeStatus.Update });
     }
   });
 
