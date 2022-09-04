@@ -1,8 +1,20 @@
-import { DBSchema, openDB } from "idb";
+import { DBSchema, IDBPDatabase, openDB } from "idb";
 import { b64DecodeUnicode } from "../utils/base64";
 import { ensure } from "../utils/ensure";
+import { sha1 } from "../utils/hash";
 import { filePathToId } from "../utils/id";
+import type { FileSchema } from "./file";
 import { compare, CompareResultFile, getBlob, getCommit, getDefaultBranch, getGitHubContext, getTree, GitHubContext, listCommits } from "./github";
+
+export interface SyncModuleConfig {
+  syncStore: IDBPDatabase<SyncStoreSchema>;
+}
+
+export function getSyncModule(config: SyncModuleConfig) {
+  return {
+    handleChange: handleChange.bind(null, config.syncStore),
+  };
+}
 
 export interface SyncStoreSchema extends DBSchema {
   change: {
@@ -20,6 +32,7 @@ export interface SyncStoreSchema extends DBSchema {
 
 export interface ChangeSchema {
   id: string;
+  remoteHash?: string;
   status: ChangeStatus;
 }
 
@@ -35,7 +48,7 @@ export interface HistoryItemSchema {
   commit: string;
 }
 
-export function openFileStore() {
+export function openSyncStore() {
   return openDB<SyncStoreSchema>("tkb-sync-db", 1, {
     upgrade(db, _oldVersion, _newVersion, _transaction) {
       const fileStore = db.createObjectStore("change", {
@@ -47,6 +60,25 @@ export function openFileStore() {
       db.createObjectStore("history", { autoIncrement: true });
     },
   });
+}
+
+export type TrackedItem = Pick<FileSchema, "id" | "body" | "header">;
+
+export async function handleChange(store: IDBPDatabase<SyncStoreSchema>, items: TrackedItem[]) {
+  const tx = store.transaction("change", "readwrite");
+  const txStore = tx.objectStore("change");
+
+  items.map(async (item) => {
+    const existingItem = await txStore.get(item.id);
+    if (!existingItem) {
+      txStore.add({ id: item.id, status: ChangeStatus.Create });
+    } else {
+      const hash = await sha1(`${item.body}${item.header.dateCreated}${item.header.dateUpdated}`);
+      txStore.put({ ...existingItem, status: existingItem.remoteHash === hash ? ChangeStatus.Clean : ChangeStatus.Update });
+    }
+  });
+
+  await tx.done;
 }
 
 export async function testConnection() {

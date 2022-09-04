@@ -1,5 +1,4 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
-import { andThen, pipe, tap } from "ramda";
 
 export interface FileModuleConfig {
   fileStore: IDBPDatabase<FileStoreSchema>;
@@ -11,9 +10,18 @@ export function getFileModule(config: FileModuleConfig) {
   return {
     getFiles: getFiles.bind(null, config.fileStore),
     getAllFiles: getAllFiles.bind(null, config.fileStore),
-    putFiles: pipe(putFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
-    deleteFiles: pipe(deleteFiles.bind(null, config.fileStore), andThen(tap(config.onDelete))),
-    restoreFiles: pipe(restoreFiles.bind(null, config.fileStore), andThen(tap(config.onChange))),
+    putFiles: async (files: PutFileRequest[]) => {
+      const changedFiles = await putFiles(config.fileStore, files);
+      config.onChange(changedFiles);
+    },
+    deleteFiles: async (files: DeleteFileRequest[]) => {
+      const deletedFiles = await deleteFiles(config.fileStore, files);
+      config.onDelete(deletedFiles);
+    },
+    restoreFiles: async (files: RestoreFileRequest[]) => {
+      const restoredFiles = await restoreFiles(config.fileStore, files);
+      config.onChange(restoredFiles);
+    },
   };
 }
 
@@ -38,14 +46,18 @@ export interface FileStoreSchema extends DBSchema {
 export interface FileSchema {
   id: string;
   body: string;
-  dateCreated: Date;
-  dateUpdated: Date;
+  header: {
+    dateCreated: Date;
+    dateUpdated: Date;
+  };
 }
 export interface DeletedFileSchema {
   id: string;
   body: string;
-  dateCreated: Date;
-  dateUpdated: Date;
+  header: {
+    dateCreated: Date;
+    dateUpdated: Date;
+  };
 }
 
 export function openFileStore() {
@@ -85,7 +97,7 @@ async function putFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFileR
   const now = new Date();
   const txStore = tx.objectStore("file");
   const changedFiles = requests.map((req) => {
-    const newFile = { ...req, dateCreated: now, dateUpdated: now };
+    const newFile = { ...req, header: { dateCreated: now, dateUpdated: now } };
     txStore.put(newFile);
     return newFile;
   });
@@ -95,7 +107,7 @@ async function putFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFileR
 }
 
 export type DeleteFileRequest = Pick<FileSchema, "id">;
-async function deleteFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFileRequest[]): Promise<FileSchema[]> {
+async function deleteFiles(store: IDBPDatabase<FileStoreSchema>, requests: DeleteFileRequest[]): Promise<FileSchema[]> {
   const tx = store.transaction(["file", "deletedFile"], "readwrite");
   const now = new Date();
   const txStore = tx.objectStore("file");
@@ -105,8 +117,8 @@ async function deleteFiles(store: IDBPDatabase<FileStoreSchema>, requests: PutFi
     .map(async (req) => {
       const targetFile = await txStore.get(req.id);
       if (!targetFile) return null as any as FileSchema; // will be filtered out
-      const { id, dateCreated, body } = targetFile;
-      const deletedFile = { id, dateCreated, dateUpdated: now, body };
+      const { id, header, body } = targetFile;
+      const deletedFile = { id, header: { ...header, dateUpdated: now }, body };
 
       txStore.delete(targetFile.id);
       deletedFileStore.add(deletedFile);
@@ -129,8 +141,8 @@ async function restoreFiles(store: IDBPDatabase<FileStoreSchema>, requests: Rest
     .map(async (req) => {
       const targetFile = await deletedFileStore.get(req.id);
       if (!targetFile) return null as any as FileSchema; // will be filtered out;
-      const { id, dateCreated, body } = targetFile;
-      const restoredFile = { id, dateCreated, dateUpdated: now, body };
+      const { id, header, body } = targetFile;
+      const restoredFile = { id, header: { ...header, dateUpdated: now }, body };
 
       deletedFileStore.delete(targetFile.id);
       txStore.add(restoredFile);
