@@ -113,12 +113,12 @@
   - Sync module get latest diff
   - Sync module updates Remote changes and updates latest remote head (commit id)
 - On Merge
-  - Sync module emits Remote items and latest remote head
+  - Sync module emits Remote items
   - File module updates content
-  - File module emits changed files and latest local base
-  - Sync module receives changed files and local base, update Local changes (same as On Save flow) and last local base
+  - File module emits changed files
+  - Sync module receives changed files, update Local changes (same as On Save flow)
 - On Push
-  - Ensure local base is same as remote head. If not, merge first
+  - Ensure Remote changes are empty. If not, merge first
   - Push changes to remote
 - On Sync
   - Fetch, Merge, Push in sequence

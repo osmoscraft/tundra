@@ -1,5 +1,7 @@
-export interface IChangesetModule {
+export interface ISyncModule {
   addLocal(changes: LocalChange[]): void;
+  pull(): void;
+  push(): void;
   on<Type extends keyof ChangesetEventMap>(type: Type, listener: (data: ChangesetEventMap[Type]) => any): void;
 }
 
@@ -19,7 +21,7 @@ export interface ChangesetEventMap {
   remoteChanged: any;
 }
 
-export class ChangesetModule implements IChangesetModule {
+export class SyncModule implements ISyncModule {
   private localChanges: LocalChange[] = [];
   private remoteChanges: RemoteChange[] = [];
 
@@ -37,6 +39,10 @@ export class ChangesetModule implements IChangesetModule {
   addRemote(remoteChanges: RemoteChange[]): void {
     this.remoteChanges = remoteChanges;
   }
+
+  pull(): void {}
+
+  push(): void {}
 
   on<Type extends keyof ChangesetEventMap>(type: Type, listener: (data: ChangesetEventMap[Type]) => any): void {}
 }
