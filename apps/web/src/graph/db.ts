@@ -6,7 +6,6 @@ export interface GraphDBSchema extends DBSchema {
     key: string;
     indexes: {
       byStatus: ChangeStatus;
-      byToken: string;
       byDateUpdated: Date;
     };
   };
@@ -51,7 +50,6 @@ export async function openGraphDB(): Promise<GraphDB> {
 
       frameStore.createIndex("byStatus", "status");
       frameStore.createIndex("byDateUpdated", "dateUpdated");
-      frameStore.createIndex("byToken", "tokens", { multiEntry: true });
 
       db.createObjectStore("history", { autoIncrement: true });
     },
