@@ -19,4 +19,8 @@ export async function testModules() {
   const push = () => {
     sync.push();
   };
+
+  const keywordSearch = () => {
+    return search.search("");
+  };
 }
