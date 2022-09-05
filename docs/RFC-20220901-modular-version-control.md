@@ -91,6 +91,38 @@
   - On start
     - File module will re-emit change event all any nodes that hasn't cleared the flags
 
+# Concept D - Stateless main + Stateful tracker
+
+- File module
+  - On tracks content
+- Sync module
+  - Tracks Remote items and Local items (similar to Git)
+    - Local changes
+      - id, preContent, content, status
+    - Remote changes
+      - id, content, status
+  - Tracks refs
+    - last remote head
+    - last local base
+- On Save
+  - File module emits changed files
+  - Sync module receives changed files update Local items
+    - Compare preContent and content to cancel out undo changes
+    - Compare Local.content and Remote.content to cancel out in-sync files
+- On Fetch
+  - Sync module get latest diff
+  - Sync module updates Remote changes and updates latest remote head (commit id)
+- On Merge
+  - Sync module emits Remote items and latest remote head
+  - File module updates content
+  - File module emits changed files and latest local base
+  - Sync module receives changed files and local base, update Local changes (same as On Save flow) and last local base
+- On Push
+  - Ensure local base is same as remote head. If not, merge first
+  - Push changes to remote
+- On Sync
+  - Fetch, Merge, Push in sequence
+
 # Appendix
 
 - Track local changes
