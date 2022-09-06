@@ -1,3 +1,5 @@
+import { appDB } from "../db/db";
+import { getRecentFramesTx } from "../db/tx";
 import { GraphModule } from "../graph/graph";
 import { pull, push } from "../sync/sync";
 import "./app.css";
@@ -31,6 +33,9 @@ export class AppElement extends HTMLElement {
     }
 
     const frames = await this.graph.getAllFrames();
+
+    const recentFrames = await getRecentFramesTx(await appDB);
+    console.log(recentFrames);
     this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
 
     const frame = (await this.graph.getFrames([frameId]))[0];
