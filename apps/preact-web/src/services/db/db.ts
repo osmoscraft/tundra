@@ -1,4 +1,5 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
+import { once } from "../../utils/once";
 
 export interface AppDBSchema extends DBSchema {
   frame: {
@@ -33,6 +34,13 @@ export interface LocalChangeItem {
   id: string;
   content: string | null;
   previousContent: string | null;
+  changeType: ChangeType;
+}
+
+export enum ChangeType {
+  Create = 1,
+  Update = 2,
+  Delete = 3,
 }
 
 export interface RemoteChangeItem {
@@ -64,4 +72,4 @@ export async function openAppDB(): Promise<AppDB> {
   });
 }
 
-export const appDB = openAppDB();
+export const getAppDB = once(openAppDB);
