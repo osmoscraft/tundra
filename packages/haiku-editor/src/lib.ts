@@ -98,11 +98,15 @@ export function getBracket(selection: Selection | null): HTMLElement[] {
 
   const backward = isSelectionBackward(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
 
-  const anchorElement = (selection.anchorNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
-  const focusElement = (selection.focusNode?.parentElement as HTMLElement)?.closest("[data-depth]") as HTMLElement;
+  const anchorElement = closestHTMLElement(selection.anchorNode)?.closest("[data-depth]") as HTMLElement;
+  const focusElement = closestHTMLElement(selection.focusNode)?.closest("[data-depth]") as HTMLElement;
   if (!anchorElement || !focusElement) return [];
 
   return backward ? [focusElement, anchorElement] : [anchorElement, focusElement];
+}
+
+function closestHTMLElement(node: Node) {
+  return node instanceof HTMLElement ? node : node.parentElement;
 }
 
 export function indentLineRelative(levels: number, line: HTMLElement | null) {
