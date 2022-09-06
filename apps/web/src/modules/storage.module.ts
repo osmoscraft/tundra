@@ -1,6 +1,7 @@
 export interface IStorageModule {
   write(requests: WriteFileRequest[]): Promise<void>;
   read(ids: string[]): Promise<StorageItem[]>;
+  clear(): Promise<void>;
   on<Type extends keyof StorageEventMap>(type: Type, listener: (data: StorageEventMap[Type]) => any): void;
 }
 
@@ -54,6 +55,10 @@ export class StorageModule implements IStorageModule {
 
   async read(ids: string[]): Promise<StorageItem[]> {
     return ids.map((id) => this.inMemStore[id]).filter((item) => !!item);
+  }
+
+  async clear() {
+    this.inMemStore = {};
   }
 
   on<Type extends keyof StorageEventMap>(type: Type, listener: (data: StorageEventMap[Type]) => any): void {
