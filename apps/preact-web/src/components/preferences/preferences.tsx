@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import { openAppDB } from "../../services/db/db";
-import { resetTx } from "../../services/db/tx";
+import { resetDb } from "../../services/db/tx";
 import { getGitHubContext, setGitHubContext } from "../../services/git/github-context";
 import { getRemoteAll } from "../../services/sync/sync";
 import { ensure } from "../../utils/flow-control";
@@ -62,6 +62,8 @@ async function handleClone() {
   const context = ensure(await getGitHubContext());
   const remoteAll = await getRemoteAll(context);
   const db = await openAppDB();
-  resetTx(db, remoteAll.frames, remoteAll.sha);
+  resetDb(db, remoteAll.frames, remoteAll.sha);
   console.log(`[preference] cloned ${remoteAll.frames.length} items, sha: ${remoteAll.sha}`);
+
+  window.confirm("Reload now?") && location.reload();
 }

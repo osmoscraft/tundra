@@ -2,11 +2,11 @@ import { render } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { Dialog } from "./components/dialog/dialog";
 import { Frame } from "./components/frame/frame";
-import { Navbar } from "./components/navbar/navbar";
+import { Navbar, RecentFrame } from "./components/navbar/navbar";
 import { Preferences } from "./components/preferences/preferences";
 import "./custom-elements";
 import { FrameSchema, getAppDB } from "./services/db/db";
-import { getFrameTx, putChangedFrame } from "./services/db/tx";
+import { getFrame, getRecentFrames, putChangedFrame } from "./services/db/tx";
 
 import "./styles/index.css";
 
@@ -27,6 +27,8 @@ function App() {
   useEffect(() => void loadActiveFrame().then((frame) => setExistingFrame(frame ? frame : null)), []);
   const handleSave = useCallback((content: string) => saveFrame(existingFrame?.id, content), [existingFrame]);
   const initialMarkdown = useMemo(() => getInitialMarkdown(existingFrame), [existingFrame]);
+  const [recentFrames, setRecentFrames] = useState<RecentFrame[]>([]);
+  useEffect(() => void getRecentFramesWrapper().then(setRecentFrames), []);
 
   useEffect(() => {
     const handleGlobalKeyboard = (e: KeyboardEvent) => {
@@ -41,7 +43,7 @@ function App() {
 
   return (
     <>
-      <Navbar class="u-flex__fixed" onOpenPreferences={() => setIsPreferencesOpen(true)} />
+      <Navbar class="u-flex__fixed" recentFrames={recentFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
       <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences />
@@ -56,7 +58,7 @@ function App() {
 async function loadActiveFrame() {
   const url = new URL(location.href);
   const frameId = url.searchParams.get("frame")!;
-  const frame = await getFrameTx(await getAppDB(), frameId);
+  const frame = await getFrame(await getAppDB(), frameId);
   return frame;
 }
 
@@ -75,6 +77,15 @@ function getInitialMarkdown(existingFrame: null | undefined | FrameSchema) {
   if (existingFrame) return existingFrame.content;
   else if (existingFrame === null) return "- New frame";
   return;
+}
+
+async function getRecentFramesWrapper(): Promise<RecentFrame[]> {
+  const db = await getAppDB();
+  return getRecentFrames(db, (dbFrame, localChangeItem) => ({
+    id: dbFrame.id,
+    title: dbFrame.content.slice(2, 24),
+    status: localChangeItem?.changeType ?? 0,
+  }));
 }
 
 main();

@@ -1,16 +1,18 @@
-import { useEffect, useState } from "preact/hooks";
-import { getAppDB } from "../../services/db/db";
-import { getRecentFramesTx } from "../../services/db/tx";
 import "./navbar.css";
 
 export interface NavbarProps {
   class?: string;
   onOpenPreferences: () => any;
+  recentFrames: RecentFrame[];
 }
-export function Navbar(props: NavbarProps) {
-  const [recentFrames, setRecentFrames] = useState<RecentFrame[]>([]);
-  useEffect(() => void getRecentFrames().then(setRecentFrames), []);
 
+export interface RecentFrame {
+  id: string;
+  title: string;
+  status: number;
+}
+
+export function Navbar(props: NavbarProps) {
   return (
     <div class={`${props.class ?? ""} c-navbar`}>
       <menu>
@@ -22,7 +24,7 @@ export function Navbar(props: NavbarProps) {
         <li>
           <a href={`?frame=new`}> [+] New frame</a>
         </li>
-        {recentFrames.map((frame) => (
+        {props.recentFrames.map((frame) => (
           <li key={frame.id}>
             <a href={`?frame=${frame.id}`}>
               [{frame.status}] {frame.title}
@@ -32,20 +34,4 @@ export function Navbar(props: NavbarProps) {
       </ul>
     </div>
   );
-}
-
-interface RecentFrame {
-  id: string;
-  title: string;
-  status: number;
-}
-
-// TODO send data from root
-async function getRecentFrames(): Promise<RecentFrame[]> {
-  const db = await getAppDB();
-  return getRecentFramesTx(db, (dbFrame, localChangeItem) => ({
-    id: dbFrame.id,
-    title: dbFrame.content.slice(2, 24),
-    status: localChangeItem?.changeType ?? 0,
-  }));
 }
