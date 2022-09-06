@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run dev -w apps/web",
+    "dev": "npm run dev -w apps/preact-web",
     "dev:haiku": "concurrently npm:dev:haiku-*",
     "dev:haiku-sandbox": "npm run dev -w apps/haiku-sandbox",
     "dev:haiku-codec": "npm run dev -w packages/haiku-codec",
