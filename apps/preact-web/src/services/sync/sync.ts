@@ -2,7 +2,7 @@ import { b64DecodeUnicode } from "../../utils/base64";
 import { filePathToId } from "../../utils/filename";
 import type { FrameSchema } from "../db/db";
 import { compare, getBlob, listCommits } from "../git/github-api";
-import { type GitHubContext } from "../git/github-context";
+import type { GitHubContext } from "../git/github-context";
 
 export interface RemoteAll {
   frames: FrameSchema[];
