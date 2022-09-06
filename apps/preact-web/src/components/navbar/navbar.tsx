@@ -11,20 +11,23 @@ export function Navbar(props: NavbarProps) {
 
   return (
     <div class="c-navbar">
-      <ul>
-        {recentFrames.map((frame) => (
-          <li key={frame.id}>
-            <a href={`?frame=${frame.id}`}>
-              [{frame.status}]{frame.title}
-            </a>
-          </li>
-        ))}
-      </ul>
       <menu>
         <li>
           <button onClick={props.onOpenPreferences}>Preferences</button>
         </li>
       </menu>
+      <ul>
+        <li>
+          <a href={`?frame=new`}> [+] New frame</a>
+        </li>
+        {recentFrames.map((frame) => (
+          <li key={frame.id}>
+            <a href={`?frame=${frame.id}`}>
+              [{frame.status}] {frame.title}
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -34,6 +37,8 @@ interface RecentFrame {
   title: string;
   status: number;
 }
+
+// TODO send data from root
 async function getRecentFrames(): Promise<RecentFrame[]> {
   const db = await getAppDB();
   return getRecentFramesTx(db, (dbFrame, localChangeItem) => ({

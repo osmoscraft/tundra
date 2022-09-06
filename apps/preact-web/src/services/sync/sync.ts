@@ -1,11 +1,11 @@
 import { b64DecodeUnicode } from "../../utils/base64";
 import { filePathToId } from "../../utils/filename";
-import type { Frame } from "../db/db";
+import type { FrameSchema } from "../db/db";
 import { compare, getBlob, listCommits } from "../git/github-api";
 import { type GitHubContext } from "../git/github-context";
 
 export interface RemoteAll {
-  frames: Frame[];
+  frames: FrameSchema[];
   sha: string;
 }
 export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
@@ -14,7 +14,7 @@ export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
 
   const diff = await compare(context, { base: base.sha, head: head.sha });
 
-  const frames: Frame[] = await Promise.all(
+  const frames: FrameSchema[] = await Promise.all(
     diff.files
       .filter((file) => file.filename.startsWith("frames"))
       .filter((file) => file.status === "added")

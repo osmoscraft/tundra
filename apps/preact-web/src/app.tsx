@@ -1,12 +1,12 @@
 import { render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { Dialog } from "./components/dialog/dialog";
 import { Frame } from "./components/frame/frame";
 import { Navbar } from "./components/navbar/navbar";
 import { Preferences } from "./components/preferences/preferences";
 import "./custom-elements";
-import { getAppDB } from "./services/db/db";
-import { getFrameById } from "./services/db/tx";
+import { FrameSchema, getAppDB } from "./services/db/db";
+import { getFrameTx, putChangedFrame } from "./services/db/tx";
 
 import "./styles/index.css";
 
@@ -22,14 +22,15 @@ function main() {
 
 function App() {
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
-  const [initialFrameContent, setInitialFrameContent] = useState<string | undefined>(undefined);
-
-  useEffect(() => void loadActiveFrame().then((frame) => setInitialFrameContent(frame ? frame.content : "- New frame")), []);
+  const [existingFrame, setExistingFrame] = useState<null | undefined | FrameSchema>(undefined);
+  useEffect(() => void loadActiveFrame().then((frame) => setExistingFrame(frame ? frame : null)), []);
+  const handleSave = useCallback((content: string) => saveFrame(existingFrame?.id, content), [existingFrame]);
+  const initialMarkdown = useMemo(() => getInitialMarkdown(existingFrame), [existingFrame]);
 
   return (
     <>
       <Navbar onOpenPreferences={() => setIsPreferencesOpen(true)} />
-      <Frame initialMarkdown={initialFrameContent} onSave={() => {}} />
+      <Frame initialMarkdown={initialMarkdown} onSave={handleSave} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences />
       </Dialog>
@@ -40,8 +41,25 @@ function App() {
 async function loadActiveFrame() {
   const url = new URL(location.href);
   const frameId = url.searchParams.get("frame")!;
-  const frame = await getFrameById(await getAppDB(), frameId);
+  const frame = await getFrameTx(await getAppDB(), frameId);
   return frame;
+}
+
+async function saveFrame(existingFrameId: string | undefined, content: string) {
+  const id = existingFrameId ?? crypto.randomUUID();
+  await putChangedFrame(await getAppDB(), {
+    id,
+    content,
+    dateUpdated: new Date(),
+  });
+
+  location.search = new URLSearchParams({ frame: id }).toString();
+}
+
+function getInitialMarkdown(existingFrame: null | undefined | FrameSchema) {
+  if (existingFrame) return existingFrame.content;
+  else if (existingFrame === null) return "- New frame";
+  return;
 }
 
 main();

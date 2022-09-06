@@ -3,7 +3,7 @@ import { once } from "../../utils/once";
 
 export interface AppDBSchema extends DBSchema {
   frame: {
-    value: Frame;
+    value: FrameSchema;
     key: string;
     indexes: {
       byDateUpdated: Date;
@@ -23,7 +23,7 @@ export interface AppDBSchema extends DBSchema {
   };
 }
 
-export interface Frame {
+export interface FrameSchema {
   id: string;
   content: string;
   dateUpdated: Date;
@@ -38,6 +38,7 @@ export interface LocalChangeItem {
 }
 
 export enum ChangeType {
+  Clean = 0,
   Create = 1,
   Update = 2,
   Delete = 3,
