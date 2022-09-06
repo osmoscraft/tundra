@@ -22,10 +22,22 @@ function main() {
 
 function App() {
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [existingFrame, setExistingFrame] = useState<null | undefined | FrameSchema>(undefined);
   useEffect(() => void loadActiveFrame().then((frame) => setExistingFrame(frame ? frame : null)), []);
   const handleSave = useCallback((content: string) => saveFrame(existingFrame?.id, content), [existingFrame]);
   const initialMarkdown = useMemo(() => getInitialMarkdown(existingFrame), [existingFrame]);
+
+  useEffect(() => {
+    const handleGlobalKeyboard = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.code === "KeyP") {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyboard);
+  }, []);
 
   return (
     <>
@@ -33,6 +45,9 @@ function App() {
       <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences />
+      </Dialog>
+      <Dialog isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)}>
+        <input type="text" autoComplete="off" />
       </Dialog>
     </>
   );
