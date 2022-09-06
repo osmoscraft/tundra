@@ -11,7 +11,7 @@ export async function getDefaultBranch(context: GitHubContext): Promise<Branch> 
   const { repo, owner, token } = context;
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
@@ -42,7 +42,7 @@ export async function updateRef(context: GitHubContext, input: UpdateRefInput): 
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/${input.ref}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
     method: "PATCH",
@@ -71,7 +71,7 @@ export async function listCommits(context: GitHubContext, input?: ListCommitsInp
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${searchParams}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
@@ -96,7 +96,7 @@ export async function getCommit(context: GitHubContext, input: GetCommitInput): 
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/commits/${input.sha}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
@@ -115,7 +115,7 @@ export async function createCommit(context: GitHubContext, input: CreateCommitIn
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/commits`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
     method: "POST",
@@ -147,7 +147,7 @@ export async function getTree(context: GitHubContext, input: GetTreeInput): Prom
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${input.sha}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
@@ -171,7 +171,7 @@ export async function createTree(context: GitHubContext, input: CreateTreeInput)
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
     method: "POST",
@@ -196,7 +196,7 @@ export async function getBlob(context: GitHubContext, input: GetBlobInput): Prom
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs/${input.sha}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
@@ -229,7 +229,7 @@ export async function compare(context: GitHubContext, input: CompareInput): Prom
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/compare/${input.base}...${input.head}`, {
     headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
+      Authorization: "Basic " + window.btoa(`${owner}:${token}`),
       "Content-Type": "application/json",
     }),
   });
