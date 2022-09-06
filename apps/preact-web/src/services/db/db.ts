@@ -28,7 +28,6 @@ export interface FrameSchema {
 
 export interface LocalChangeItem {
   id: string;
-  content: string | null;
   previousContent: string | null;
   changeType: ChangeType;
 }

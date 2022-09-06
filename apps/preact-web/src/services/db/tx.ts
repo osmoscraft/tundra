@@ -2,9 +2,8 @@ import { AppDB, ChangeType, FrameSchema, LocalChangeItem } from "./db";
 import { tx } from "./utils";
 
 export async function resetDb(db: AppDB, items: FrameSchema[], localBaseSha: string) {
-  return tx(db, ["frame", "localBaseSha", "localChange", "remoteChange"], "readwrite", (tx) => {
+  return tx(db, ["frame", "localBaseSha", "localChange"], "readwrite", (tx) => {
     tx.objectStore("localChange").clear();
-    tx.objectStore("remoteChange").clear();
 
     const frameStore = tx.objectStore("frame");
     frameStore.clear();
@@ -45,7 +44,7 @@ export async function putChangedFrame(db: AppDB, frame: FrameSchema) {
     frameStore.put(frame);
 
     const existingChange = await localChangeStore.get(frame.id);
-    const previousContent = existingChange ? existingChange.content : previousFrame ? previousFrame.content : null;
+    const previousContent = existingChange ? existingChange.previousContent : previousFrame ? previousFrame.content : null;
     const changeType = getChangeType(previousContent, frame.content);
 
     if (changeType === ChangeType.Clean) {
@@ -53,7 +52,6 @@ export async function putChangedFrame(db: AppDB, frame: FrameSchema) {
     } else {
       localChangeStore.put({
         id: frame.id,
-        content: frame.content,
         previousContent,
         changeType,
       });
