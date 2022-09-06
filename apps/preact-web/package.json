@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "preact": "^10.10.6"
+    "preact": "^10.10.6",
+    "@tinykb/haiku-codec": "file:packages/haiku-codec",
+    "@tinykb/haiku-editor": "file:packages/haiku-editor"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.3.0",

@@ -63,4 +63,5 @@ async function handleClone() {
   const remoteAll = await getRemoteAll(context);
   const db = await openAppDB();
   resetTx(db, remoteAll.frames, remoteAll.sha);
+  console.log(`[preference] cloned ${remoteAll.frames.length} items, sha: ${remoteAll.sha}`);
 }

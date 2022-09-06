@@ -11,32 +11,16 @@ export function Navbar(props: NavbarProps) {
 
   return (
     <div class="c-navbar">
-      <menu>
-        <li>
-          <button data-command="createFrame">New</button>
-        </li>
-        <li>
-          <button data-command="syncAll">Sync</button>
-        </li>
-        <li>
-          <button data-command="pullAll">Pull</button>
-        </li>
-        <li>
-          <button data-command="pushAll">Push</button>
-        </li>
-      </menu>
       <ul>
         {recentFrames.map((frame) => (
           <li key={frame.id}>
-            {frame.status}
-            {frame.title}
+            <a href={`?frame=${frame.id}`}>
+              [{frame.status}]{frame.title}
+            </a>
           </li>
         ))}
       </ul>
       <menu>
-        <li>
-          <button data-command="openSearch">Search</button>
-        </li>
         <li>
           <button onClick={props.onOpenPreferences}>Preferences</button>
         </li>
@@ -54,7 +38,7 @@ async function getRecentFrames(): Promise<RecentFrame[]> {
   const db = await getAppDB();
   return getRecentFramesTx(db, (dbFrame, localChangeItem) => ({
     id: dbFrame.id,
-    title: dbFrame.content.slice(64),
+    title: dbFrame.content.slice(2, 24),
     status: localChangeItem?.changeType ?? 0,
   }));
 }

@@ -31,3 +31,7 @@ export async function getRecentFramesTx<T>(db: AppDB, joinFn: (dbFrame: Frame, l
     return Promise.all(results.map(async (result) => joinFn(result, await localChangeStore.get(result.id))));
   });
 }
+
+export async function getFrameById(db: AppDB, id: string): Promise<Frame | undefined> {
+  return tx(db, "frame", "readonly", async (tx) => tx.objectStore("frame").get(id));
+}
