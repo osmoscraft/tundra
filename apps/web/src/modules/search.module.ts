@@ -11,5 +11,5 @@ export class SearchModule implements ISearchModule {
     return [];
   }
 
-  clear(): Promise<void> {}
+  async clear(): Promise<void> {}
 }
