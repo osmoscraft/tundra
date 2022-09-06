@@ -13,10 +13,6 @@ export interface AppDBSchema extends DBSchema {
     value: LocalChangeItem;
     key: string;
   };
-  remoteChange: {
-    value: RemoteChangeItem;
-    key: string;
-  };
   localBaseSha: {
     value: string;
     key: number;
@@ -58,7 +54,6 @@ export async function openAppDB(): Promise<AppDB> {
       frameStore.createIndex("byDateUpdated", "dateUpdated");
 
       db.createObjectStore("localChange", { keyPath: "id" });
-      db.createObjectStore("remoteChange", { keyPath: "id" });
       db.createObjectStore("localBaseSha", { autoIncrement: true });
     },
     blocked() {
