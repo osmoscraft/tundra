@@ -1,8 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
 import { getAppDB } from "../../services/db/db";
 import { getRecentFramesTx } from "../../services/db/tx";
+import "./navbar.css";
 
 export interface NavbarProps {
+  class?: string;
   onOpenPreferences: () => any;
 }
 export function Navbar(props: NavbarProps) {
@@ -10,7 +12,7 @@ export function Navbar(props: NavbarProps) {
   useEffect(() => void getRecentFrames().then(setRecentFrames), []);
 
   return (
-    <div class="c-navbar">
+    <div class={`${props.class ?? ""} c-navbar`}>
       <menu>
         <li>
           <button onClick={props.onOpenPreferences}>Preferences</button>

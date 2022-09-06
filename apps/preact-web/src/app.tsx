@@ -29,8 +29,8 @@ function App() {
 
   return (
     <>
-      <Navbar onOpenPreferences={() => setIsPreferencesOpen(true)} />
-      <Frame initialMarkdown={initialMarkdown} onSave={handleSave} />
+      <Navbar class="u-flex__fixed" onOpenPreferences={() => setIsPreferencesOpen(true)} />
+      <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences />
       </Dialog>

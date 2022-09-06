@@ -2,6 +2,7 @@ import type { HaikuEditorElement } from "@tinykb/haiku-editor";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 
 export interface FrameProps {
+  class?: string;
   initialMarkdown?: string;
   onSave: (markdown: string) => any;
 }
@@ -24,7 +25,7 @@ export function Frame(props: FrameProps) {
   }, [props.onSave]);
 
   return (
-    <>
+    <div class={props.class}>
       <menu>
         <li>
           <button onClick={handleSave}>Save</button>
@@ -35,6 +36,6 @@ export function Frame(props: FrameProps) {
       <pre>
         <code id="view-source"></code>
       </pre>
-    </>
+    </div>
   );
 }
