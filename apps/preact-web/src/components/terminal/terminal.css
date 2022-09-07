@@ -1,0 +1,8 @@
+.c-terminal[data-is-expanded="true"] {
+  max-height: 12ch;
+}
+
+.c-terminal {
+  background-color: #333;
+  color: white;
+}

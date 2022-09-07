@@ -1,14 +1,17 @@
 import { render } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { CommandPalette } from "./components/command-palette/command-palette";
 import { Dialog } from "./components/dialog/dialog";
 import { Frame } from "./components/frame/frame";
 import { Navbar, RecentFrame } from "./components/navbar/navbar";
 import { Preferences } from "./components/preferences/preferences";
+import { Terminal, TerminalEntry } from "./components/terminal/terminal";
 import "./custom-elements";
 import { FrameSchema, getAppDB } from "./services/db/db";
 import { getDraftFrames, getFrame, getRecentFrames, putDraftFrame } from "./services/db/tx";
 
 import "./styles/index.css";
+import { getEvenHub } from "./utils/events";
 
 function main() {
   const url = new URL(location.href);
@@ -32,6 +35,14 @@ function App() {
   const [draftFrames, setDraftFrames] = useState<RecentFrame[]>([]);
   useEffect(() => void getDrafts().then(setDraftFrames), []);
 
+  const [terminalEntries, setTerminalEntries] = useState<TerminalEntry[]>([]);
+  useEffect(() => {
+    const terminalEvents = getEvenHub("terminal");
+    terminalEvents.addEventListener("stdout", (e) =>
+      setTerminalEntries((prev) => [...prev, { key: Date.now(), timestamp: new Date(), content: (e as CustomEvent<string>).detail }])
+    );
+  }, []);
+
   useEffect(() => {
     const handleGlobalKeyboard = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "KeyP") {
@@ -47,11 +58,12 @@ function App() {
     <>
       <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
       <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
+      <Terminal entries={terminalEntries} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
-        <Preferences />
+        <Preferences onTestConnection={handleTestConnection} />
       </Dialog>
       <Dialog isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)}>
-        <input type="text" autoComplete="off" />
+        <CommandPalette onCommand={handleCommand} />
       </Dialog>
     </>
   );
@@ -96,6 +108,17 @@ async function getDrafts(): Promise<RecentFrame[]> {
     title: frame.content?.slice(2, 24) ?? "(Deleted)",
     status: frame.changeType.toString(),
   }));
+}
+
+async function handleCommand(command: string) {
+  if (command === "test") {
+    handleTestConnection();
+  }
+}
+
+async function handleTestConnection() {
+  const terminalEvents = getEvenHub("terminal");
+  terminalEvents.dispatchEvent(new CustomEvent("stdout", { detail: "test message" }));
 }
 
 main();

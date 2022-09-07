@@ -5,7 +5,10 @@ import { getGitHubContext, setGitHubContext } from "../../services/git/github-co
 import { getRemoteAll } from "../../services/sync/sync";
 import { ensure } from "../../utils/flow-control";
 
-export function Preferences() {
+export interface PreferencesProps {
+  onTestConnection: () => any;
+}
+export function Preferences(props: PreferencesProps) {
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => void (formRef.current && populateForm(formRef.current)), []);
 
@@ -25,7 +28,7 @@ export function Preferences() {
         <input name="token" required id="token" type="password" />
       </div>
 
-      <button data-command="test">Test</button>
+      <button onClick={props.onTestConnection}>Test</button>
       <button type="submit">Save</button>
 
       <br />
