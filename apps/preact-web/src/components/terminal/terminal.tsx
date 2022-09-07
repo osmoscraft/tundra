@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import "./terminal.css";
 
 export interface TerminalProps {
   entries: TerminalEntry[];

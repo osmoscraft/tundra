@@ -56,8 +56,10 @@ function App() {
 
   return (
     <>
-      <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
-      <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
+      <div class="u-flex-cols u-flex__grow">
+        <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
+        <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
+      </div>
       <Terminal entries={terminalEntries} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences onTestConnection={handleTestConnection} />

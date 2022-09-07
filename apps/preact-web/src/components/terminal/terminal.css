@@ -1,8 +1,9 @@
 .c-terminal[data-is-expanded="true"] {
-  max-height: 12ch;
+  max-height: 240px;
 }
 
 .c-terminal {
   background-color: #333;
   color: white;
+  overflow-y: scroll;
 }
