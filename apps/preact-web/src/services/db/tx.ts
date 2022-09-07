@@ -1,67 +1,65 @@
-import { AppDB, ChangeType, FrameSchema, LocalChangeItem } from "./db";
+import { AppDB, ChangeType, DraftFrameSchema, FrameSchema } from "./db";
 import { tx } from "./utils";
 
-export async function resetDb(db: AppDB, items: FrameSchema[], localBaseSha: string) {
-  return tx(db, ["frame", "localBaseSha", "localChange"], "readwrite", (tx) => {
-    tx.objectStore("localChange").clear();
+export async function resetDb(db: AppDB, items: FrameSchema[], baseRef: string) {
+  return tx(db, ["frame", "baseRef", "draftFrame"], "readwrite", (tx) => {
+    tx.objectStore("draftFrame").clear();
 
     const frameStore = tx.objectStore("frame");
     frameStore.clear();
     items.forEach((item) => frameStore.put(item));
 
-    const localBaseRefStore = tx.objectStore("localBaseSha");
-    localBaseRefStore.clear();
-    localBaseRefStore.add(localBaseSha);
+    const baseRefStore = tx.objectStore("baseRef");
+    baseRefStore.clear();
+    baseRefStore.add(baseRef);
   });
 }
 
-export async function getRecentFrames<T>(db: AppDB, resolveFrame: (frame: FrameSchema, localChangeItem?: LocalChangeItem) => T, limit = 10): Promise<T[]> {
-  return tx(db, ["frame", "localChange"], "readwrite", async (tx) => {
-    const frameStore = tx.objectStore("frame");
-    const localChangeStore = tx.objectStore("localChange");
-
+export async function getRecentFrames<T>(db: AppDB, limit = 10): Promise<FrameSchema[]> {
+  return tx(db, ["frame", "draftFrame"], "readwrite", async (tx) => {
     const results: FrameSchema[] = [];
-    let cursor = await frameStore.index("byDateUpdated").openCursor();
+    let cursor = await tx.objectStore("frame").index("byDateUpdated").openCursor();
     while (cursor && results.length < limit) {
       results.push(cursor.value);
       cursor = await cursor.continue();
     }
 
-    return Promise.all(results.map(async (result) => resolveFrame(result, await localChangeStore.get(result.id))));
+    return results;
   });
+}
+
+export async function getDraftFrames<T>(db: AppDB, limit: number | undefined = undefined): Promise<DraftFrameSchema[]> {
+  return tx(db, ["draftFrame"], "readonly", async (tx) => tx.objectStore("draftFrame").index("byDateUpdated").getAll(undefined, limit));
 }
 
 export async function getFrame(db: AppDB, id: string): Promise<FrameSchema | undefined> {
   return tx(db, "frame", "readonly", async (tx) => tx.objectStore("frame").get(id));
 }
 
-export async function putChangedFrame(db: AppDB, frame: FrameSchema) {
-  return tx(db, ["frame", "localChange"], "readwrite", async (tx) => {
+export async function putDraftFrame(db: AppDB, frame: FrameSchema) {
+  return tx(db, ["frame", "draftFrame"], "readwrite", async (tx) => {
     const frameStore = tx.objectStore("frame");
-    const localChangeStore = tx.objectStore("localChange");
-    const previousFrame = await frameStore.get(frame.id);
+    const draftFrameStore = tx.objectStore("draftFrame");
+    const existingFrame = await frameStore.get(frame.id);
 
-    frameStore.put(frame);
-
-    const existingChange = await localChangeStore.get(frame.id);
-    const previousContent = existingChange ? existingChange.previousContent : previousFrame ? previousFrame.content : null;
-    const changeType = getChangeType(previousContent, frame.content);
+    const changeType = getChangeType(existingFrame?.content ?? null, frame.content);
 
     if (changeType === ChangeType.Clean) {
-      localChangeStore.delete(frame.id);
+      draftFrameStore.delete(frame.id);
     } else {
-      localChangeStore.put({
+      draftFrameStore.put({
         id: frame.id,
-        previousContent,
+        content: frame.content,
         changeType,
+        dateUpdated: new Date(),
       });
     }
   });
 }
 
-function getChangeType(previousContent: string | null, content: string | null): ChangeType {
-  if (previousContent === content) return ChangeType.Clean;
-  else if (previousContent === null) return ChangeType.Create;
+function getChangeType(existingContent: string | null, content: string | null): ChangeType {
+  if (existingContent === content) return ChangeType.Clean;
+  else if (existingContent === null) return ChangeType.Create;
   else if (content === null) return ChangeType.Delete;
   return ChangeType.Update;
 }

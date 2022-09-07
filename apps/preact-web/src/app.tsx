@@ -6,7 +6,7 @@ import { Navbar, RecentFrame } from "./components/navbar/navbar";
 import { Preferences } from "./components/preferences/preferences";
 import "./custom-elements";
 import { FrameSchema, getAppDB } from "./services/db/db";
-import { getFrame, getRecentFrames, putChangedFrame } from "./services/db/tx";
+import { getDraftFrames, getFrame, getRecentFrames, putDraftFrame } from "./services/db/tx";
 
 import "./styles/index.css";
 
@@ -29,6 +29,8 @@ function App() {
   const initialMarkdown = useMemo(() => getInitialMarkdown(existingFrame), [existingFrame]);
   const [recentFrames, setRecentFrames] = useState<RecentFrame[]>([]);
   useEffect(() => void getRecentFramesWrapper().then(setRecentFrames), []);
+  const [draftFrames, setDraftFrames] = useState<RecentFrame[]>([]);
+  useEffect(() => void getDrafts().then(setDraftFrames), []);
 
   useEffect(() => {
     const handleGlobalKeyboard = (e: KeyboardEvent) => {
@@ -43,7 +45,7 @@ function App() {
 
   return (
     <>
-      <Navbar class="u-flex__fixed" recentFrames={recentFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
+      <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
       <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences />
@@ -64,7 +66,7 @@ async function loadActiveFrame() {
 
 async function saveFrame(existingFrameId: string | undefined, content: string) {
   const id = existingFrameId ?? crypto.randomUUID();
-  await putChangedFrame(await getAppDB(), {
+  await putDraftFrame(await getAppDB(), {
     id,
     content,
     dateUpdated: new Date(),
@@ -81,10 +83,18 @@ function getInitialMarkdown(existingFrame: null | undefined | FrameSchema) {
 
 async function getRecentFramesWrapper(): Promise<RecentFrame[]> {
   const db = await getAppDB();
-  return getRecentFrames(db, (dbFrame, localChangeItem) => ({
-    id: dbFrame.id,
-    title: dbFrame.content.slice(2, 24),
-    status: localChangeItem?.changeType ?? 0,
+  return (await getRecentFrames(db)).map((frame) => ({
+    id: frame.id,
+    title: frame.content.slice(2, 24),
+  }));
+}
+
+async function getDrafts(): Promise<RecentFrame[]> {
+  const db = await getAppDB();
+  return (await getDraftFrames(db)).map((frame) => ({
+    id: frame.id,
+    title: frame.content?.slice(2, 24) ?? "(Deleted)",
+    status: frame.changeType.toString(),
   }));
 }
 

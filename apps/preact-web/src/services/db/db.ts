@@ -9,11 +9,14 @@ export interface AppDBSchema extends DBSchema {
       byDateUpdated: Date;
     };
   };
-  localChange: {
-    value: LocalChangeItem;
+  draftFrame: {
+    value: DraftFrameSchema;
     key: string;
+    indexes: {
+      byDateUpdated: Date;
+    };
   };
-  localBaseSha: {
+  baseRef: {
     value: string;
     key: number;
   };
@@ -23,12 +26,12 @@ export interface FrameSchema {
   id: string;
   content: string;
   dateUpdated: Date;
-  isDeleted?: boolean;
 }
 
-export interface LocalChangeItem {
+export interface DraftFrameSchema {
   id: string;
-  previousContent: string | null;
+  content: string | null;
+  dateUpdated: Date;
   changeType: ChangeType;
 }
 
@@ -52,8 +55,10 @@ export async function openAppDB(): Promise<AppDB> {
       const frameStore = db.createObjectStore("frame", { keyPath: "id" });
       frameStore.createIndex("byDateUpdated", "dateUpdated");
 
-      db.createObjectStore("localChange", { keyPath: "id" });
-      db.createObjectStore("localBaseSha", { autoIncrement: true });
+      const draftFrameStore = db.createObjectStore("draftFrame", { keyPath: "id" });
+      draftFrameStore.createIndex("byDateUpdated", "dateUpdated");
+
+      db.createObjectStore("baseRef", { autoIncrement: true });
     },
     blocked() {
       // …
