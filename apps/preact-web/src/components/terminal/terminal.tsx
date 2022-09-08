@@ -1,7 +1,8 @@
-import { useState } from "preact/hooks";
 import "./terminal.css";
 
 export interface TerminalProps {
+  isExpanded: boolean;
+  onToggle: () => any;
   entries: TerminalEntry[];
 }
 export interface TerminalEntry {
@@ -10,11 +11,12 @@ export interface TerminalEntry {
   content: string;
 }
 export function Terminal(props: TerminalProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   return (
-    <output class="c-terminal" data-is-expanded={isExpanded}>
-      <button onClick={() => setIsExpanded((prev) => !prev)}>Toggle</button>
-      {props.entries.slice(isExpanded ? undefined : props.entries.length - 1).map((entry) => (
+    <output class="c-terminal" data-is-expanded={props.isExpanded}>
+      <button class="c-terminal__toggle" onClick={props.onToggle}>
+        Toggle
+      </button>
+      {props.entries.slice(props.isExpanded ? undefined : props.entries.length - 1).map((entry) => (
         <div key={entry.key}>
           [{entry.timestamp.toISOString()}] {entry.content}
         </div>

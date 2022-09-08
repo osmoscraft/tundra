@@ -35,6 +35,9 @@ function App() {
   const [draftFrames, setDraftFrames] = useState<RecentFrame[]>([]);
   useEffect(() => void getDrafts().then(setDraftFrames), []);
 
+  const [isTerminalExpanded, setIsTerminalExpanded] = useState(false);
+  const toggleTerminal = useCallback(() => setIsTerminalExpanded((prev) => !prev), []);
+
   const [terminalEntries, setTerminalEntries] = useState<TerminalEntry[]>([]);
   useEffect(() => {
     const terminalEvents = getEvenHub("terminal");
@@ -48,6 +51,9 @@ function App() {
       if (e.ctrlKey && e.code === "KeyP") {
         e.preventDefault();
         setIsCommandPaletteOpen(true);
+      } else if (e.ctrlKey && e.code === "Backquote") {
+        e.preventDefault();
+        toggleTerminal();
       }
     };
 
@@ -60,7 +66,7 @@ function App() {
         <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
         <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
       </div>
-      <Terminal entries={terminalEntries} />
+      <Terminal entries={terminalEntries} isExpanded={isTerminalExpanded} onToggle={toggleTerminal} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
         <Preferences onTestConnection={handleTestConnection} />
       </Dialog>

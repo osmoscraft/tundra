@@ -3,7 +3,14 @@
 }
 
 .c-terminal {
+  position: relative;
   background-color: #333;
   color: white;
   overflow-y: scroll;
+}
+
+.c-terminal__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
