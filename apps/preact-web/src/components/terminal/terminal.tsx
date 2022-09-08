@@ -14,7 +14,7 @@ export function Terminal(props: TerminalProps) {
   return (
     <output class="c-terminal" data-is-expanded={props.isExpanded}>
       <button class="c-terminal__toggle" onClick={props.onToggle}>
-        Toggle
+        Toggle{props.isExpanded ? "" : ` (${props.entries.length - 1} hidden)`}
       </button>
       {props.entries.slice(props.isExpanded ? undefined : props.entries.length - 1).map((entry) => (
         <div key={entry.key}>

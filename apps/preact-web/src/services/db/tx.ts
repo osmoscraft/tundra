@@ -1,7 +1,8 @@
+import type { GitDiffStatus } from "../git/github-api";
 import { AppDB, ChangeType, DraftFrameSchema, FrameSchema } from "./db";
 import { tx } from "./utils";
 
-export async function resetDb(db: AppDB, items: FrameSchema[], baseRef: string) {
+export async function resetDb(db: AppDB, items: FrameSchema[], commitSha: string) {
   return tx(db, ["frame", "baseRef", "draftFrame"], "readwrite", (tx) => {
     tx.objectStore("draftFrame").clear();
 
@@ -11,7 +12,7 @@ export async function resetDb(db: AppDB, items: FrameSchema[], baseRef: string) 
 
     const baseRefStore = tx.objectStore("baseRef");
     baseRefStore.clear();
-    baseRefStore.add(baseRef);
+    baseRefStore.add({ sha: commitSha });
   });
 }
 
@@ -62,4 +63,49 @@ function getChangeType(existingContent: string | null, content: string | null): 
   else if (existingContent === null) return ChangeType.Create;
   else if (content === null) return ChangeType.Delete;
   return ChangeType.Update;
+}
+
+export async function getLocalBaseCommit(db: AppDB) {
+  let commit: string | undefined;
+  const tx = db.transaction("baseRef", "readonly");
+  const cursor = await tx.objectStore("baseRef").openCursor(null, "prev");
+  if (cursor?.value) {
+    commit = cursor?.value.sha;
+  }
+  await tx.done;
+
+  return commit;
+}
+
+export interface FrameChangeItem {
+  status: GitDiffStatus;
+  id: string;
+  content: string;
+}
+export async function applyFrameChanges(db: AppDB, changes: FrameChangeItem[], commitSha: string) {
+  return tx(db, ["frame", "baseRef"], "readwrite", async (tx) => {
+    const frameStore = tx.objectStore("frame");
+
+    changes.map((change) => {
+      switch (change.status) {
+        case "added":
+        case "changed":
+        case "modified":
+          frameStore.put({
+            id: change.id,
+            content: change.content,
+            dateUpdated: new Date(),
+          });
+          break;
+        case "removed":
+          frameStore.delete(change.id);
+          break;
+        default:
+          console.warn("Unsupported file status", change.status);
+          break;
+      }
+    });
+
+    tx.objectStore("baseRef").add({ sha: commitSha });
+  });
 }

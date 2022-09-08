@@ -66,7 +66,9 @@ export interface CommitListItem {
 export async function listCommits(context: GitHubContext, input?: ListCommitsInput): Promise<CommitListItem[]> {
   const { token, owner, repo } = context;
 
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams({
+    t: Date.now().toString(), // bust cache
+  });
   input?.path && searchParams.set("path", input.path);
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${searchParams}`, {

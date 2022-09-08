@@ -7,11 +7,14 @@ import { Navbar, RecentFrame } from "./components/navbar/navbar";
 import { Preferences } from "./components/preferences/preferences";
 import { Terminal, TerminalEntry } from "./components/terminal/terminal";
 import "./custom-elements";
-import { FrameSchema, getAppDB } from "./services/db/db";
-import { getDraftFrames, getFrame, getRecentFrames, putDraftFrame } from "./services/db/tx";
+import { FrameSchema, getAppDB, openAppDB } from "./services/db/db";
+import { applyFrameChanges, getDraftFrames, getFrame, getLocalBaseCommit, getRecentFrames, putDraftFrame, resetDb } from "./services/db/tx";
+import { getGitHubContext } from "./services/git/github-context";
+import { fetch, getRemoteAll, testConnection } from "./services/sync/sync";
 
 import "./styles/index.css";
 import { getEvenHub } from "./utils/events";
+import { ensure } from "./utils/flow-control";
 
 function main() {
   const url = new URL(location.href);
@@ -68,7 +71,7 @@ function App() {
       </div>
       <Terminal entries={terminalEntries} isExpanded={isTerminalExpanded} onToggle={toggleTerminal} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
-        <Preferences onTestConnection={handleTestConnection} />
+        <Preferences />
       </Dialog>
       <Dialog isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)}>
         <CommandPalette onCommand={handleCommand} />
@@ -121,12 +124,37 @@ async function getDrafts(): Promise<RecentFrame[]> {
 async function handleCommand(command: string) {
   if (command === "test") {
     handleTestConnection();
+  } else if (command === "fetch") {
+    const db = await getAppDB();
+    const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
+    console.log(result);
+    getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+  } else if (command === "pull") {
+    const db = await getAppDB();
+    const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
+    console.log(result);
+    result && (await applyFrameChanges(db, result.changes, result.headCommit));
+    getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+  } else if (command === "clone") {
+    handleClone();
   }
 }
 
 async function handleTestConnection() {
-  const terminalEvents = getEvenHub("terminal");
-  terminalEvents.dispatchEvent(new CustomEvent("stdout", { detail: "test message" }));
+  const context = await getGitHubContext();
+  if (!context) return;
+  const framesTree = await testConnection(context);
+  getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: `${framesTree?.length} frames found` }));
+}
+
+async function handleClone() {
+  const context = ensure(await getGitHubContext());
+  const remoteAll = await getRemoteAll(context);
+  const db = await openAppDB();
+  resetDb(db, remoteAll.frames, remoteAll.sha);
+  console.log(`[preference] cloned ${remoteAll.frames.length} items, sha: ${remoteAll.sha}`);
+
+  window.confirm("Reload now?") && location.reload();
 }
 
 main();

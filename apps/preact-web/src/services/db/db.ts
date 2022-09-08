@@ -17,7 +17,7 @@ export interface AppDBSchema extends DBSchema {
     };
   };
   baseRef: {
-    value: string;
+    value: Ref;
     key: number;
   };
 }
@@ -40,6 +40,10 @@ export enum ChangeType {
   Create = 1,
   Update = 2,
   Delete = 3,
+}
+
+export interface Ref {
+  sha: string;
 }
 
 export interface RemoteChangeItem {
