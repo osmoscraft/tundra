@@ -181,6 +181,9 @@ async function handlePush() {
   if (!pushResult) return;
   await applyDrafts(db, drafts, pushResult.commitSha);
   console.log(`[push] db updated`);
+  if (window.confirm("Reload now?")) {
+    location.reload();
+  }
 }
 
 main();
