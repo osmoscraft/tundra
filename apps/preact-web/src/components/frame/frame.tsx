@@ -1,5 +1,6 @@
 import type { HaikuEditorElement } from "@tinykb/haiku-editor";
-import { useCallback, useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
+import { getEvenHub } from "../../utils/events";
 
 export interface FrameProps {
   class?: string;
@@ -19,18 +20,22 @@ export function Frame(props: FrameProps) {
     isLoaded.current = true;
   }, [props.initialMarkdown]);
 
-  const handleSave = useCallback(() => {
-    if (!editorRef.current) return;
-    props.onSave(editorRef.current.getMarkdown());
+  useEffect(() => {
+    const onExecSave = (e: Event) => {
+      if (!editorRef.current) return;
+
+      if ((e as CustomEvent).detail === "save") {
+        props.onSave(editorRef.current.getMarkdown());
+      }
+    };
+
+    getEvenHub("command").addEventListener("exec", onExecSave);
+
+    return () => getEvenHub("command").removeEventListener("exec", onExecSave);
   }, [props.onSave]);
 
   return (
     <div class={props.class}>
-      <menu>
-        <li>
-          <button onClick={handleSave}>Save</button>
-        </li>
-      </menu>
       <haiku-editor-element class="haiku-editor" ref={editorRef} />
       <hr />
       <pre>

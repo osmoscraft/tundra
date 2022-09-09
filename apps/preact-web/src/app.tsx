@@ -8,9 +8,9 @@ import { Preferences } from "./components/preferences/preferences";
 import { Terminal, TerminalEntry } from "./components/terminal/terminal";
 import "./custom-elements";
 import { FrameSchema, getAppDB, openAppDB } from "./services/db/db";
-import { applyFrameChanges, getDraftFrames, getFrame, getLocalBaseCommit, getRecentFrames, putDraftFrame, resetDb } from "./services/db/tx";
+import { applyDrafts, applyFrameChanges, getActiveFrame, getDraftFrames, getLocalBaseCommit, getRecentFrames, putDraftFrame, resetDb } from "./services/db/tx";
 import { getGitHubContext } from "./services/git/github-context";
-import { fetch, getRemoteAll, testConnection } from "./services/sync/sync";
+import { fetch, getRemoteAll, push, testConnection } from "./services/sync/sync";
 
 import "./styles/index.css";
 import { getEvenHub } from "./utils/events";
@@ -31,7 +31,6 @@ function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [existingFrame, setExistingFrame] = useState<null | undefined | FrameSchema>(undefined);
   useEffect(() => void loadActiveFrame().then((frame) => setExistingFrame(frame ? frame : null)), []);
-  const handleSave = useCallback((content: string) => saveFrame(existingFrame?.id, content), [existingFrame]);
   const initialMarkdown = useMemo(() => getInitialMarkdown(existingFrame), [existingFrame]);
   const [recentFrames, setRecentFrames] = useState<RecentFrame[]>([]);
   useEffect(() => void getRecentFramesWrapper().then(setRecentFrames), []);
@@ -67,7 +66,7 @@ function App() {
     <>
       <div class="u-flex-cols u-flex__grow">
         <Navbar class="u-flex__fixed" recentFrames={recentFrames} draftFrames={draftFrames} onOpenPreferences={() => setIsPreferencesOpen(true)} />
-        <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={handleSave} />
+        <Frame class="u-flex__grow" initialMarkdown={initialMarkdown} onSave={(content) => saveFrame(existingFrame?.id, content)} />
       </div>
       <Terminal entries={terminalEntries} isExpanded={isTerminalExpanded} onToggle={toggleTerminal} />
       <Dialog isOpen={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)}>
@@ -83,19 +82,8 @@ function App() {
 async function loadActiveFrame() {
   const url = new URL(location.href);
   const frameId = url.searchParams.get("frame")!;
-  const frame = await getFrame(await getAppDB(), frameId);
+  const frame = await getActiveFrame(await getAppDB(), frameId);
   return frame;
-}
-
-async function saveFrame(existingFrameId: string | undefined, content: string) {
-  const id = existingFrameId ?? crypto.randomUUID();
-  await putDraftFrame(await getAppDB(), {
-    id,
-    content,
-    dateUpdated: new Date(),
-  });
-
-  location.search = new URLSearchParams({ frame: id }).toString();
 }
 
 function getInitialMarkdown(existingFrame: null | undefined | FrameSchema) {
@@ -123,20 +111,33 @@ async function getDrafts(): Promise<RecentFrame[]> {
 
 async function handleCommand(command: string) {
   if (command === "test") {
-    handleTestConnection();
+    await handleTestConnection();
   } else if (command === "fetch") {
-    const db = await getAppDB();
-    const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
-    console.log(result);
-    getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+    await handleFetch();
   } else if (command === "pull") {
-    const db = await getAppDB();
-    const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
-    console.log(result);
-    result && (await applyFrameChanges(db, result.changes, result.headCommit));
-    getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+    await handlePull();
   } else if (command === "clone") {
-    handleClone();
+    await handleClone();
+  } else if (command === "push") {
+    await handlePush();
+  } else if (command === "save") {
+    getEvenHub("command").dispatchEvent(new CustomEvent("exec", { detail: "save" }));
+  }
+}
+
+async function saveFrame(existingFrameId: string | undefined, content: string) {
+  debugger;
+  const id = existingFrameId ?? crypto.randomUUID();
+  await putDraftFrame(await getAppDB(), {
+    id,
+    content,
+    dateUpdated: new Date(),
+  });
+
+  getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: `Save success` }));
+
+  if (!existingFrameId) {
+    location.search = new URLSearchParams({ frame: id }).toString();
   }
 }
 
@@ -155,6 +156,31 @@ async function handleClone() {
   console.log(`[preference] cloned ${remoteAll.frames.length} items, sha: ${remoteAll.sha}`);
 
   window.confirm("Reload now?") && location.reload();
+}
+
+async function handleFetch() {
+  const db = await getAppDB();
+  const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
+  console.log(result);
+  getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+}
+
+async function handlePull() {
+  const db = await getAppDB();
+  const result = await fetch(ensure(await getGitHubContext()), ensure(await getLocalBaseCommit(db)));
+  console.log(result);
+  result && (await applyFrameChanges(db, result.changes, result.headCommit));
+  getEvenHub("terminal").dispatchEvent(new CustomEvent("stdout", { detail: result ? `${result?.changes.length} changes found` : `No changes` }));
+}
+
+async function handlePush() {
+  const db = await getAppDB();
+  const drafts = await getDraftFrames(db);
+  const pushResult = await push(ensure(await getGitHubContext()), drafts);
+  console.log(`[push] pushed`, pushResult);
+  if (!pushResult) return;
+  await applyDrafts(db, drafts, pushResult.commitSha);
+  console.log(`[push] db updated`);
 }
 
 main();

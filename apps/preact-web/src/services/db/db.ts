@@ -30,7 +30,7 @@ export interface FrameSchema {
 
 export interface DraftFrameSchema {
   id: string;
-  content: string | null;
+  content: string;
   dateUpdated: Date;
   changeType: ChangeType;
 }

@@ -1,8 +1,21 @@
 import { b64DecodeUnicode } from "../../utils/base64";
-import { filePathToId } from "../../utils/filename";
-import type { FrameSchema } from "../db/db";
+import { filePathToId, idToFilename } from "../../utils/filename";
+import { ChangeType, DraftFrameSchema, FrameSchema } from "../db/db";
 import type { FrameChangeItem } from "../db/tx";
-import { compare, CompareResultFile, getBlob, getCommit, getDefaultBranch, getTree, listCommits } from "../git/github-api";
+import {
+  compare,
+  CompareResultFile,
+  createCommit,
+  createTree,
+  getBlob,
+  getCommit,
+  getDefaultBranch,
+  getTree,
+  listCommits,
+  ObjectMode,
+  ObjectType,
+  updateRef,
+} from "../git/github-api";
 import type { GitHubContext } from "../git/github-context";
 
 export async function testConnection(context: GitHubContext) {
@@ -83,5 +96,81 @@ async function compareResultFileToChange(context: GitHubContext, file: CompareRe
     status: file.status,
     id: filePathToId(file.filename),
     content: file.status === "removed" ? "" : b64DecodeUnicode((await getBlob(context, { sha: file.sha })).content),
+  };
+}
+
+export interface PushResult {
+  commitSha: string;
+}
+export async function push(context: GitHubContext, drafts: DraftFrameSchema[]): Promise<PushResult | null> {
+  if (!drafts.length) {
+    console.log(`[push] nothing to push`);
+    return null;
+  }
+
+  const updateItems = drafts.filter((draft) => [ChangeType.Create, ChangeType.Update].includes(draft.changeType));
+  const deleteItems = drafts.filter((draft) => ChangeType.Delete === draft.changeType);
+
+  console.log(`[push]`, { updateItems, deleteItems });
+
+  const branch = await getDefaultBranch(context);
+  const commit = await getCommit(context, { sha: branch.commit.sha });
+  const rootTree = await getTree(context, { sha: commit.tree.sha });
+  const framesTreeSha = rootTree.tree.find((node) => node.path === "frames")?.sha;
+  const framesTree = framesTreeSha ? await getTree(context, { sha: framesTreeSha }) : undefined;
+  const framesTreePatch = [
+    ...updateItems.map((item) => ({
+      path: idToFilename(item.id),
+      mode: ObjectMode.File,
+      type: ObjectType.Blob,
+      content: item.content,
+    })),
+    ...deleteItems.map((item) => ({
+      path: idToFilename(item.id),
+      mode: ObjectMode.File,
+      type: ObjectType.Blob,
+      sha: null,
+    })),
+  ];
+
+  const updatedFramesTree = await createTree(context, {
+    base_tree: framesTree?.sha,
+    tree: framesTreePatch,
+  });
+
+  console.log(`[push] frames tree updated`, updatedFramesTree.sha);
+
+  const rootTreePatch = [
+    {
+      path: "frames",
+      mode: ObjectMode.Sudirectory,
+      type: ObjectType.Tree,
+      sha: updatedFramesTree.sha,
+    },
+  ];
+
+  const updatedRootTree = await createTree(context, {
+    base_tree: rootTree.sha,
+    tree: rootTreePatch,
+  });
+
+  console.log(`[push] root tree updated`, updatedFramesTree.sha);
+
+  const updatedCommit = await createCommit(context, {
+    message: "tinykb changes",
+    tree: updatedRootTree.sha,
+    parents: [commit.sha],
+  });
+
+  console.log(`[push] commit created`, updatedCommit.sha);
+
+  const updatedRef = await updateRef(context, {
+    ref: `refs/heads/${branch.name}`,
+    sha: updatedCommit.sha,
+  });
+
+  console.log(`[push] ref updateds`, updatedRef);
+  return {
+    commitSha: updatedCommit.sha,
   };
 }

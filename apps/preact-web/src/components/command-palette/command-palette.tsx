@@ -17,9 +17,11 @@ export function CommandPalette(props: CommandPaletteProps) {
     <form onSubmit={handleSubmit}>
       <input name="command" type="text" autoComplete="off" list="commands" />
       <datalist id="commands">
+        <option value="clone" />
         <option value="fetch" />
         <option value="pull" />
         <option value="push" />
+        <option value="save" />
         <option value="sync" />
         <option value="test" />
       </datalist>
