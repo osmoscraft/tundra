@@ -126,7 +126,6 @@ async function handleCommand(command: string) {
 }
 
 async function saveFrame(existingFrameId: string | undefined, content: string) {
-  debugger;
   const id = existingFrameId ?? crypto.randomUUID();
   await putDraftFrame(await getAppDB(), {
     id,

@@ -3,9 +3,9 @@ import "./features/console/console";
 import { log } from "./features/console/console";
 import "./features/console/console.css";
 import { getAppDB } from "./features/db/db";
-import { getActiveFrame, getRecentFrames } from "./features/db/queries";
+import { getActiveFrame, getRecentFrames, putDraftFrame } from "./features/db/queries";
 import { markdownToHtml } from "./features/editor/codec";
-import { addLink, indentRelative, moveDown, moveUp, setEditorHtml } from "./features/editor/editor";
+import { addLink, getEditorHtml, indentRelative, moveDown, moveUp, setEditorHtml } from "./features/editor/editor";
 import "./features/editor/editor.css";
 import { popCursorState, pushCursorState } from "./utils/cursor";
 import { preventDefault } from "./utils/events";
@@ -23,6 +23,7 @@ export default async function main() {
   const popCursor = popCursorState.bind(null, cursorStack);
 
   const db = await getAppDB();
+  const existingFrame = await getActiveFrame(db, url.searchParams.get("frame")!);
 
   const editor = document.getElementById("editor") as HTMLElement;
   const commandDialog = document.getElementById("command-dialog") as HTMLDialogElement;
@@ -32,8 +33,8 @@ export default async function main() {
 
   const commandTaskQueue: (() => any)[] = [];
 
-  const initialMarkdown = (await getActiveFrame(db, url.searchParams.get("frame")!))?.content;
-  setEditorHtml(editor, markdownToHtml(initialMarkdown ?? "- New"));
+  const initialMarkdown = existingFrame?.content ?? "- New";
+  setEditorHtml(editor, markdownToHtml(initialMarkdown));
 
   const getRecentFrameSuggestions = async () =>
     (await getRecentFrames(db, 10)).map((item) => `<a href="?${new URLSearchParams({ frame: item.id })}">${item.id}</a>`);
@@ -41,13 +42,14 @@ export default async function main() {
   const handleCommandSubmit = (e: Event) => tapOnCommand(getForm(preventDefault(e)), logToConsole).reset();
 
   const suggest = createSuggester([
-    async (command) => (command === "" ? ["o - <u>o</u>pen", "k - lin<u>k</u>"] : []),
+    async (command) => (command === "" ? ["o - <u>o</u>pen", "k - lin<u>k</u>", "fs - <u>f</u>ile <u>s</u>ave"] : []),
     async (command) => (command.startsWith("o ") ? await getRecentFrameSuggestions() : []),
     async (command) => (command.length && "sandbox".startsWith(command) ? [`<a href="/sandbox.html">Open editor sandbox</a>`] : []),
   ]);
 
   const getCommand = (e: Event) => getFormField("command", formData(closestForm(e.target as Element)!)) as string;
   const handleCommandSuggest = async (command: string) => {
+    // instant commands
     if (command === "k") {
       commandDialog.close();
       commandTaskQueue.push(() => {
@@ -57,7 +59,23 @@ export default async function main() {
         if (!text) return;
         addLink(href, text);
       });
+    } else if (command === "fs") {
+      commandDialog.close();
+      commandTaskQueue.push(async () => {
+        const id = existingFrame?.id ?? crypto.randomUUID();
+        await putDraftFrame(db, {
+          id,
+          content: getEditorHtml(editor),
+          dateUpdated: new Date(),
+        });
+
+        if (!existingFrame) {
+          location.search = new URLSearchParams({ frame: id }).toString();
+        }
+      });
     }
+
+    // suggest commands
     commandSuggestions.innerHTML = (await suggest(command)).map((item) => `<li>${item}</li>`).join("");
   };
 
