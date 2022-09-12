@@ -7,8 +7,11 @@ import { getAppDB } from "./features/db/db";
 import { getRecentFrames } from "./features/db/queries";
 import { preventDefault } from "./utils/events";
 import { closestForm, formData, getFormField, resetForm } from "./utils/form";
+import { ensureUrlParam } from "./utils/url";
 
 export default async function main() {
+  if (!ensureUrlParam(new URL(location.href), "frame", "new")) return;
+
   const db = await getAppDB();
 
   const commandDialog = document.getElementById("command-dialog") as HTMLDialogElement;

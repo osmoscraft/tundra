@@ -1,0 +1,3 @@
+- initial content loading
+  - decouple editor from markdown parsing
+  - url auto redirect
