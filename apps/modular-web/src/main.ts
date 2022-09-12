@@ -1,25 +1,35 @@
 import { createSuggester, getForm, tapOnCommand } from "./features/command/command";
 import "./features/console/console";
 import { log } from "./features/console/console";
-
 import "./features/console/console.css";
 import { getAppDB } from "./features/db/db";
-import { getRecentFrames } from "./features/db/queries";
+import { getActiveFrame, getRecentFrames } from "./features/db/queries";
+import { markdownToHtml } from "./features/editor/codec";
+import { HaikuEditorElement } from "./features/editor/editor";
+import "./features/editor/editor.css";
 import { preventDefault } from "./utils/events";
 import { closestForm, formData, getFormField, resetForm } from "./utils/form";
 import { ensureUrlParam } from "./utils/url";
 
+customElements.define("haiku-editor-element", HaikuEditorElement);
+
 export default async function main() {
-  if (!ensureUrlParam(new URL(location.href), "frame", "new")) return;
+  const url = new URL(location.href);
+  if (!ensureUrlParam(url, "frame", "new")) return;
 
   const db = await getAppDB();
 
+  const editor = document.querySelector("haiku-editor-element") as HaikuEditorElement;
   const commandDialog = document.getElementById("command-dialog") as HTMLDialogElement;
   const commandForm = document.getElementById("command-form") as HTMLFormElement;
   const commandSuggestions = document.getElementById("command-suggestions") as HTMLUListElement;
   const consoleElement = document.getElementById("console") as HTMLOutputElement;
 
-  const getRecentFrameSuggestions = async () => (await getRecentFrames(db, 10)).map((item) => `<a href="#">${item.id}</a>`);
+  const initialMarkdown = (await getActiveFrame(db, url.searchParams.get("frame")!))?.content;
+  editor.setContentHtml(markdownToHtml(initialMarkdown ?? "- New"));
+
+  const getRecentFrameSuggestions = async () =>
+    (await getRecentFrames(db, 10)).map((item) => `<a href="?${new URLSearchParams({ frame: item.id })}">${item.id}</a>`);
   const logToConsole = log.bind(null, consoleElement);
   const handleCommandSubmit = (e: Event) => tapOnCommand(getForm(preventDefault(e)), logToConsole).reset();
 

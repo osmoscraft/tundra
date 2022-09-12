@@ -24,3 +24,18 @@
 .haiku-editor [data-depth="4"] {
   padding-left: 11ch;
 }
+.haiku-editor [data-depth="5"] {
+  padding-left: 13ch;
+}
+.haiku-editor [data-depth="6"] {
+  padding-left: 15ch;
+}
+.haiku-editor [data-depth="7"] {
+  padding-left: 17ch;
+}
+.haiku-editor [data-depth="8"] {
+  padding-left: 19ch;
+}
+.haiku-editor [data-depth="9"] {
+  padding-left: 21ch;
+}
