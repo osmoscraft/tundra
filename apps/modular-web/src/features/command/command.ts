@@ -11,3 +11,10 @@ export type SuggestHandler = (command: string) => Promise<string[]>;
 export function createSuggester(handlers: SuggestHandler[]) {
   return async (command: string) => (await Promise.all(handlers.map((handler) => handler(command)))).flat();
 }
+
+export async function flushTasks(queue: (() => any)[]) {
+  let task: undefined | (() => any);
+  while ((task = queue.pop())) {
+    await task();
+  }
+}

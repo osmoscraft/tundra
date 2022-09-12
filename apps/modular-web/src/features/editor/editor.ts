@@ -1,74 +1,34 @@
-export class HaikuEditorElement extends HTMLElement {
-  connectedCallback() {
-    this.addEventListener("keydown", (e) => {
-      if (e.isComposing) return;
+export function setEditorHtml(editorRoot: HTMLElement, html: string) {
+  editorRoot.innerHTML = /*html*/ `<div contenteditable="true">${html}</div>`;
+}
 
-      const keycode = getKeyCodeString(e);
+export function getEditorHtml(editorRoot: HTMLElement) {
+  return editorRoot.children[0].innerHTML;
+}
 
-      switch (keycode) {
-        case "Alt-ArrowLeft":
-          this.indentRelative(-1);
-          e.preventDefault();
-          break;
-        case "Alt-ArrowRight":
-          this.indentRelative(1);
-          e.preventDefault();
-          break;
-        case "Alt-ArrowUp":
-          this.moveUp();
-          e.preventDefault();
-          break;
-        case "Alt-ArrowDown":
-          this.moveDown();
-          e.preventDefault();
-          break;
-        case "Ctrl-KeyK":
-          const href = prompt("href");
-          if (!href) return;
-          const text = prompt("text");
-          if (!text) return;
-          this.addLink(href, text);
-          e.preventDefault();
-      }
-    });
-  }
+export const indentRelative = (levels: number) => getLines(getBracket(window.getSelection())).map(indentLineRelative.bind(null, levels));
 
-  setContentHtml(html: string) {
-    this.innerHTML = /*html*/ `<div contenteditable="true">${html}</div>`;
-  }
+export function moveUp() {
+  const [head, tail] = getBracket(window.getSelection());
+  const beforeHead = (head?.previousElementSibling as HTMLElement) ?? null;
+  swapTo("afterend", tail, beforeHead);
+}
 
-  getContentHtml() {
-    return this.children[0].innerHTML;
-  }
+export function moveDown() {
+  const [head, tail] = getBracket(window.getSelection());
+  const afterTail = (tail?.nextElementSibling as HTMLElement) ?? null;
+  swapTo("beforebegin", head, afterTail);
+}
 
-  indentRelative = (levels: number) => getLines(getBracket(window.getSelection())).map(indentLineRelative.bind(null, levels));
-
-  moveUp() {
-    const [head, tail] = getBracket(window.getSelection());
-    const beforeHead = (head?.previousElementSibling as HTMLElement) ?? null;
-    swapTo("afterend", tail, beforeHead);
-  }
-
-  moveDown() {
-    const [head, tail] = getBracket(window.getSelection());
-    const afterTail = (tail?.nextElementSibling as HTMLElement) ?? null;
-    swapTo("beforebegin", head, afterTail);
-  }
-
-  addLink(href: string, text: string) {
-    const selection = window.getSelection();
-    if (!selection) return;
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
-    const link = document.createElement("a");
-    link.href = href;
-    link.innerText = text;
-    range.insertNode(link);
-  }
-
-  formatAll() {
-    // run all the rules
-  }
+export function addLink(href: string, text: string) {
+  const selection = window.getSelection();
+  if (!selection) return;
+  const range = selection.getRangeAt(0);
+  range.deleteContents();
+  const link = document.createElement("a");
+  link.href = href;
+  link.innerText = text;
+  range.insertNode(link);
 }
 
 export function getLines(bracket: HTMLElement[]): HTMLElement[] {
@@ -105,11 +65,6 @@ function closestHTMLElement(node: Node) {
 export function indentLineRelative(levels: number, line: HTMLElement | null) {
   if (!line) return;
   line.dataset.depth = Math.max(0, parseInt(line.dataset.depth!) + levels).toString();
-}
-
-/** Format: [Ctrl-][Alt-][Shift-]keyCode */
-export function getKeyCodeString(e: KeyboardEvent): string {
-  return `${e.ctrlKey ? "Ctrl-" : ""}${e.altKey ? "Alt-" : ""}${e.shiftKey ? "Shift-" : ""}${e.code}`;
 }
 
 export function swapTo(pos: InsertPosition, self: HTMLElement | null, other: HTMLElement | null) {
