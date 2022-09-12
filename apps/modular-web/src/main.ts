@@ -41,6 +41,7 @@ export default async function main() {
   const handleCommandSubmit = (e: Event) => tapOnCommand(getForm(preventDefault(e)), logToConsole).reset();
 
   const suggest = createSuggester([
+    async (command) => (command === "" ? ["o - <u>o</u>pen", "k - lin<u>k</u>"] : []),
     async (command) => (command.startsWith("o ") ? await getRecentFrameSuggestions() : []),
     async (command) => (command.length && "sandbox".startsWith(command) ? [`<a href="/sandbox.html">Open editor sandbox</a>`] : []),
   ]);
@@ -60,7 +61,18 @@ export default async function main() {
     commandSuggestions.innerHTML = (await suggest(command)).map((item) => `<li>${item}</li>`).join("");
   };
 
+  const handleCommandAutoComplete = async (e: KeyboardEvent) => {
+    if (e.isComposing) return;
+    const command = getCommand(e);
+    if (!command && e.key === "o") {
+      (e.target as HTMLInputElement).value = "o ";
+      e.preventDefault();
+      handleCommandSuggest("o ");
+    }
+  };
+
   commandForm.addEventListener("submit", handleCommandSubmit);
+  commandForm.addEventListener("keydown", (e) => handleCommandAutoComplete(e));
   commandForm.addEventListener("input", (e) => handleCommandSuggest(getCommand(e)));
 
   commandDialog.addEventListener("close", async () => {
