@@ -7,7 +7,7 @@ export function getForm(e: Event) {
   return e.target as HTMLFormElement;
 }
 
-export type SuggestHandler = (command: string) => Promise<string | false>;
+export type SuggestHandler = (command: string) => Promise<string[]>;
 export function createSuggester(handlers: SuggestHandler[]) {
-  return async (command: string) => (await Promise.all(handlers.map((handler) => handler(command)))).filter((value) => value !== false) as string[];
+  return async (command: string) => (await Promise.all(handlers.map((handler) => handler(command)))).flat();
 }

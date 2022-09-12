@@ -18,7 +18,7 @@ export async function resetDb(db: AppDB, items: FrameSchema[], commitSha: string
 export async function getRecentFrames(db: AppDB, limit = 10): Promise<FrameSchema[]> {
   return tx(db, ["frame"], "readwrite", async (tx) => {
     const results: FrameSchema[] = [];
-    let cursor = await tx.objectStore("frame").index("byDateUpdated").openCursor();
+    let cursor = await tx.objectStore("frame").index("byDateUpdated").openCursor(null, "prev");
     while (cursor && results.length < limit) {
       results.push(cursor.value);
       cursor = await cursor.continue();
