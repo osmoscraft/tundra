@@ -2,7 +2,7 @@ import { readFile } from "fs/promises";
 import { JSDOM } from "jsdom";
 import path from "path";
 import { describe, expect, it } from "vitest";
-import { getHtmlToMarkdown, markdownToHtml } from "./lib";
+import { getHtmlToMarkdown, markdownToHtml } from "./codec";
 
 const jsdomParser = (input: string) => new JSDOM(input).window.document;
 

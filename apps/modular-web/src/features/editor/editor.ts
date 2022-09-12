@@ -1,4 +1,4 @@
-import { htmlToMarkdown, markdownToHtml } from "@tinykb/haiku-codec";
+import { htmlToMarkdown, markdownToHtml } from "../codec/codec";
 
 export class HaikuEditorElement extends HTMLElement {
   connectedCallback() {

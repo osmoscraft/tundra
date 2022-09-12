@@ -1,5 +1,5 @@
-import { HaikuEditorElement } from "@tinykb/haiku-editor";
-import "@tinykb/haiku-editor/haiku-editor.css";
+import { HaikuEditorElement } from "../editor/editor";
+import "../editor/editor.css";
 import "./styles.css";
 
 customElements.define("haiku-editor-element", HaikuEditorElement);
