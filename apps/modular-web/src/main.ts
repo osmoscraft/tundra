@@ -1,10 +1,11 @@
 import { createSuggester, flushTasks, getForm, tapOnCommand } from "./features/command/command";
+import { handleClone, handleFetch, handlePull, handlePush, handleStatus, handleTestConnection } from "./features/command/tasks";
 import "./features/console/console";
 import { log } from "./features/console/console";
 import "./features/console/console.css";
 import { getAppDB } from "./features/db/db";
 import { getActiveFrame, getRecentFrames, putDraftFrame } from "./features/db/queries";
-import { markdownToHtml } from "./features/editor/codec";
+import { htmlToMarkdown, markdownToHtml } from "./features/editor/codec";
 import { addLink, getEditorHtml, indentRelative, moveDown, moveUp, setEditorHtml } from "./features/editor/editor";
 import "./features/editor/editor.css";
 import { popCursorState, pushCursorState } from "./utils/cursor";
@@ -23,7 +24,7 @@ export default async function main() {
   const popCursor = popCursorState.bind(null, cursorStack);
 
   const db = await getAppDB();
-  const existingFrame = await getActiveFrame(db, url.searchParams.get("frame")!);
+  let existingFrame = await getActiveFrame(db, url.searchParams.get("frame")!);
 
   const editor = document.getElementById("editor") as HTMLElement;
   const commandDialog = document.getElementById("command-dialog") as HTMLDialogElement;
@@ -42,7 +43,7 @@ export default async function main() {
   const handleCommandSubmit = (e: Event) => tapOnCommand(getForm(preventDefault(e)), logToConsole).reset();
 
   const suggest = createSuggester([
-    async (command) => (command === "" ? ["o - <u>o</u>pen", "k - lin<u>k</u>", "fs - <u>f</u>ile <u>s</u>ave"] : []),
+    async (command) => (command === "" ? ["o - <u>o</u>pen", "k - lin<u>k</u>", "save", "ls", "test", "fetch", "pull", "push", "sync"] : []),
     async (command) => (command.startsWith("o ") ? await getRecentFrameSuggestions() : []),
     async (command) => (command.length && "sandbox".startsWith(command) ? [`<a href="/sandbox.html">Open editor sandbox</a>`] : []),
   ]);
@@ -50,29 +51,64 @@ export default async function main() {
   const getCommand = (e: Event) => getFormField("command", formData(closestForm(e.target as Element)!)) as string;
   const handleCommandSuggest = async (command: string) => {
     // instant commands
-    if (command === "k") {
-      commandDialog.close();
-      commandTaskQueue.push(() => {
-        const href = prompt("href");
-        if (!href) return;
-        const text = prompt("text");
-        if (!text) return;
-        addLink(href, text);
-      });
-    } else if (command === "fs") {
-      commandDialog.close();
-      commandTaskQueue.push(async () => {
-        const id = existingFrame?.id ?? crypto.randomUUID();
-        await putDraftFrame(db, {
-          id,
-          content: getEditorHtml(editor),
-          dateUpdated: new Date(),
+    switch (command) {
+      case "k":
+        commandDialog.close();
+        commandTaskQueue.push(() => {
+          const href = prompt("href");
+          if (!href) return;
+          const text = prompt("text");
+          if (!text) return;
+          addLink(href, text);
         });
+        break;
+      case "ls":
+        commandDialog.close();
+        commandTaskQueue.push(() => handleStatus(logToConsole));
+        break;
+      case "save":
+        commandDialog.close();
+        commandTaskQueue.push(async () => {
+          const id = existingFrame?.id ?? crypto.randomUUID();
+          await putDraftFrame(db, {
+            id,
+            content: htmlToMarkdown(getEditorHtml(editor)),
+            dateUpdated: new Date(),
+          });
 
-        if (!existingFrame) {
-          location.search = new URLSearchParams({ frame: id }).toString();
-        }
-      });
+          // TODO update without reloading
+          if (!existingFrame) {
+            location.search = new URLSearchParams({ frame: id }).toString();
+          }
+        });
+        break;
+      case "clone":
+        commandDialog.close();
+        commandTaskQueue.push(() => handleClone(logToConsole));
+        break;
+      case "fetch":
+        commandDialog.close();
+        commandTaskQueue.push(() => handleFetch(logToConsole));
+        break;
+      case "pull":
+        commandDialog.close();
+        commandTaskQueue.push(() => handlePull(logToConsole));
+        break;
+      case "push":
+        commandDialog.close();
+        commandTaskQueue.push(() => handlePush(logToConsole));
+        break;
+      case "sync":
+        commandDialog.close();
+        commandTaskQueue.push(
+          () => handlePull(logToConsole),
+          () => handlePush(logToConsole)
+        );
+        break;
+      case "test":
+        commandDialog.close();
+        commandTaskQueue.push(() => handleTestConnection(logToConsole));
+        break;
     }
 
     // suggest commands

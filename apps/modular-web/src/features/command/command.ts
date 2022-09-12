@@ -14,7 +14,7 @@ export function createSuggester(handlers: SuggestHandler[]) {
 
 export async function flushTasks(queue: (() => any)[]) {
   let task: undefined | (() => any);
-  while ((task = queue.pop())) {
+  while ((task = queue.shift())) {
     await task();
   }
 }
