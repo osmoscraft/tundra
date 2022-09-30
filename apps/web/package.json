@@ -10,6 +10,13 @@
   "dependencies": {
     "@tinykb/haiku-codec": "file:packages/haiku-codec",
     "@tinykb/haiku-editor": "file:packages/haiku-editor",
+    "flexsearch": "^0.7.21",
     "idb": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/flexsearch": "^0.7.3",
+    "@types/jsdom": "^20.0.0",
+    "@types/node": "^18.7.13",
+    "jsdom": "^20.0.0"
   }
 }

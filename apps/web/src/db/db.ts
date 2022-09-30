@@ -1,61 +1,56 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
-export interface AppDb extends DBSchema {
+export interface AppDBSchema extends DBSchema {
   frame: {
-    value: SchemaFrame;
+    value: Frame;
     key: string;
     indexes: {
-      byStatus: ChangeStatus;
-      byTokens: string;
+      byDateUpdated: Date;
     };
   };
-  sync: {
-    value: SchemaSyncRecord;
+  localChange: {
+    value: LocalChangeItem;
+    key: string;
+  };
+  remoteChange: {
+    value: RemoteChangeItem;
+    key: string;
+  };
+  localBaseSha: {
+    value: string;
     key: number;
   };
 }
 
-export interface SchemaFrame {
+export interface Frame {
   id: string;
-  body: string;
-  header: SchemaHeader;
-  status: ChangeStatus;
-  tokens: string[];
+  content: string;
+  dateUpdated: Date;
+  isDeleted?: boolean;
 }
 
-export interface SchemaHeader {
-  btime: Date;
-  ctime: Date;
+export interface LocalChangeItem {
+  id: string;
+  content: string | null;
+  previousContent: string | null;
 }
 
-export enum ChangeStatus {
-  Clean = 0,
-  Create = 1,
-  Update = 2,
-  Delete = 3,
+export interface RemoteChangeItem {
+  id: string;
+  content: string | null;
 }
 
-export interface SchemaSyncRecord {
-  syncedOn: Date;
-  commit: string;
-}
+export type AppDB = IDBPDatabase<AppDBSchema>;
 
-export type TkbDb = IDBPDatabase<AppDb>;
-
-let instance: TkbDb;
-
-export async function getDb() {
-  if (instance) return instance;
-  instance = await openDB<AppDb>("app-db", 1, {
+export async function openAppDB(): Promise<AppDB> {
+  return openDB<AppDBSchema>("tkb-app-db", 1, {
     upgrade(db, _oldVersion, _newVersion, _transaction) {
-      const frameStore = db.createObjectStore("frame", {
-        keyPath: "id",
-      });
+      const frameStore = db.createObjectStore("frame", { keyPath: "id" });
+      frameStore.createIndex("byDateUpdated", "dateUpdated");
 
-      frameStore.createIndex("byStatus", "status");
-      frameStore.createIndex("byTokens", "tokens", { multiEntry: true });
-
-      db.createObjectStore("sync", { autoIncrement: true });
+      db.createObjectStore("localChange", { keyPath: "id" });
+      db.createObjectStore("remoteChange", { keyPath: "id" });
+      db.createObjectStore("localBaseSha", { autoIncrement: true });
     },
     blocked() {
       // …
@@ -67,6 +62,6 @@ export async function getDb() {
       // …
     },
   });
-
-  return instance;
 }
+
+export const appDB = openAppDB();

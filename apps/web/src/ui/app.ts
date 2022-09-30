@@ -1,7 +1,7 @@
-import { ChangeStatus, getDb } from "../db/db";
-import { generateInitialHeader, getLatestTimestampHeader, getSchemaHeaderFromEditorHeader } from "../utils/header";
-import { pull, push } from "../utils/sync";
-import { tokenize } from "../utils/tokenize";
+import { appDB } from "../db/db";
+import { getRecentFramesTx } from "../db/tx";
+import { GraphModule } from "../graph/graph";
+import { pull, push } from "../sync/sync";
 import "./app.css";
 import type { FrameElement } from "./frame/frame";
 import { schemaFrameToDisplayFrame, type NavbarElement } from "./navbar/navbar";
@@ -10,7 +10,7 @@ import type { SearchElement } from "./search/search";
 import type { SidebarElement } from "./sidebar/sidebar";
 
 export class AppElement extends HTMLElement {
-  private db = getDb();
+  private graph = new GraphModule();
 
   private sidebarElement!: SidebarElement;
   private frameElement!: FrameElement;
@@ -32,11 +32,13 @@ export class AppElement extends HTMLElement {
       return;
     }
 
-    const db = await this.db;
-    const frames = await db.getAll("frame");
+    const frames = await this.graph.getAllFrames();
+
+    const recentFrames = await getRecentFramesTx(await appDB);
+    console.log(recentFrames);
     this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
 
-    const frame = await db.get("frame", frameId);
+    const frame = (await this.graph.getFrames([frameId]))[0];
     this.sidebarElement.load(frame?.header ?? {});
     this.frameElement.load(frame?.body ?? "New frame");
 
@@ -45,17 +47,17 @@ export class AppElement extends HTMLElement {
     this.navbarElement.addEventListener("syncAll", async () => {
       await pull();
       await push();
-      const frames = await db.getAll("frame");
+      const frames = await this.graph.getAllFrames();
       this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
     });
     this.navbarElement.addEventListener("pullAll", async () => {
       await pull();
-      const frames = await db.getAll("frame");
+      const frames = await this.graph.getAllFrames();
       this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
     });
     this.navbarElement.addEventListener("pushAll", async () => {
       await push();
-      const frames = await db.getAll("frame");
+      const frames = await this.graph.getAllFrames();
       this.navbarElement.load(frames.map(schemaFrameToDisplayFrame));
     });
     this.navbarElement.addEventListener("openPreferences", () => this.preferencesElement.open());
@@ -63,29 +65,12 @@ export class AppElement extends HTMLElement {
 
     this.frameElement.addEventListener("saveFrame", async (e) => {
       if (!frame) {
-        const id = await db.add("frame", {
-          id: crypto.randomUUID(),
-          header: getSchemaHeaderFromEditorHeader(generateInitialHeader()),
-          body: e.detail,
-          status: ChangeStatus.Create,
-          tokens: tokenize(e.detail),
-        });
-
+        const [result] = await this.graph.createFrames([{ body: e.detail }]);
         const searchParams = new URLSearchParams(location.search);
-        searchParams.set("frame", id);
+        searchParams.set("frame", result.id);
         location.search = searchParams.toString();
       } else {
-        const existingFrame = await db.get("frame", frameId);
-        if (!existingFrame) throw new Error("Error updating: frame no longer exists");
-
-        await db.put("frame", {
-          id: frameId,
-          header: getSchemaHeaderFromEditorHeader(getLatestTimestampHeader(frame.header)),
-          body: e.detail,
-          status: existingFrame.status === ChangeStatus.Create ? ChangeStatus.Create : ChangeStatus.Update,
-          tokens: tokenize(e.detail),
-        });
-
+        await this.graph.updateFrames([{ id: frameId, body: e.detail }]);
         location.reload();
       }
     });

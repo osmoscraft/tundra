@@ -1,6 +1,9 @@
+import { appDB } from "../../db/db";
+import { resetTx } from "../../db/tx";
 import { getGitHubContext, setGitHubContext } from "../../git/github-context";
+import { testConnection } from "../../sync/sync";
+import { getRemoteAll } from "../../sync/sync-v2";
 import { createDelegationHandler } from "../../utils/dom-events";
-import { forceClone, testConnection } from "../../utils/sync";
 import { loadTemplate } from "../../utils/template";
 import "./preferences.css";
 
@@ -41,7 +44,11 @@ export class PreferencesElement extends HTMLElement {
     const handleClick = createDelegationHandler("data-command", {
       close: () => this.querySelector<any>("dialog")?.close(),
       test: testConnection,
-      forceClone,
+      forceClone: async () => {
+        const { frames, sha } = await getRemoteAll();
+        const db = await appDB;
+        await resetTx(db, frames, sha);
+      },
     });
 
     this.addEventListener("click", handleClick);
