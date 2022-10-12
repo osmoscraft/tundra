@@ -1,5 +1,4 @@
-:root {
-}
+@import url(./styles/reset.css);
 
 body {
   font-family: monospace;
