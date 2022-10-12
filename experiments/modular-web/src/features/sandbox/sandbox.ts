@@ -1,4 +1,4 @@
-import { HaikuEditorElement } from "../editor/editor";
+import { HaikuEditorElement } from "@tinykb/haiku-editor";
 import "../editor/editor.css";
 import "./styles.css";
 
