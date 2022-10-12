@@ -8,6 +8,7 @@ export type Shortcut = [
 export function handleKeydownWithShortcut(shortcuts: Shortcut[], event: KeyboardEvent) {
   const keygram = getKeygram(event);
   shortcuts.find((shortcut) => shortcut[0] === keygram)?.[2](event);
+  return event;
 }
 
 /** Format: [Ctrl-][Alt-][Shift-]keyCode */
