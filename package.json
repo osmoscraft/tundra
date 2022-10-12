@@ -8,8 +8,7 @@
     "dev": "npm run dev -w apps/preact-web",
     "dev:haiku": "concurrently npm:dev:haiku-*",
     "dev:haiku-sandbox": "npm run dev -w apps/haiku-sandbox",
-    "dev:haiku-codec": "npm run dev -w packages/haiku-codec",
-    "dev:haiku-view": "npm run dev -w packages/haiku-view"
+    "dev:haiku-codec": "npm run dev -w packages/haiku-codec"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,26 @@
+.haiku-editor {
+  font-family: monospace;
+}
+
+.haiku-editor [data-depth]::before {
+  content: " • ";
+  white-space: pre;
+  position: absolute;
+  transform: translateX(-3ch);
+}
+
+.haiku-editor [data-depth="0"] {
+  padding-left: 3ch;
+}
+.haiku-editor [data-depth="1"] {
+  padding-left: 5ch;
+}
+.haiku-editor [data-depth="2"] {
+  padding-left: 7ch;
+}
+.haiku-editor [data-depth="3"] {
+  padding-left: 9ch;
+}
+.haiku-editor [data-depth="4"] {
+  padding-left: 11ch;
+}
