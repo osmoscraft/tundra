@@ -1,0 +1,22 @@
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.layout {
+  display: grid;
+  height: 100vh;
+  grid-template:
+    "header header" auto
+    "left right" 1fr / 1fr 1fr;
+}
+
+.layout__header {
+  grid-area: header;
+}
+.layout__left {
+  grid-area: left;
+}
+.layout__right {
+  grid-area: right;
+}
