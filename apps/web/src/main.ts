@@ -3,7 +3,9 @@ import { migrateTov1 } from "./features/db/migrations";
 import { handleKeydownWithShortcut, Shortcut } from "./features/keyboard/shortcuts";
 import { getInternalHrefFromClick, onPopState, pushUrl, routeSubject, selectInternalHrefClick, startRouter } from "./features/router/router";
 import "./main.css";
-import { preventDefault } from "./utils/dom/event";
+import { toggleDialog } from "./utils/dom/dialog";
+import { closestTarget, preventDefault } from "./utils/dom/event";
+import { formData, getFormField, reset } from "./utils/dom/form";
 import { $ } from "./utils/dom/query";
 import { nullablePipe, pipe } from "./utils/functional/pipe";
 import { tap } from "./utils/functional/tap";
@@ -15,14 +17,16 @@ async function main() {
   window.addEventListener("popstate", onPopState);
 
   const commandPalette = $<HTMLDialogElement>("#command-palette")!;
+  const commandForm = $<HTMLFormElement>("#command-form")!;
   const commandInput = $<HTMLInputElement>("#command-input")!;
-  const commandPatelleShorcuts: Shortcut[] = [["Escape", "", () => (commandPalette.open = false)]];
+  const commandPatelleShorcuts: Shortcut[] = [["Escape", "", toggleDialog.bind(null, commandPalette, false)]];
+  commandForm.addEventListener("submit", pipe(preventDefault, closestTarget("form"), tap(pipe(formData, getFormField("command"), console.log)), reset));
   commandPalette.addEventListener("keydown", handleKeydownWithShortcut.bind(null, commandPatelleShorcuts));
 
-  const shortcuts: Shortcut[] = [
-    ["Ctrl-K", "", pipe(tap(console.log), preventDefault, () => (commandPalette.open = true), commandInput.focus.bind(commandInput, undefined))],
+  const globalShortcuts: Shortcut[] = [
+    ["Ctrl-K", "", pipe(tap(console.log), preventDefault, toggleDialog.bind(null, commandPalette, true), commandInput.focus.bind(commandInput, undefined))],
   ];
-  window.addEventListener("keydown", pipe(handleKeydownWithShortcut.bind(null, shortcuts)));
+  window.addEventListener("keydown", pipe(handleKeydownWithShortcut.bind(null, globalShortcuts)));
 
   routeSubject.addEventListener("afterRouteChange", handleRouteChange.bind(null, db));
   startRouter();
