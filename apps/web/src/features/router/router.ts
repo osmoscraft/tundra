@@ -2,6 +2,10 @@ import { closestTarget } from "../../utils/dom/event";
 
 export const routeSubject = new EventTarget();
 
+export function startRouter() {
+  routeSubject.dispatchEvent(new Event("afterRouteChange"));
+}
+
 export function pushUrl(url: string) {
   window.history.pushState(undefined, "", url);
   routeSubject.dispatchEvent(new Event("afterRouteChange"));
