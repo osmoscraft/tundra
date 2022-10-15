@@ -20,7 +20,7 @@ async function main() {
   commandPalette.addEventListener("keydown", handleKeydownWithShortcut.bind(null, commandPatelleShorcuts));
 
   const shortcuts: Shortcut[] = [
-    ["Ctrl-K", "", pipe(tap(console.log), preventDefault, () => (commandPalette.open = true), commandInput.focus.bind(commandInput))],
+    ["Ctrl-K", "", pipe(tap(console.log), preventDefault, () => (commandPalette.open = true), commandInput.focus.bind(commandInput, undefined))],
   ];
   window.addEventListener("keydown", pipe(handleKeydownWithShortcut.bind(null, shortcuts)));
 
