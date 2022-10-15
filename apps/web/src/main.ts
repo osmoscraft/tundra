@@ -4,6 +4,7 @@ import { handleKeydownWithShortcut, Shortcut } from "./features/keyboard/shortcu
 import { getInternalHrefFromClick, onPopState, pushUrl, routeSubject, selectInternalHrefClick, startRouter } from "./features/router/router";
 import "./main.css";
 import { preventDefault } from "./utils/dom/event";
+import { $ } from "./utils/dom/query";
 import { nullablePipe, pipe } from "./utils/functional/pipe";
 import { tap } from "./utils/functional/tap";
 
@@ -13,7 +14,14 @@ async function main() {
   window.addEventListener("click", nullablePipe(selectInternalHrefClick, preventDefault, getInternalHrefFromClick, pushUrl));
   window.addEventListener("popstate", onPopState);
 
-  const shortcuts: Shortcut[] = [["Ctrl-KeyK", "", pipe(tap(console.log), preventDefault)]];
+  const commandPalette = $<HTMLDialogElement>("#command-palette")!;
+  const commandInput = $<HTMLInputElement>("#command-input")!;
+  const commandPatelleShorcuts: Shortcut[] = [["Escape", "", () => (commandPalette.open = false)]];
+  commandPalette.addEventListener("keydown", handleKeydownWithShortcut.bind(null, commandPatelleShorcuts));
+
+  const shortcuts: Shortcut[] = [
+    ["Ctrl-K", "", pipe(tap(console.log), preventDefault, () => (commandPalette.open = true), commandInput.focus.bind(commandInput))],
+  ];
   window.addEventListener("keydown", pipe(handleKeydownWithShortcut.bind(null, shortcuts)));
 
   routeSubject.addEventListener("afterRouteChange", handleRouteChange.bind(null, db));
