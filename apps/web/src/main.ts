@@ -5,6 +5,7 @@ import "./main.css";
 import { commandRunEvent } from "./modules/command/command-events";
 import { CommandPaletteElement } from "./modules/command/command-palette-element";
 import { ConfigElement } from "./modules/config/config-element";
+import { openDB, storesTx } from "./modules/db/db";
 import { getKeygram } from "./modules/keyboard/shortcuts";
 import { DialogElement } from "./modules/modal/dialog-element";
 import { FocusTrapElement } from "./modules/modal/focus-trap-element";
@@ -22,8 +23,11 @@ async function main() {
   const router$ = $<RouterElement>("router-element")!;
   const dialog$ = $<DialogElement>("dialog-element")!;
   const editor$ = $<HaikuEditorElement>("haiku-editor-element")!;
+  const dbAsync = openDB("tinky-store", 1, (db) => {
+    db.createObjectStore("frame", { keyPath: "id" });
+  });
 
-  window.addEventListener("keydown", (e) => {
+  window.addEventListener("keydown", async (e) => {
     const keygram = getKeygram(e);
     switch (keygram) {
       case "Ctrl-K":
@@ -32,7 +36,9 @@ async function main() {
         break;
       case "Ctrl-S":
         e.preventDefault();
-        console.log("Will save md:", htmlToMarkdown(editor$.getHtml()));
+        const md = htmlToMarkdown(editor$.getHtml());
+        const db = await dbAsync;
+        storesTx(db, ["frame"], "readwrite", ([frameStore]) => frameStore.put({ id: 123, content: md }));
         break;
     }
   });
@@ -49,7 +55,7 @@ async function main() {
 
   routeAfterChangeEvent.on(window, () => {
     const id = new URLSearchParams(location.search).get("id");
-    if (id === "new") {
+    if (id === "new" || !id) {
       const mutableUrl = new URL(location.href);
       mutableUrl.search = new URLSearchParams({ id: Math.random().toString() }).toString();
       router$.replaceUrl(mutableUrl.href);

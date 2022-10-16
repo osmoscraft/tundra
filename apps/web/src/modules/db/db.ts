@@ -7,16 +7,17 @@ export function openDB(name: string, version: number, handleUpgrade: (db: IDBDat
   });
 }
 
-export function tx<ResultType>(
+export function storesTx<ResultType>(
   db: IDBDatabase,
-  storeNames: string | string[],
+  storeNames: string[],
   mode: IDBTransactionMode,
-  transact: (tx: IDBTransaction) => Promise<ResultType>
+  run: (stores: IDBPromiseObjectStore[]) => Promise<ResultType>
 ): Promise<ResultType> {
   return new Promise(async (resolve, reject) => {
     const activeTx = db.transaction(storeNames, mode);
 
-    const result = await transact(activeTx);
+    const stores = storeNames.map((storeName) => wrapStore(activeTx.objectStore(storeName)));
+    const result = await run(stores);
 
     activeTx.onerror = () => reject(activeTx.error);
     activeTx.oncomplete = () => resolve(result);
