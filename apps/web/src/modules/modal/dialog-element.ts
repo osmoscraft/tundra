@@ -1,6 +1,7 @@
 export class DialogElement extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<dialog></dialog>`;
+    this.addEventListener("ui.modal.exit", () => this.hide());
   }
 
   show(node: Node) {

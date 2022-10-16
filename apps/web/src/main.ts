@@ -1,8 +1,8 @@
 import { getKeygram } from "./features/keyboard/shortcuts";
 import "./main.css";
-import { CommandPaletteElement } from "./modules/command/command-palette.element";
-import { DialogElement } from "./modules/modal/dialog.element";
-import { FocusTrapElement } from "./modules/modal/focus-trap.element";
+import { CommandPaletteElement } from "./modules/command/command-palette-element";
+import { DialogElement } from "./modules/modal/dialog-element";
+import { FocusTrapElement } from "./modules/modal/focus-trap-element";
 import { $ } from "./utils/dom/query";
 
 customElements.define("focus-trap-element", FocusTrapElement);
@@ -21,8 +21,14 @@ async function main() {
         return;
     }
   });
-  dialog$.addEventListener("ui.modal.exit", () => {
-    dialog$.hide();
+
+  window.addEventListener("command.run", (e) => {
+    switch ((e as CustomEvent).detail) {
+      case "config open":
+        break;
+      case "file sync":
+        break;
+    }
   });
 }
 
