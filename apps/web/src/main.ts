@@ -32,23 +32,34 @@ async function main() {
     switch (keygram) {
       case "Ctrl-K":
         e.preventDefault();
-        dialog$.show($<HTMLTemplateElement>("#command-dialog")!.content.cloneNode(true));
+        commandRunEvent.emit(window, "commands");
         break;
       case "Ctrl-S":
         e.preventDefault();
-        const md = htmlToMarkdown(editor$.getHtml());
-        const db = await dbAsync;
-        storesTx(db, ["frame"], "readwrite", ([frameStore]) => frameStore.put({ id: 123, content: md }));
+        commandRunEvent.emit(window, "file save");
+        break;
+      case "Ctrl-Shift-S":
+        e.preventDefault();
+        commandRunEvent.emit(window, "file sync all");
         break;
     }
   });
 
-  commandRunEvent.on(window, (e) => {
+  commandRunEvent.on(window, async (e) => {
     switch (e.detail) {
+      case "commands":
+        dialog$.show($<HTMLTemplateElement>("#command-dialog")!.content.cloneNode(true));
+        break;
       case "config open":
         dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true));
         break;
-      case "file sync":
+      case "file save":
+        const md = htmlToMarkdown(editor$.getHtml());
+        const db = await dbAsync;
+        storesTx(db, ["frame"], "readwrite", ([frameStore]) => frameStore.put({ id: 123, content: md }));
+        break;
+      case "file sync all":
+        console.log("not implemented");
         break;
     }
   });

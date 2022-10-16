@@ -28,7 +28,7 @@ export class CommandPaletteElement extends HTMLElement {
 }
 
 function filterCommand(input: string, command: Command) {
-  return [command.description, command.syntax].some((field) => field.startsWith(input));
+  return [command.description, command.syntax].some((field) => field.includes(input));
 }
 
 function renderCommand(command: Command) {
