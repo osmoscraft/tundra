@@ -6,12 +6,14 @@
     <title>tinykb</title>
   </head>
   <body>
-    <dialog-element id="global-dialog"></dialog-element>
-    <a href="/?id=testdocument">internal 1</a>
-    <a href="/?id=anotherdoc">internal 2</a>
-    <a href="/?id=new">new</a>
-    <a href="https://wikipedia.org" rel="external">external</a>
-    <main></main>
+    <router-element>
+      <dialog-element id="global-dialog"></dialog-element>
+      <a href="/?id=testdocument">internal 1</a>
+      <a href="/?id=anotherdoc">internal 2</a>
+      <a href="/?id=new">new</a>
+      <a href="https://wikipedia.org" rel="external">external</a>
+      <main></main>
+    </router-element>
     <template id="command-dialog">
       <command-palette-element>
         <form id="command-form">

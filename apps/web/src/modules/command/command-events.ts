@@ -1,3 +1,3 @@
-import { customEvent } from "../event/event-factories";
+import { defineCustomEvent } from "../event/define-event";
 
-export const commandRunEvent = (command: string) => customEvent("command.run", { detail: command, bubbles: true });
+export const commandRunEvent = defineCustomEvent<string>("command.run", { bubbles: true });

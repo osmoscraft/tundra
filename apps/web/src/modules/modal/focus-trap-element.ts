@@ -1,10 +1,10 @@
-import { event } from "../event/event-factories";
+import { defineEvent } from "../event/define-event";
 
 /**
  * Event dispatched from any modal element when user intends to exit the modal area.
  * preventDefault should cancel the exit
  */
-export const uiModalExitEvent = () => event("ui.modal.exit", { bubbles: true });
+export const uiModalExitEvent = defineEvent("ui.modal.exit", { bubbles: true });
 
 export class FocusTrapElement extends HTMLElement {
   private cachedElement: HTMLElement | null = null;
@@ -18,7 +18,7 @@ export class FocusTrapElement extends HTMLElement {
     // handle Escape to close
     this.addEventListener("keydown", (e) => {
       if (e.code === "Escape") {
-        this.dispatchEvent(uiModalExitEvent());
+        this.dispatchEvent(uiModalExitEvent.create());
       }
     });
 

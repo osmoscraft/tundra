@@ -12,7 +12,7 @@ export class ConfigElement extends HTMLElement {
       e.preventDefault();
       const config = Object.fromEntries(formData(form$).entries());
       localStorage.setItem("config", JSON.stringify(config));
-      this.dispatchEvent(uiModalExitEvent());
+      this.dispatchEvent(uiModalExitEvent.create());
     });
   }
 }

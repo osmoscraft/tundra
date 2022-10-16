@@ -1,7 +1,9 @@
+import { uiModalExitEvent } from "./focus-trap-element";
+
 export class DialogElement extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `<dialog></dialog>`;
-    this.addEventListener("ui.modal.exit", () => this.hide());
+    this.addEventListener(...uiModalExitEvent.handle(() => this.hide()));
   }
 
   show(node: Node) {
