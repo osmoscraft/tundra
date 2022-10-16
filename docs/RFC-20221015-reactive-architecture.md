@@ -19,18 +19,35 @@
 ## Interface
 
 ```typescript
+// system defined
 interface Message {
   type: string; // extendable
   data: any;
 }
 
+// system + plugin defined
 interface Command {
+  name: string; // Short, descriptive label for human
+  syntax: string; // a template indicating how the command should be parsed
+  action: (args: string) => Message;
+}
+
+// user defined
+interface KeyboardShortcut {
+  keygram: string; // [Ctrl-][Alt-][Shift-]<Key>
+  when: string;
+  command: string;
+}
+
+// Alternative design
+
+interface CommandAlt {
   name: string; // Short, descriptive label for human
   syntax: string; // a template indicating how the command should be parsed
   messages: Message;
 }
 
-interface Shortcut {
+interface ShortcutAlt {
   name: string; // Short, descriptive label for human
   keygram: string; // [Ctrl-][Alt-][Shift-]<Key>
   context: string;
