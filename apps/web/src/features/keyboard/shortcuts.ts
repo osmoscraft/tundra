@@ -1,3 +1,5 @@
+import { curry } from "../../utils/functional/curry";
+
 export type Shortcut = [
   keygram: string,
   /** Not implemented */
@@ -5,11 +7,11 @@ export type Shortcut = [
   handler: (e: KeyboardEvent) => any
 ];
 
-export function handleKeydownWithShortcut(shortcuts: Shortcut[], event: KeyboardEvent) {
+export const handleKeydownWithShortcut = curry((shortcuts: Shortcut[], event: KeyboardEvent) => {
   const keygram = getKeygram(event);
   shortcuts.find((shortcut) => shortcut[0] === keygram)?.[2](event);
   return event;
-}
+});
 
 /** Format: [Ctrl-][Alt-][Shift-]keyCode */
 function getKeygram(e: KeyboardEvent): string {

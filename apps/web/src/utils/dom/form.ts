@@ -8,3 +8,5 @@ export const reset = (formElement: HTMLFormElement) => {
 };
 
 export const getFormField = curry((name: string, formData: FormData) => formData.get(name));
+
+export const getInputValue = (input: HTMLInputElement) => input.value;

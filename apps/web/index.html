@@ -6,9 +6,19 @@
     <title>tinykb</title>
   </head>
   <body>
-    <dialog id="command-palette">
+    <dialog id="command-dialog">
       <form id="command-form">
         <input id="command-input" name="command" type="text" />
+        <ul id="command-suggestion-list"></ul>
+      </form>
+    </dialog>
+    <dialog id="config-dialog">
+      <form id="config-form">
+        <input name="owner" type="text" />
+        <input name="repo" type="text" />
+        <input name="token" type="password" />
+        <button type="button">Test</button>
+        <button type="submit">Save</button>
       </form>
     </dialog>
     <a href="/?id=testdocument">internal 1</a>

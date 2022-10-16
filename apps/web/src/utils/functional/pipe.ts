@@ -5,6 +5,6 @@ export function pipe<T extends any[]>(...fns: T): (...args: Parameters<FirstInAr
 }
 
 // Once an a step returns nullish, skip the rest of the steps and just return null
-export function nullablePipe<T extends any[]>(...fns: T): (...args: Parameters<FirstInArray<T>>) => null | ReturnType<LastInArray<T>> {
+export function shortPipe<T extends any[]>(...fns: T): (...args: Parameters<FirstInArray<T>>) => null | ReturnType<LastInArray<T>> {
   return (((x: any) => fns.reduce((v, f) => (v === null || v === undefined ? v : f(v)), x)) as any) ?? null;
 }
