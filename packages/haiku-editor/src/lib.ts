@@ -1,5 +1,3 @@
-import { htmlToMarkdown, markdownToHtml } from "@tinykb/haiku-codec";
-
 export class HaikuEditorElement extends HTMLElement {
   connectedCallback() {
     this.addEventListener("keydown", (e) => {
@@ -25,6 +23,7 @@ export class HaikuEditorElement extends HTMLElement {
           e.preventDefault();
           break;
         case "Ctrl-KeyK":
+          // Dialog system should be externalized
           const href = prompt("href");
           if (!href) return;
           const text = prompt("text");
@@ -35,17 +34,16 @@ export class HaikuEditorElement extends HTMLElement {
     });
   }
 
-  setMarkdown(markdown: string) {
-    performance.mark("start");
-    this.innerHTML = /*html*/ `<div contenteditable="true">${markdownToHtml(markdown)}</div>`;
-    console.log(`[haiku-editor] set md ${performance.measure("", "start").duration.toFixed(2)}ms`);
+  setKeymap() {
+    // TODO
   }
 
-  getMarkdown() {
-    performance.mark("start");
-    const markdown = htmlToMarkdown(this.children[0].innerHTML);
-    console.log(`[haiku-editor] get md ${performance.measure("", "start").duration.toFixed(2)}ms`);
-    return markdown;
+  setHtml(html: string) {
+    this.innerHTML = /*html*/ `<div contenteditable="true">${html}</div>`;
+  }
+
+  getHtml() {
+    return this.children[0].innerHTML;
   }
 
   indentRelative = (levels: number) => getLines(getBracket(window.getSelection())).map(indentLineRelative.bind(null, levels));

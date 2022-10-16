@@ -32,10 +32,12 @@ export function runOnStore<ReturnType>(
   return routine(wrapStore(store));
 }
 
+const storeProxyMethods: (keyof IDBObjectStore)[] = ["get", "getAll", "add", "delete", "put"];
+
 function wrapStore(store: IDBObjectStore) {
   return new Proxy(store, {
     get: (target, prop) => {
-      if (["get", "getAll"].includes(prop as string)) {
+      if (storeProxyMethods.includes(prop as any)) {
         return (...args: any[]) =>
           new Promise((resolve, reject) => {
             const req = (target as any)[prop](...args) as IDBRequest;
