@@ -19,7 +19,7 @@ export const getShortcutCommand = curry((shortcuts: KeyboardShortcut[], event: K
 });
 
 /** Format: [Ctrl-][Alt-][Shift-]keyCode */
-function getKeygram(e: KeyboardEvent): string {
+export function getKeygram(e: KeyboardEvent): string {
   return `${e.ctrlKey ? "Ctrl-" : ""}${e.altKey ? "Alt-" : ""}${e.shiftKey ? "Shift-" : ""}${normalizeKey(e.key)}`;
 }
 
