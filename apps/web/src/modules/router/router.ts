@@ -12,18 +12,18 @@ export class RouterElement extends HTMLElement {
       this.pushUrl(internalHref);
     });
 
-    window.addEventListener("popstate", () => this.dispatchEvent(routeAfterChangeEvent.create()));
+    window.addEventListener("popstate", () => routeAfterChangeEvent.emit(this));
 
-    this.dispatchEvent(routeAfterChangeEvent.create());
+    routeAfterChangeEvent.emit(this);
   }
 
   pushUrl(url: string) {
     window.history.pushState(undefined, "", url);
-    this.dispatchEvent(routeAfterChangeEvent.create());
+    routeAfterChangeEvent.emit(this);
   }
 
   replaceUrl(url: string) {
     window.history.replaceState(undefined, "", url);
-    this.dispatchEvent(routeAfterChangeEvent.create());
+    routeAfterChangeEvent.emit(this);
   }
 }

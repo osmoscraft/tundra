@@ -18,7 +18,7 @@ export class FocusTrapElement extends HTMLElement {
     // handle Escape to close
     this.addEventListener("keydown", (e) => {
       if (e.code === "Escape") {
-        this.dispatchEvent(uiModalExitEvent.create());
+        uiModalExitEvent.emit(this);
       }
     });
 

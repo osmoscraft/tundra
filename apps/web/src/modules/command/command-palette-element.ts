@@ -13,9 +13,9 @@ export class CommandPaletteElement extends HTMLElement {
       e.preventDefault();
       const commandString = new FormData(form$).get("command") as string;
       const selectedCommand = systemCommands.filter(filterCommand.bind(null, commandString))[0];
-      selectedCommand && this.dispatchEvent(commandRunEvent.create(selectedCommand.syntax)); // TODO support for parameters
+      selectedCommand && commandRunEvent.emit(this, selectedCommand.syntax);
       form$.reset();
-      this.dispatchEvent(uiModalExitEvent.create());
+      uiModalExitEvent.emit(this);
     });
 
     input$.addEventListener("input", (e) => {

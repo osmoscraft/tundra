@@ -1,4 +1,3 @@
-import { formData } from "../../utils/dom/form";
 import { uiModalExitEvent } from "../modal/focus-trap-element";
 
 export class ConfigElement extends HTMLElement {
@@ -10,9 +9,9 @@ export class ConfigElement extends HTMLElement {
 
     form$.addEventListener("submit", (e) => {
       e.preventDefault();
-      const config = Object.fromEntries(formData(form$).entries());
+      const config = Object.fromEntries(new FormData(form$).entries());
       localStorage.setItem("config", JSON.stringify(config));
-      this.dispatchEvent(uiModalExitEvent.create());
+      uiModalExitEvent.emit(this);
     });
   }
 }

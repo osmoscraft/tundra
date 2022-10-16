@@ -32,24 +32,20 @@ async function main() {
     }
   });
 
-  window.addEventListener(
-    ...commandRunEvent.handle((e) => {
-      switch (e.detail) {
-        case "config open":
-          dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true));
-          break;
-        case "file sync":
-          break;
-      }
-    })
-  );
+  commandRunEvent.on(window, (e) => {
+    switch (e.detail) {
+      case "config open":
+        dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true));
+        break;
+      case "file sync":
+        break;
+    }
+  });
 
-  window.addEventListener(
-    ...routeAfterChangeEvent.handle(() => {
-      const id = new URLSearchParams(location.search).get("id");
-      console.log(id);
-    })
-  );
+  routeAfterChangeEvent.on(window, () => {
+    const id = new URLSearchParams(location.search).get("id");
+    console.log(id);
+  });
 
   router$.start();
 }

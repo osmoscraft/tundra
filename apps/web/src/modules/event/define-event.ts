@@ -1,13 +1,16 @@
 export function defineEvent(type: string, init?: EventInit) {
   return {
-    create: () => new Event(type, init),
-    handle: (handler: EventListener) => [type, handler] as const,
+    emit: (target: EventTarget) => target.dispatchEvent(new Event(type, init)),
+    on: (target: EventTarget, handler: EventListener) => target.addEventListener(type, handler),
+    off: (target: EventTarget, handler: EventListener) => target.removeEventListener(type, handler),
   };
 }
 
+export type CustomEventHandler<T> = (customEvent: CustomEvent<T>) => any;
 export function defineCustomEvent<T>(type: string, init?: CustomEventInit<T>) {
   return {
-    create: (detail: T) => new CustomEvent(type, { ...init, detail }),
-    handle: (handler: (event: CustomEvent<T>) => any) => [type, handler] as [string, EventListener],
+    emit: (target: EventTarget, detail: T) => target.dispatchEvent(new CustomEvent(type, { ...init, detail })),
+    on: (target: EventTarget, handler: CustomEventHandler<T>) => target.addEventListener(type, handler as EventListener),
+    off: (target: EventTarget, handler: CustomEventHandler<T>) => target.removeEventListener(type, handler as EventListener),
   };
 }
