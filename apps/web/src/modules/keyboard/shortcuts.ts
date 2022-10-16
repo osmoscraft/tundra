@@ -1,6 +1,6 @@
-/** Format: [Ctrl-][Alt-][Shift-]keyCode */
+/** Format: [Ctrl+][Alt+][Shift+]<Key> */
 export function getKeygram(e: KeyboardEvent): string {
-  return `${e.ctrlKey ? "Ctrl-" : ""}${e.altKey ? "Alt-" : ""}${e.shiftKey ? "Shift-" : ""}${normalizeKey(e.key)}`;
+  return `${e.ctrlKey ? "Ctrl+" : ""}${e.altKey ? "Alt+" : ""}${e.shiftKey ? "Shift+" : ""}${normalizeKey(e.key)}`;
 }
 
 function normalizeKey(key: string) {

@@ -2,6 +2,7 @@ import { htmlToMarkdown, markdownToHtml } from "@tinykb/haiku-codec";
 import { HaikuEditorElement } from "@tinykb/haiku-editor";
 import "@tinykb/haiku-editor/haiku-editor.css";
 import "./main.css";
+import type { Command } from "./modules/command/command";
 import { commandRunEvent } from "./modules/command/command-events";
 import { CommandPaletteElement } from "./modules/command/command-palette-element";
 import { ConfigElement } from "./modules/config/config-element";
@@ -23,46 +24,55 @@ async function main() {
   const router$ = $<RouterElement>("router-element")!;
   const dialog$ = $<DialogElement>("dialog-element")!;
   const editor$ = $<HaikuEditorElement>("haiku-editor-element")!;
+
   const dbAsync = openDB("tinky-store", 1, (db) => {
     db.createObjectStore("frame", { keyPath: "id" });
   });
 
-  window.addEventListener("keydown", async (e) => {
-    const keygram = getKeygram(e);
-    switch (keygram) {
-      case "Ctrl-K":
-        e.preventDefault();
-        commandRunEvent.emit(window, "commands");
-        break;
-      case "Ctrl-S":
-        e.preventDefault();
-        commandRunEvent.emit(window, "file save");
-        break;
-      case "Ctrl-Shift-S":
-        e.preventDefault();
-        commandRunEvent.emit(window, "file sync all");
-        break;
-    }
-  });
-
-  commandRunEvent.on(window, async (e) => {
-    switch (e.detail) {
-      case "commands":
+  const systemCommands: Command[] = [
+    {
+      syntax: "commands",
+      description: "Open command palette",
+      hidden: true,
+      action: () => {
         dialog$.show($<HTMLTemplateElement>("#command-dialog")!.content.cloneNode(true));
-        break;
-      case "config open":
-        dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true));
-        break;
-      case "file save":
+        $<CommandPaletteElement>("command-palette-element")!.start(systemCommands);
+      },
+      shortcuts: [{ keygram: "Ctrl+K" }],
+    },
+    {
+      syntax: "config open",
+      description: "Open config dialog",
+      action: () => dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true)),
+    },
+    {
+      syntax: "file sync all",
+      description: "Sync changes in all files",
+      action: () => console.log("TBD"),
+      shortcuts: [{ keygram: "Ctrl+Shift+S" }],
+    },
+    {
+      syntax: "file save",
+      description: "Save changes in the current files",
+      action: async () => {
         const md = htmlToMarkdown(editor$.getHtml());
         const db = await dbAsync;
         storesTx(db, ["frame"], "readwrite", ([frameStore]) => frameStore.put({ id: 123, content: md }));
-        break;
-      case "file sync all":
-        console.log("not implemented");
-        break;
-    }
+      },
+      shortcuts: [{ keygram: "Ctrl+S" }],
+    },
+  ];
+
+  window.addEventListener("keydown", async (e) => {
+    const keygram = getKeygram(e);
+    const matchedCommand = systemCommands.find((command) => command.shortcuts?.[0]?.keygram === keygram);
+    if (!matchedCommand) return;
+
+    e.preventDefault();
+    matchedCommand.action();
   });
+
+  commandRunEvent.on(window, async (e) => systemCommands.find((command) => command.syntax === e.detail)?.action());
 
   routeAfterChangeEvent.on(window, () => {
     const id = new URLSearchParams(location.search).get("id");
