@@ -1,7 +1,8 @@
-import { Command, dispatchCommand, filterCommands, renderCommandSuggestions } from "./features/command/command";
+import { Command, executeCommand, filterCommands, renderCommandSuggestions } from "./features/command/command";
 import { openDB, runOnStore, tx } from "./features/db/db";
 import { migrateTov1 } from "./features/db/migrations";
-import { handleKeydownWithShortcut, Shortcut } from "./features/keyboard/shortcuts";
+import { getShortcutCommand, KeyboardShortcut, matchShortcutEvent } from "./features/keyboard/shortcuts";
+import { dispatchMessageOn, messageThunk } from "./features/message/message";
 import { getInternalHrefFromClick, onPopState, pushUrl, routeSubject, selectInternalHrefClick, startRouter } from "./features/router/router";
 import "./main.css";
 import { hideDialog, showDialog } from "./utils/dom/dialog";
@@ -13,40 +14,67 @@ import { tap } from "./utils/functional/tap";
 import { first } from "./utils/object/accessor";
 
 async function main() {
-  const db = await openDB("tinykb-db", 1, migrateTov1);
-
+  // Global commands
   const registeredCommands: Command[] = [
-    { name: "Open config", syntax: "config", message: "config.openConfigDialog" },
-    { name: "Sync changes", syntax: "sync", message: "sync.requestSync" },
+    { syntax: "config", description: "Open config dialog", action: messageThunk("config.openConfigDialog") },
+    { syntax: "command show", description: "Show command palette", action: messageThunk("command.showPalette") },
+    { syntax: "command hide", description: "Hide command palette", action: messageThunk("command.hidePalette") },
+    { syntax: "sync", description: "Sync files", action: messageThunk("file.requestSync") },
   ];
+  const filterRegisteredCommands = filterCommands(registeredCommands);
 
-  // TODO refactor command and keyboard shortcut to share the same messaging system
-  // TODO refactor commandDialog and global shortcut to share the same handler with different contexts
+  // Global messages
+  const dispatchMessage = dispatchMessageOn(window);
+  window.addEventListener("system.message", (e) => {
+    console.log(e);
+    switch ((e as CustomEvent).detail.type) {
+      case "command.showPalette":
+        return activateCommandPalette();
+      case "command.hidePalette":
+        return deactivateCommandPalette();
+      case "config.openConfigDialog":
+        return console.log("open config dialog");
+      case "file.requestSync":
+        return console.log("request sync");
+    }
+  });
+
+  // Global shortcut
+  const globalShortcuts: KeyboardShortcut[] = [
+    ["Ctrl-K", "", "command show"],
+    ["Escape", "isCommandPaletteOpen", "command hide"],
+  ];
+  const matchGlobalShortcut = matchShortcutEvent(globalShortcuts);
+  const getGlobalShortcutCommand = getShortcutCommand(globalShortcuts);
+  window.addEventListener(
+    "keydown",
+    shortPipe(matchGlobalShortcut, preventDefault, getGlobalShortcutCommand, filterRegisteredCommands, first, executeCommand, dispatchMessage)
+  );
+
+  const db = await openDB("tinykb-db", 1, migrateTov1);
 
   // Command palette
   const commandDialog = $<HTMLDialogElement>("#command-dialog")!;
   const commandForm = $<HTMLFormElement>("#command-form")!;
   const commandInput = $<HTMLInputElement>("#command-input")!;
   const commandSuggestionList = $<HTMLUListElement>("#command-suggestion-list")!;
-  const commandDialogShortcuts: Shortcut[] = [["Escape", "", hideDialog(commandDialog)]];
 
   const renderSuggestions = renderCommandSuggestions(commandSuggestionList);
-  const filterRegisteredCommands = filterCommands(registeredCommands);
-  const handleCommandDialogShortcuts = handleKeydownWithShortcut(commandDialogShortcuts);
 
   commandForm.addEventListener(
     "submit",
     pipe(
       preventDefault,
       closestTarget("form"),
-      tap(shortPipe(formData, getFormField("command"), filterRegisteredCommands, first, dispatchCommand(window))),
+      tap(shortPipe(formData, getFormField("command"), filterRegisteredCommands, first, executeCommand, dispatchMessage)),
       reset,
       hideDialog(commandDialog)
     )
   );
-  commandDialog.addEventListener("keydown", handleCommandDialogShortcuts);
+
   commandInput.addEventListener("input", pipe(closestTarget("input"), getInputValue, filterRegisteredCommands, renderSuggestions));
   const activateCommandPalette = pipe(showDialog(commandDialog), commandInput.focus.bind(commandInput, undefined));
+  const deactivateCommandPalette = hideDialog(commandDialog);
 
   // Config
   const configDialog = $<HTMLDialogElement>("#config-dialog")!;
@@ -58,21 +86,6 @@ async function main() {
   window.addEventListener("popstate", onPopState);
   routeSubject.addEventListener("afterRouteChange", handleRouteChange.bind(null, db));
   startRouter();
-
-  // Global shortcut
-  const globalShortcuts: Shortcut[] = [["Ctrl-K", "", pipe(preventDefault, activateCommandPalette)]];
-  window.addEventListener("keydown", pipe(handleKeydownWithShortcut.bind(null, globalShortcuts)));
-
-  // Global command handling
-  // TODO refactor to shared global messaging system
-  window.addEventListener("ui-message", (e) => {
-    switch ((e as CustomEvent).detail.type) {
-      case "config.openConfigDialog":
-        return console.log("open config dialog");
-      case "sync.requestSync":
-        return console.log("request sync");
-    }
-  });
 }
 
 // TBD
