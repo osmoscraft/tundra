@@ -32,6 +32,7 @@ Selection ~> filter -> Selector -> Selection
 
 // Mutative examples
 Selection ~> attr -> (string, string) -> Seletion
+Selection ~> prop -> (string, string) -> Seletion
 Selection ~> class -> [string] -> Seletion
 Selection ~> append -> Selection -> Selection
 Selection ~> remove -> Selection -> Selection
