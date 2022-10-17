@@ -1,3 +1,5 @@
+import { curry } from "./functional/curry";
+
 export interface QueryParent {
   querySelector: (selector: string) => Node | null;
   querySelectorAll: (selector: string) => NodeList;
@@ -14,3 +16,5 @@ export function $$<T extends Element = Element>(selector: string, root?: QueryPa
 export function $$(selector: string, root: QueryParent = document) {
   return root.querySelectorAll(selector);
 }
+
+export const closest = curry((selector: string, e: Element) => e.closest(selector));

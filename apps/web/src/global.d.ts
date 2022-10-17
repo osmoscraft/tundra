@@ -6,6 +6,8 @@ declare global {
     "shell.closeDialog": CustomEventMap<void>;
     "shell.openCommander": CustomEvent<void>;
     "shell.execCommand": CustomEvent<keyof CustomEventMap>;
+    "fs.save": CustomEvent<void>;
+    "fs.sync": CustomEvent<void>;
   }
 }
 

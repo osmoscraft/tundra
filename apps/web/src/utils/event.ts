@@ -24,3 +24,5 @@ export const preventDefault = (e: Event) => {
   e.preventDefault();
   return e;
 };
+
+export const target = (e: Event) => e.target!;
