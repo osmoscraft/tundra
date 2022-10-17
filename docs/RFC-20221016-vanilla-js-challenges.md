@@ -1,5 +1,7 @@
 # Vanilla JS Challenges
 
+## Issues
+
 - State management
   - Platform event system is not ideal
     - Temporal dependency hell
@@ -10,3 +12,8 @@
 - Efficient UI update
   - Large repaint
   - Focus and cursor selection management
+
+## Solutions
+
+- FP
+- Utility-first libraries
