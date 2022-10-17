@@ -20,3 +20,4 @@
 
 - FP
 - Utility-first libraries
+- Avoid Web Component. Use light DOM and manual lifecycle management
