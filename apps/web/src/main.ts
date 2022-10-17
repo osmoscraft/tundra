@@ -1,9 +1,9 @@
 import commanderHtml from "./features/shell/commander.html?raw";
 import { closeDialog, openDialog } from "./features/shell/dialog";
 import { handleShortcuts } from "./features/shell/keyboard";
-import { emit, on } from "./utils/event";
+import { emit, on, preventDefault } from "./utils/event";
 import { pipe } from "./utils/functional/pipe";
-import { setProp } from "./utils/object";
+import { applyProp, setProp } from "./utils/object";
 import { $ } from "./utils/query";
 import { cloneTemplate, template } from "./utils/render";
 
@@ -11,36 +11,41 @@ export async function main() {
   // Commander module
   const knownCommands = ["fs.save", "fs.sync"];
   const commanderTemplate = template(commanderHtml);
-  window.addEventListener("shell.execCommand", (e) => {
+  on("shell.execCommand", (e) => {
     switch (e.detail) {
       case "shell.openCommander":
         const fragment$ = cloneTemplate(commanderTemplate);
         const suggestionList$ = $("ul", fragment$)!;
+        const renderSuggestions = (items: string[]) => items.map((item) => `<li>${item}</li>`).join("");
 
-        setProp("innerHTML", knownCommands.map((item) => `<li>${item}</li>`).join(""), suggestionList$);
         on(
-          "keydown",
+          "input",
           pipe(
-            (e: KeyboardEvent) => (e.target as HTMLInputElement).value,
-            (v: string) => knownCommands.filter((item) => item.includes(v)),
-            (items: string[]) => items.map((item) => `<li>${item}</li>`).join(""),
+            (e: Event) => (e.target as HTMLInputElement).value,
+            (v: string) => knownCommands.filter(applyProp("includes", [v])),
+            renderSuggestions,
             (html: string) => setProp("innerHTML", html, suggestionList$)
           )
         )($("input", fragment$)!);
+        setProp("innerHTML", renderSuggestions(knownCommands), suggestionList$);
+
+        // TODO process command submit
+        on("submit", pipe(preventDefault))($("form", fragment$)!);
+
         emit("shell.openDialog", { detail: { fragment: fragment$ } })(window);
         break;
       default:
         emit(e.detail, {})(window);
         break;
     }
-  });
+  })(window);
 
   // Keyboard module
-  window.addEventListener("keydown", handleShortcuts([["Ctrl+P", "shell.openCommander"]]));
+  on("keydown", handleShortcuts([["Ctrl+P", "shell.openCommander"]]))(window);
 
   // Dialog module
-  window.addEventListener("shell.openDialog", (e) => openDialog(e.detail.fragment)($("dialog")));
-  window.addEventListener("shell.closeDialog", () => closeDialog()($("dialog")));
+  on("shell.openDialog", (e) => openDialog(e.detail.fragment)($("dialog")))(window);
+  on("shell.closeDialog", () => closeDialog()($("dialog")))(window);
 }
 
 main();
