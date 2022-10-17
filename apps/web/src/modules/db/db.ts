@@ -1,11 +1,16 @@
-export function openDB(name: string, version: number, handleUpgrade: (db: IDBDatabase) => any) {
+export function openDB(name: string, version: number, handleUpgrade: (e: IDBVersionChangeEvent) => any) {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open(name, version);
-    req.onupgradeneeded = (e) => handleUpgrade((e.target as any).result);
+    req.onupgradeneeded = (e) => handleUpgrade(e);
     req.onerror = () => reject(req.error);
     req.onsuccess = (event) => resolve(((event.target as any).result as IDBDatabase) ?? null);
   });
 }
+
+export type Migration = (db: IDBDatabase) => any;
+
+export const migrate = (migrations: Migration[]) => (event: IDBVersionChangeEvent) =>
+  migrations.slice(event.oldVersion, event.newVersion!).map((migrate) => migrate((event.target as any).result as IDBDatabase));
 
 export function storesTx<ResultType>(
   db: IDBDatabase,

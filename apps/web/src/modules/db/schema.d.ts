@@ -1,36 +1,22 @@
-export interface AppDBSchema {
-  frame: {
-    value: FrameSchema;
-    key: string;
-    indexes: {
-      byDateUpdated: Date;
-    };
-  };
-  draftFrame: {
-    value: DraftFrameSchema;
-    key: string;
-    indexes: {
-      byDateUpdated: Date;
-    };
-  };
-  baseRef: {
-    value: Ref;
-    key: number;
-  };
-}
+export type RemoteStore = {
+  type: RemoteType.GitHubToken;
+  connection: GitHubConnection;
+};
 
-export interface FrameSchema {
+export interface FrameStore {
   id: string;
   content: string;
   dateUpdated: Date;
 }
 
-export interface DraftFrameSchema {
+export interface DraftFrameStore {
   id: string;
   content: string;
   dateUpdated: Date;
   changeType: ChangeType;
 }
+
+export type BaseRefStore = Ref;
 
 export enum ChangeType {
   Clean = 0,
@@ -52,4 +38,14 @@ export interface FrameChangeItem {
   changeType: ChangeType;
   id: string;
   content: string;
+}
+
+export enum RemoteType {
+  GitHubToken = 1,
+}
+
+export interface GitHubConnection {
+  owner: string;
+  repo: string;
+  token: string;
 }

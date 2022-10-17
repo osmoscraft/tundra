@@ -1,6 +1,6 @@
 import { b64DecodeUnicode } from "../../utils/base64";
 import { filePathToId, idToFilename } from "../../utils/filename";
-import { ChangeType, FrameChangeItem, type DraftFrameSchema, type FrameSchema } from "../db/types";
+import { ChangeType, FrameChangeItem, type DraftFrameStore, type FrameStore } from "../db/schema";
 import {
   compare,
   CompareResultFile,
@@ -38,7 +38,7 @@ export async function testConnection(context: GitHubContext) {
 }
 
 export interface RemoteAll {
-  frames: FrameSchema[];
+  frames: FrameStore[];
   sha: string;
 }
 export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
@@ -47,7 +47,7 @@ export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
 
   const diff = await compare(context, { base: base.sha, head: head.sha });
 
-  const frames: FrameSchema[] = await Promise.all(
+  const frames: FrameStore[] = await Promise.all(
     diff.files
       .filter((file) => file.filename.startsWith("frames"))
       .filter((file) => file.status === "added")
@@ -116,7 +116,7 @@ function getFrameChangeTypeFromGitStatus(gitStatus: GitDiffStatus): ChangeType {
 export interface PushResult {
   commitSha: string;
 }
-export async function push(context: GitHubContext, drafts: DraftFrameSchema[]): Promise<PushResult | null> {
+export async function push(context: GitHubContext, drafts: DraftFrameStore[]): Promise<PushResult | null> {
   if (!drafts.length) {
     console.log(`[push] nothing to push`);
     return null;

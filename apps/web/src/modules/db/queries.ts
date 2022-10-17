@@ -1,7 +1,7 @@
 import { storesTx } from "./db";
-import type { FrameSchema } from "./types";
+import type { FrameStore } from "./schema";
 
-export const resetDB = (db: IDBDatabase, items: FrameSchema[], commitSha: string) =>
+export const resetDB = (db: IDBDatabase, items: FrameStore[], commitSha: string) =>
   storesTx(db, ["frame", "baseRef", "draftFrame"], "readwrite", async (stores) => {
     await Promise.all(stores.map((store) => store.clear()));
     const [frameStore, baseRefStore] = stores;

@@ -6,7 +6,8 @@ import type { Command } from "./modules/command/command";
 import { commandRunEvent } from "./modules/command/command-events";
 import { CommandPaletteElement } from "./modules/command/command-palette-element";
 import { ConfigElement } from "./modules/config/config-element";
-import { openDB, storesTx } from "./modules/db/db";
+import { migrate, openDB, storesTx } from "./modules/db/db";
+import { migration01, migration02 } from "./modules/db/migrations";
 import { getKeygram } from "./modules/keyboard/shortcuts";
 import { DialogElement } from "./modules/modal/dialog-element";
 import { FocusTrapElement } from "./modules/modal/focus-trap-element";
@@ -28,9 +29,7 @@ async function main() {
   const editor$ = $<HaikuEditorElement>("haiku-editor-element")!;
   const terminal$ = $<TerminalElement>("terminal-element")!;
 
-  const dbAsync = openDB("tinky-store", 1, (db) => {
-    db.createObjectStore("frame", { keyPath: "id" });
-  });
+  const dbAsync = openDB("tinky-store", 2, migrate([migration01, migration02]));
 
   const systemCommands: Command[] = [
     {
