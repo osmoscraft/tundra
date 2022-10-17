@@ -5,9 +5,9 @@ import { tap } from "../../utils/functional/tap";
 import { applyProp, getProp, setProp } from "../../utils/object";
 import { handleShortcuts } from "./keyboard";
 
-export const openDialog = (template: string) =>
+export const openDialog = (fragment: DocumentFragment) =>
   pipe(
-    setProp("innerHTML", template),
+    tap(applyProp("append", [fragment])),
     setProp("open", true),
     on("keydown", handleShortcuts([["Escape", "shell.closeDialog"]])),
     tap(shortPipe($$focusable, getProp(0), applyProp("focus", [])))
