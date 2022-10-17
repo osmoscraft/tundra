@@ -20,3 +20,4 @@
   - Status display
 - Editor
 - Settings
+  - Loading, Storage, Updating
