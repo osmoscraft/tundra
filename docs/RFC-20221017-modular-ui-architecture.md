@@ -1,0 +1,22 @@
+# Modular UI Architecture
+
+- Data
+  - Command definition
+    - Id, Description, Handler
+  - Shortcut definition
+    - Command id, Keygram
+  - CustomEvent definition
+    - Name, Detail
+- Shell
+  - Dialog infra
+  - Focus manager (Can this be distributed?)
+  - Keyboard shortcut manager
+  - Logging infra
+  - Router
+- Commander
+  - Prompt + Suggestion
+- HUD
+  - Log display
+  - Status display
+- Editor
+- Settings
