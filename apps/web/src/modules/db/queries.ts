@@ -1,7 +1,7 @@
 import { storesTx } from "./db";
-import type { FrameStore } from "./schema";
+import type { FrameSchema, RemoteSchema } from "./schema";
 
-export const resetDB = (db: IDBDatabase, items: FrameStore[], commitSha: string) =>
+export const resetContent = (db: IDBDatabase, items: FrameSchema[], commitSha: string) =>
   storesTx(db, ["frame", "baseRef", "draftFrame"], "readwrite", async (stores) => {
     await Promise.all(stores.map((store) => store.clear()));
     const [frameStore, baseRefStore] = stores;
@@ -9,6 +9,17 @@ export const resetDB = (db: IDBDatabase, items: FrameStore[], commitSha: string)
     items.forEach((item) => frameStore.put(item));
     baseRefStore.add({ sha: commitSha });
   });
+
+export function getRemote(db: IDBDatabase): Promise<RemoteSchema> {
+  return storesTx(db, ["remote"], "readonly", async ([remoteStore]) => (await remoteStore.getAll())[0] ?? null);
+}
+export function setRemote(db: IDBDatabase, remote: RemoteSchema): Promise<number> {
+  return storesTx(db, ["remote"], "readwrite", async ([remoteStore]) => {
+    await remoteStore.clear();
+    const key = await remoteStore.add(remote);
+    return key as number;
+  });
+}
 
 // export async function getRecentFrames(db: AppDB, limit = 10): Promise<FrameSchema[]> {
 //   return tx(db, ["frame"], "readwrite", async (tx) => {

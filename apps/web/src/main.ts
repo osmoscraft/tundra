@@ -6,13 +6,15 @@ import type { Command } from "./modules/command/command";
 import { commandRunEvent } from "./modules/command/command-events";
 import { CommandPaletteElement } from "./modules/command/command-palette-element";
 import { ConfigElement } from "./modules/config/config-element";
-import { migrate, openDB, storesTx } from "./modules/db/db";
-import { migration01, migration02 } from "./modules/db/migrations";
+import { storesTx } from "./modules/db/db";
+import { dbAsync } from "./modules/db/instance";
+import { getRemote } from "./modules/db/queries";
 import { getKeygram } from "./modules/keyboard/shortcuts";
 import { DialogElement } from "./modules/modal/dialog-element";
 import { FocusTrapElement } from "./modules/modal/focus-trap-element";
 import { routeAfterChangeEvent, RouterElement } from "./modules/router/router";
-import { TerminalElement } from "./modules/terminal/terminal-element";
+import { testConnection } from "./modules/sync/sync";
+import { TerminalElement, termWriteEvent } from "./modules/terminal/terminal-element";
 import { $ } from "./utils/dom/query";
 
 customElements.define("command-palette-element", CommandPaletteElement);
@@ -28,8 +30,7 @@ async function main() {
   const dialog$ = $<DialogElement>("dialog-element")!;
   const editor$ = $<HaikuEditorElement>("haiku-editor-element")!;
   const terminal$ = $<TerminalElement>("terminal-element")!;
-
-  const dbAsync = openDB("tinky-store", 2, migrate([migration01, migration02]));
+  const log = terminal$.write.bind(terminal$);
 
   const systemCommands: Command[] = [
     {
@@ -40,7 +41,7 @@ async function main() {
         dialog$.show($<HTMLTemplateElement>("#command-dialog")!.content.cloneNode(true));
         $<CommandPaletteElement>("command-palette-element")!.start(systemCommands);
       },
-      shortcuts: [{ keygram: "Ctrl+K" }],
+      shortcuts: [{ keygram: "Ctrl+P" }],
     },
     {
       key: "config.openDialog",
@@ -72,7 +73,16 @@ async function main() {
     {
       key: "fs.remote.test",
       description: "Test connection to remote repo",
-      action: async () => {},
+      action: async () => {
+        const db = await dbAsync;
+        const remote = await getRemote(db);
+        if (!remote) {
+          terminal$.write("Remote is not configured.");
+          return;
+        }
+
+        testConnection(remote.connection, log);
+      },
     },
     {
       key: "fs.remote.clone",
@@ -90,6 +100,7 @@ async function main() {
     matchedCommand.action();
   });
 
+  termWriteEvent.on(window, async (e) => terminal$.write(e.detail));
   commandRunEvent.on(window, async (e) => systemCommands.find((command) => command.key === e.detail)?.action());
 
   routeAfterChangeEvent.on(window, () => {

@@ -1,4 +1,7 @@
+import { defineCustomEvent } from "../event/define-event";
 import "./terminal-element.css";
+
+export const termWriteEvent = defineCustomEvent<string>("term.write", { bubbles: true });
 
 export class TerminalElement extends HTMLElement {
   write(text: string) {
@@ -10,6 +13,6 @@ export class TerminalElement extends HTMLElement {
 
   toggle() {
     this.querySelector("output")!.classList.toggle("expanded");
-    this.lastElementChild?.scrollIntoView();
+    this.querySelector("output")!.lastElementChild?.scrollIntoView();
   }
 }

@@ -1,22 +1,22 @@
-export type RemoteStore = {
+export type RemoteSchema = {
   type: RemoteType.GitHubToken;
   connection: GitHubConnection;
 };
 
-export interface FrameStore {
+export interface FrameSchema {
   id: string;
   content: string;
   dateUpdated: Date;
 }
 
-export interface DraftFrameStore {
+export interface DraftFrameSchema {
   id: string;
   content: string;
   dateUpdated: Date;
   changeType: ChangeType;
 }
 
-export type BaseRefStore = Ref;
+export type BaseRefSchema = Ref;
 
 export enum ChangeType {
   Clean = 0,

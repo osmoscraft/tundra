@@ -1,6 +1,6 @@
 terminal-element output {
   display: block;
-  height: 24px;
+  height: 25px; /* include border */
   line-height: 24px;
   overflow-y: hidden;
   border-top: 1px solid var(--gray-l);
@@ -9,7 +9,7 @@ terminal-element output {
 
 terminal-element output.expanded {
   height: auto;
-  min-height: 24px;
+  min-height: 25px;
   max-height: 80vh;
   overflow-y: auto;
 }

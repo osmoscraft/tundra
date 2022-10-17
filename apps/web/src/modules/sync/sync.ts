@@ -1,6 +1,6 @@
 import { b64DecodeUnicode } from "../../utils/base64";
 import { filePathToId, idToFilename } from "../../utils/filename";
-import { ChangeType, FrameChangeItem, type DraftFrameStore, type FrameStore } from "../db/schema";
+import { ChangeType, FrameChangeItem, type DraftFrameSchema, type FrameSchema } from "../db/schema";
 import {
   compare,
   CompareResultFile,
@@ -18,27 +18,27 @@ import {
 } from "./github/api";
 import type { GitHubContext } from "./github/context";
 
-export async function testConnection(context: GitHubContext) {
+export async function testConnection(context: GitHubContext, log: (message: string) => any) {
   const branch = await getDefaultBranch(context);
-  console.log(`[test-connection] default branch ${branch.name}`);
+  log(`[test-connection] default branch ${branch.name}`);
   if (!branch) return;
 
   const commit = await getCommit(context, { sha: branch.commit.sha });
-  console.log(`[test-connection] head commit tree sha ${commit.tree.sha}`);
+  log(`[test-connection] head commit tree sha ${commit.tree.sha}`);
 
   const rootTree = await getTree(context, { sha: commit.tree.sha });
-  console.log(`[test-connection] head commit tree`, rootTree.tree);
+  log(`[test-connection] head commit tree ${rootTree.tree.length} items`);
 
   const framesTreeSha = rootTree.tree.find((node) => node.path === "frames")?.sha;
   if (!framesTreeSha) return;
 
   const framesTree = await getTree(context, { sha: framesTreeSha });
-  console.log(`[test-connection]`, framesTree.tree);
+  log(`[test-connection] frame tree ${framesTree.tree.length} items`);
   return framesTree.tree;
 }
 
 export interface RemoteAll {
-  frames: FrameStore[];
+  frames: FrameSchema[];
   sha: string;
 }
 export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
@@ -47,7 +47,7 @@ export async function getRemoteAll(context: GitHubContext): Promise<RemoteAll> {
 
   const diff = await compare(context, { base: base.sha, head: head.sha });
 
-  const frames: FrameStore[] = await Promise.all(
+  const frames: FrameSchema[] = await Promise.all(
     diff.files
       .filter((file) => file.filename.startsWith("frames"))
       .filter((file) => file.status === "added")
@@ -116,7 +116,7 @@ function getFrameChangeTypeFromGitStatus(gitStatus: GitDiffStatus): ChangeType {
 export interface PushResult {
   commitSha: string;
 }
-export async function push(context: GitHubContext, drafts: DraftFrameStore[]): Promise<PushResult | null> {
+export async function push(context: GitHubContext, drafts: DraftFrameSchema[]): Promise<PushResult | null> {
   if (!drafts.length) {
     console.log(`[push] nothing to push`);
     return null;

@@ -38,7 +38,7 @@ export function runOnStore<ReturnType>(
   return routine(wrapStore(store));
 }
 
-const storeProxyMethods: (keyof IDBObjectStore)[] = ["get", "getAll", "add", "delete", "put"];
+const storeProxyMethods: (keyof IDBObjectStore)[] = ["get", "getAll", "add", "delete", "put", "clear"];
 
 function wrapStore(store: IDBObjectStore) {
   return new Proxy(store, {
