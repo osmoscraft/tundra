@@ -15,6 +15,9 @@
   - Given a keyboard input, and a context, execute a command without any arguments
 - Message Handler
   - System defined functions that handle the message of matching type
+- Modularity
+  - Each component should independently register a list of Commands they can handle
+  - Keyboard shortcut should instead be managed in a centralized way
 
 ## Interface
 
