@@ -1,0 +1,15 @@
+terminal-element output {
+  display: block;
+  height: 24px;
+  line-height: 24px;
+  overflow-y: hidden;
+  border-top: 1px solid var(--gray-l);
+  background-color: var(--gray-d);
+}
+
+terminal-element output.expanded {
+  height: auto;
+  min-height: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+}

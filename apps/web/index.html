@@ -8,12 +8,11 @@
   <body>
     <router-element>
       <dialog-element id="global-dialog"></dialog-element>
-      <a href="/?id=testdocument">internal 1</a>
-      <a href="/?id=anotherdoc">internal 2</a>
-      <a href="/?id=new">new</a>
-      <a href="https://wikipedia.org" rel="external">external</a>
-      <main>
-        <haiku-editor-element class="haiku-editor"></haiku-editor-element>
+      <main class="app-layout">
+        <haiku-editor-element class="haiku-editor app-layout__main"></haiku-editor-element>
+        <terminal-element class="app-layout__bottom">
+          <output></output>
+        </terminal-element>
       </main>
     </router-element>
     <template id="command-dialog">

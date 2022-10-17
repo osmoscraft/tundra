@@ -12,6 +12,7 @@ export class DialogElement extends HTMLElement {
     const trap = document.createElement("focus-trap-element");
     trap.appendChild(node);
     dialog$.open = true;
+    // content must be visible before focus trap can start auto focus
     dialog$.appendChild(trap);
   }
 

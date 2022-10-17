@@ -1,8 +1,10 @@
+@import url(./styles/variables.css);
 @import url(./styles/reset.css);
 @import url(./styles/elements.css);
+@import url(./styles/components.css);
 
 body {
   font-family: monospace;
   color: white;
-  background-color: #2f2a27;
+  background-color: var(--gray);
 }

@@ -11,6 +11,7 @@ import { getKeygram } from "./modules/keyboard/shortcuts";
 import { DialogElement } from "./modules/modal/dialog-element";
 import { FocusTrapElement } from "./modules/modal/focus-trap-element";
 import { routeAfterChangeEvent, RouterElement } from "./modules/router/router";
+import { TerminalElement } from "./modules/terminal/terminal-element";
 import { $ } from "./utils/dom/query";
 
 customElements.define("command-palette-element", CommandPaletteElement);
@@ -19,11 +20,13 @@ customElements.define("dialog-element", DialogElement);
 customElements.define("focus-trap-element", FocusTrapElement);
 customElements.define("router-element", RouterElement);
 customElements.define("haiku-editor-element", HaikuEditorElement);
+customElements.define("terminal-element", TerminalElement);
 
 async function main() {
   const router$ = $<RouterElement>("router-element")!;
   const dialog$ = $<DialogElement>("dialog-element")!;
   const editor$ = $<HaikuEditorElement>("haiku-editor-element")!;
+  const terminal$ = $<TerminalElement>("terminal-element")!;
 
   const dbAsync = openDB("tinky-store", 1, (db) => {
     db.createObjectStore("frame", { keyPath: "id" });
@@ -46,9 +49,15 @@ async function main() {
       action: () => dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true)),
     },
     {
+      syntax: "terminal toggle",
+      description: "Expand/collapse the terminal",
+      action: () => terminal$.toggle(),
+      shortcuts: [{ keygram: "Ctrl+`" }],
+    },
+    {
       syntax: "file sync all",
       description: "Sync changes in all files",
-      action: () => console.log("TBD"),
+      action: () => terminal$.write("Not implemented"),
       shortcuts: [{ keygram: "Ctrl+Shift+S" }],
     },
     {
