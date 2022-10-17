@@ -1,6 +1,7 @@
-export const chain = function* <T1 = any, T2 = any>(transform: (node: T1) => undefined | null | T2 | Iterable<T2>, iterable: Iterable<T1>) {
+export const chain = function* <T1 = any, T2 = any>(transform: (node: T1, index: number) => undefined | null | T2 | Iterable<T2>, iterable: Iterable<T1>) {
+  let index = 0;
   for (let item of iterable) {
-    const result = transform(item);
+    const result = transform(item, index++);
     if (result === null || result === undefined) return undefined;
 
     if (Symbol.iterator in result) {
@@ -23,9 +24,7 @@ export class Nomad<T1 = any> {
     yield* this.iterable;
   }
 
-  first() {}
-
-  chain<T2 = any>(transform: (item: T1) => undefined | null | T2 | Iterable<T2>) {
+  chain<T2 = any>(transform: (item: T1, index: number) => undefined | null | T2 | Iterable<T2>) {
     return new Nomad<T2>(chain<T1, T2>(transform, this.iterable));
   }
 }
