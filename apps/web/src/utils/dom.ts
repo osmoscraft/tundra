@@ -12,8 +12,6 @@ export const chain = function* <T1 = any, T2 = any>(transform: (node: T1) => und
   return undefined;
 };
 
-export const from = (selector: string) => document.querySelectorAll(selector);
-
 export class Nomad<T1 = any> {
   static $<T2 extends Element>(selector: string) {
     return new Nomad<T2>(document.querySelectorAll(selector));
