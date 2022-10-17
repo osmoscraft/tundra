@@ -12,6 +12,9 @@
 - Efficient UI update
   - Large repaint
   - Focus and cursor selection management
+- Async UI rendering
+  - Web component lifecycle complexity
+    - Narrow window for data injection
 
 ## Solutions
 
