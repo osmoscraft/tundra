@@ -33,7 +33,7 @@ async function main() {
 
   const systemCommands: Command[] = [
     {
-      syntax: "commands",
+      key: "command.openPalette",
       description: "Open command palette",
       hidden: true,
       action: () => {
@@ -43,24 +43,24 @@ async function main() {
       shortcuts: [{ keygram: "Ctrl+K" }],
     },
     {
-      syntax: "config open",
+      key: "config.openDialog",
       description: "Open config dialog",
       action: () => dialog$.show($<HTMLTemplateElement>("#config-dialog")!.content.cloneNode(true)),
     },
     {
-      syntax: "terminal toggle",
+      key: "term.toggle",
       description: "Expand/collapse the terminal",
       action: () => terminal$.toggle(),
       shortcuts: [{ keygram: "Ctrl+`" }],
     },
     {
-      syntax: "file sync all",
+      key: "fs.syncAll",
       description: "Sync changes in all files",
       action: () => terminal$.write("Not implemented"),
       shortcuts: [{ keygram: "Ctrl+Shift+S" }],
     },
     {
-      syntax: "file save",
+      key: "fs.save",
       description: "Save changes in the current files",
       action: async () => {
         const md = htmlToMarkdown(editor$.getHtml());
@@ -68,6 +68,16 @@ async function main() {
         storesTx(db, ["frame"], "readwrite", ([frameStore]) => frameStore.put({ id: 123, content: md }));
       },
       shortcuts: [{ keygram: "Ctrl+S" }],
+    },
+    {
+      key: "fs.remote.test",
+      description: "Test connection to remote repo",
+      action: async () => {},
+    },
+    {
+      key: "fs.remote.clone",
+      description: "Clone remote repo",
+      action: async () => {},
     },
   ];
 
@@ -80,7 +90,7 @@ async function main() {
     matchedCommand.action();
   });
 
-  commandRunEvent.on(window, async (e) => systemCommands.find((command) => command.syntax === e.detail)?.action());
+  commandRunEvent.on(window, async (e) => systemCommands.find((command) => command.key === e.detail)?.action());
 
   routeAfterChangeEvent.on(window, () => {
     const id = new URLSearchParams(location.search).get("id");

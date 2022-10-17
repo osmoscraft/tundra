@@ -12,7 +12,7 @@ export class CommandPaletteElement extends HTMLElement {
       e.preventDefault();
       const commandString = new FormData(form$).get("command") as string;
       const selectedCommand = commands.filter(filterCommand(commandString))[0];
-      selectedCommand && commandRunEvent.emit(this, selectedCommand.syntax);
+      selectedCommand && commandRunEvent.emit(this, selectedCommand.key);
       form$.reset();
       uiModalExitEvent.emit(this);
     });
@@ -27,9 +27,9 @@ export class CommandPaletteElement extends HTMLElement {
 }
 
 const filterCommand = (input: string) => (command: Command) => {
-  return [command.description, command.syntax].some((field) => field.includes(input)) && !command.hidden;
+  return [command.description, command.key].some((field) => field.includes(input)) && !command.hidden;
 };
 
 function renderCommand(command: Command) {
-  return `<li>${command.syntax} (${command.description})</li>`;
+  return `<li>${command.key} (${command.description})</li>`;
 }
