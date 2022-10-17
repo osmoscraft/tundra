@@ -1,13 +1,8 @@
-- Search POC
-  - Tokenizer
-    - Naive tokenizer on md sourdce
-    - Better tokenizer on plaintext
-  - Indexer
-    - [done] add tokens column to IDB
-  - Rank
-    - Naive bag of words rank
-    - TF/IDF rank
-  - UI
-    - Search dialog
-    - Open result
-    - Insert result on canvas
+- Dialog
+  - [ ] Dialog infra
+- Commander
+  - [ ] Plaintext based commander
+- Settings
+  - [ ] Settings dialog
+- Status bar
+  - [ ] Status bar display

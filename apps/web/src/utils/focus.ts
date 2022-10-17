@@ -1,2 +1,3 @@
-export const addFocusTrap = (target: Element) => {};
-export const removeFocusTrap = (target: Element) => {};
+import { $$ } from "./query";
+
+export const $$focusable = $$.bind(null, `a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])`);
