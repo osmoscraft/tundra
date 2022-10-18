@@ -1,5 +1,21 @@
 # Haiku Syntax
 
+## Taxonomy
+
+- Block
+  - Link
+  - Text/Title
+  - Text/Details
+  - List
+  - Quote
+  - Code
+- Inline
+  - Link
+  - Code
+  - Quote
+
+## Relationship representation
+
 Key-Value(s) relationship
 
 ```
