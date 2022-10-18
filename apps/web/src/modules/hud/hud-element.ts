@@ -17,11 +17,24 @@ export class HUDElement extends HTMLElement {
   }
 
   connectedCallback() {
-    on("log", (e) => [console.log, renderDisplayMessage($("code", this.shadowRoot!)!)].map((fn) => fn(getDisplayMessage(e.detail.level, e.detail.message))));
-    on("hud.toggle", () => $("code", this.shadowRoot!)!.classList.toggle("expanded"));
+    on("log", (e) => {
+      const container$ = $("code", this.shadowRoot!)!;
+      [console.log, renderDisplayMessage(container$)].map((fn) => fn(getDisplayMessage(e.detail.level, e.detail.message)));
+      scrollToLast(container$);
+    });
+    on("hud.toggle", () => handleToggle($("code", this.shadowRoot!)!));
   }
 }
 
 const getDisplayMessage = (level: Log.Level, message: string) =>
   `${`[${level}]`.padStart(7)} ${new Date().toLocaleString("sv", { timeZoneName: "short" })} ${message}`;
 const renderDisplayMessage = (container: Element) => (displayMessage: string) => container.appendChild(fragmentFromHtml(`<div>${displayMessage}</div>`));
+
+const handleToggle = (container: HTMLElement) => {
+  container.classList.toggle("expanded");
+  container.lastElementChild?.scrollIntoView();
+};
+
+const scrollToLast = (container: HTMLElement) => {
+  container.lastElementChild?.scrollIntoView();
+};
