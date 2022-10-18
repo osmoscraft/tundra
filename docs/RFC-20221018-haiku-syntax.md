@@ -29,3 +29,10 @@ Parent-child relationship
   - Child2
   - Child3
 ```
+
+Supplement-supplemented relationship
+
+```
+- [Referenced topic](...)
+  - Supplemental information
+```
