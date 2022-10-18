@@ -1,7 +1,7 @@
-import { emit } from "../utils/dom/event";
+import { emitCustom } from "../utils/dom/event";
 
 declare global {
-  interface WindowEventMap {
+  interface WindowCustomEventMap {
     log: CustomEvent<{ message: string; level: Log.Level }>;
   }
 
@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const log = (level: Log.Level, message: string) => emit("log", { detail: { message, level } });
+const log = (level: Log.Level, message: string) => emitCustom("log", { detail: { message, level } });
 
 export const logDebug = log.bind(null, "debug");
 export const logInfo = log.bind(null, "info");
