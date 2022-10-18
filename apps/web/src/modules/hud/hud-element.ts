@@ -27,7 +27,7 @@ export class HUDElement extends HTMLElement {
 }
 
 const getDisplayMessage = (level: Log.Level, message: string) =>
-  `${`[${level}]`.padStart(7)} ${new Date().toLocaleString("sv", { timeZoneName: "short" })} ${message}`;
+  `${level.toLocaleUpperCase()} ${new Date().toLocaleString("sv", { timeZoneName: "short" })} ${message}`;
 const renderDisplayMessage = (container: Element) => (displayMessage: string) => container.appendChild(fragmentFromHtml(`<div>${displayMessage}</div>`));
 
 const handleToggle = (container: HTMLElement) => {
