@@ -1,0 +1,21 @@
+import { fragmentFromHtml, shadowFromHtml } from "../../utils/dom/create";
+import { on } from "../../utils/dom/event";
+import htmlTemplate from "./hud-element.html?raw";
+
+export class HUDElement extends HTMLElement {
+  constructor() {
+    super();
+
+    shadowFromHtml(htmlTemplate, this);
+  }
+
+  connectedCallback() {
+    on("log", (e) =>
+      [console.log, renderDisplayMessage(this.shadowRoot!.querySelector("code")!)].map((fn) => fn(getDisplayMessage(e.detail.level, e.detail.message)))
+    );
+  }
+}
+
+const getDisplayMessage = (level: Log.Level, message: string) =>
+  `${`[${level}]`.padStart(7)} ${new Date().toLocaleString("sv", { timeZoneName: "short" })} ${message}`;
+const renderDisplayMessage = (container: Element) => (displayMessage: string) => container.appendChild(fragmentFromHtml(`<div>${displayMessage}</div>`));
