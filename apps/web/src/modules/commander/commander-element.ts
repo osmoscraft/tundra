@@ -24,6 +24,7 @@ export class CommanderElement extends HTMLElement {
     const teardown = pipe(preventDefault, stopPropagation, clearContent);
     const closeOnEscape = when(isEscape, teardown);
 
+    // TODO separate modal management from commander content
     on("commander.open", pipe(clearContent, renderContent, autofocusIn(this.shadowRoot)));
     on("keydown", closeOnEscape, this.shadowRoot);
     on("submit", preventDefault, this.shadowRoot);

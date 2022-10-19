@@ -26,6 +26,9 @@ export async function main() {
         break;
     }
   });
+
+  // commander.open should be translated into modal.open event with commander template specified
+  // on("commander.open", () => emit("modal.open", {details: {template: commaderTemplate}}))
 }
 
 main();
