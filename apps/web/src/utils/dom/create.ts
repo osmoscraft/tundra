@@ -14,7 +14,7 @@ export const shadowFromTemplate = (template: HTMLTemplateElement, target: Elemen
 };
 
 export const cloneTemplateContent = (template: HTMLTemplateElement) => {
-  return template.content.cloneNode(true);
+  return template.content.cloneNode(true) as DocumentFragment;
 };
 
 export const shadowFromHtml = (html: string, target: Element) => shadowFromTemplate(templateFromHtml(html), target);

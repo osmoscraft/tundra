@@ -1,19 +1,19 @@
 /**
- * Format `[Ctrl+][Alt+][Shift+]<Key>`
+ * Format `[ctrl+][alt+][shift+]<key>`
  * @example
- * // Ctrl+K
- * // Ctrl+Shit+Space
- * // Alt+`
+ * // ctrl+k
+ * // ctrl+shift+space
+ * // alt+`
  */
 export function getKeygram(e: KeyboardEvent): string {
-  return `${e.ctrlKey ? "Ctrl+" : ""}${e.altKey ? "Alt+" : ""}${e.shiftKey ? "Shift+" : ""}${normalizeKey(e.key)}`;
+  return `${e.ctrlKey ? "ctrl+" : ""}${e.altKey ? "alt+" : ""}${e.shiftKey ? "shift+" : ""}${normalizeKey(e.key)}`;
 }
 
 function normalizeKey(key: string) {
   switch (key) {
     case " ":
-      return "Space";
+      return "space";
     default:
-      return `${key.slice(0, 1).toUpperCase()}${key.slice(1)}`;
+      return `${key.slice(0, 1).toLowerCase()}${key.slice(1)}`;
   }
 }

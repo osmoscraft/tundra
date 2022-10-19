@@ -27,3 +27,8 @@ export const preventDefault = <T extends Event>(e: T) => {
   e.preventDefault();
   return e;
 };
+
+export const stopPropagation = <T extends Event>(e: T) => {
+  e.stopPropagation();
+  return e;
+};

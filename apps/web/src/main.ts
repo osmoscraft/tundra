@@ -1,10 +1,12 @@
 import "./main.css";
+import { CommanderElement } from "./modules/commander/commander-element";
 import { HUDElement } from "./modules/hud/hud-element";
 import { getKeygram } from "./modules/keyboard";
 import { logDebug, logError, logInfo } from "./modules/log";
 import { emit, on } from "./utils/dom/event";
 
 customElements.define("hud-element", HUDElement);
+customElements.define("commander-element", CommanderElement);
 
 export async function main() {
   logError("Testing error logging");
@@ -13,8 +15,15 @@ export async function main() {
 
   on("keydown", (e) => {
     const gram = getKeygram(e);
-    if (gram === "Ctrl+`") {
-      emit("hud.toggle");
+    switch (gram) {
+      case "ctrl+`":
+        e.preventDefault();
+        emit("hud.toggle");
+        break;
+      case "ctrl+k":
+        e.preventDefault();
+        emit("commander.open");
+        break;
     }
   });
 }
