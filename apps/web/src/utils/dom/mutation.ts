@@ -1,8 +1,9 @@
-import { callKA, setV } from "../lang/object";
+import { callKA_, setKV_ } from "../lang/object";
 
-export const clearHTML = setV("innerHTML", "");
+export const clearHTML = setKV_("innerHTML", "");
 
-/** childNode -> parentNode -> () */
-export const appenChild = <T extends Node>(e: T) => callKA("appendChild", e);
+/** child -> parent -> child */
+export const appenChildTo = <T extends Node>(child: T) => callKA_("appendChild", child);
 
-export const appendChildTo = (parent: Node) => (child: Node) => (parent.appendChild(child), parent);
+/** parent -> child -> parent */
+export const appendParentWith = (parent: Node) => (child: Node) => (parent.appendChild(child), parent);

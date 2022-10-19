@@ -1,6 +1,6 @@
 import { attachShadowHtml, fragmentFromHtml } from "../../utils/dom/create";
 import { on, preventDefault, stopPropagation } from "../../utils/dom/event";
-import { appendChildTo, clearHTML } from "../../utils/dom/mutation";
+import { appendParentWith, clearHTML } from "../../utils/dom/mutation";
 import { pipe } from "../../utils/lang/pipe";
 import { thunk } from "../../utils/lang/thunk";
 import { when } from "../../utils/lang/when";
@@ -19,7 +19,7 @@ export class CommanderElement extends HTMLElement {
 
   connectedCallback() {
     const clearContent = clearHTML.bind(null, this.shadowRoot);
-    const renderContent = pipe(thunk(htmlTemplate), fragmentFromHtml, appendChildTo(this.shadowRoot));
+    const renderContent = pipe(thunk(htmlTemplate), fragmentFromHtml, appendParentWith(this.shadowRoot));
     const isEscape = (e: KeyboardEvent) => getKeygram(e) === "escape";
     const teardown = pipe(preventDefault, stopPropagation, clearContent);
     const closeOnEscape = when(isEscape, teardown);

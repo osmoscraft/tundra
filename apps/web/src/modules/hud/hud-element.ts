@@ -10,19 +10,15 @@ declare global {
 }
 
 export class HUDElement extends HTMLElement {
-  constructor() {
-    super();
-
-    attachShadowHtml(htmlTemplate, this);
-  }
+  shadowRoot = attachShadowHtml(htmlTemplate, this);
 
   connectedCallback() {
     on("log", (e) => {
-      const container$ = $("code", this.shadowRoot!)!;
+      const container$ = $("code", this.shadowRoot)!;
       [console.log, renderDisplayMessage(container$)].map((fn) => fn(getDisplayMessage(e.detail.level, e.detail.message)));
       scrollToLast(container$);
     });
-    on("hud.toggle", () => handleToggle($("code", this.shadowRoot!)!));
+    on("hud.toggle", () => handleToggle($("code", this.shadowRoot)!));
   }
 }
 
