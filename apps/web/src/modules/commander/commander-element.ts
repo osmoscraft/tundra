@@ -1,9 +1,10 @@
-import { fragmentFromHtml } from "../../utils/dom/create";
+import { attachShadowHtml, fragmentFromHtml } from "../../utils/dom/create";
 import { on, preventDefault, stopPropagation } from "../../utils/dom/event";
-import { appenChild, clearHTML } from "../../utils/dom/mutation";
-import { setKV } from "../../utils/lang/object";
+import { appendChildTo, clearHTML } from "../../utils/dom/mutation";
 import { pipe } from "../../utils/lang/pipe";
 import { thunk } from "../../utils/lang/thunk";
+import { when } from "../../utils/lang/when";
+import { autofocusIn } from "../focus";
 import { getKeygram } from "../keyboard";
 import htmlTemplate from "./commander-element.html?raw";
 
@@ -14,18 +15,17 @@ declare global {
 }
 
 export class CommanderElement extends HTMLElement {
+  shadowRoot = attachShadowHtml("", this);
+
   connectedCallback() {
-    on("commander.open", (e) => {
-      pipe(thunk(this), clearHTML, appenChild(fragmentFromHtml(htmlTemplate)))();
-    });
-    on(
-      "keydown",
-      (e) => {
-        if (getKeygram(e) === "escape") {
-          pipe(preventDefault, stopPropagation, thunk(setKV("innerHTML", "", this)))(e);
-        }
-      },
-      this
-    );
+    const clearContent = clearHTML.bind(null, this.shadowRoot);
+    const renderContent = pipe(thunk(htmlTemplate), fragmentFromHtml, appendChildTo(this.shadowRoot));
+    const isEscape = (e: KeyboardEvent) => getKeygram(e) === "escape";
+    const teardown = pipe(preventDefault, stopPropagation, clearContent);
+    const closeOnEscape = when(isEscape, teardown);
+
+    on("commander.open", pipe(clearContent, renderContent, autofocusIn(this.shadowRoot)));
+    on("keydown", closeOnEscape, this.shadowRoot);
+    on("submit", preventDefault, this.shadowRoot);
   }
 }

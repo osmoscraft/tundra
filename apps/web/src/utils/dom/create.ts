@@ -8,14 +8,15 @@ export const h: typeof document.createElement = (...args: Parameters<typeof docu
   return document.createElement(...args);
 };
 
-export const shadowFromTemplate = (template: HTMLTemplateElement, target: Element) => {
+export const attachShadowTemplate = (template: HTMLTemplateElement, target: Element) => {
   const shadow = target.attachShadow({ mode: "open" });
   shadow.appendChild(cloneTemplateContent(template));
+  return shadow;
 };
 
 export const cloneTemplateContent = (template: HTMLTemplateElement) => {
   return template.content.cloneNode(true) as DocumentFragment;
 };
 
-export const shadowFromHtml = (html: string, target: Element) => shadowFromTemplate(templateFromHtml(html), target);
+export const attachShadowHtml = (html: string, target: Element) => attachShadowTemplate(templateFromHtml(html), target);
 export const fragmentFromHtml = (html: string) => cloneTemplateContent(templateFromHtml(html));

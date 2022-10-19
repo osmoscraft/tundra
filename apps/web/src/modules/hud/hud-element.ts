@@ -1,4 +1,4 @@
-import { fragmentFromHtml, shadowFromHtml } from "../../utils/dom/create";
+import { attachShadowHtml, fragmentFromHtml } from "../../utils/dom/create";
 import { on } from "../../utils/dom/event";
 import { $ } from "../../utils/dom/query";
 import htmlTemplate from "./hud-element.html?raw";
@@ -13,7 +13,7 @@ export class HUDElement extends HTMLElement {
   constructor() {
     super();
 
-    shadowFromHtml(htmlTemplate, this);
+    attachShadowHtml(htmlTemplate, this);
   }
 
   connectedCallback() {
