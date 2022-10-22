@@ -1,15 +1,15 @@
 /**
- * @return `[ctrl+][alt+][shift+]<key>`
+ * Format `[ctrl+][alt+][shift+]<key>`
  * @example
  * // ctrl+k
  * // ctrl+shift+space
  * // alt+`
  */
-export function getKeygram(e) {
+export function getKeygram(e: KeyboardEvent): string {
   return `${e.ctrlKey ? "ctrl+" : ""}${e.altKey ? "alt+" : ""}${e.shiftKey ? "shift+" : ""}${normalizeKey(e.key)}`;
 }
 
-function normalizeKey(key) {
+function normalizeKey(key: string) {
   switch (key) {
     case " ":
       return "space";

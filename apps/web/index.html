@@ -6,9 +6,11 @@
     <title>tinykb</title>
   </head>
   <body>
-    <div contenteditable="true">Content</div>
-    <bar-element></bar-element>
-    <modal-element></modal-element>
-    <script type="module" src="/src/main.js"></script>
+    <div class="app-layout">
+      <div contenteditable="true">Content</div>
+      <div id="bar"></div>
+    </div>
+    <dialog id="dialog"></dialog>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
