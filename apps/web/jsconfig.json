@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "moduleResolution": "Node",
+    "paths": {
+      "utils": ["./src/utils"]
+    }
+  },
+  "include": ["src"]
+}
