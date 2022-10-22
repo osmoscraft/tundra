@@ -1,3 +1,3 @@
 module.exports = {
-  printWidth: 160, // modern high dpi screen can handle longer line width
+  printWidth: 120, // modern high dpi screen can handle longer line width
 };
