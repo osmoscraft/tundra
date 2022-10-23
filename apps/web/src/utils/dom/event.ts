@@ -5,7 +5,7 @@ export function emit<T extends keyof WindowEventMap>(
   init?: ExtractInit<WindowEventMap[T]>,
   target: EventTarget = window
 ) {
-  if ((init as CustomEventInit).detail !== undefined) {
+  if ((init as CustomEventInit)?.detail !== undefined) {
     target.dispatchEvent(new CustomEvent(name, init as CustomEventInit));
   } else {
     target.dispatchEvent(new Event(name, init));

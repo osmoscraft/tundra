@@ -1,5 +1,6 @@
 export * from "./dom/event";
 export * from "./dom/factory";
+export * from "./dom/focus";
 export * from "./dom/query";
 export * from "./fp/compose";
 export * from "./fp/curry";

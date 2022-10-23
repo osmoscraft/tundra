@@ -1,9 +1,13 @@
-import { on, preventDefault, shortPipe, tap } from "utils";
+import { emit, on, preventDefault, shortPipe, tap } from "utils";
 import "./main.css";
-import { getKeygram } from "./modules/keyboard/keygram";
+import { MenuElement } from "./modules/menu/menu";
+import { getKeygram } from "./utils/dom/keyboard";
+
 (async function main() {
+  customElements.define("menu-element", MenuElement);
+
   const shortcuts: [string, (e: KeyboardEvent) => any][] = [
-    ["ctrl+k", shortPipe(preventDefault, tap(console.log))],
+    ["ctrl+k", shortPipe(preventDefault, () => emit("menu.open"))],
     ["ctrl+`", shortPipe(preventDefault, tap(console.log))],
   ];
   const matchAndRun = (e: KeyboardEvent) => {
