@@ -2,6 +2,8 @@ import {
   $,
   attachShadowHtml,
   autofocus,
+  callKA_,
+  ctor,
   emit,
   getCombo,
   on,
@@ -12,7 +14,6 @@ import {
   tap,
   targetClosest,
 } from "utils";
-import { callKA_, ctor } from "../../utils/fp/object";
 import html from "./menu.html?raw";
 
 export class MenuElement extends HTMLElement {
