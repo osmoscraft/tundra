@@ -3,7 +3,7 @@ import {
   attachShadowHtml,
   autofocus,
   emit,
-  getKeygram,
+  getCombo,
   on,
   pipe,
   preventDefault,
@@ -34,8 +34,8 @@ export class MenuElement extends HTMLElement {
     });
 
     on("keydown", (e) => {
-      const keygram = getKeygram(e);
-      if (keygram === "escape") {
+      const combo = getCombo(e);
+      if (combo === "escape") {
         emit("menu.close");
       }
     });

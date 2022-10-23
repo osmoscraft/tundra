@@ -5,7 +5,7 @@
  * // ctrl+shift+space
  * // alt+`
  */
-export function getKeygram(e: KeyboardEvent): string {
+export function getCombo(e: KeyboardEvent): string {
   return `${e.ctrlKey ? "ctrl+" : ""}${e.altKey ? "alt+" : ""}${e.shiftKey ? "shift+" : ""}${normalizeKey(e.key)}`;
 }
 

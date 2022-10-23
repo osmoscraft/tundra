@@ -1,4 +1,4 @@
-import { $, attachShadowHtml, autofocus, getKeygram, on, startFocusTrap, stopTrapFocus } from "utils";
+import { $, attachShadowHtml, autofocus, getCombo, on, startFocusTrap, stopTrapFocus } from "utils";
 import html from "./settings.html?raw";
 
 export class ConfigElement extends HTMLElement {
@@ -12,8 +12,8 @@ export class ConfigElement extends HTMLElement {
     });
 
     on("keydown", (e) => {
-      const keygram = getKeygram(e);
-      if (keygram === "escape") {
+      const combo = getCombo(e);
+      if (combo === "escape") {
         $("dialog", this.shadowRoot)!.open = false;
         stopTrapFocus($("dialog", this.shadowRoot)!);
       }
