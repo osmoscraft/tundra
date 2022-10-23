@@ -2,12 +2,6 @@ import { $, attachShadowHtml, fragmentFromHtml, on, pipe } from "utils";
 import { setKV_ } from "../../utils/fp/object";
 import html from "./bar.html?raw";
 
-declare global {
-  interface WindowEventMap {
-    "bar.toggle": Event;
-  }
-}
-
 export class BarElement extends HTMLElement {
   shadowRoot = attachShadowHtml(html, this);
 
@@ -15,19 +9,20 @@ export class BarElement extends HTMLElement {
     const code = $("code", this.shadowRoot)!;
 
     on("log.append", (e) =>
-      pipe(renderDisplayMessage(getDisplayMessage(e.detail.level, e.detail.message)), scrollToLast)(code)
+      pipe(renderDisplayMessage(getMessageHtml(e.detail.level, e.detail.message)), scrollToLast)(code)
     );
     on("bar.toggle", () => handleToggle(code));
     on("bar.clear", () => handleClear(code));
   }
 }
 
-const getDisplayMessage = (level: string, message: string) =>
-  `<span data-level="${level.toLocaleUpperCase()}">${new Date().toLocaleString("sv", {
+const getMessageHtml = (level: string, message: string) =>
+  `<div><span data-level="${level.toLocaleUpperCase()}">${new Date().toLocaleString("sv", {
     timeZoneName: "short",
-  })} ${message}</span>`;
+  })} ${message}</span></div.`;
+
 const renderDisplayMessage = (displayMessage: string) => (container: Element) => (
-  container.appendChild(fragmentFromHtml(`<div>${displayMessage}</div>`)), container
+  container.appendChild(fragmentFromHtml(displayMessage)), container
 );
 
 const handleToggle = (container: HTMLElement) => {
