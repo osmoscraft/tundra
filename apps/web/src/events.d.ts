@@ -3,7 +3,9 @@ declare global {
     "bar.toggle": Event;
     "log.append": CustomEvent<{ level: string; message: string }>;
     "menu.open": Event;
-    "modal.open": CustomEvent<DocumentFragment | string>;
+    "menu.close": Event;
+    "config.open": Event;
+    "command.exec": CustomEvent<string>;
   }
 }
 export {};

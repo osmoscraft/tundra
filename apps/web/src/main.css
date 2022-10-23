@@ -9,7 +9,9 @@ body {
   font-family: monospace;
   color: var(--snow);
   background-color: var(--coal);
+}
 
+.c-app-layout {
   min-height: 100vh;
   display: grid;
   grid-template-rows: 1fr auto;

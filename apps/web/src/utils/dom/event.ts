@@ -1,3 +1,5 @@
+import { compose } from "../fp/compose";
+
 export type ExtractInit<T> = T extends CustomEvent<infer K> ? CustomEventInit<K> : EventInit;
 
 export function emit<T extends keyof WindowEventMap>(
@@ -42,3 +44,8 @@ export const stopPropagation = <T extends Event>(e: T) => {
   e.stopPropagation();
   return e;
 };
+
+export const target = <T extends Element>(e: Event) => e.target as T | null;
+export const closest = <T extends Element>(selector: string, node: Element) => node.closest(selector) as T;
+export const targetClosest = <T extends Element>(selector: string) =>
+  compose(closest.bind(null, selector), target) as (e: Event) => T;
