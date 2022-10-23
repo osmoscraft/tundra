@@ -1,4 +1,5 @@
 import { $, attachShadowHtml, fragmentFromHtml, on, pipe } from "utils";
+import { setKV_ } from "../../utils/fp/object";
 import html from "./bar.html?raw";
 
 declare global {
@@ -16,7 +17,8 @@ export class BarElement extends HTMLElement {
     on("log.append", (e) =>
       pipe(renderDisplayMessage(getDisplayMessage(e.detail.level, e.detail.message)), scrollToLast)(code)
     );
-    on("bar.toggle", () => handleToggle($("code", this.shadowRoot)!));
+    on("bar.toggle", () => handleToggle(code));
+    on("bar.clear", () => handleClear(code));
   }
 }
 
@@ -36,3 +38,5 @@ const handleToggle = (container: HTMLElement) => {
 const scrollToLast = (container: HTMLElement) => {
   container.lastElementChild?.scrollIntoView();
 };
+
+const handleClear = setKV_("innerHTML", "");

@@ -12,6 +12,7 @@ import { runShortcut, Shortcut } from "./modules/shortcut/shortcut";
   const shortcuts: Shortcut[] = [
     ["ctrl+k", shortPipe(preventDefault, () => emit("menu.open"))],
     ["ctrl+`", shortPipe(preventDefault, () => emit("bar.toggle"))],
+    ["ctrl+l", shortPipe(preventDefault, () => emit("bar.clear"))],
   ];
   const commands: Command[] = [["config", () => emit("config.open")]];
 
