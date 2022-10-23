@@ -1,9 +1,8 @@
-import { $, attachShadowHtml, fragmentFromHtml, on, pipe } from "utils";
+import { $, attachShadowById, fragmentFromHtml, on, pipe } from "utils";
 import { setKV_ } from "../../utils/fp/object";
-import html from "./status-bar.html?raw";
 
 export class StatusBarElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(html, this);
+  shadowRoot = attachShadowById("status-bar-template", this);
 
   connectedCallback() {
     const code = $("code", this.shadowRoot)!;

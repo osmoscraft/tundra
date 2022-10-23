@@ -7,10 +7,55 @@
   </head>
   <body>
     <div class="c-app-layout">
+      <action-bar-element></action-bar-element>
       <div contenteditable="true">Content</div>
       <status-bar-element></status-bar-element>
     </div>
     <menu-element></menu-element>
+
+    <template id="menu-template">
+      <style>
+        dialog {
+          top: 24px;
+        }
+        * {
+          font: inherit;
+        }
+      </style>
+      <dialog>
+        <form>
+          <input name="command" type="text" placeholder="Command" autofocus />
+          <ul></ul>
+        </form>
+      </dialog>
+    </template>
+
+    <template id="status-bar-template">
+      <style>
+        * {
+          margin: 0;
+        }
+        code {
+          background-color: black;
+          display: block;
+          font-size: 12px;
+          line-height: 20px;
+          height: 20px;
+          overflow: hidden;
+        }
+
+        code.expanded {
+          overflow: auto;
+          height: auto;
+          max-height: 80vh;
+        }
+
+        pre {
+          white-space: pre-wrap;
+        }
+      </style>
+      <pre><code></code></pre>
+    </template>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

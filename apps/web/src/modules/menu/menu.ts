@@ -1,6 +1,6 @@
 import {
   $,
-  attachShadowHtml,
+  attachShadowById,
   autofocus,
   callKA_,
   ctor,
@@ -14,10 +14,9 @@ import {
   tap,
   targetClosest,
 } from "utils";
-import html from "./menu.html?raw";
 
 export class MenuElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(html, this);
+  shadowRoot = attachShadowById("menu-template", this);
 
   connectedCallback() {
     const dialog = $("dialog", this.shadowRoot)!;
