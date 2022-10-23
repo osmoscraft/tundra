@@ -1,4 +1,4 @@
-import { $, attachShadowHtml, autofocus, getKeygram, on, stopTrapFocus, trapFocus } from "utils";
+import { $, attachShadowHtml, autofocus, getKeygram, on, startFocusTrap, stopTrapFocus } from "utils";
 import menuHtml from "./menu.html?raw";
 
 export class MenuElement extends HTMLElement {
@@ -8,7 +8,7 @@ export class MenuElement extends HTMLElement {
     on("menu.open", () => {
       $("dialog", this.shadowRoot)!.open = true;
       autofocus(this.shadowRoot);
-      trapFocus($("dialog", this.shadowRoot));
+      startFocusTrap($("dialog", this.shadowRoot));
     });
 
     on("keydown", (e) => {

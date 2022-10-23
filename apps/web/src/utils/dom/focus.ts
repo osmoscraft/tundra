@@ -15,7 +15,7 @@ export function focusable(root: ParentNode) {
   ];
 }
 
-export function trapFocus(root: ParentNode) {
+export function startFocusTrap(root: ParentNode) {
   const head = element("span");
   head.tabIndex = 0;
   head.setAttribute("data-trap", "head");
@@ -27,6 +27,16 @@ export function trapFocus(root: ParentNode) {
   tail.setAttribute("data-trap", "tail");
   on("focus", () => focusLast(root), tail);
   root.append(tail);
+
+  on(
+    "focusout",
+    (e) => {
+      if (!e.relatedTarget || !root.contains(e.relatedTarget as Node)) {
+        autofocus(root);
+      }
+    },
+    root
+  );
 }
 
 export function stopTrapFocus(root: ParentNode) {
