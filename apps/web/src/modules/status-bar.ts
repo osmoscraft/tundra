@@ -1,5 +1,5 @@
 import { $, attachShadowById, fragmentFromHtml, on, pipe } from "utils";
-import { setKV_ } from "../../utils/fp/object";
+import { setKV_ } from "../utils/fp/object";
 
 export class StatusBarElement extends HTMLElement {
   shadowRoot = attachShadowById("status-bar-template", this);

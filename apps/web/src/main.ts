@@ -1,9 +1,9 @@
 import { emit, on, preventDefault, shortPipe } from "utils";
 import "./main.css";
-import { Command, runCommand } from "./modules/command/command";
-import { MenuElement } from "./modules/menu/menu";
-import { runShortcut, Shortcut } from "./modules/shortcut/shortcut";
-import { StatusBarElement } from "./modules/status-bar/status-bar";
+import { Command, runCommand } from "./modules/command";
+import { MenuElement } from "./modules/menu";
+import { runShortcut, Shortcut } from "./modules/shortcut";
+import { StatusBarElement } from "./modules/status-bar";
 
 (async function main() {
   customElements.define("menu-element", MenuElement);

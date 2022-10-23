@@ -1,4 +1,4 @@
-import { emit } from "../../utils/dom/event";
+import { emit } from "../utils/dom/event";
 
 export type Command = [name: string, handler: (cmd: string) => any];
 export const runCommand = (commands: Command[], e: CustomEvent<string>) => {

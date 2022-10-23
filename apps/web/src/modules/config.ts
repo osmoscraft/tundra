@@ -1,8 +1,7 @@
-import { $, attachShadowHtml, autofocus, getCombo, on, startFocusTrap, stopTrapFocus } from "utils";
-import html from "./settings.html?raw";
+import { $, attachShadowById, autofocus, getCombo, on, startFocusTrap, stopTrapFocus } from "utils";
 
 export class ConfigElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(html, this);
+  shadowRoot = attachShadowById("config-template", this);
 
   connectedCallback() {
     on("config.open", () => {
