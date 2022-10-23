@@ -1,8 +1,8 @@
 import { $, attachShadowHtml, fragmentFromHtml, on, pipe } from "utils";
 import { setKV_ } from "../../utils/fp/object";
-import html from "./bar.html?raw";
+import html from "./status-bar.html?raw";
 
-export class BarElement extends HTMLElement {
+export class StatusBarElement extends HTMLElement {
   shadowRoot = attachShadowHtml(html, this);
 
   connectedCallback() {

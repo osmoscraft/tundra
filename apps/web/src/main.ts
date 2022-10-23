@@ -1,13 +1,13 @@
 import { emit, on, preventDefault, shortPipe } from "utils";
 import "./main.css";
-import { BarElement } from "./modules/bar/bar";
 import { Command, runCommand } from "./modules/command/command";
 import { MenuElement } from "./modules/menu/menu";
 import { runShortcut, Shortcut } from "./modules/shortcut/shortcut";
+import { StatusBarElement } from "./modules/status-bar/status-bar";
 
 (async function main() {
   customElements.define("menu-element", MenuElement);
-  customElements.define("bar-element", BarElement);
+  customElements.define("status-bar-element", StatusBarElement);
 
   const shortcuts: Shortcut[] = [
     ["ctrl+k", shortPipe(preventDefault, () => emit("menu.open"))],
