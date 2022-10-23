@@ -1,7 +1,6 @@
-import { emit, on, preventDefault, shortPipe, tap } from "utils";
+import { emit, getKeygram, on, preventDefault, shortPipe, tap } from "utils";
 import "./main.css";
 import { MenuElement } from "./modules/menu/menu";
-import { getKeygram } from "./utils/dom/keyboard";
 
 (async function main() {
   customElements.define("menu-element", MenuElement);

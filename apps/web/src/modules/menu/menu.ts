@@ -1,6 +1,4 @@
-import { $, attachShadowHtml, autofocus, stopTrapFocus, trapFocus } from "utils";
-import { on } from "../../utils/dom/event";
-import { getKeygram } from "../../utils/dom/keyboard";
+import { $, attachShadowHtml, autofocus, getKeygram, on, stopTrapFocus, trapFocus } from "utils";
 import menuHtml from "./menu.html?raw";
 
 export class MenuElement extends HTMLElement {
