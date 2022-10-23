@@ -4,6 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tinykb</title>
+    <style>
+      @import url(./public/global.css);
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --theme-green-bg: darkgreen;
+        }
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --theme-green-bg: lightgreen;
+        }
+      }
+
+      html {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: monospace;
+      }
+
+      .c-app-layout {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+    </style>
   </head>
   <body>
     <div class="c-app-layout">
@@ -15,22 +46,45 @@
 
     <template id="action-bar-template">
       <style>
-        * {
+        @import url(./global.css);
+
+        form {
+          display: grid;
+          grid-template:
+            "status input" 24px
+            "list   list" auto / 24px 1fr;
+        }
+        [data-status] {
+          grid-area: status;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: var(--theme-green-bg);
+        }
+        form {
+          border-bottom: 1px solid ButtonBorder;
+        }
+        input {
+          border: none;
+          grid-area: input;
+          display: grid;
+        }
+        ul {
+          grid-area: list;
         }
       </style>
       <form>
         <span data-status="idle">/</span>
         <input name="command" placehodler="Command" type="text" />
+        <ul></ul>
       </form>
     </template>
 
     <template id="config-template">
       <style>
+        @import url(./global.css);
         dialog {
           top: 24px;
-        }
-        * {
-          font: inherit;
         }
       </style>
       <dialog>
@@ -50,11 +104,9 @@
 
     <template id="menu-template">
       <style>
+        @import url(./global.css);
         dialog {
           top: 24px;
-        }
-        * {
-          font: inherit;
         }
       </style>
       <dialog>
@@ -67,11 +119,12 @@
 
     <template id="status-bar-template">
       <style>
-        * {
-          margin: 0;
+        pre {
+          border-top: 1px solid ButtonBorder;
+          white-space: pre-wrap;
         }
+
         code {
-          background-color: black;
           display: block;
           font-size: 12px;
           line-height: 20px;
@@ -83,10 +136,6 @@
           overflow: auto;
           height: auto;
           max-height: 80vh;
-        }
-
-        pre {
-          white-space: pre-wrap;
         }
       </style>
       <pre><code></code></pre>
