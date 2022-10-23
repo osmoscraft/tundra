@@ -8,14 +8,14 @@ export class MenuElement extends HTMLElement {
     on("menu.open", () => {
       $("dialog", this.shadowRoot)!.open = true;
       autofocus(this.shadowRoot);
-      startFocusTrap($("dialog", this.shadowRoot));
+      startFocusTrap($("dialog", this.shadowRoot)!);
     });
 
     on("keydown", (e) => {
       const keygram = getKeygram(e);
       if (keygram === "escape") {
         $("dialog", this.shadowRoot)!.open = false;
-        stopTrapFocus($("dialog", this.shadowRoot));
+        stopTrapFocus($("dialog", this.shadowRoot)!);
       }
     });
   }

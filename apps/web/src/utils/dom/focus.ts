@@ -1,5 +1,5 @@
+import { build } from "./builder";
 import { on } from "./event";
-import { element } from "./factory";
 import { $, $$ } from "./query";
 
 export const autofocus = (root: ParentNode) => ($<HTMLElement>("[autofocus]", root) ?? focusable(root)[0])?.focus();
@@ -16,16 +16,16 @@ export function focusable(root: ParentNode) {
 }
 
 export function startFocusTrap(root: ParentNode) {
-  const head = element("span");
-  head.tabIndex = 0;
-  head.setAttribute("data-trap", "head");
-  on("focus", () => focusFirst(root), head);
+  const head = build("span")
+    .attr({ "data-trap": "head", tabindex: "0" })
+    .on({ focus: () => focusFirst(root) })
+    .toNode();
   root.prepend(head);
 
-  const tail = element("span");
-  tail.tabIndex = 0;
-  tail.setAttribute("data-trap", "tail");
-  on("focus", () => focusLast(root), tail);
+  const tail = build("span")
+    .attr({ "data-trap": "tail", tabindex: "0" })
+    .on({ focus: () => focusLast(root) })
+    .toNode();
   root.append(tail);
 
   on(
