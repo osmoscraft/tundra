@@ -7,6 +7,10 @@
     <style>
       @import url(./public/global.css);
 
+      :root {
+        --divider-color: ButtonBorder;
+      }
+
       @media (prefers-color-scheme: dark) {
         :root {
           --theme-green-bg: darkgreen;
@@ -62,9 +66,10 @@
           background: var(--theme-green-bg);
         }
         form {
-          border-bottom: 1px solid ButtonBorder;
+          border-bottom: 1px solid var(--divider-color);
         }
         input {
+          padding-inline: 8px;
           border: none;
           grid-area: input;
           display: grid;
@@ -119,16 +124,18 @@
 
     <template id="status-bar-template">
       <style>
+        @import url(./global.css);
+
         pre {
-          border-top: 1px solid ButtonBorder;
+          border-top: 1px solid var(--divider-color);
           white-space: pre-wrap;
         }
 
         code {
           display: block;
           font-size: 12px;
-          line-height: 20px;
-          height: 20px;
+          line-height: 24px;
+          height: 24px;
           overflow: hidden;
         }
 

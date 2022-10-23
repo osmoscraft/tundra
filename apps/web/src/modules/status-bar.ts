@@ -10,8 +10,8 @@ export class StatusBarElement extends HTMLElement {
     on("log.append", (e) =>
       pipe(renderDisplayMessage(getMessageHtml(e.detail.level, e.detail.message)), scrollToLast)(code)
     );
-    on("bar.toggle", () => handleToggle(code));
-    on("bar.clear", () => handleClear(code));
+    on("status-bar.toggle", () => handleToggle(code));
+    on("status-bar.clear", () => handleClear(code));
   }
 }
 
