@@ -14,6 +14,9 @@
 - Editor module
   - [ ] List editing
   - [ ] Link editing
+- HCI
+  - [ ] Move status bar to top
+  - [ ] Hide command bar by default
 - Infrastructure
   - [x] Status bar
   - [x] Action bar
