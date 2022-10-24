@@ -1,8 +1,10 @@
-- Dialog
-  - [ ] Dialog infra
-- Commander
-  - [ ] Plaintext based commander
-- Settings
-  - [ ] Settings dialog
-- Status bar
-  - [ ] Status bar display
+- Config module
+  - [ ] Storage Read/write
+  - [ ] Config UI
+- Sync module
+  - [ ] GitHub connection testing
+  - [ ] GitHub blank repo init
+  - [ ] GitLab connection testing
+- Content module
+  - [ ] Indexed DB init
+  - [ ] File content Read/Write
