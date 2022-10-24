@@ -17,3 +17,4 @@
 - Infrastructure
   - [x] Status bar
   - [x] Action bar
+  - [x] Focus trap
