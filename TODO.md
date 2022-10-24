@@ -8,3 +8,12 @@
 - Content module
   - [ ] Indexed DB init
   - [ ] File content Read/Write
+- Search module
+  - [ ] Ephemeral indexer
+  - [ ] Full text search
+- Editor module
+  - [ ] List editing
+  - [ ] Link editing
+- Infrastructure
+  - [x] Status bar
+  - [x] Action bar
