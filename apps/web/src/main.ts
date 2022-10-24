@@ -25,7 +25,4 @@ import { StatusBarElement } from "./modules/status-bar";
   on("command.exec", runCommand.bind(null, commands));
   on("command.request-match", handleCommandMatch.bind(null, commands));
   on("keydown", runShortcut.bind(null, shortcuts));
-
-  // TODO implement
-  on("config.open", console.log);
 })();
