@@ -1,6 +1,6 @@
 import { emit, on, preventDefault, shortPipe } from "utils";
 import { ActionBarElement } from "./modules/action-bar";
-import { Command, runCommand } from "./modules/command";
+import { Command, handleCommandMatch, runCommand } from "./modules/command";
 import { runShortcut, Shortcut } from "./modules/shortcut";
 import { StatusBarElement } from "./modules/status-bar";
 
@@ -13,9 +13,15 @@ import { StatusBarElement } from "./modules/status-bar";
     ["ctrl+`", shortPipe(preventDefault, () => emit("status-bar.toggle"))],
     ["ctrl+l", shortPipe(preventDefault, () => emit("status-bar.clear"))],
   ];
-  const commands: Command[] = [["config", () => emit("config.open")]];
+  const commands: Command[] = [
+    ["config", () => emit("config.open")],
+    ["sync", () => {}],
+    ["link", () => {}],
+    ["open", () => {}],
+  ];
 
   on("command.exec", runCommand.bind(null, commands));
+  on("command.request-match", handleCommandMatch.bind(null, commands));
   on("keydown", runShortcut.bind(null, shortcuts));
 
   // TODO implement

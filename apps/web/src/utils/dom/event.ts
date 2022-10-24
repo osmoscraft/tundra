@@ -45,6 +45,7 @@ export const stopPropagation = <T extends Event>(e: T) => {
   return e;
 };
 
+export const getDetail = (e: CustomEvent) => e.detail;
 export const target = <T extends Element>(e: Event) => e.target as T | null;
 export const closest = <T extends Element>(selector: string, node: Element) => node.closest(selector) as T;
 export const targetClosest = <T extends Element>(selector: string) =>
