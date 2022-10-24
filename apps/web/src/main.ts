@@ -1,12 +1,14 @@
 import { emit, on, preventDefault, shortPipe } from "utils";
 import { ActionBarElement } from "./modules/action-bar";
 import { Command, handleCommandMatch, runCommand } from "./modules/command";
+import { ConfigElement } from "./modules/config";
 import { runShortcut, Shortcut } from "./modules/shortcut";
 import { StatusBarElement } from "./modules/status-bar";
 
 (async function main() {
   customElements.define("action-bar-element", ActionBarElement);
   customElements.define("status-bar-element", StatusBarElement);
+  customElements.define("config-element", ConfigElement);
 
   const shortcuts: Shortcut[] = [
     ["ctrl+k", shortPipe(preventDefault, () => emit("action-bar.enter"))],

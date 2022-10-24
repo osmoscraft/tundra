@@ -44,6 +44,7 @@ export class ActionBarElement extends HTMLElement {
     on("action-bar.exit", () => {
       stopFocusTrap(form);
       restoreFocus(form);
+      form.reset();
       input.tabIndex = -1;
       renderToList([]);
     });
@@ -76,11 +77,10 @@ export class ActionBarElement extends HTMLElement {
           pipe(
             ctor(FormData),
             callKA_("get", "command"),
-            tap(() => emit("menu.close")),
+            tap(() => emit("action-bar.exit")),
             (cmd: string) => emit("command.exec", { detail: cmd })
           )
-        ),
-        callKA_("reset")
+        )
       ),
       form
     );

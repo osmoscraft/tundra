@@ -7,8 +7,6 @@ declare global {
     "command.respond-match": CustomEvent<string[]>; // Must be emitted to the requesting event target
     "config.open": Event;
     "log.append": CustomEvent<{ level: string; message: string }>;
-    "menu.close": Event;
-    "menu.open": Event;
     "status-bar.toggle": Event;
     "status-bar.clear": Event;
   }
