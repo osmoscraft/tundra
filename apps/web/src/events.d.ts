@@ -1,6 +1,7 @@
 declare global {
   interface WindowEventMap {
-    "action-bar.focus": Event;
+    "action-bar.enter": Event;
+    "action-bar.exit": Event;
     "command.exec": CustomEvent<string>;
     "config.open": Event;
     "log.append": CustomEvent<{ level: string; message: string }>;
@@ -10,5 +11,4 @@ declare global {
     "status-bar.clear": Event;
   }
 }
-export { };
-
+export {};

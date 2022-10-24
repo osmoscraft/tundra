@@ -21,19 +21,19 @@ export class ActionBarElement extends HTMLElement {
   connectedCallback() {
     const form = $("form", this.shadowRoot)!;
 
-    on("action-bar.focus", () => {
-      autofocus(this.shadowRoot);
+    on("action-bar.enter", () => {
       startFocusTrap(form);
+      autofocus(this.shadowRoot);
     });
 
-    on("menu.close", () => {
+    on("action-bar.exit", () => {
       stopTrapFocus(form);
     });
 
     on("keydown", (e) => {
       const combo = getCombo(e);
       if (combo === "escape") {
-        emit("menu.close");
+        emit("action-bar.exit");
       }
     });
 
