@@ -1,6 +1,5 @@
+import { $, $$, off, on } from "utils";
 import { build } from "./builder";
-import { off, on } from "./event";
-import { $, $$ } from "./query";
 
 export const autofocus = (root: ParentNode) => ($<HTMLElement>("[autofocus]", root) ?? focusable(root)[0])?.focus();
 
@@ -15,9 +14,9 @@ export function focusable(root: ParentNode) {
   ];
 }
 
-const focusTrapState = new WeakMap<Node, { onFocusout: (...args: any) => any; cursorState: CursorState }>();
+const focusTrapStateCache = new WeakMap<Node, (...args: any) => any>();
 
-export function startFocusTrap(root: ParentNode) {
+export function startFocusTrap(onDismiss: (target: EventTarget | null) => any, root: ParentNode) {
   const head = build("span")
     .attr({ "data-trap": "head", tabindex: "0" })
     .on({ focus: () => focusFirst(root) })
@@ -31,29 +30,50 @@ export function startFocusTrap(root: ParentNode) {
   root.append(tail);
 
   const handleFocusout = (e: FocusEvent) => {
-    if (!e.relatedTarget || !root.contains(e.relatedTarget as Node)) {
-      autofocus(root);
-    }
+    // focus will transition to another node within the root
+    if (root.contains(e.relatedTarget as Node)) return;
+
+    // focus no longer within root but active element still in root
+    // this happens e.g. when user going to another browser window
+    if (containsActiveElement(root as Element)) return;
+
+    onDismiss(document.activeElement);
   };
 
   on("focusout", handleFocusout, root);
 
-  console.log(document.activeElement);
-  focusTrapState.set(root, {
-    onFocusout: handleFocusout,
-    cursorState: getCursorState(window),
-  });
+  focusTrapStateCache.set(root, handleFocusout);
 }
 
-export function stopTrapFocus(root: ParentNode) {
+export function stopFocusTrap(root: ParentNode) {
   $$("[data-trap]", root).forEach((e) => e.remove());
-
-  const state = focusTrapState.get(root);
-  console.log(state);
-  if (state?.cursorState) {
-    off("focusout", state.onFocusout, root);
-    restoreCursorState(window, state.cursorState);
+  const handler = focusTrapStateCache.get(root);
+  if (handler) {
+    off("focusout", handler, root);
   }
+}
+
+const cursorStateCache = new WeakMap<Node, CursorState>();
+
+export function cacheFocus(root: ParentNode) {
+  const state = getCursorState(window);
+  cursorStateCache.set(root, state);
+}
+
+export function restoreFocus(root: ParentNode) {
+  const state = cursorStateCache.get(root);
+  if (state) {
+    restoreCursorState(window, state);
+    forgetFocus(root);
+  }
+}
+
+export function forgetFocus(root: ParentNode) {
+  cursorStateCache.delete(root);
+}
+
+export function containsActiveElement(target: Element) {
+  return target?.contains((target.getRootNode() as ShadowRoot | Document)?.activeElement);
 }
 
 interface CursorState {

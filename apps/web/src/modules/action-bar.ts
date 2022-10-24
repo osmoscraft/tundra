@@ -2,15 +2,19 @@ import {
   $,
   attachShadowById,
   autofocus,
+  cacheFocus,
   callKA_,
+  containsActiveElement,
   ctor,
   emit,
+  forgetFocus,
   getCombo,
   on,
   pipe,
   preventDefault,
+  restoreFocus,
   startFocusTrap,
-  stopTrapFocus,
+  stopFocusTrap,
   tap,
   targetClosest,
 } from "utils";
@@ -20,15 +24,27 @@ export class ActionBarElement extends HTMLElement {
 
   connectedCallback() {
     const form = $("form", this.shadowRoot)!;
+    const input = $("input", form)!;
 
     on("action-bar.enter", () => {
-      startFocusTrap(form);
-      autofocus(this.shadowRoot);
+      if (containsActiveElement(form)) return;
+
+      cacheFocus(form);
+      startFocusTrap(() => {
+        forgetFocus(form);
+        emit("action-bar.exit");
+      }, form);
+      input.tabIndex = 0;
+      autofocus(form);
     });
 
     on("action-bar.exit", () => {
-      stopTrapFocus(form);
+      stopFocusTrap(form);
+      restoreFocus(form);
+      input.tabIndex = -1;
     });
+
+    on("mousedown", () => emit("action-bar.enter"), form);
 
     on("keydown", (e) => {
       const combo = getCombo(e);
