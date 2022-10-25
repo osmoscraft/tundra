@@ -76,8 +76,7 @@ export class ConfigElement extends HTMLElement {
             src: this.shadowRoot,
           },
         });
-
-        emit("fs.test-remote", { detail: obj });
+        emit("sync.test-remote", { detail: obj });
         closeUI();
       }),
       form
@@ -85,9 +84,13 @@ export class ConfigElement extends HTMLElement {
 
     on(
       "click",
-      pipe(targetClosest("form"), ctor(FormData), formDataToObject, (obj: any) => {
-        emit("fs.test-remote", { detail: obj });
-      }),
+      pipe(
+        targetClosest("form"),
+        ctor(FormData),
+        formDataToObject,
+        (obj: any) => ({ detail: obj }),
+        (init: any) => emit("sync.test-remote", init)
+      ),
       test
     );
   }

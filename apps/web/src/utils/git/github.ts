@@ -1,4 +1,8 @@
-import type { GitHubContext } from "./context";
+export interface GitHubContext {
+  owner: string;
+  repo: string;
+  token: string;
+}
 
 export interface Branch {
   commit: {
