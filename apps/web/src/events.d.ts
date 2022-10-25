@@ -5,7 +5,9 @@ declare global {
     "command.exec": CustomEvent<string>;
     "command.request-match": CustomEvent<string>;
     "command.respond-match": CustomEvent<string[]>; // Must be emitted to the requesting event target
-    "config.open": Event;
+    "config.open-ui": Event;
+    "config.request-json": Event;
+    "config.respond-json": CustomEvent<any>; // Must be emitted to the requesting event target
     "log.append": CustomEvent<{ level: string; message: string }>;
     "status-bar.toggle": Event;
     "status-bar.clear": Event;

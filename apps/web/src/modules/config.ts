@@ -18,7 +18,7 @@ export class ConfigElement extends HTMLElement {
     const dialog = $("dialog", this.shadowRoot)!;
     const form = $("form", this.shadowRoot)!;
 
-    on("config.open", () => {
+    on("config.open-ui", () => {
       if (containsActiveElement(form)) return;
 
       dialog.open = true;

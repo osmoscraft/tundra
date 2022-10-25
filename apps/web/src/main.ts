@@ -16,7 +16,7 @@ import { StatusBarElement } from "./modules/status-bar";
     ["ctrl+l", shortPipe(preventDefault, () => emit("status-bar.clear"))],
   ];
   const commands: Command[] = [
-    ["config", () => emit("config.open")],
+    ["config", () => emit("config.open-ui")],
     ["sync", () => {}],
     ["link", () => {}],
     ["open", () => {}],
