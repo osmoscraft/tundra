@@ -91,6 +91,15 @@
         dialog {
           top: 24px;
         }
+        :where(label, input) {
+          display: block;
+        }
+        label + input {
+          margin-top: 4px;
+        }
+        input + label {
+          margin-top: 8px;
+        }
       </style>
       <dialog>
         <form>
