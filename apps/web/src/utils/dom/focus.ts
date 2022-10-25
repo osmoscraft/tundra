@@ -19,13 +19,13 @@ const focusTrapStateCache = new WeakMap<Node, (...args: any) => any>();
 export function startFocusTrap(onDismiss: (target: EventTarget | null) => any, root: ParentNode) {
   const head = build("span")
     .attr({ "data-trap": "head", tabindex: "0" })
-    .on({ focus: () => focusFirst(root) })
+    .on({ focus: () => focusLast(root) })
     .toNode();
   root.prepend(head);
 
   const tail = build("span")
     .attr({ "data-trap": "tail", tabindex: "0" })
-    .on({ focus: () => focusLast(root) })
+    .on({ focus: () => focusFirst(root) })
     .toNode();
   root.append(tail);
 
