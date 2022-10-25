@@ -5,6 +5,7 @@ import { ConfigElement } from "./modules/config";
 import { handleDBRequest } from "./modules/db";
 import { runShortcut, Shortcut } from "./modules/shortcut";
 import { StatusBarElement } from "./modules/status-bar";
+import { testConnection } from "./modules/version";
 
 (async function main() {
   customElements.define("action-bar-element", ActionBarElement);
@@ -27,4 +28,7 @@ import { StatusBarElement } from "./modules/status-bar";
   on("command.request-match", handleCommandMatch.bind(null, commands));
   on("db.request-tx", handleDBRequest);
   on("keydown", runShortcut.bind(null, shortcuts));
+  on("fs.test-remote", (e) =>
+    testConnection((message) => emit("log.append", { detail: { level: "info", message } }), e.detail)
+  );
 })();

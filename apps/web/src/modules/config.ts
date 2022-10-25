@@ -23,6 +23,7 @@ export class ConfigElement extends HTMLElement {
   connectedCallback() {
     const dialog = $("dialog", this.shadowRoot)!;
     const form = $("form", this.shadowRoot)!;
+    const test = $("#test-remote", form)!;
 
     on("config.open-ui", () => {
       if (containsActiveElement(form)) return;
@@ -50,12 +51,16 @@ export class ConfigElement extends HTMLElement {
       this.shadowRoot
     );
 
+    const closeUI = () => {
+      dialog.open = false;
+      stopFocusTrap(form);
+      restoreFocus(form);
+    };
+
     on("keydown", (e) => {
       const combo = getCombo(e);
       if (combo === "escape") {
-        dialog.open = false;
-        stopFocusTrap(form);
-        restoreFocus(form);
+        closeUI();
       }
     });
 
@@ -71,15 +76,19 @@ export class ConfigElement extends HTMLElement {
             src: this.shadowRoot,
           },
         });
-        emit("db.request-tx", {
-          detail: {
-            tid: 1,
-            tname: "getRemote",
-            src: this.shadowRoot,
-          },
-        });
+
+        emit("fs.test-remote", { detail: obj });
+        closeUI();
       }),
       form
+    );
+
+    on(
+      "click",
+      pipe(targetClosest("form"), ctor(FormData), formDataToObject, (obj: any) => {
+        emit("fs.test-remote", { detail: obj });
+      }),
+      test
     );
   }
 }

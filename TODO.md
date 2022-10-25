@@ -1,6 +1,6 @@
 - Config module
-  - [ ] Storage Read/write
-  - [ ] Config UI
+  - [x] Storage Read/write
+  - [x] Config UI
 - Sync module
   - [ ] GitHub connection testing
   - [ ] GitHub blank repo init
@@ -18,6 +18,7 @@
   - [ ] Move status bar to top
   - [ ] Hide command bar by default
 - Infrastructure
+  - [ ] Req/Res based event handling
   - [x] Status bar
   - [x] Action bar
   - [x] Focus trap
