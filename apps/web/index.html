@@ -96,13 +96,14 @@
         <form>
           <fieldset>
             <legend>Repo</legend>
-            <label>Owner</label>
-            <input type="text" placeholder="Username or organization" autofocus />
-            <label>Repo</label>
-            <input type="text" placeholder="Repo" />
-            <label>Token</label>
-            <input type="password" />
+            <label for="gh-owner">Owner</label>
+            <input id="gh-owner" name="owner" type="text" placeholder="Username or organization" autofocus />
+            <label for="gh-repo">Repo</label>
+            <input id="gh-repo" name="repo" type="text" placeholder="Repo" />
+            <label for="gh-token">Token</label>
+            <input id="gh-token" name="token" type="password" />
           </fieldset>
+          <button type="submit">Save</button>
         </form>
       </dialog>
     </template>

@@ -1,3 +1,4 @@
+import { emit } from "utils";
 import { migrate, Migration, openDB, storesTx } from "../utils/idb/idb";
 
 export type RemoteSchema = {
@@ -64,6 +65,26 @@ export const migration03: Migration = (db: IDBDatabase) => {
 };
 
 export const dbAsync = openDB("tinky-store", 3, migrate([migration01, migration02, migration03]));
+
+export async function handleDBRequest(e: CustomEvent<{ tid: number; tname: string; targs?: any[]; src: EventTarget }>) {
+  const txList = [resetContent, getRemote, setRemote];
+
+  const { tname, targs = [], src } = e.detail;
+
+  const matchedTx = txList.find((item) => item.name === tname);
+  const result = await (matchedTx as any)(await dbAsync, ...targs);
+
+  emit(
+    "db.respond-tx",
+    {
+      detail: {
+        tid: e.detail.tid,
+        result,
+      },
+    },
+    src
+  );
+}
 
 export const resetContent = (db: IDBDatabase, items: FrameSchema[], commitSha: string) =>
   storesTx(db, ["frame", "baseRef"], "readwrite", async (stores) => {

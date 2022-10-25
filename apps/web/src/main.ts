@@ -2,6 +2,7 @@ import { emit, on, preventDefault, shortPipe } from "utils";
 import { ActionBarElement } from "./modules/action-bar";
 import { Command, handleCommandMatch, runCommand } from "./modules/command";
 import { ConfigElement } from "./modules/config";
+import { handleDBRequest } from "./modules/db";
 import { runShortcut, Shortcut } from "./modules/shortcut";
 import { StatusBarElement } from "./modules/status-bar";
 
@@ -24,5 +25,6 @@ import { StatusBarElement } from "./modules/status-bar";
 
   on("command.exec", runCommand.bind(null, commands));
   on("command.request-match", handleCommandMatch.bind(null, commands));
+  on("db.request-tx", handleDBRequest);
   on("keydown", runShortcut.bind(null, shortcuts));
 })();
