@@ -2,11 +2,11 @@
   - [x] Storage Read/write
   - [x] Config UI
 - Sync module
-  - [ ] GitHub connection testing
+  - [x] GitHub connection testing
   - [ ] GitHub blank repo init
   - [ ] GitLab connection testing
 - Content module
-  - [ ] Indexed DB init
+  - [x] Indexed DB init
   - [ ] File content Read/Write
 - Search module
   - [ ] Ephemeral indexer
@@ -15,8 +15,7 @@
   - [ ] List editing
   - [ ] Link editing
 - HCI
-  - [ ] Move status bar to top
-  - [ ] Hide command bar by default
+  - [ ] Command and status bar layout optimization
 - Infrastructure
   - [ ] Async pipe for chaining async requests
   - [ ] Subscription for server log streaming
