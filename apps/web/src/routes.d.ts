@@ -5,6 +5,7 @@ export type AppRoutes = {
   echo: RouteHandler<EchoReq, EchoRes>;
   getRemote: RouteHandler<undefined, RemoteSchema | null>;
   setRemote: RouteHandler<RemoteSchema, undefined>;
+  testRemote: RouteHandler<RemoteSchema, boolean>;
 };
 
 export interface EchoReq {

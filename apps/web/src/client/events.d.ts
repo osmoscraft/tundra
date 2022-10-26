@@ -8,7 +8,6 @@ declare global {
     "config.open-ui": Event;
     "config.request-json": Event;
     "config.respond-json": CustomEvent<any>; // Must be emitted to the requesting event target
-    "sync.test-remote": CustomEvent<any>;
     "log.append": CustomEvent<{ level: string; message: string }>;
     "status-bar.toggle": Event;
     "status-bar.clear": Event;

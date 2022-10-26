@@ -5,7 +5,6 @@ import { ConfigElement } from "./client/config";
 import { logInfo } from "./client/log";
 import { runShortcut, Shortcut } from "./client/shortcut";
 import { StatusBarElement } from "./client/status-bar";
-import { testConnection } from "./client/sync";
 
 (async function main() {
   customElements.define("action-bar-element", ActionBarElement);
@@ -29,5 +28,4 @@ import { testConnection } from "./client/sync";
   on("command.exec", runCommand.bind(null, commands));
   on("command.request-match", handleCommandMatch.bind(null, commands));
   on("keydown", runShortcut.bind(null, shortcuts));
-  on("sync.test-remote", (e) => testConnection(e.detail));
 })();

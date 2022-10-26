@@ -5,7 +5,6 @@ import {
   cacheFocus,
   containsActiveElement,
   ctor,
-  emit,
   formDataToObject,
   getCombo,
   on,
@@ -14,10 +13,12 @@ import {
   restoreFocus,
   startFocusTrap,
   stopFocusTrap,
+  tap,
   targetClosest,
 } from "utils";
 import { RemoteType } from "../server/db";
-import { request } from "./request";
+import { logInfo } from "./log";
+import { request } from "./worker";
 
 export class ConfigElement extends HTMLElement {
   shadowRoot = attachShadowById("config-template", this);
@@ -56,14 +57,15 @@ export class ConfigElement extends HTMLElement {
 
     on(
       "submit",
-      pipe(preventDefault, targetClosest("form"), ctor(FormData), formDataToObject, (obj: any) => {
+      pipe(preventDefault, targetClosest("form"), ctor(FormData), formDataToObject, async (obj: any) => {
         request("setRemote", {
           type: RemoteType.GitHubToken,
           connection: obj,
-        }).then(() => {
-          emit("sync.test-remote", { detail: obj });
-          closeUI();
-        });
+        })
+          .then(closeUI)
+          .then(logTestStart)
+          .then(() => request("testRemote", wrapAsGitHubTokenRemote(obj)))
+          .then(logTestResult);
       }),
       form
     );
@@ -74,10 +76,17 @@ export class ConfigElement extends HTMLElement {
         targetClosest("form"),
         ctor(FormData),
         formDataToObject,
-        (obj: any) => ({ detail: obj }),
-        (init: any) => emit("sync.test-remote", init)
+        tap(logTestStart),
+        wrapAsGitHubTokenRemote,
+        (remote: any) => requestTestRemote(remote),
+        (isSuccess: Promise<boolean>) => isSuccess.then(logTestResult)
       ),
       test
     );
   }
 }
+
+const wrapAsGitHubTokenRemote = <T>(connection: T) => ({ type: RemoteType.GitHubToken, connection });
+const requestTestRemote = (req: any) => request("testRemote", req);
+const logTestStart = () => logInfo("Testing remote...");
+const logTestResult = (isSuccess: boolean) => logInfo(`Testing remote... ${isSuccess ? "Success" : "Failed"}!`);

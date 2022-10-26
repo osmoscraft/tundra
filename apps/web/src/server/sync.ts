@@ -1,7 +1,9 @@
 import { getCommit, getDefaultBranch, getTree, GitHubContext } from "utils";
-import { logError, logInfo } from "./log";
 
 export async function testConnection(context: GitHubContext) {
+  const logInfo = console.log; // TODO replace with server-client streaming log
+  const logError = console.error;
+
   try {
     const branch = await getDefaultBranch(context);
     logInfo(`[test-connection] default branch ${branch.name}`);
@@ -18,9 +20,9 @@ export async function testConnection(context: GitHubContext) {
 
     const framesTree = await getTree(context, { sha: framesTreeSha });
     logInfo(`[test-connection] frame tree ${framesTree.tree.length} items`);
-    return framesTree.tree;
+    return true;
   } catch (e: any) {
     logError(e?.message ?? e?.name);
-    return;
+    return false;
   }
 }

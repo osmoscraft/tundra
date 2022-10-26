@@ -18,7 +18,9 @@
   - [ ] Move status bar to top
   - [ ] Hide command bar by default
 - Infrastructure
-  - [ ] Req/Res based event handling
+  - [ ] Async pipe for chaining async requests
+  - [ ] Subscription for server log streaming
+  - [x] Req/Res based event handling
   - [x] Status bar
   - [x] Action bar
   - [x] Focus trap
