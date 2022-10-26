@@ -16,6 +16,8 @@ import {
   stopFocusTrap,
   targetClosest,
 } from "utils";
+import { RemoteType } from "../server/db";
+import { request } from "./request";
 
 export class ConfigElement extends HTMLElement {
   shadowRoot = attachShadowById("config-template", this);
@@ -25,31 +27,19 @@ export class ConfigElement extends HTMLElement {
     const form = $("form", this.shadowRoot)!;
     const test = $("#test-remote", form)!;
 
-    on("config.open-ui", () => {
+    on("config.open-ui", async () => {
       if (containsActiveElement(form)) return;
 
-      emit("db.request-tx", {
-        detail: {
-          tid: 1, // Generate id with req-res abstraction
-          tname: "getRemote",
-          src: this.shadowRoot,
-        },
-      });
+      const remote = await request("getRemote");
 
-      dialog.open = true;
+      Object.entries(remote?.connection ?? {}).map(
+        ([k, v]) => (form.querySelector<HTMLInputElement>(`[name="${k}"]`)!.value = v as string)
+      ),
+        (dialog.open = true);
       cacheFocus(form);
       startFocusTrap(() => autofocus(form), form); // force modal
       autofocus(form);
     });
-
-    on(
-      "db.respond-tx", // TODO make sure only handle when tid matches
-      (e) =>
-        Object.entries(e.detail.result).map(
-          ([k, v]) => (form.querySelector<HTMLInputElement>(`[name="${k}"]`)!.value = v as string)
-        ),
-      this.shadowRoot
-    );
 
     const closeUI = () => {
       dialog.open = false;
@@ -67,17 +57,13 @@ export class ConfigElement extends HTMLElement {
     on(
       "submit",
       pipe(preventDefault, targetClosest("form"), ctor(FormData), formDataToObject, (obj: any) => {
-        // TODO create req-res abstraction so sender can wait for done signal
-        emit("db.request-tx", {
-          detail: {
-            tid: 2, // Generate id with req-res abstraction
-            tname: "setRemote",
-            targs: [obj],
-            src: this.shadowRoot,
-          },
+        request("setRemote", {
+          type: RemoteType.GitHubToken,
+          connection: obj,
+        }).then(() => {
+          emit("sync.test-remote", { detail: obj });
+          closeUI();
         });
-        emit("sync.test-remote", { detail: obj });
-        closeUI();
       }),
       form
     );

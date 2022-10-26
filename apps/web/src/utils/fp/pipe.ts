@@ -1,4 +1,4 @@
-import type { FirstInArray, LastInArray } from "../types";
+import type { FirstInArray, LastInArray } from "./types";
 
 export function pipe<T extends any[]>(...fns: T): (...args: Parameters<FirstInArray<T>>) => ReturnType<LastInArray<T>> {
   return ((x: any) => fns.reduce((v, f) => f(v), x)) as any;

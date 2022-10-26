@@ -1,4 +1,4 @@
-import type { FirstInArray, LastInArray } from "../types";
+import type { FirstInArray, LastInArray } from "./types";
 
 export function compose<T extends any[]>(
   ...fns: T

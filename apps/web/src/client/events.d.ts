@@ -8,8 +8,6 @@ declare global {
     "config.open-ui": Event;
     "config.request-json": Event;
     "config.respond-json": CustomEvent<any>; // Must be emitted to the requesting event target
-    "db.request-tx": CustomEvent<{ tid: number; tname: string; targs?: any[]; src: EventTarget }>;
-    "db.respond-tx": CustomEvent<{ tid: number; result: any }>; // Must be emitted to src
     "sync.test-remote": CustomEvent<any>;
     "log.append": CustomEvent<{ level: string; message: string }>;
     "status-bar.toggle": Event;
