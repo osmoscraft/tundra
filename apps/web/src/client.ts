@@ -1,12 +1,12 @@
 import { emit, on, preventDefault, ProxyClient, shortPipe } from "utils";
-import { ActionBarElement } from "./modules/action-bar";
-import { Command, handleCommandMatch, runCommand } from "./modules/command";
-import { ConfigElement } from "./modules/config";
-import { handleDBRequest } from "./modules/db";
-import { logInfo } from "./modules/log";
-import { runShortcut, Shortcut } from "./modules/shortcut";
-import { StatusBarElement } from "./modules/status-bar";
-import { testConnection } from "./modules/sync";
+import { ActionBarElement } from "./client/action-bar";
+import { Command, handleCommandMatch, runCommand } from "./client/command";
+import { ConfigElement } from "./client/config";
+import { handleDBRequest } from "./client/db";
+import { logInfo } from "./client/log";
+import { runShortcut, Shortcut } from "./client/shortcut";
+import { StatusBarElement } from "./client/status-bar";
+import { testConnection } from "./client/sync";
 import type { AppRoutes } from "./routes";
 
 (async function main() {
