@@ -8,7 +8,7 @@
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite build && vite preview --port 5173"
   },
   "devDependencies": {
     "vite": "^3.1.7",

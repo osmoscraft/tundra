@@ -9,3 +9,4 @@ export * from "./fp/object";
 export * from "./fp/pipe";
 export * from "./fp/tap";
 export * from "./git/github";
+export * from "./rpc";
