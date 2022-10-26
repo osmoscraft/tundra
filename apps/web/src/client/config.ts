@@ -6,6 +6,7 @@ import {
   containsActiveElement,
   ctor,
   emit,
+  formDataToObject,
   getCombo,
   on,
   pipe,
@@ -15,7 +16,6 @@ import {
   stopFocusTrap,
   targetClosest,
 } from "utils";
-import { formDataToObject } from "../utils/dom/form";
 
 export class ConfigElement extends HTMLElement {
   shadowRoot = attachShadowById("config-template", this);

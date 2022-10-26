@@ -1,5 +1,4 @@
-import { emit } from "utils";
-import { migrate, Migration, openDB, storesTx } from "../utils/idb/idb";
+import { emit, migrate, Migration, openDB, storesTx } from "utils";
 
 export type RemoteSchema = {
   type: RemoteType.GitHubToken;

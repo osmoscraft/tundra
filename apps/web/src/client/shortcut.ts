@@ -1,4 +1,4 @@
-import { getCombo } from "../utils/dom/keyboard";
+import { getCombo } from "utils";
 
 export type Shortcut = [keygram: string, handler: (e: KeyboardEvent) => any];
 

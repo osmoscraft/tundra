@@ -1,6 +1,8 @@
+export * from "./dom/builder";
 export * from "./dom/event";
 export * from "./dom/factory";
 export * from "./dom/focus";
+export * from "./dom/form";
 export * from "./dom/keyboard";
 export * from "./dom/query";
 export * from "./fp/compose";
@@ -9,4 +11,5 @@ export * from "./fp/object";
 export * from "./fp/pipe";
 export * from "./fp/tap";
 export * from "./git/github";
+export * from "./idb/idb";
 export * from "./rpc";
