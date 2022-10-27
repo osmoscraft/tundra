@@ -5,6 +5,7 @@
   - [x] GitHub connection testing
   - [ ] GitHub blank repo init
   - [ ] GitLab connection testing
+  - [ ] Fan out storage by Creation month could speed up performance
 - Content module
   - [x] Indexed DB init
   - [ ] File content Read/Write
