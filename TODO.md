@@ -27,3 +27,4 @@
 - Storage ideas
   - [ ] Fan out storage by Creation month /yyyy/mm/dd/xyz
   - [ ] Fan out storage by Update month
+  - [ ] Using low level Blob API from GitHub
