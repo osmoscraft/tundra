@@ -5,7 +5,7 @@
   - [x] GitHub connection testing
   - [ ] GitHub blank repo init
   - [ ] GitLab connection testing
-  - [ ] Fan out storage by Creation month could speed up performance
+  - [ ] GitHub/GitLab GraphQL API audit
 - Content module
   - [x] Indexed DB init
   - [ ] File content Read/Write
@@ -24,3 +24,6 @@
   - [x] Status bar
   - [x] Action bar
   - [x] Focus trap
+- Storage ideas
+  - [ ] Fan out storage by Creation month /yyyy/mm/dd/xyz
+  - [ ] Fan out storage by Update month
