@@ -43,6 +43,16 @@ export interface Ref {
   };
 }
 
+export async function getHistoryBase(path: string, context: GitHubContext) {
+  const baseCommit = [...(await listCommits(context, { path }))].pop();
+  return baseCommit;
+}
+
+export async function getHistoryHead(path: string, context: GitHubContext) {
+  const headCommit = (await listCommits(context, { path })).at(0);
+  return headCommit;
+}
+
 export async function updateRef(context: GitHubContext, input: UpdateRefInput): Promise<Ref> {
   const { token, owner, repo } = context;
 

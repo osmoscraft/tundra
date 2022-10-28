@@ -2,7 +2,7 @@
 
 import type { AppRoutes } from "./routes";
 import { dbAsync, getRemote, setRemote } from "./server/db";
-import { testConnection } from "./server/sync";
+import { clone, testConnection } from "./server/sync";
 import { ProxyServer } from "./utils";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
@@ -16,6 +16,7 @@ async function main() {
   proxy.onRequest("getRemote", async () => await getRemote(await dbAsync));
   proxy.onRequest("setRemote", async ({ req }) => void (await setRemote(await dbAsync, req)));
   proxy.onRequest("testRemote", async ({ req }) => await testConnection(req.connection));
+  proxy.onRequest("gitClone", async () => await clone((await getRemote(await dbAsync))!));
 
   proxy.start();
 }

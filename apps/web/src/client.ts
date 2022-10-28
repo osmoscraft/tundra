@@ -5,6 +5,7 @@ import { ConfigElement } from "./client/config";
 import { logInfo } from "./client/log";
 import { runShortcut, Shortcut } from "./client/shortcut";
 import { StatusBarElement } from "./client/status-bar";
+import { request } from "./client/worker";
 
 (async function main() {
   customElements.define("action-bar-element", ActionBarElement);
@@ -23,6 +24,7 @@ import { StatusBarElement } from "./client/status-bar";
     ["sync", () => {}],
     ["link", () => {}],
     ["open", () => {}],
+    ["clone", () => request("gitClone")],
   ];
 
   on("command.exec", runCommand.bind(null, commands));

@@ -6,6 +6,7 @@ export type AppRoutes = {
   getRemote: RouteHandler<undefined, RemoteSchema | null>;
   setRemote: RouteHandler<RemoteSchema, undefined>;
   testRemote: RouteHandler<RemoteSchema, boolean>;
+  gitClone: RouteHandler<undefined, any>;
 };
 
 export interface EchoReq {

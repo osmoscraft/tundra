@@ -1,5 +1,7 @@
 # Sync Algorithm in JavaScript
 
+[Next version](./RFC-20221027-sync-algorithm-implementation.md)
+
 ## Context
 
 This RFC explores a javascript implementation of [Sync Algorithm](./RFC-20220611-conflict-free-sync-algorithm.md)
