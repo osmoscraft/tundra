@@ -25,6 +25,9 @@
   - [x] Action bar
   - [x] Focus trap
 - Storage ideas
+  - [ ] Test limit when compare large folder with empty base commit
+  - [ ] Compare flat and hiearchical folder diffing performance
+  - [ ] Test limit when list large folder without recursion
   - [ ] Fan out storage by Creation month /yyyy/mm/dd/xyz
   - [ ] Fan out storage by Update month
   - [ ] Using low level Blob API from GitHub
