@@ -21,11 +21,9 @@
 - GitHub
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
-    - 100,000 limit
+    - 100,000 limit (with or without recursion)
     - Pagination by manual recursion into subtree
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
-      - `YYYY/MM/DD` would make recursion fan out too much
-    - Unknown limit when using manual recursion
     - Best performance
     - Overhead: find the folder that contains desired files (should be dpeth 1)
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
