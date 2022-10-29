@@ -1,4 +1,4 @@
-import { compare, getCommit, getDefaultBranch, getHistoryBase, getHistoryHead, getTree, GitHubContext } from "utils";
+import { getCommit, getDefaultBranch, getTree, GitHubContext } from "utils";
 import { RemoteSchema, RemoteType } from "./db";
 
 export async function testConnection(context: GitHubContext) {
@@ -30,19 +30,15 @@ export async function testConnection(context: GitHubContext) {
 
 export const clone = (remote: RemoteSchema) => {
   if (remote.type === RemoteType.GitHubToken) {
-    return githubClone(remote.connection);
+    console.log("TBD");
   }
   throw new Error("Unknown remote type");
 };
 
-export const githubClone = async (context: any) => {
-  const [base, head] = await Promise.all([getHistoryBase("frames", context), getHistoryHead("frames", context)]);
+// Clone steps
+// 1. Pick clone strategy
+// 2. Get remote frames
+// 3. Reconcile with empty local frames
+// 4. Atomic Write to DB
 
-  if (!base || !head) throw new Error("Remote is not setup");
-
-  const diff = await compare(context, { base: base.sha, head: head.sha });
-
-  console.log(diff);
-
-  return {} as any;
-};
+export const ghRepoContent = async (context: GitHubContext) => {};

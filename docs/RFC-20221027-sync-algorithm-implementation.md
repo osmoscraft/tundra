@@ -20,6 +20,16 @@
 ## Clone
 
 - GitHub
+  - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+    - 300 files limit. Undocumented. Found via manual testing
+    - Compute overhead: finding base commit (need to walk the entire history)
+    - Space overhead: unwanted metadata in comparison results
+    - Should combine with commit history ID listing to generate chunks of commits
+      - Assuming file changes are mostly incremental, replaying chunks of commits is still efiicient
+  - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
+    - 1,000 limit
+    - Does not support recursive listing
+      - Does not work with fan-out folder structure
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
     - 100,000 limit (with or without recursion)
@@ -28,16 +38,12 @@
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
     - Need to manually download all blobs
     - Overhead: find the folder that contains desired files (should be dpeth 1)
-  - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
-    - 300 files limit. Undocumented. Found via manual testing
-    - Compute overhead: finding base commit (need to walk the entire history)
-    - Space overhead: unwanted metadata in comparison results
-  - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
-    - 1,000 limit
   - Download zip and unzip with js
     - Downloaded content contains no git database information
-    - Could be a solution for import
+    - No CORS friendly API
+    - Could be a solution for manual import
   - GraphQL Repository query > defaultBranchRef > target (a Commit) > tree > entries > {name, object}
+    - Listing tree entries is significantly slower than REST api (10X based on testing)
     - Missing recursive query capability
 - GitLab
   - [GraphQL Project > Repository > Tree or PaginatedTree](https://docs.gitlab.com/ee/api/graphql/reference/#mutationcommitcreate)
