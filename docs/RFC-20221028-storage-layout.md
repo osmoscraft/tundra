@@ -1,7 +1,11 @@
 # Storage layout
 
 - Designed with the [Sync algorithm](./RFC-20221027-sync-algorithm-implementation.md) and git database in mind
-- Each frame is stored at `/fs/YYYY/MM/DD/<guid>.md`
+- Each frame is stored flat at `/fs/YYYYMMDDSSSS.md`
+  - Flat storage leads to simplest path parsing
+  - Git can hold 100k files well without performance issue
+  - When files out grow the limit, sub-foldering or custom sync service can be added (as a pro user scenario)
+- Alternatively each frame is stored at `/fs/YYYY/MM/DD/<guid>.md`
   - Hierarchical storage is used because
     - GitHub API cannot handle more than 10k objects per tree node
     - Git database might suffer from adjacent change performance issues when a folder is too wide
