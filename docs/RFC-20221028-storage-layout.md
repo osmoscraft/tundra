@@ -3,6 +3,7 @@
 - Designed with the [Sync algorithm](./RFC-20221027-sync-algorithm-implementation.md) and git database in mind
 - Each frame is stored flat at `/fs/YYYYMMDDSSSS.md`
   - Flat storage leads to simplest path parsing
+    - Allows relative path for all files
   - Git can hold 100k files in single folder without performance issue
     - Tested with 140k files in flat folder. GitHub API can diff commits < 400ms
   - When files out grow the limit, sub-foldering or custom sync service can be added (as a pro user scenario)
