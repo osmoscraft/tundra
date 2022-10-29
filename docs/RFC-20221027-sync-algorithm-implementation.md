@@ -6,6 +6,7 @@
 
 - GitHub
   - [Get the authenticated user](https://docs.github.com/en/rest/users/users#get-the-authenticated-user)
+  - viewer query
 - GitLab
   - ?
 
@@ -25,7 +26,7 @@
       - A maxed out tree (100k) with realistic blob content takes GitHub API 5 seconds to generate, 24.25MB payload
     - Pagination by manual recursion into subtree
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
-    - Best performance
+    - Need to manually download all blobs
     - Overhead: find the folder that contains desired files (should be dpeth 1)
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
     - 300 files limit. Undocumented. Found via manual testing
