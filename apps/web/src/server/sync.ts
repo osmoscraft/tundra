@@ -41,4 +41,4 @@ export const clone = (remote: RemoteSchema) => {
 // 3. Reconcile with empty local frames
 // 4. Atomic Write to DB
 
-export const ghRepoContent = async (context: GitHubContext) => {};
+export const ghListCommits = async (context: GitHubContext) => {};

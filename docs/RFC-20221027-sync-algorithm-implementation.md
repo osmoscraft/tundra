@@ -45,6 +45,7 @@
   - GraphQL Repository query > defaultBranchRef > target (a Commit) > tree > entries > {name, object}
     - Listing tree entries is significantly slower than REST api (10X based on testing)
     - Missing recursive query capability
+  - Use server side generated map for path->blob
 - GitLab
   - [GraphQL Project > Repository > Tree or PaginatedTree](https://docs.gitlab.com/ee/api/graphql/reference/#mutationcommitcreate)
     - Has recursive flag
