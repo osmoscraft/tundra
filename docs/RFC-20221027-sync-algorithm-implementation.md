@@ -22,12 +22,13 @@
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
     - 100,000 limit (with or without recursion)
+      - A maxed out tree (100k) with realistic blob content takes GitHub API 5 seconds to generate, 24.25MB payload
     - Pagination by manual recursion into subtree
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
     - Best performance
     - Overhead: find the folder that contains desired files (should be dpeth 1)
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
-    - Limit is unknown (no documentation found)
+    - 300 files limit. Undocumented. Found via manual testing
     - Compute overhead: finding base commit (need to walk the entire history)
     - Space overhead: unwanted metadata in comparison results
   - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
@@ -49,6 +50,9 @@
 
 - GitHub
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+    - 300 file limit
+    - Fallback to per N-commit procedual sync until every N-commit chunk has fewer than 300 files
+    - Fallback to full clone
     - GraphQL API provides [access to first/last commit](https://stackoverflow.com/questions/45726013/how-can-i-get-last-commit-from-github-api) on default branch.
   - GraphQL Ref > compare
     - GraphQL doesn't appear to have commit to commit comparison. It only offers [Ref to Ref comparison.](https://docs.github.com/en/graphql/reference/objects#ref)
