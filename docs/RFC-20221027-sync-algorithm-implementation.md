@@ -20,16 +20,6 @@
 ## Clone
 
 - GitHub
-  - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
-    - 300 files limit. Undocumented. Found via manual testing
-    - Compute overhead: finding base commit (need to walk the entire history)
-    - Space overhead: unwanted metadata in comparison results
-    - Should combine with commit history ID listing to generate chunks of commits
-      - Assuming file changes are mostly incremental, replaying chunks of commits is still efiicient
-  - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
-    - 1,000 limit
-    - Does not support recursive listing
-      - Does not work with fan-out folder structure
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
     - 100,000 limit (with or without recursion)
@@ -38,6 +28,18 @@
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
     - Need to manually download all blobs
     - Overhead: find the folder that contains desired files (should be dpeth 1)
+  - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
+    - 1,000 limit
+    - Does not support recursive listing
+      - Does not work with fan-out folder structure
+  - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+    - Vulnerable to history rewrites
+    - 300 files limit. Undocumented. Found via manual testing
+    - Compute overhead: finding base commit (need to walk the entire history)
+    - Need to download blobs manually, or implement diff replay algorithm
+    - Space overhead: unwanted metadata in comparison results
+    - Should combine with commit history ID listing to generate chunks of commits
+      - Assuming file changes are mostly incremental, replaying chunks of commits is still efiicient
   - Download zip and unzip with js
     - Downloaded content contains no git database information
     - No CORS friendly API

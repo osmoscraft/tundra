@@ -238,6 +238,12 @@ export async function compare(context: GitHubContext, input: CompareInput): Prom
   return await response.json();
 }
 
+const getCompareCommitsUrl = (context: { owner: string; repo: string }, config: CompareInput) =>
+  `https://api.github.com/repos/${context.owner}/${context.repo}/compare/${config.base}...${config.head}`;
+
+export const compareCommits = (context: GitHubContext, config: CompareInput) =>
+  getJsonFetch<CompareResult>(getGitHubFetchInit(context))(getCompareCommitsUrl(context, config));
+
 export function getJsonFetch<T>(init: RequestInit) {
   return (url: string) => fetch(url, init).then((res) => res.json()) as Promise<T>;
 }

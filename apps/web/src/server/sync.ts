@@ -1,4 +1,4 @@
-import { getCommit, getDefaultBranch, getTree, GitHubContext, listCommits } from "utils";
+import { compareCommits, getCommit, getDefaultBranch, getTree, GitHubContext, listCommits } from "utils";
 import { RemoteSchema, RemoteType } from "./db";
 
 export async function testConnection(context: GitHubContext) {
@@ -31,8 +31,10 @@ export async function testConnection(context: GitHubContext) {
 export const clone = async (remote: RemoteSchema) => {
   if (remote.type === RemoteType.GitHubToken) {
     const commits = await listCommits(remote.connection, { path: "frames" });
-    const [base, head] = [[...commits].pop(), [...commits].shift()];
-    console.log(base, head);
+    const { base, head } = { base: [...commits].pop(), head: [...commits].shift() };
+    if (!base || !head) throw new Error("Nothing to clone");
+    const comparison = await compareCommits(remote.connection, { base: base.sha, head: head.sha });
+    console.log(comparison.files);
   } else {
     throw new Error("Unknown remote type");
   }
