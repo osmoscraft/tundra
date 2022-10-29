@@ -1,4 +1,4 @@
-import { getCommit, getDefaultBranch, getTree, GitHubContext } from "utils";
+import { getCommit, getDefaultBranch, getTree, GitHubContext, listCommits } from "utils";
 import { RemoteSchema, RemoteType } from "./db";
 
 export async function testConnection(context: GitHubContext) {
@@ -28,11 +28,14 @@ export async function testConnection(context: GitHubContext) {
   }
 }
 
-export const clone = (remote: RemoteSchema) => {
+export const clone = async (remote: RemoteSchema) => {
   if (remote.type === RemoteType.GitHubToken) {
-    console.log("TBD");
+    const commits = await listCommits(remote.connection, { path: "frames" });
+    const [base, head] = [[...commits].pop(), [...commits].shift()];
+    console.log(base, head);
+  } else {
+    throw new Error("Unknown remote type");
   }
-  throw new Error("Unknown remote type");
 };
 
 // Clone steps
@@ -40,5 +43,3 @@ export const clone = (remote: RemoteSchema) => {
 // 2. Get remote frames
 // 3. Reconcile with empty local frames
 // 4. Atomic Write to DB
-
-export const ghListCommits = async (context: GitHubContext) => {};

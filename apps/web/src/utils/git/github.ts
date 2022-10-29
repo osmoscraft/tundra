@@ -43,16 +43,6 @@ export interface Ref {
   };
 }
 
-export async function getHistoryBase(path: string, context: GitHubContext) {
-  const baseCommit = [...(await listCommits(context, { path }))].pop();
-  return baseCommit;
-}
-
-export async function getHistoryHead(path: string, context: GitHubContext) {
-  const headCommit = (await listCommits(context, { path })).at(0);
-  return headCommit;
-}
-
 export async function updateRef(context: GitHubContext, input: UpdateRefInput): Promise<Ref> {
   const { token, owner, repo } = context;
 
@@ -71,7 +61,7 @@ export async function updateRef(context: GitHubContext, input: UpdateRefInput): 
   return await response.json();
 }
 
-export interface ListCommitsInput {
+export interface ListCommitsConfig {
   path?: string;
 }
 
@@ -79,23 +69,16 @@ export interface CommitListItem {
   sha: string;
 }
 
-export async function listCommits(context: GitHubContext, input?: ListCommitsInput): Promise<CommitListItem[]> {
-  const { token, owner, repo } = context;
-
+const getListCommitUrl = (context: { owner: string; repo: string }, config?: ListCommitsConfig) => {
   const searchParams = new URLSearchParams({
     t: Date.now().toString(), // bust cache
   });
-  input?.path && searchParams.set("path", input.path);
+  config?.path && searchParams.set("path", config.path);
+  return `https://api.github.com/repos/${context.owner}/${context.repo}/commits?${searchParams}`;
+};
 
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${searchParams}`, {
-    headers: new Headers({
-      Authorization: "Basic " + btoa(`${owner}:${token}`),
-      "Content-Type": "application/json",
-    }),
-  });
-
-  return await response.json();
-}
+export const listCommits = (context: GitHubContext, config?: ListCommitsConfig) =>
+  getJsonFetch<CommitListItem[]>(getGitHubFetchInit(context))(getListCommitUrl(context, config));
 
 // ref: https://docs.github.com/en/rest/git/commits#get-a-commit
 export interface GetCommitInput {
@@ -253,6 +236,19 @@ export async function compare(context: GitHubContext, input: CompareInput): Prom
   });
 
   return await response.json();
+}
+
+export function getJsonFetch<T>(init: RequestInit) {
+  return (url: string) => fetch(url, init).then((res) => res.json()) as Promise<T>;
+}
+
+export function getGitHubFetchInit(context: { owner: string; token: string }): RequestInit {
+  return {
+    headers: new Headers({
+      Authorization: "Basic " + btoa(`${context.owner}:${context.token}`),
+      "Content-Type": "application/json",
+    }),
+  };
 }
 
 export const enum ObjectMode {
