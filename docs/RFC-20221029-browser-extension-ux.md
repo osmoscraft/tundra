@@ -9,8 +9,13 @@
     - Action
       - Create bookmark
       - Create note (how is it different from bookmark?)
+        - Consider redirect to full size editor?
       - Add to note (as a list)
       - Subscribe to RSS
       - Open related links
     - Search
     - Open full app
+  - Full app
+    - Full-size note editor
+    - RSS reader
+    - Advanced search
