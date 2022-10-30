@@ -1,11 +1,16 @@
 /// <reference lib="WebWorker" />
 
+importScripts("/vendor/index.umd.min.js");
+
 import type { AppRoutes } from "./routes";
 import { dbAsync, getRemote, setRemote } from "./server/db";
 import { clone, testConnection } from "./server/sync";
 import { ProxyServer } from "./utils";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
+
+console.log(git);
+console.log("MAGICSTRING");
 
 console.log("[worker] online");
 
