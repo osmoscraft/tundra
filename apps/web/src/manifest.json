@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "manifest_version": 3,
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "index.html",
     "default_icon": {
       "16": "/images/icon@16.png",
       "32": "/images/icon@32.png",
@@ -17,10 +17,7 @@
     "48": "/images/icon@48.png",
     "128": "/images/icon@128.png"
   },
-  "options_page": "options.html",
-  "background": {
-    "service_worker": "workers/service-worker.js"
-  },
+  "options_page": "index.html",
   "permissions": ["activeTab"],
   "host_permissions": ["*://*/*"]
 }

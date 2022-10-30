@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "clean": "node scripts/clean.mjs",
+    "dev": "npm run clean && concurrently npm:dev:*",
+    "dev:web": "vite build --watch --mode=development",
+    "dev:ext": "node scripts/build.mjs --watch",
+    "build": "npm run clean && vite build && node scripts/build.mjs && node scripts/pack.mjs",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "preview": "vite build && vite preview --port 5173"
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "vite": "^3.1.7",

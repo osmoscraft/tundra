@@ -6,7 +6,7 @@ import { readJson } from "./fs.mjs";
 
 const execAsync = promisify(exec);
 
-async function pack() {
+export async function pack() {
   console.log(path.resolve(UNPACKED_OUT_DIR));
   const manifest = await readJson(path.resolve(UNPACKED_OUT_DIR, "manifest.json"));
   const version = manifest.version;
