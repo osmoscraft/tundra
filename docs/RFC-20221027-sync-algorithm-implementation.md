@@ -20,6 +20,10 @@
 ## Clone
 
 - GitHub
+  - [Download zip and unzip with js](https://docs.github.com/en/rest/repos/contents#download-a-repository-archive-tar)
+    - Downloaded content contains no git database information
+    - No CORS friendly API
+    - Could be a solution for manual import
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
     - 100,000 limit (with or without recursion)
@@ -27,6 +31,7 @@
     - Pagination by manual recursion into subtree
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
     - Need to manually download all blobs
+      - Neither REST nor GraphQL supports bulb blob fetching
     - Overhead: find the folder that contains desired files (should be dpeth 1)
   - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
     - 1,000 limit
@@ -40,10 +45,6 @@
     - Space overhead: unwanted metadata in comparison results
     - Should combine with commit history ID listing to generate chunks of commits
       - Assuming file changes are mostly incremental, replaying chunks of commits is still efiicient
-  - Download zip and unzip with js
-    - Downloaded content contains no git database information
-    - No CORS friendly API
-    - Could be a solution for manual import
   - GraphQL Repository query > defaultBranchRef > target (a Commit) > tree > entries > {name, object}
     - Listing tree entries is significantly slower than REST api (10X based on testing)
     - Missing recursive query capability
