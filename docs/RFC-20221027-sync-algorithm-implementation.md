@@ -39,7 +39,7 @@
       - Does not work with fan-out folder structure
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
     - Vulnerable to history rewrites
-    - 300 files limit. Undocumented. Found via manual testing
+    - 300 files limit. [documented](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories#diff-limits). Found via manual testing. Ref: https://stackoverflow.com/questions/72405908/how-can-i-get-a-complete-list-of-changed-files-between-two-commits-in-github
     - Compute overhead: finding base commit (need to walk the entire history)
     - Need to download blobs manually, or implement diff replay algorithm
     - Space overhead: unwanted metadata in comparison results
