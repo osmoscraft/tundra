@@ -1,11 +1,15 @@
 # Platform Options
 
-- Browser Extension (Active development)
-  - Pro: Extended browser API
-  - Con: Installation needed
-- Browser Web App
+- Browser Web App (under development)
   - Pro: Universal access
   - Con: Lack of CORS
+    - Import Repo via manual upload of Zip file
+    - Quick action via bookmarklet
+- Browser Extension
+  - Pro: Extended browser API
+    - Allow one click action, CORS
+    - Can import Repo via Download URL
+  - Con: Installation needed
 - Headless Server App
   - Pro: OS level API access
   - Con: Installer and Upgrade complexity
