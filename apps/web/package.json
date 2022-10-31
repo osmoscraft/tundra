@@ -4,11 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "clean": "node scripts/clean.mjs",
-    "dev": "npm run clean && concurrently npm:dev:*",
-    "dev:web": "vite build --watch --mode=development",
-    "dev:ext": "node scripts/build.mjs --watch",
-    "build": "npm run clean && vite build && node scripts/build.mjs && node scripts/pack.mjs",
+    "dev": "vite dev --port 5173",
+    "build": "vite build",
+    "preview": "vite build && vite preview --port 5173",
     "test": "vitest run",
     "test:watch": "vitest"
   },

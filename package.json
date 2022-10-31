@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "npm run dev -w apps/web",
-    "build": "npm run build -w apps/web"
+    "build": "npm run build -w apps/web",
+    "preview": "npm run preview -w apps/web"
   },
   "repository": {
     "type": "git",

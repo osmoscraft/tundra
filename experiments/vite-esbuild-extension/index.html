@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tinykb</title>
+    <style>
+      @import url(./public/global.css);
+
+      :root {
+        --divider-color: ButtonBorder;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --theme-green-bg: darkgreen;
+        }
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --theme-green-bg: lightgreen;
+        }
+      }
+
+      html {
+        color-scheme: light dark;
+      }
+
+      body {
+        font-size: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: monospace;
+      }
+
+      .c-app-layout {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="c-app-layout">
+      <action-bar-element></action-bar-element>
+      <div contenteditable="true">Content</div>
+      <status-bar-element></status-bar-element>
+    </div>
+    <config-element></config-element>
+
+    <template id="action-bar-template">
+      <style>
+        @import url(./global.css);
+
+        form {
+          display: grid;
+          grid-template:
+            "status input" 24px
+            "list   list" auto / 24px 1fr;
+        }
+        [data-status] {
+          grid-area: status;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: var(--theme-green-bg);
+        }
+        form {
+          border-bottom: 1px solid var(--divider-color);
+        }
+        input {
+          padding-inline: 8px;
+          border: none;
+          grid-area: input;
+          display: grid;
+        }
+        ul {
+          grid-area: list;
+        }
+      </style>
+      <form>
+        <span data-status="idle">/</span>
+        <input tabindex="-1" name="command" placehodler="Command" type="text" />
+        <ul></ul>
+      </form>
+    </template>
+
+    <template id="config-template">
+      <style>
+        @import url(./global.css);
+        dialog {
+          top: 24px;
+        }
+        :where(label, input) {
+          display: block;
+        }
+        label + input {
+          margin-top: 4px;
+        }
+        input + label {
+          margin-top: 8px;
+        }
+      </style>
+      <dialog>
+        <form>
+          <fieldset>
+            <legend>Remote</legend>
+            <label for="gh-owner">Owner</label>
+            <input id="gh-owner" name="owner" type="text" placeholder="Username or organization" autofocus />
+            <label for="gh-repo">Repo</label>
+            <input id="gh-repo" name="repo" type="text" placeholder="Repo" />
+            <label for="gh-token">Token</label>
+            <input id="gh-token" name="token" type="password" />
+          </fieldset>
+          <button type="submit">Save</button>
+          <button type="button" id="test-remote">Test</button>
+        </form>
+      </dialog>
+    </template>
+
+    <template id="menu-template">
+      <style>
+        @import url(./global.css);
+        dialog {
+          top: 24px;
+        }
+      </style>
+      <dialog>
+        <form>
+          <input name="command" type="text" placeholder="Command" autofocus />
+          <ul></ul>
+        </form>
+      </dialog>
+    </template>
+
+    <template id="status-bar-template">
+      <style>
+        @import url(./global.css);
+
+        pre {
+          border-top: 1px solid var(--divider-color);
+          white-space: pre-wrap;
+        }
+
+        code {
+          display: block;
+          font-size: 12px;
+          line-height: 24px;
+          height: 24px;
+          overflow: hidden;
+        }
+
+        code.expanded {
+          overflow: auto;
+          height: auto;
+          max-height: 80vh;
+        }
+      </style>
+      <pre><code></code></pre>
+    </template>
+    <script type="module" src="/src/client.ts"></script>
+  </body>
+</html>
