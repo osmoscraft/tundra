@@ -62,7 +62,7 @@
 - GitHub
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
     - 300 file limit
-    - Fallback to per N-commit procedual sync until every N-commit chunk has fewer than 300 files
+    - Need to manually apply diffing (consider jsdiff apply patch)
     - Fallback to full clone
     - GraphQL API provides [access to first/last commit](https://stackoverflow.com/questions/45726013/how-can-i-get-last-commit-from-github-api) on default branch.
   - GraphQL Ref > compare
