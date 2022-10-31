@@ -1,4 +1,4 @@
-import * as Diff from "diff";
+import { applyPatch, parsePatch } from "diff";
 // import fs from "fs/promises";
 
 console.log(typeof Diff);
@@ -13,12 +13,12 @@ async function main() {
   // console.log(base);
 
   const base2 = await fetch(
-    "https://raw.githubusercontent.com/chuanqisun/tinykb-sandbox/8a83aa3b3bad5afca55658ae106fb37e5408da76/frames/0ce3711f-148e-4ec2-9071-e293d29eab1c.md?token=GHSAT0AAAAAABZEOHOCA3V76MEWLKTPKT5AY27LCZA"
+    "https://raw.githubusercontent.com/chuanqisun/tinykb-sandbox/8a83aa3b3bad5afca55658ae106fb37e5408da76/frames/0ce3711f-148e-4ec2-9071-e293d29eab1c.md?token=GHSAT0AAAAAABZEOHOCZHCCG7RKAAM3H5VEY27LL4Q"
   ).then((res) => res.text());
   console.log(base2);
 
-  const parsedPatch = Diff.parsePatch(diff);
-  const result = Diff.applyPatch(base2, parsedPatch);
+  const parsedPatch = parsePatch(diff);
+  const result = applyPatch(base2, parsedPatch);
 
   console.log(result);
 }
