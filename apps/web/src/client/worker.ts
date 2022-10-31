@@ -1,10 +1,8 @@
 import { ProxyClient } from "utils";
 import type { AppRoutes } from "../routes";
-import SharedWebWorker from "../server?sharedworker";
-import WebWorker from "../server?worker";
 import { logError } from "./log";
 
-const workerPromise = import.meta.env.PROD ? new SharedWebWorker() : new WebWorker();
+const workerPromise = new Worker("/workers/server.js");
 const proxyPromise = Promise.resolve(workerPromise).then(async (worker) => {
   const proxy = new ProxyClient<AppRoutes>(worker);
   proxy.start();

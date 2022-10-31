@@ -1,3 +1,4 @@
+import esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { OUT_DIR, UNPACKED_OUT_DIR } from "./config.mjs";
@@ -24,6 +25,23 @@ const getWatcher = (isWatch, name) =>
 async function build() {
   console.log(`[build] remove ${OUT_DIR}`);
 
+  const workerScriptEntries = [path.resolve("src/server.ts")];
+  const workerBuild = esbuild
+    .build({
+      entryPoints: workerScriptEntries,
+      bundle: true,
+      format: "iife",
+      sourcemap: isWatch ? "inline" : true,
+      loader: {
+        ".graphql": "text",
+      },
+      watch: getWatcher(isWatch, "worker"),
+      minify: !isWatch,
+      outdir: path.join(UNPACKED_OUT_DIR, "workers"),
+    })
+    .catch(() => process.exit(1))
+    .then(() => console.log(`[build] worker built`));
+
   const manifestBuild = (async function () {
     await fs.mkdir(path.resolve(UNPACKED_OUT_DIR), { recursive: true });
     await fs.copyFile(path.resolve("src/manifest.json"), path.join(UNPACKED_OUT_DIR, "manifest.json"));
@@ -44,7 +62,7 @@ async function build() {
       })();
   })();
 
-  await Promise.all([manifestBuild]);
+  await Promise.all([manifestBuild, workerBuild]);
   console.log(`[build] build success`);
 }
 
