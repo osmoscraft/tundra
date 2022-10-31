@@ -65,6 +65,7 @@
     - Need to manually apply diffing (consider jsdiff apply patch)
     - Fallback to full clone
     - GraphQL API provides [access to first/last commit](https://stackoverflow.com/questions/45726013/how-can-i-get-last-commit-from-github-api) on default branch.
+    - Can use GraphQL history query to determine upper bound for number of changed files
   - GraphQL Ref > compare
     - GraphQL doesn't appear to have commit to commit comparison. It only offers [Ref to Ref comparison.](https://docs.github.com/en/graphql/reference/objects#ref)
     - Additional metadata from local commit available via [Object field](https://github.com/orgs/community/discussions/24528)
