@@ -15,6 +15,7 @@ export class ProxyClient<TSchema extends BaseProxySchema> {
     if (this.port instanceof MessagePort) {
       this.port.start();
     }
+    return this;
   }
 
   async request<TRoute extends PickKeysByValueType<TSchema, RouteHandler>>(
