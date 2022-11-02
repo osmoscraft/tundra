@@ -59,5 +59,7 @@ export class ProxyServer<TSchema extends BaseProxySchema> {
         });
       }
     });
+
+    return this;
   }
 }
