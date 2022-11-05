@@ -52,7 +52,7 @@
 - Full clone
   - Find last available image
 
-## Snapshot
+## Changelog Pruning
 
 - 1st-time snapshot
   - Copy changelog to memory and make edits to it
@@ -61,7 +61,7 @@
   - Append `!<SHA256>` as the last record
   - Flush changelog as object
 - Incremental snapshot
-  - Find the last known `!<SHA256>`, starting from repeat the same as 1st-time snapshot
+  - Find the last known `!<SHA256>`, starting from it repeat the same as 1st-time snapshot
 
 # Issues
 
