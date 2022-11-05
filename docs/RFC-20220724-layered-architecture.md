@@ -1,5 +1,7 @@
 # Layered Architecture
 
+- [v2](./RFC-20221104-layered-architecture-v2.md)
+
 ## Abstract layers (what)
 
 1. Bytes
