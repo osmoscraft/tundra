@@ -18,13 +18,10 @@
 - HCI
   - [ ] Command and status bar layout optimization
 - Infrastructure
+  - [ ] Single-purpose extension for CORS fetch
   - [ ] Async pipe for chaining async requests
   - [ ] Subscription for server log streaming
   - [x] Req/Res based event handling
   - [x] Status bar
   - [x] Action bar
   - [x] Focus trap
-- Storage ideas
-  - [ ] Fan out storage by Creation month /yyyy/mm/dd/xyz
-  - [ ] Fan out storage by Update month
-  - [ ] Using low level Blob API from GitHub

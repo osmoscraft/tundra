@@ -4,14 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite dev --port 5173",
     "build": "vite build",
+    "preview": "vite build && vite preview --port 5173",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "preview": "vite build && vite preview --port 5173"
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "vite": "^3.1.7",
     "vitest": "^0.24.1"
-  }
+  },
+  "dependencies": {}
 }

@@ -1,0 +1,17 @@
+query getTree($repo: String!, $owner: String!, $path: String!) {
+  repository(name: $repo, owner: $owner) {
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          file(path: $path) {
+            object {
+              ... on Tree {
+                oid
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
