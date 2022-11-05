@@ -19,7 +19,7 @@
   "background": {
     "service_worker": "workers/service-worker.js"
   },
-  "permissions": ["declarativeNetRequest"],
+  "permissions": ["declarativeNetRequest", "declarativeNetRequestWithHostAccess"],
   "host_permissions": ["https://*/*", "http://*/*"],
   "declarative_net_request": {
     "rule_resources": [
