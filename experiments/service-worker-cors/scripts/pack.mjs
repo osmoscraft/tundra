@@ -9,8 +9,9 @@ const execAsync = promisify(exec);
 async function pack() {
   console.log(path.resolve(UNPACKED_OUT_DIR));
   const manifest = await readJson(path.resolve(UNPACKED_OUT_DIR, "manifest.json"));
+  const name = manifest.name;
   const version = manifest.version;
-  const outFilename = `tinykb-${version}.chrome.zip`;
+  const outFilename = `${name}-${version}.chrome.zip`;
 
   await execAsync(`zip -r ../${outFilename} .`, { cwd: UNPACKED_OUT_DIR });
 
