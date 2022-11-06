@@ -1,0 +1,2 @@
+- Experiement to directly invoke GitHub's smart Git HTTP protocol
+- Failed due to CORS constraints
