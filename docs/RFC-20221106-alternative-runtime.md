@@ -43,10 +43,10 @@
 ## Linux first
 
 - Use modular software for each service
-- Find glue to combine then
-- Installer: AppImage, or remote shell script
+- Use glue code to expose them as APIs to the web, consider a small Go program
+- Installer: AppImage, or a remote shell script
 - FS: Native OS file system
-- Sync: Git CLI
+- Sync: Git CLI, or gogit
 - Graph: Indexed DB in Browser
 - FTS: JavaScript library in Browser
 - Network: curl/wget
