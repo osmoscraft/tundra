@@ -65,7 +65,8 @@
 ## Changelog compression
 
 - Performed on demand, by worker
-- Triggered manually or by CRON
+- Triggered manually or by CRON, or with Create/Update/Delete
+- Maybe unnecessary due to HTTP compression removing duplicated strings
 - Duplicated OIDs can be omitted
 - Line endings are preseved to maintain row stability for CID:ROW Ref
 - Before compression
