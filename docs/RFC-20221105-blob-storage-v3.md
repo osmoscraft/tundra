@@ -39,9 +39,9 @@
   - Client restore all images
   - Client set Ref to CID:ROW
 - Clone (with imaging, see Imaging spec)
-  - Server lists all imaging blobs with IID
-  - Server returns the list of IIDs
-  - Client downloads images with all IIDs
+  - Server lists all imaging blobs with CIID
+  - Server returns the list of CIIDs
+  - Client downloads images with all CIIDs
   - Client unpack the image to retrive all blob OIDs, values, and latest CID:ROW
   - Client performs Get changes with the latest CID:ROW
 
@@ -90,11 +90,12 @@
 - Performaned on demand, by worker
 - Triggered after rollover, or by CRON
 - Summarize a changelog's content into a single blob
-- The blob shares the same id: IID.blob contains all the information as in CID.blob
+- The blob shares the same id: CIID.blob contains all the information as in CID.blob
 
-## Imaging (alternative)
+## Full state imaging
 
 - Peformed on demand, by worker
 - Triggered manually or by CRON
 - An Image contains the state of all of blobs, and the CID:ROW for the latest blob
-- Each Image is stored as IID.blob
+- Each Image is stored as an FIID.blob
+- The image can be created by concatenating Changelog images
