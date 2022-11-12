@@ -173,11 +173,3 @@ fetch("https://api.github.com/graphql", requestOptions)
   .then(decompressBlob)
   .then((dir) => new TarReader().readFile(dir))
   .then(console.log);
-
-fetch("https://api.github.com/graphql", requestOptions)
-  .then((response) => response.json())
-  .then((result) => fetch(result.data.repository.defaultBranchRef.target.tarballUrl))
-  .then((response) => response.blob())
-  .then(decompressBlob)
-  .then((dir) => new TarReader().readFile(dir))
-  .then(console.log);
