@@ -1,8 +1,13 @@
 * {
-  font: inherit;
   margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
+
 *:focus:not(:focus-visible) {
   outline: none;
+}
+
+body {
+  font-size: 100%;
 }
