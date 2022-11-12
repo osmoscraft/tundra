@@ -18,8 +18,8 @@
     "128": "/images/icon@128.png"
   },
   "options_page": "options.html",
-  "permissions": ["activeTab", "declarativeNetRequest", "declarativeNetRequestWithHostAccess"],
-  "host_permissions": ["https://*/*", "http://*/*"],
+  "permissions": ["activeTab", "declarativeNetRequest"],
+  "host_permissions": ["*://*.github.com/*"],
   "declarative_net_request": {
     "rule_resources": [
       {
