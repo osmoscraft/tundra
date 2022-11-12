@@ -23,6 +23,9 @@
   - [Download zip and unzip with js](https://docs.github.com/en/rest/repos/contents#download-a-repository-archive-tar)
     - Downloaded content contains no git database information
     - No CORS friendly API
+    - GraphQL can return tarball/zip URL
+    - With Browser extension CORS header override, the tarball/zip URL can be fetched in browser
+    - Need Web Compression API or pako.js to decompress the binary
     - Could be a solution for manual import
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
@@ -31,7 +34,7 @@
     - Pagination by manual recursion into subtree
       - Consider `YYYY/MM` or flat storage layout for efficient manual recursion into sub folders
     - Need to manually download all blobs
-      - Neither REST nor GraphQL supports bulb blob fetching
+      - Neither REST nor GraphQL supports bulk blob fetching
     - Overhead: find the folder that contains desired files (should be dpeth 1)
   - [Get repo content](https://docs.github.com/en/rest/repos/contents#get-repository-content)
     - 1,000 limit
