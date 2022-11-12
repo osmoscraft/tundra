@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "node scripts/build.mjs --watch",
-    "build": "node scripts/build.mjs && node scripts/pack.mjs"
+    "dev": "npm run build -- --dev",
+    "build": "node scripts/build.js"
   },
+  "type": "module",
   "devDependencies": {
     "@types/chrome": "^0.0.200",
     "@types/node": "^18.11.9",
