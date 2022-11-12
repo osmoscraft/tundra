@@ -1,0 +1,2 @@
+- Use Vite to build chrome extension main and worker thread
+- Having issue resolving worker import url after hot reload
