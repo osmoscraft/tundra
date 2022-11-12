@@ -3,7 +3,7 @@ import esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { promisify } from "util";
-import { copyDir, filterDir, getDirEntryPath, readJson, rmDir } from "./fs.js";
+import { copyDir, filterDir, getDirEntryPath, getDirsRecursive, readJson, rmDir } from "./fs.js";
 
 const execAsync = promisify(exec);
 
@@ -103,17 +103,35 @@ async function build() {
 
     const watcher = getWatcher(isDev, "assets");
 
-    isDev &&
-      (async () => {
-        try {
-          for await (const _change of fs.watch(publicSrcDir, { recursive: true })) {
-            copyDir(publicSrcDir, constants.UNPACKED_OUT_DIR);
-            watcher?.onRebuild();
-          }
-        } catch (error) {
-          watcher?.onRebuild(error);
-        }
-      })();
+    const copyFilesOnChange = async () => {
+      try {
+        // TODO remove manually recursion once the cursive watch option works on Linux,
+        // Ref: https://nodejs.org/api/fs.html#fs_fs_watch_filename_options_listener
+        const dirs = await getDirsRecursive(publicSrcDir);
+        const ac = new AbortController();
+        const { signal } = ac;
+        console.log(`[build] watching ${dirs.length} directories`);
+        dirs
+          .map((dir) => fs.watch(dir, { recursive: false, signal }))
+          .forEach(async (watchPoint) => {
+            try {
+              for await (const _change of watchPoint) {
+                ac.abort();
+                const { targetPaths } = await copyDir(publicSrcDir, constants.UNPACKED_OUT_DIR);
+                console.log("[build] assets copied", targetPaths);
+                watcher?.onRebuild();
+                copyFilesOnChange();
+              }
+            } catch {
+              // abort error is ok
+            }
+          });
+      } catch (error) {
+        watcher?.onRebuild(error);
+      }
+    };
+
+    isDev && copyFilesOnChange();
   })();
 
   await Promise.all([mainBuild, contentScriptBuild, workerBuild, assetCopy]);

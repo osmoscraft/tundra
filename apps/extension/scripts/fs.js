@@ -21,6 +21,22 @@ export async function getFilesRecursive(dir) {
 
 /**
  *
+ * @param {string} dir root dir
+ * @returns {Promise<string[]>} a promise of the array of file paths
+ */
+export async function getDirsRecursive(dir) {
+  const dirents = await fs.readdir(dir, { withFileTypes: true });
+  const dirs = await Promise.all(
+    dirents.flatMap((dirent) => {
+      const itemPath = path.resolve(dir, dirent.name);
+      return dirent.isDirectory() ? [itemPath, getDirsRecursive(itemPath)] : [];
+    })
+  );
+  return [path.resolve(dir), ...dirs].flat();
+}
+
+/**
+ *
  * @param {string} dir
  * @param {(file: Dirent) => boolean} predicate including extension
  */
