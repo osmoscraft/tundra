@@ -1,7 +1,7 @@
 const getPatHeaderBasicToken = (owner, token) => window.btoa(`${owner}:${token}`);
 
 const myHeaders = new Headers();
-myHeaders.append("Authorization", `Basic ${getPatHeaderBasicToken("chuanqisun", "???")}`);
+myHeaders.append("Authorization", `Basic ${getPatHeaderBasicToken("chuanqisun", "??")}`);
 myHeaders.append("Content-Type", "application/json");
 
 const graphql = JSON.stringify({
@@ -26,12 +26,6 @@ const requestOptions = {
   body: graphql,
   redirect: "follow",
 };
-
-async function decompressBlob(blob) {
-  const ds = new DecompressionStream("gzip");
-  const decompressedStream = blob.stream().pipeThrough(ds);
-  return new Response(decompressedStream).blob();
-}
 
 // Credit: https://github.com/ankitrohatgi/tarballjs
 // MIT License
@@ -169,7 +163,7 @@ class TarReader {
 fetch("https://api.github.com/graphql", requestOptions)
   .then((response) => response.json())
   .then((result) => fetch(result.data.repository.defaultBranchRef.target.tarballUrl))
-  .then((response) => response.blob())
-  .then(decompressBlob)
+  .then((response) => response.body.pipeThrough(new DecompressionStream("gzip")))
+  .then((decompressedStream) => new Response(decompressedStream).blob())
   .then((dir) => new TarReader().readFile(dir))
   .then(console.log);
