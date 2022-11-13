@@ -1,6 +1,6 @@
 import { dbAsync, getRemote, setRemote } from "./features/db";
 import type { GetEcho, SetRemote, WatchRemote } from "./routes";
-import { addRoute, startServer } from "./utils/rpc/server";
+import { addRoute, startServer } from "./utils/rpc/server-utils";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 

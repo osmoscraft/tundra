@@ -1,6 +1,6 @@
 import type { SetRemote, WatchRemote } from "../../routes";
 import { attachHtml } from "../../utils/dom/factory";
-import { request, subscribe } from "../../utils/rpc/client";
+import { request, subscribe } from "../../utils/rpc/client-utils";
 import { RemoteType } from "../db";
 import { port } from "../global/port";
 import template from "./config-form.html";

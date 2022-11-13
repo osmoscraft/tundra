@@ -42,7 +42,7 @@ export function addRoute<T extends Route>(
     const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;
     if (channel !== receivedChannel) return;
 
-    let handleAbort: any;
+    let handleAbort: OnAbort | undefined;
 
     handler(
       data,
@@ -55,9 +55,7 @@ export function addRoute<T extends Route>(
       (onAbort) => (handleAbort = onAbort)
     );
 
-    if (isAbort && handleAbort) {
-      handleAbort?.();
-    }
+    isAbort && handleAbort?.();
   };
   port.addEventListener("message", onMessageEvent);
 
