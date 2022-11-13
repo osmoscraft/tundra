@@ -1,10 +1,6 @@
 import { uuid } from "../rand";
 import type { ObservedData, PortMessage } from "./types";
 
-export function getWorkerForEnv(useSharedWorker?: boolean) {
-  return useSharedWorker ? SharedWorker : Worker;
-}
-
 export function startClient(worker: SharedWorker | Worker) {
   // Shared Worker requires start
   if (worker instanceof SharedWorker) {
@@ -18,7 +14,6 @@ export function startClient(worker: SharedWorker | Worker) {
 export type Observer<T = any> = (data: ObservedData<T>) => void;
 export type ClientPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
 
-// Client
 export function subscribe(port: ClientPort, channel: string, observer: Observer, data: any) {
   const subscriptionId = uuid();
 
