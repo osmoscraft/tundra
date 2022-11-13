@@ -1,4 +1,4 @@
-import { on, startServer } from "./utils/bifrost/server";
+import { on, startServer } from "./utils/worker/server";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 

@@ -1,5 +1,5 @@
 import { env } from "./features/env";
-import { request, startClient, subscribe } from "./utils/bifrost/client";
+import { request, startClient, subscribe } from "./utils/worker/client";
 
 const isProd = env.NODE_ENV === "production";
 console.log(`[options] ${isProd ? "prod" : "dev"} mode`);
