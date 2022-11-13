@@ -32,22 +32,31 @@ export type ServerPort = Pick<Worker | MessagePort, "postMessage" | "addEventLis
 export function addRoute<T extends Route>(
   port: ServerPort,
   channel: ChannelOf<T>,
-  handler: (req: RequestOf<T>, next: (res: ObservedData<ResponseOf<T>>) => any) => void | OnAbort
+  handler: (
+    req: RequestOf<T>,
+    next: (res: ObservedData<ResponseOf<T>>) => any,
+    onAbort: (handleAbort: OnAbort) => void
+  ) => void | OnAbort | Promise<void> | Promise<OnAbort>
 ) {
-  const onMessageEvent = (event: Event) => {
+  const onMessageEvent = async (event: Event) => {
     const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;
     if (channel !== receivedChannel) return;
 
-    const abort = handler(data, (nextData) =>
-      port.postMessage({
-        channel,
-        data: nextData,
-        sid,
-      })
+    let handleAbort: any;
+
+    handler(
+      data,
+      (nextData) =>
+        port.postMessage({
+          channel,
+          data: nextData,
+          sid,
+        }),
+      (onAbort) => (handleAbort = onAbort)
     );
 
-    if (isAbort) {
-      abort?.();
+    if (isAbort && handleAbort) {
+      handleAbort?.();
     }
   };
   port.addEventListener("message", onMessageEvent);

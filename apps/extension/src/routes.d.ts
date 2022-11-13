@@ -9,4 +9,4 @@ import type { Route } from "./utils/rpc/types";
 
 export type GetEcho = Route<"getEcho", any, any>;
 export type SetRemote = Route<"setRemote", RemoteSchema, void>;
-export type WatchRemote = Route<"watchRemote", undefined, RemoteSchema>;
+export type WatchRemote = Route<"watchRemote", undefined, RemoteSchema | null>;

@@ -1,3 +1,4 @@
+import { dbAsync, getRemote, setRemote } from "./features/db";
 import type { GetEcho, SetRemote, WatchRemote } from "./routes";
 import { addRoute, startServer } from "./utils/rpc/server";
 
@@ -11,16 +12,19 @@ async function main() {
 
   addRoute<GetEcho>(port, "getEcho", (req, next) => next(req));
 
-  addRoute<WatchRemote>(port, "watchRemote", (_req, next) => {
-    // TODO send initial value on subscribe
-    const onChange = (e: Event) => next({ value: (e as CustomEvent).detail });
+  addRoute<WatchRemote>(port, "watchRemote", async (_req, next, onAbort) => {
+    const db = await dbAsync;
+    next({ value: await getRemote(db) });
+    const onChange = async () => next({ value: await getRemote(db) });
     remoteTopic.addEventListener("change", onChange);
-    return () => remoteTopic.removeEventListener("change", onChange);
+    onAbort(() => remoteTopic.removeEventListener("change", onChange));
   });
 
-  addRoute<SetRemote>(port, "setRemote", (req, next) => {
-    remoteTopic.dispatchEvent(new CustomEvent("change", { detail: req }));
-    console.log("TODO implement storing config in indexed DB");
+  addRoute<SetRemote>(port, "setRemote", async (req, next) => {
+    const db = await dbAsync;
+    await setRemote(db, req);
+    remoteTopic.dispatchEvent(new Event("change"));
+    next({ value: undefined, isComplete: true });
   });
 }
 
