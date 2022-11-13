@@ -8,32 +8,7 @@
     <link rel="stylesheet" href="./options.css" />
   </head>
   <body>
-    <form>
-      <fieldset>
-        <legend>Connection Type</legend>
-        <label>
-          <input type="radio" name="connection" />
-          GitHub
-        </label>
-        <label>
-          <input type="radio" name="connection" disabled />
-          GitLab
-        </label>
-      </fieldset>
-      <fieldset>
-        <legend>Credentials</legend>
-        <label for="gh-owner">Owner</label>
-        <input id="gh-owner" name="owner" type="text" />
-        <br />
-        <label for="gh-repo">Repo</label>
-        <input id="gh-repo" name="repo" type="text" />
-        <br />
-        <label for="gh-token">Token</label>
-        <input id="gh-token" name="token" type="password" />
-      </fieldset>
-
-      <button type="submit">Save</button>
-    </form>
+    <config-element></config-element>
     <script type="module" src="./options.js"></script>
   </body>
 </html>

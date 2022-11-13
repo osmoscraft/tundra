@@ -62,6 +62,9 @@ async function build() {
       bundle: true,
       format: "esm",
       sourcemap: true,
+      loader: {
+        ".html": "text",
+      },
       watch: getWatcher(isDev, "main"),
       minify: !isDev,
       define,
@@ -113,7 +116,7 @@ async function build() {
         const dirs = await getDirsRecursive(publicSrcDir);
         const ac = new AbortController();
         const { signal } = ac;
-        console.log(`[build] watching ${dirs.length} directories`);
+        console.log(`[build] watching assets in ${dirs.length} directories`);
         dirs
           .map((dir) => fs.watch(dir, { recursive: false, signal }))
           .forEach(async (watchPoint) => {
