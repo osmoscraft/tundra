@@ -3,6 +3,7 @@ import esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { promisify } from "util";
+import { define } from "./env.js";
 import { copyDir, filterDir, getDirEntryPath, getDirsRecursive, readJson, rmDir } from "./fs.js";
 
 const execAsync = promisify(exec);
@@ -63,6 +64,7 @@ async function build() {
       sourcemap: true,
       watch: getWatcher(isDev, "main"),
       minify: !isDev,
+      define,
       outdir: constants.UNPACKED_OUT_DIR,
     })
     .catch(() => process.exit(1))
@@ -73,7 +75,7 @@ async function build() {
       entryPoints: [], // No implemented yet
       bundle: true,
       format: "iife",
-      sourcemap: "inline",
+      sourcemap: isDev ? "inline" : true,
       globalName: "_contentScriptGlobal",
       footer: { js: "_contentScriptGlobal.default()" }, // this allows the default export to be returned to global scope
       watch: getWatcher(isDev, "content script"),
@@ -88,9 +90,10 @@ async function build() {
       entryPoints: workerPaths,
       bundle: true,
       format: "iife",
-      sourcemap: "inline", // TODO try external source map for performance improvement
+      sourcemap: isDev ? "inline" : true,
       watch: getWatcher(isDev, "worker"),
       minify: !isDev,
+      define,
       outdir: constants.UNPACKED_OUT_DIR,
     })
     .catch(() => process.exit(1))

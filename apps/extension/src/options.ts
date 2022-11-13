@@ -1,3 +1,7 @@
-console.log("options is online");
+import { createWorker, startWorker } from "./features/worker";
 
-export default {};
+export async function main() {
+  const worker = await startWorker(createWorker());
+}
+
+main();
