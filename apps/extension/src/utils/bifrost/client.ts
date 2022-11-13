@@ -24,6 +24,7 @@ export function subscribe(port: ClientPort, channel: string, observer: Observer,
     observer(data);
 
     if ((data as ObservedData).isComplete) {
+      // naturally completed stream does not need abort
       port.removeEventListener("message", listener);
     }
   };
@@ -31,15 +32,23 @@ export function subscribe(port: ClientPort, channel: string, observer: Observer,
   port.addEventListener("message", listener);
   port.postMessage({ channel, data, sid: subscriptionId });
 
-  return () => port.removeEventListener("message", listener);
+  return () => {
+    port.removeEventListener("message", listener);
+    port.postMessage({ channel, sid: subscriptionId, isAbort: true });
+  };
 }
 
 export async function request(port: ClientPort, channel: string, data: any) {
   return new Promise((resolve, reject) => {
     const observer: Observer = (data) => {
-      if (data.value) resolve(data.value);
-      if (data.error) reject(data.error);
-      unsubscribe();
+      if (data.error) {
+        reject(data.error);
+      } else {
+        resolve(data.value);
+      }
+
+      // unsub only if data isn't naturally completed
+      if (!data.isComplete) unsubscribe();
     };
 
     const unsubscribe = subscribe(port, channel, observer, data);

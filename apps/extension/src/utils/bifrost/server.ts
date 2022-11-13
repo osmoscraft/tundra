@@ -26,18 +26,28 @@ export interface Observable {
   next: (value: any) => void;
 }
 
+export type OnAbort = () => any;
+
 export type ServerPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
-export function on(port: ServerPort, channel: string, handler: (req: any, next: (res: ObservedData) => void) => void) {
+export function on(
+  port: ServerPort,
+  channel: string,
+  handler: (req: any, next: (res: ObservedData) => any) => void | OnAbort
+) {
   port.addEventListener("message", (event) => {
-    const { channel: receivedChannel, data, sid } = (event as MessageEvent).data;
+    const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;
     if (channel !== receivedChannel) return;
 
-    handler(data, (nextData) =>
+    const abort = handler(data, (nextData) =>
       port.postMessage({
         channel,
         data: nextData,
         sid,
       })
     );
+
+    if (isAbort) {
+      abort?.();
+    }
   });
 }

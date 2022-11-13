@@ -1,6 +1,7 @@
 export interface PortMessage {
   channel: string;
   data: ObservedData;
+  isAbort?: boolean;
   sid: string;
 }
 
