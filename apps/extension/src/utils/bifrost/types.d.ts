@@ -6,6 +6,6 @@ export interface PortMessage {
 
 export interface ObservedData<T = any> {
   value: T;
-  error: any;
+  error?: any;
   isComplete?: boolean;
 }

@@ -15,7 +15,7 @@ const constants = {
   SRC_DIR: `src`, // relative to cwd
   PAGE_ENTRIES: ["options.ts", "popup.ts"], // relative to src
   CONTENT_SCRIPT_ENTRIES: [], // relative to src
-  WORKER_ENTRIES: ["worker.ts"], // relative to src
+  WORKER_ENTRIES: ["server.ts"], // relative to src
 };
 
 const isDev = process.argv.includes("--dev");

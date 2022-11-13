@@ -1,15 +1,13 @@
-import type { AppRoutes } from "./routes";
-import { WorkerServer } from "./utils/worker-rpc";
+import { on, startServer } from "./utils/bifrost/server";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 
 console.log("[worker] online");
 
 async function main() {
-  const proxy = new WorkerServer<AppRoutes>(self);
+  const port = await startServer(self);
 
-  proxy.onRequest("echo", async ({ req }) => ({ message: req.message }));
-  proxy.start();
+  on(port, "echo", (req, next) => {});
 }
 
 main();

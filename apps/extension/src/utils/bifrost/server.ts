@@ -1,6 +1,6 @@
 import type { ObservedData } from "./types";
 
-export async function start(
+export async function startServer(
   worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope
 ): Promise<MessagePort | DedicatedWorkerGlobalScope> {
   return new Promise((resolve) => {
