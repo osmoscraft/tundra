@@ -1,13 +1,13 @@
-import type { RouteHandler } from "./utils/worker-rpc";
-
-export type AppRoutes = {
-  echo: RouteHandler<EchoReq, EchoRes>;
-  gitClone: RouteHandler<undefined, any>;
+export type RequestMap = {
+  setConfig: Route<any, any>;
 };
 
-export interface EchoReq {
-  message: string;
-}
-export interface EchoRes {
-  message: string;
-}
+export type SubscriptionMap = {
+  config: Route<undefined, any>;
+  log: Route<undefined, any>;
+};
+
+export type Route<TReq, TRes> = {
+  req?: TReq;
+  res: TRes;
+};

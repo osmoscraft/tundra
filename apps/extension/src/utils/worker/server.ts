@@ -29,7 +29,7 @@ export interface Observable {
 export type OnAbort = () => any;
 
 export type ServerPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
-export function on(
+export function onSubscribe(
   port: ServerPort,
   channel: string,
   handler: (req: any, next: (res: ObservedData) => any) => void | OnAbort
