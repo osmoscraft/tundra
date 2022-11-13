@@ -7,13 +7,15 @@ import template from "./config-form.html";
 
 export class ConfigElement extends HTMLElement {
   shadowRoot = attachHtml(template, this);
-
-  unsubs: any[] = [];
+  cleanupFns: Function[] = [];
 
   connectedCallback() {
-    this.unsubs.push(
+    this.cleanupFns.push(
       subscribe<WatchRemote>(port, "watchRemote", ({ value }) => {
-        console.log("config received", value);
+        const form = this.shadowRoot.querySelector("form")!;
+        Object.entries(value?.connection ?? {}).map(
+          ([k, v]) => (form.querySelector<HTMLInputElement>(`[name="${k}"]`)!.value = v as string)
+        );
       })
     );
 
@@ -32,6 +34,6 @@ export class ConfigElement extends HTMLElement {
   }
 
   disconnectedCallback() {
-    this.unsubs.forEach((f) => f());
+    this.cleanupFns.forEach((f) => f());
   }
 }
