@@ -1,4 +1,4 @@
-import { onSubscribe, startServer } from "./utils/worker/server";
+import { onSubscribe, startServer } from "./utils/rpc/server";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 

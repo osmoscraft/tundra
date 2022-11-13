@@ -1,4 +1,4 @@
-import { startClient } from "../../utils/worker/client";
+import { startClient } from "../../utils/rpc/client";
 import { env } from "../env";
 
 const isProd = env.NODE_ENV === "production";

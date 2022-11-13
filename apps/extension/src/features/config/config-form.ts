@@ -1,5 +1,5 @@
 import { attachHtml } from "../../utils/dom/factory";
-import { request, subscribe } from "../../utils/worker/client";
+import { request, subscribe } from "../../utils/rpc/client";
 import { port } from "../global/port";
 import template from "./config-form.html";
 
