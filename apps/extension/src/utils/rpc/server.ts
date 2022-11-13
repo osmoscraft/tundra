@@ -29,12 +29,12 @@ export interface Observable {
 export type OnAbort = () => any;
 export type ServerPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
 
-export function onSubscribe<T extends Route>(
+export function addRoute<T extends Route>(
   port: ServerPort,
   channel: ChannelOf<T>,
   handler: (req: RequestOf<T>, next: (res: ObservedData<ResponseOf<T>>) => any) => void | OnAbort
 ) {
-  port.addEventListener("message", (event) => {
+  const onMessageEvent = (event: Event) => {
     const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;
     if (channel !== receivedChannel) return;
 
@@ -49,5 +49,8 @@ export function onSubscribe<T extends Route>(
     if (isAbort) {
       abort?.();
     }
-  });
+  };
+  port.addEventListener("message", onMessageEvent);
+
+  return () => port.removeEventListener("message", onMessageEvent);
 }
