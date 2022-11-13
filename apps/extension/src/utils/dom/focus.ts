@@ -1,5 +1,6 @@
-import { $, $$, off, on } from "utils";
 import { build } from "./builder";
+import { off, on } from "./event";
+import { $, $$ } from "./query";
 
 export const autofocus = (root: ParentNode) => ($<HTMLElement>("[autofocus]", root) ?? focusable(root)[0])?.focus();
 
