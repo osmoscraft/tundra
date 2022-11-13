@@ -13,7 +13,7 @@ export class ConfigElement extends HTMLElement {
   connectedCallback() {
     this.unsubs.push(
       subscribe<WatchRemote>(port, "watchRemote", ({ value }) => {
-        console.log("config available", value);
+        console.log("config received", value);
       })
     );
 

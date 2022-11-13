@@ -1,4 +1,4 @@
-import type { ObservedData } from "./types";
+import type { ChannelOf, ObservedData, RequestOf, ResponseOf, Route } from "./types";
 
 export async function startServer(
   worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope
@@ -27,12 +27,12 @@ export interface Observable {
 }
 
 export type OnAbort = () => any;
-
 export type ServerPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
-export function onSubscribe(
+
+export function onSubscribe<T extends Route>(
   port: ServerPort,
-  channel: string,
-  handler: (req: any, next: (res: ObservedData) => any) => void | OnAbort
+  channel: ChannelOf<T>,
+  handler: (req: RequestOf<T>, next: (res: ObservedData<ResponseOf<T>>) => any) => void | OnAbort
 ) {
   port.addEventListener("message", (event) => {
     const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;

@@ -1,5 +1,5 @@
 import { uuid } from "../rand";
-import type { ObservedData, PortMessage, Route } from "./types";
+import type { ChannelOf, ObservedData, PortMessage, RequestOf, ResponseOf, Route } from "./types";
 
 export function startClient(worker: SharedWorker | Worker) {
   // Shared Worker requires start
@@ -13,10 +13,6 @@ export function startClient(worker: SharedWorker | Worker) {
 
 export type Observer<T = any> = (data: ObservedData<T>) => void;
 export type ClientPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
-
-type ChannelOf<T extends Route> = T extends Route<infer K> ? K : string;
-type RequestOf<T extends Route> = T extends Route<any, infer K> ? K : any;
-type ResponseOf<T extends Route> = T extends Route<any, any, infer K> ? K : any;
 
 export function subscribe<T extends Route>(
   port: ClientPort,
