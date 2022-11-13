@@ -10,3 +10,9 @@ export interface ObservedData<T = any> {
   error?: any;
   isComplete?: boolean;
 }
+
+export type Route<T = string, K = any, Q = any> = {
+  path: T;
+  req?: K;
+  res?: Q;
+};

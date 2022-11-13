@@ -1,5 +1,7 @@
+import type { SetRemote, WatchRemote } from "../../routes";
 import { attachHtml } from "../../utils/dom/factory";
 import { request, subscribe } from "../../utils/rpc/client";
+import { RemoteType } from "../db";
 import { port } from "../global/port";
 import template from "./config-form.html";
 
@@ -10,21 +12,22 @@ export class ConfigElement extends HTMLElement {
 
   connectedCallback() {
     this.unsubs.push(
-      subscribe(
-        port,
-        "config",
-        ({ value }) => {
-          console.log("config available", value);
-        },
-        undefined
-      )
+      subscribe<WatchRemote>(port, "watchRemote", ({ value }) => {
+        console.log("config available", value);
+      })
     );
 
     this.shadowRoot.addEventListener("submit", (e) => {
       e.preventDefault();
       const formData = new FormData(this.shadowRoot.querySelector("form")!);
-      const config = [...formData.entries()];
-      request(port, "setConfig", config);
+      request<SetRemote>(port, "setRemote", {
+        type: RemoteType.GitHubToken,
+        connection: {
+          owner: formData.get("owner") as string,
+          repo: formData.get("repo") as string,
+          token: formData.get("token") as string,
+        },
+      });
     });
   }
 

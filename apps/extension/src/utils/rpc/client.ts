@@ -1,5 +1,5 @@
 import { uuid } from "../rand";
-import type { ObservedData, PortMessage } from "./types";
+import type { ObservedData, PortMessage, Route } from "./types";
 
 export function startClient(worker: SharedWorker | Worker) {
   // Shared Worker requires start
@@ -14,7 +14,16 @@ export function startClient(worker: SharedWorker | Worker) {
 export type Observer<T = any> = (data: ObservedData<T>) => void;
 export type ClientPort = Pick<Worker | MessagePort, "postMessage" | "addEventListener" | "removeEventListener">;
 
-export function subscribe(port: ClientPort, channel: string, observer: Observer, data: any) {
+type ChannelOf<T extends Route> = T extends Route<infer K> ? K : string;
+type RequestOf<T extends Route> = T extends Route<any, infer K> ? K : any;
+type ResponseOf<T extends Route> = T extends Route<any, any, infer K> ? K : any;
+
+export function subscribe<T extends Route>(
+  port: ClientPort,
+  channel: ChannelOf<T>,
+  observer: Observer<ResponseOf<T>>,
+  ...args: RequestOf<T> extends undefined ? [] : [data: RequestOf<T>]
+) {
   const subscriptionId = uuid();
 
   const listener = (event: Event) => {
@@ -30,7 +39,7 @@ export function subscribe(port: ClientPort, channel: string, observer: Observer,
   };
 
   port.addEventListener("message", listener);
-  port.postMessage({ channel, data, sid: subscriptionId });
+  port.postMessage({ channel, data: args[0], sid: subscriptionId });
 
   return () => {
     port.removeEventListener("message", listener);
@@ -38,7 +47,11 @@ export function subscribe(port: ClientPort, channel: string, observer: Observer,
   };
 }
 
-export async function request(port: ClientPort, channel: string, data: any) {
+export async function request<T extends Route>(
+  port: ClientPort,
+  channel: ChannelOf<T>,
+  ...args: RequestOf<T> extends undefined ? [] : [data: RequestOf<T>]
+): Promise<ResponseOf<T>> {
   return new Promise((resolve, reject) => {
     const observer: Observer = (data) => {
       if (data.error) {
@@ -51,6 +64,6 @@ export async function request(port: ClientPort, channel: string, data: any) {
       if (!data.isComplete) unsubscribe();
     };
 
-    const unsubscribe = subscribe(port, channel, observer, data);
+    const unsubscribe = subscribe<any>(port, channel, observer, args[0]);
   });
 }

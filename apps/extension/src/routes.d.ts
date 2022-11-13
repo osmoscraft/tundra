@@ -1,13 +1,11 @@
-export type RequestMap = {
-  setConfig: Route<any, any>;
-};
+import type { RemoteSchema } from "./features/db";
+import type { Route } from "./utils/rpc/types";
 
-export type SubscriptionMap = {
-  config: Route<undefined, any>;
-  log: Route<undefined, any>;
-};
+// Format: Route<Path, ReqData, ResData>
+// Path naming convention
+// "setXXX": one off mutation
+// "getXXX": one off query
+// "watchXXX": subscription of query
 
-export type Route<TReq, TRes> = {
-  req?: TReq;
-  res: TRes;
-};
+export type SetRemote = Route<"setRemote", RemoteSchema, void>;
+export type WatchRemote = Route<"watchRemote", undefined, RemoteSchema>;

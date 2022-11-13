@@ -3,7 +3,7 @@
   <fieldset>
     <legend>Connection Type</legend>
     <label>
-      <input type="radio" name="connection" value="gh-pat" />
+      <input type="radio" name="connection" value="gh-pat" checked />
       GitHub
     </label>
     <label>
@@ -14,13 +14,13 @@
   <fieldset>
     <legend>Credentials</legend>
     <label for="gh-owner">Owner</label>
-    <input id="gh-owner" name="owner" type="text" />
+    <input id="gh-owner" name="owner" type="text" required />
     <br />
     <label for="gh-repo">Repo</label>
-    <input id="gh-repo" name="repo" type="text" />
+    <input id="gh-repo" name="repo" type="text" required />
     <br />
     <label for="gh-token">Token</label>
-    <input id="gh-token" name="token" type="password" />
+    <input id="gh-token" name="token" type="password" required />
   </fieldset>
 
   <button type="submit">Save</button>
