@@ -30,6 +30,7 @@ export interface TarballUrl {
   repository: {
     defaultBranchRef: {
       target: {
+        oid: string;
         tarballUrl: string;
       };
     };
@@ -39,15 +40,16 @@ export interface TarballUrlVariables {
   owner: string;
   repo: string;
 }
-export async function download(logger: Logger, connection: GitHubConnection): Promise<Blob> {
+export async function download(logger: Logger, connection: GitHubConnection): Promise<{ oid: string; blob: Blob }> {
   const response = await apiV4<TarballUrlVariables, TarballUrl>(connection, TARBALL_URL, connection);
   const data = unwrap(response);
   const url = data.repository.defaultBranchRef.target.tarballUrl;
+  const oid = data.repository.defaultBranchRef.target.oid;
   logger.info(`Found tarball ${url}`);
 
   const blob = await fetch(url)
     .then((response) => response.body!.pipeThrough(new (globalThis as any).DecompressionStream("gzip")))
     .then((decompressedStream) => new Response(decompressedStream).blob());
 
-  return blob;
+  return { blob, oid };
 }

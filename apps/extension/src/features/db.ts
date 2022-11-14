@@ -10,8 +10,8 @@ export interface FrameSchema {
   id: string;
   content: string;
   dateUpdated: Date;
-  draftContent: string;
-  draftDateUpdated: Date;
+  draftContent?: string;
+  draftDateUpdated?: Date;
   status: FrameStatus;
 }
 

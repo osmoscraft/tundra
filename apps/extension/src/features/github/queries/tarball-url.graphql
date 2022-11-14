@@ -3,6 +3,7 @@ query GetTarballUrl($owner: String!, $repo: String!) {
     defaultBranchRef {
       target {
         ... on Commit {
+          oid
           tarballUrl
         }
       }

@@ -1,4 +1,4 @@
-import { dbAsync, getRemote, RemoteType, setRemote } from "./features/db";
+import { dbAsync, FrameStatus, getRemote, RemoteType, resetContent, setRemote } from "./features/db";
 import { download, testConnection } from "./features/github/github";
 import { getLogger } from "./features/log";
 import type { EchoGet, LogWatch, RemoteUpdate, RemoteWatch, RepoClone, RepoTest } from "./routes";
@@ -52,19 +52,19 @@ async function main() {
     }
 
     logger.info("Downloading files...");
-    const blob = await download(logger, remote.connection);
+    const { oid, blob } = await download(logger, remote.connection);
     if (!blob) {
       logger.info("Clone failed. Error downloading blob");
       next({ isComplete: true });
       return;
     }
 
-    logger.info("Decoding files...");
+    logger.info("Decoding blob...");
     const tarReader = new TarReader();
     await tarReader.readFile(blob);
 
     const files = tarReader.getFileInfo();
-    logger.info(`Decoded ${files.length} files`);
+    logger.info(`Filter ${files.length} files to frames`);
     const frameStartIndex = files.findIndex((file) => file.type === "directory" && file.name.endsWith("/frames/"));
     const frames: [name: string, content: string][] = [];
 
@@ -77,7 +77,17 @@ async function main() {
       frames.push([filename, tarReader.getTextFile(tarPath)!]);
     }
 
-    logger.info(`Decoded ${frames.length} frames`);
+    logger.info(`Loading ${frames.length} frames to DB`);
+
+    const dbFrames = frames.map((frame) => ({
+      id: frame[0],
+      content: frame[1],
+      dateUpdated: new Date(),
+      status: FrameStatus.Clean,
+    }));
+
+    await resetContent(db, dbFrames, oid);
+    logger.info(`Clone success`);
 
     next({ isComplete: true });
   });
