@@ -39,14 +39,15 @@ export interface TarballUrlVariables {
   owner: string;
   repo: string;
 }
-export async function clone(logger: Logger, connection: GitHubConnection) {
+export async function download(logger: Logger, connection: GitHubConnection): Promise<Blob> {
   const response = await apiV4<TarballUrlVariables, TarballUrl>(connection, TARBALL_URL, connection);
-  try {
-    const data = unwrap(response);
-    const url = data.repository.defaultBranchRef.target.tarballUrl;
-    logger.info(`Found tarball ${url}`);
-  } catch (error) {
-    logger.error(errorToString(error));
-  }
-  TARBALL_URL;
+  const data = unwrap(response);
+  const url = data.repository.defaultBranchRef.target.tarballUrl;
+  logger.info(`Found tarball ${url}`);
+
+  const blob = await fetch(url)
+    .then((response) => response.body!.pipeThrough(new (globalThis as any).DecompressionStream("gzip")))
+    .then((decompressedStream) => new Response(decompressedStream).blob());
+
+  return blob;
 }

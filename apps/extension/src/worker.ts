@@ -1,8 +1,9 @@
 import { dbAsync, getRemote, RemoteType, setRemote } from "./features/db";
-import { clone, testConnection } from "./features/github/github";
+import { download, testConnection } from "./features/github/github";
 import { getLogger } from "./features/log";
 import type { EchoGet, LogWatch, RemoteUpdate, RemoteWatch, RepoClone, RepoTest } from "./routes";
 import { addRoute, startServer } from "./utils/rpc/server-utils";
+import { TarReader } from "./utils/tar";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
 
@@ -40,22 +41,46 @@ async function main() {
   });
 
   addRoute<RepoClone>(port, "repo/clone", async (_req, next) => {
-    logger.info("Clone starting...");
+    logger.info("Clone started");
     const db = await dbAsync;
     const remote = await getRemote(db);
 
     if (!remote) {
-      next({ isComplete: true, error: "Remote does not exist" });
+      logger.info("Clone failed. Remote not found");
+      next({ isComplete: true });
       return;
     }
 
-    await clone(logger, remote.connection);
+    logger.info("Downloading files...");
+    const blob = await download(logger, remote.connection);
+    if (!blob) {
+      logger.info("Clone failed. Error downloading blob");
+      next({ isComplete: true });
+      return;
+    }
+
+    logger.info("Decoding files...");
+    const tarReader = new TarReader();
+    await tarReader.readFile(blob);
+
+    const files = tarReader.getFileInfo();
+    console.log(files);
+    const frameStartIndex = files.findIndex((file) => file.type === "directory" && file.name.endsWith("/frames/"));
+    const frames = new Map<string, string>();
+
+    console.log(tarReader.getTextFile("pax_global_header"));
+
+    // for (let i = frameStartIndex; i < files.length; i++) {
+    //   console.log([files[i].name, tarReader.getTextFile(files[i].name)]);
+    // }
+
+    console.log(blob);
 
     next({ isComplete: true });
   });
 
   addRoute<RepoTest>(port, "repo/test", async (req, next) => {
-    logger.info("Test starting...");
+    logger.info("Test... Started");
     if (req.type !== RemoteType.GitHubToken) return next({ error: "Unsupported remote", isComplete: true });
     try {
       await testConnection(logger, req.connection);
