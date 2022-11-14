@@ -1,7 +1,7 @@
 import { dbAsync, getRemote, RemoteType, setRemote } from "./features/db";
 import { testConnection } from "./features/github/github";
 import { getLogger } from "./features/log";
-import type { EchoGet, LogWatch, RemoteUpdate, RemoteWatch, RepoTest } from "./routes";
+import type { EchoGet, LogWatch, RemoteUpdate, RemoteWatch, RepoClone, RepoTest } from "./routes";
 import { addRoute, startServer } from "./utils/rpc/server-utils";
 
 declare const self: SharedWorkerGlobalScope | DedicatedWorkerGlobalScope;
@@ -37,7 +37,13 @@ async function main() {
     next({ value: undefined, isComplete: true });
   });
 
+  addRoute<RepoClone>(port, "repo/clone", async (_req, next) => {
+    logger.info("Clone starting...");
+    next({ isComplete: true });
+  });
+
   addRoute<RepoTest>(port, "repo/test", async (req, next) => {
+    logger.info("Test starting...");
     if (req.type !== RemoteType.GitHubToken) return next({ error: "Unsupported remote", isComplete: true });
     try {
       await testConnection(logger, req.connection);

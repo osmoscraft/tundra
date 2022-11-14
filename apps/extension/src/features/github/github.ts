@@ -29,3 +29,5 @@ export async function testConnection(logger: Logger, connection: GitHubConnectio
     logger.error(`${error?.name ?? "Unknown error"}: ${error?.message ?? "unknown details"}`);
   }
 }
+
+export async function clone(logger: Logger, connection: GitHubConnection) {}

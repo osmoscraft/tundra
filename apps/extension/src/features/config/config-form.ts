@@ -1,4 +1,4 @@
-import type { LogWatch, RemoteUpdate, RemoteWatch, RepoTest } from "../../routes";
+import type { LogWatch, RemoteUpdate, RemoteWatch, RepoClone, RepoTest } from "../../routes";
 import { attachHtml } from "../../utils/dom/factory";
 import { request, subscribe } from "../../utils/rpc/client-utils";
 import { RemoteType } from "../db";
@@ -10,6 +10,7 @@ export class ConfigElement extends HTMLElement {
   cleanupFns: Function[] = [];
   formElement = this.shadowRoot.querySelector("form")!;
   testElement = this.shadowRoot.querySelector<HTMLButtonElement>(`[data-action="test"]`)!;
+  cloneElement = this.shadowRoot.querySelector<HTMLButtonElement>(`[data-action="clone"]`)!;
   statusElement = this.shadowRoot.querySelector<HTMLDivElement>("#output");
 
   connectedCallback() {
@@ -37,11 +38,7 @@ export class ConfigElement extends HTMLElement {
 
     this.testElement.addEventListener("click", async () => {
       const formData = new FormData(this.shadowRoot.querySelector("form")!);
-      const unsub = subscribe<LogWatch>(port, "log/watch", (data) => {
-        const logEntry = document.createElement("div");
-        logEntry.innerHTML = data.value!.message;
-        this.statusElement?.appendChild(logEntry);
-      });
+      const stopLogging = startLogging(this.statusElement!);
       try {
         await request<RepoTest>(port, "repo/test", {
           type: RemoteType.GitHubToken,
@@ -52,7 +49,26 @@ export class ConfigElement extends HTMLElement {
           },
         });
       } finally {
-        unsub();
+        stopLogging();
+      }
+    });
+
+    this.cloneElement.addEventListener("click", async () => {
+      const formData = new FormData(this.shadowRoot.querySelector("form")!);
+      const stopLogging = startLogging(this.statusElement!);
+      try {
+        await request<RemoteUpdate>(port, "remote/update", {
+          type: RemoteType.GitHubToken,
+          connection: {
+            owner: formData.get("owner") as string,
+            repo: formData.get("repo") as string,
+            token: formData.get("token") as string,
+          },
+        });
+
+        await request<RepoClone>(port, "repo/clone");
+      } finally {
+        stopLogging();
       }
     });
   }
@@ -60,4 +76,14 @@ export class ConfigElement extends HTMLElement {
   disconnectedCallback() {
     this.cleanupFns.forEach((f) => f());
   }
+}
+
+function startLogging(statusElement: HTMLElement) {
+  const stop = subscribe<LogWatch>(port, "log/watch", (data) => {
+    const logEntry = document.createElement("div");
+    logEntry.innerHTML = data.value!.message;
+    statusElement.appendChild(logEntry);
+  });
+
+  return stop;
 }
