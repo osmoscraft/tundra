@@ -64,17 +64,20 @@ async function main() {
     await tarReader.readFile(blob);
 
     const files = tarReader.getFileInfo();
-    console.log(files);
+    logger.info(`Decoded ${files.length} files`);
     const frameStartIndex = files.findIndex((file) => file.type === "directory" && file.name.endsWith("/frames/"));
-    const frames = new Map<string, string>();
+    const frames: [name: string, content: string][] = [];
 
-    console.log(tarReader.getTextFile("pax_global_header"));
+    // Caveat: tar file name length limit may cause frame files to lose prefix
+    for (let i = frameStartIndex + 1; i < files.length; i++) {
+      if (files[i].type !== "file") break;
+      const tarPath = files[i].name;
+      const filename = tarPath.slice(tarPath.lastIndexOf("/") + 1);
 
-    // for (let i = frameStartIndex; i < files.length; i++) {
-    //   console.log([files[i].name, tarReader.getTextFile(files[i].name)]);
-    // }
+      frames.push([filename, tarReader.getTextFile(tarPath)!]);
+    }
 
-    console.log(blob);
+    logger.info(`Decoded ${frames.length} frames`);
 
     next({ isComplete: true });
   });
