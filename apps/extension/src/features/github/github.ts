@@ -1,5 +1,6 @@
-import type { Logger } from "../log";
+import { errorToString, Logger } from "../log";
 import { apiV4, unwrap } from "./api-proxy";
+import TARBALL_URL from "./queries/tarball-url.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
 
 export interface GitHubConnection {
@@ -17,17 +18,35 @@ export async function testConnection(logger: Logger, connection: GitHubConnectio
   const response = await apiV4<undefined, TestConnection>(connection, TEST_CONNECTION);
   try {
     const data = unwrap(response);
-    const login = data?.viewer?.login;
-    if (!login) {
-      logger.error(`Error getting user login info`);
-      return false;
-    }
-
+    const login = data.viewer.login;
     logger.info(`Successfully logged in as "${login}"`);
     return true;
-  } catch (error: any) {
-    logger.error(`${error?.name ?? "Unknown error"}: ${error?.message ?? "unknown details"}`);
+  } catch (error) {
+    logger.error(errorToString(error));
   }
 }
 
-export async function clone(logger: Logger, connection: GitHubConnection) {}
+export interface TarballUrl {
+  repository: {
+    defaultBranchRef: {
+      target: {
+        tarballUrl: string;
+      };
+    };
+  };
+}
+export interface TarballUrlVariables {
+  owner: string;
+  repo: string;
+}
+export async function clone(logger: Logger, connection: GitHubConnection) {
+  const response = await apiV4<TarballUrlVariables, TarballUrl>(connection, TARBALL_URL, connection);
+  try {
+    const data = unwrap(response);
+    const url = data.repository.defaultBranchRef.target.tarballUrl;
+    logger.info(`Found tarball ${url}`);
+  } catch (error) {
+    logger.error(errorToString(error));
+  }
+  TARBALL_URL;
+}

@@ -1,5 +1,5 @@
 import { dbAsync, getRemote, RemoteType, setRemote } from "./features/db";
-import { testConnection } from "./features/github/github";
+import { clone, testConnection } from "./features/github/github";
 import { getLogger } from "./features/log";
 import type { EchoGet, LogWatch, RemoteUpdate, RemoteWatch, RepoClone, RepoTest } from "./routes";
 import { addRoute, startServer } from "./utils/rpc/server-utils";
@@ -31,14 +31,26 @@ async function main() {
   });
 
   addRoute<RemoteUpdate>(port, "remote/update", async (req, next) => {
+    logger.info("Updating remote...");
     const db = await dbAsync;
     await setRemote(db, req);
     remoteTopic.dispatchEvent(new Event("change"));
+    logger.info("Updating remote... Success");
     next({ value: undefined, isComplete: true });
   });
 
   addRoute<RepoClone>(port, "repo/clone", async (_req, next) => {
     logger.info("Clone starting...");
+    const db = await dbAsync;
+    const remote = await getRemote(db);
+
+    if (!remote) {
+      next({ isComplete: true, error: "Remote does not exist" });
+      return;
+    }
+
+    await clone(logger, remote.connection);
+
     next({ isComplete: true });
   });
 

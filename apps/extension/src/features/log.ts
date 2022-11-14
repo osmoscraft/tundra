@@ -24,3 +24,7 @@ export function getLogger(eventTarget: EventTarget): Logger {
     error: logInternal.bind(null, "error"),
   };
 }
+
+export function errorToString(error: unknown) {
+  return `${(error as Error)?.name ?? "Unknown error"}: ${(error as Error)?.message ?? "no details available"}`;
+}

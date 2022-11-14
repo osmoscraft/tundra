@@ -1,4 +1,4 @@
-import { migrate, Migration, openDB, storesTx } from "../utils/idb/idb";
+import { migrate, Migration, openDB, storesTx } from "../utils/idb";
 import type { GitHubConnection } from "./github/github";
 
 export type RemoteSchema = {

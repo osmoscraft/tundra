@@ -23,17 +23,22 @@ export class ConfigElement extends HTMLElement {
       })
     );
 
-    this.shadowRoot.addEventListener("submit", (e) => {
+    this.shadowRoot.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = new FormData(this.shadowRoot.querySelector("form")!);
-      request<RemoteUpdate>(port, "remote/update", {
-        type: RemoteType.GitHubToken,
-        connection: {
-          owner: formData.get("owner") as string,
-          repo: formData.get("repo") as string,
-          token: formData.get("token") as string,
-        },
-      });
+      const stopLogging = startLogging(this.statusElement!);
+      try {
+        const formData = new FormData(this.shadowRoot.querySelector("form")!);
+        await request<RemoteUpdate>(port, "remote/update", {
+          type: RemoteType.GitHubToken,
+          connection: {
+            owner: formData.get("owner") as string,
+            repo: formData.get("repo") as string,
+            token: formData.get("token") as string,
+          },
+        });
+      } finally {
+        stopLogging();
+      }
     });
 
     this.testElement.addEventListener("click", async () => {

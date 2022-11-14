@@ -2,17 +2,17 @@ export function apiV3<T>(init: RequestInit, url: string) {
   return fetch(url, init).then((res) => res.json()) as Promise<T>;
 }
 
-export function apiV4<TInput = any, TOutput = any>(
+export function apiV4<TInput = undefined, TOutput = any>(
   context: { owner: string; token: string },
   query: string,
-  input?: TInput
+  ...args: TInput extends undefined ? [] : [variables: TInput]
 ): Promise<{ data: TOutput; errors?: any[] }> {
   return fetch("https://api.github.com/graphql", {
     ...getGitHubInit(context),
     method: "POST",
     body: JSON.stringify({
       query,
-      variables: input,
+      variables: args[0],
     }),
   })
     .then((res) => {
