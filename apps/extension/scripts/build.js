@@ -94,6 +94,9 @@ async function build() {
       bundle: true,
       format: "iife",
       sourcemap: isDev ? "inline" : true,
+      loader: {
+        ".graphql": "text",
+      },
       watch: getWatcher(isDev, "worker"),
       minify: !isDev,
       define,

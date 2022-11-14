@@ -34,9 +34,9 @@ export function addRoute<T extends Route>(
   channel: ChannelOf<T>,
   handler: (
     req: RequestOf<T>,
-    next: (res: ObservedData<ResponseOf<T>>) => any,
+    next: (res: Partial<ObservedData<ResponseOf<T>>>) => any,
     onAbort: (handleAbort: OnAbort) => void
-  ) => void | OnAbort | Promise<void> | Promise<OnAbort>
+  ) => any
 ) {
   const onMessageEvent = async (event: Event) => {
     const { channel: receivedChannel, data, sid, isAbort } = (event as MessageEvent).data;

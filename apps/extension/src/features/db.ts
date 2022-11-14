@@ -1,4 +1,5 @@
 import { migrate, Migration, openDB, storesTx } from "../utils/idb/idb";
+import type { GitHubConnection } from "./github/github";
 
 export type RemoteSchema = {
   type: RemoteType.GitHubToken;
@@ -41,12 +42,6 @@ export interface FrameChangeItem {
 
 export const enum RemoteType {
   GitHubToken = 1,
-}
-
-export interface GitHubConnection {
-  owner: string;
-  repo: string;
-  token: string;
 }
 
 export const migration01: Migration = (db: IDBDatabase) => {

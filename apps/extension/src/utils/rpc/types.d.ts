@@ -5,11 +5,11 @@ export interface PortMessage {
   sid: string;
 }
 
-export interface ObservedData<T = any> {
-  value: T;
+export type ObservedData<T = any> = {
+  value?: T;
   error?: any;
   isComplete?: boolean;
-}
+};
 
 export type Route<PathType = string, RequestType = any, ResponseType = any> = {
   path: PathType;
