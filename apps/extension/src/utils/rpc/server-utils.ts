@@ -1,19 +1,18 @@
 import type { ChannelOf, ObservedData, RequestOf, ResponseOf, Route } from "./types";
 
 export async function startServer(
-  worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope
-): Promise<MessagePort | DedicatedWorkerGlobalScope> {
-  return new Promise((resolve) => {
-    if (isDedicatedWorker(worker)) {
-      resolve(worker);
-    } else {
-      worker.addEventListener("connect", async (connectEvent) => {
-        const port = connectEvent.ports[0];
-        port.start();
-        resolve(port);
-      });
-    }
-  });
+  worker: DedicatedWorkerGlobalScope | SharedWorkerGlobalScope,
+  onConnection: (port: MessagePort | DedicatedWorkerGlobalScope) => any
+) {
+  if (isDedicatedWorker(worker)) {
+    onConnection(worker);
+  } else {
+    worker.addEventListener("connect", async (connectEvent) => {
+      const port = connectEvent.ports[0];
+      port.start();
+      onConnection(port);
+    });
+  }
 }
 
 function isDedicatedWorker(
