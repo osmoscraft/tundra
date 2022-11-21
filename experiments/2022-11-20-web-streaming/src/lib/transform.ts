@@ -28,3 +28,20 @@ export const map = <In = any, Out = any>(fn: any, streamIn: ReadableStream<In>) 
 
   return streamIn.pipeThrough(transform);
 };
+
+export const mapV2 = (fn: any) => () => {
+  return new TransformStream({
+    transform: (value, controller) => {
+      controller.enqueue(fn(value));
+    },
+  });
+};
+
+export const tapV2 = (fn: any) => () => {
+  return new TransformStream({
+    transform: (value, controller) => {
+      fn(value);
+      controller.enqueue(value);
+    },
+  });
+};

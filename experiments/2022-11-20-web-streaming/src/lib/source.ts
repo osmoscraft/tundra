@@ -37,3 +37,12 @@ export const clickSourceV2 = (element: Element) =>
 
     return () => element.removeEventListener("click", handler);
   });
+
+export const clickSourceV3 = (element: Element) => () =>
+  createSource<Event>((next) => {
+    const handler = (e: Event) => next(e);
+
+    element.addEventListener("click", handler);
+
+    return () => element.removeEventListener("click", handler);
+  });
