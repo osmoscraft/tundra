@@ -18,3 +18,13 @@ export const tap = (fn: any) => {
     },
   });
 };
+
+export const map = <In = any, Out = any>(fn: any, streamIn: ReadableStream<In>) => {
+  const transform = new TransformStream<In, Out>({
+    transform: (value, controller) => {
+      controller.enqueue(fn(value));
+    },
+  });
+
+  return streamIn.pipeThrough(transform);
+};
