@@ -1,9 +1,8 @@
 export default {};
 
-let element = document.querySelector("#emit")!;
-let onClick: any = () => {};
-const clickStream = () =>
-  new ReadableStream<Event>({
+const clickStream = (element: Element) => {
+  let onClick: any = () => {};
+  return new ReadableStream<Event>({
     start(controller) {
       console.log("click handler registered");
       onClick = (e: Event) => {
@@ -18,22 +17,36 @@ const clickStream = () =>
       element.removeEventListener("click", onClick);
     },
   });
+};
 
-const renderStream = () =>
-  new WritableStream<Event>({
+const renderStream = () => {
+  return new WritableStream<Event>({
     write: (chunk) => console.log(`wrote`, chunk),
     close: () => console.log("handle render stream closed"),
   });
+};
 
 const subscribeOnce = () => {
-  const abort = new AbortController();
-  clickStream()
-    .pipeTo(renderStream(), { signal: abort.signal })
-    .catch((rej) => console.log("rejection", rej));
+  const stdout = renderStream();
+  const writer = stdout.getWriter();
+  const stream = clickStream(document.querySelector("#emit")!);
+  const reader = stream.getReader();
+
+  new Promise<void>(async () => {
+    while (true) {
+      const result = await reader.read();
+      console.log("New value read", result);
+      if (result.done) return;
+
+      writer.write(result.value);
+    }
+  });
 
   return () => {
-    console.log("Will cancel stream");
-    abort.abort("User cancel");
+    console.log("Closing writer");
+    writer.close();
+    console.log("Cancel reader");
+    reader.cancel();
   };
 };
 
