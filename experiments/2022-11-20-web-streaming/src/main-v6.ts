@@ -1,6 +1,6 @@
-import { renderSink } from "./lib/sink";
+import { logSink } from "./lib/sink";
 import { clickSource } from "./lib/source";
-import { counterStream, tap } from "./lib/transform";
+import { counterStream } from "./lib/transform";
 
 export default {};
 
@@ -10,8 +10,7 @@ const subscribeOnce = () => {
   const abort = new AbortController();
   clickSource(document.querySelector("#emit")!)
     .pipeThrough(counterStream())
-    .pipeThrough(tap(console.log))
-    .pipeTo(renderSink(document.querySelector("#output")!), { signal: abort.signal })
+    .pipeTo(logSink(), { signal: abort.signal })
     .catch((reason) => {
       if (reason !== cancelToken) throw reason;
     });
