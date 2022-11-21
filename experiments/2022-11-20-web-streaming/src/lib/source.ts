@@ -10,3 +10,26 @@ export const clickSource = (element: Element) => {
     },
   });
 };
+
+export const createSource = <T = any>(sourceFn: (next: (value: T) => void) => () => void) => {
+  let unsubscribe: any = () => {};
+
+  const stream = new ReadableStream<T>({
+    start: (controller) => {
+      const next = (value: T) => controller.enqueue(value);
+      unsubscribe = sourceFn(next);
+    },
+    cancel: () => unsubscribe(),
+  });
+
+  return stream;
+};
+
+export const clickSourceV2 = (element: Element) =>
+  createSource<Event>((next) => {
+    const handler = (e: Event) => next(e);
+
+    element.addEventListener("click", handler);
+
+    return () => element.removeEventListener("click", handler);
+  });
