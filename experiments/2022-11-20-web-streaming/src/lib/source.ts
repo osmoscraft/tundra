@@ -14,13 +14,17 @@ export const clickSource = (element: Element) => {
 export const createSource = <T = any>(sourceFn: (next: (value: T) => void) => () => void) => {
   let unsubscribe: any = () => {};
 
-  const stream = new ReadableStream<T>({
-    start: (controller) => {
-      const next = (value: T) => controller.enqueue(value);
-      unsubscribe = sourceFn(next);
+  const stream = new ReadableStream<T>(
+    {
+      pull: (controller) =>
+        new Promise(() => {
+          const next = (value: T) => controller.enqueue(value);
+          unsubscribe = sourceFn(next);
+        }),
+      cancel: () => unsubscribe(),
     },
-    cancel: () => unsubscribe(),
-  });
+    { highWaterMark: 0 }
+  );
 
   return stream;
 };
