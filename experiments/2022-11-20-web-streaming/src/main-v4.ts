@@ -1,7 +1,8 @@
 export default {};
 
+let element = document.querySelector("#emit")!;
 let onClick: any = () => {};
-const clickStream = (element: Element) =>
+const clickStream = () =>
   new ReadableStream<Event>({
     start(controller) {
       console.log("click handler registered");
@@ -19,22 +20,14 @@ const clickStream = (element: Element) =>
   });
 
 const renderStream = () =>
-  new WritableStream<any>({
-    write: (chunk) => console.log(`render`, chunk),
+  new WritableStream<Event>({
+    write: (chunk) => console.log(`wrote`, chunk),
     close: () => console.log("handle render stream closed"),
   });
 
-const counterStream = () => {
-  let count = 0;
-  return new TransformStream<Event, number>({
-    transform: (_chunk, controller) => controller.enqueue(++count),
-  });
-};
-
 const subscribeOnce = () => {
   const abort = new AbortController();
-  clickStream(document.querySelector("#emit")!)
-    .pipeThrough(counterStream())
+  clickStream()
     .pipeTo(renderStream(), { signal: abort.signal })
     .catch((rej) => console.log("rejection", rej));
 
