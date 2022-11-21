@@ -1,6 +1,6 @@
 import { Observable } from "./lib/observable";
-import { clickSourceV3 } from "./lib/source";
-import { counterStream, mapV2, tapV2 } from "./lib/transform";
+import { clickSourceV3, ofSource } from "./lib/source";
+import { counterStream, mapAsync, mapV2, tapV2 } from "./lib/transform";
 
 export default {};
 
@@ -17,3 +17,20 @@ document.querySelector("#start")!.addEventListener("click", () => {
 document.querySelector("#stop")!.addEventListener("click", () => {
   stop();
 });
+
+const i = setInterval(() => console.log("tick"), 0);
+setTimeout(() => {
+  const $$ = ["A", "B", "C", "D"]
+    .map((x) =>
+      new Observable(ofSource(1))
+        .pipe(tapV2(() => console.log(x)))
+        .pipe(mapAsync((i: any) => i))
+        .pipe(tapV2(() => console.log(x)))
+        .pipe(mapAsync((i: any) => i))
+        .pipe(tapV2(() => console.log(x)))
+        .pipe(tapV2(() => console.log(x)))
+    )
+    .map((obs) => obs.subscribe(() => {}));
+}, 10);
+
+setTimeout(() => clearInterval(i), 100);

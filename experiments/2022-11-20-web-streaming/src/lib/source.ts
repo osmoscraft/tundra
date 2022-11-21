@@ -46,3 +46,9 @@ export const clickSourceV3 = (element: Element) => () =>
 
     return () => element.removeEventListener("click", handler);
   });
+
+export const ofSource = (v: any) => () =>
+  createSource((next) => {
+    next(v);
+    return () => {};
+  });

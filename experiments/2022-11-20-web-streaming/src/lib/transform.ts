@@ -29,6 +29,18 @@ export const map = <In = any, Out = any>(fn: any, streamIn: ReadableStream<In>) 
   return streamIn.pipeThrough(transform);
 };
 
+export const mapAsync = (fn: any) => () => {
+  return new TransformStream({
+    transform: async (value, controller) => {
+      return new Promise(() => {
+        setTimeout(async () => {
+          controller.enqueue(await fn(value));
+        }, Math.random() * 5);
+      });
+    },
+  });
+};
+
 export const mapV2 = (fn: any) => () => {
   return new TransformStream({
     transform: (value, controller) => {
