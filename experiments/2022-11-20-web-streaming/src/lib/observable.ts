@@ -1,3 +1,15 @@
+export type AbstractSource = () => {
+  onStart?: () => {};
+  onPull?: () => {};
+  onEnd?: () => {};
+};
+
+export type AbstractTransform = () => {
+  onStart?: () => {};
+  onTranform: () => {};
+  onEnd?: () => {};
+};
+
 export class Observable {
   private static CANCEL_SIGNAL = Symbol("CANCEL_SIGNAL");
 
