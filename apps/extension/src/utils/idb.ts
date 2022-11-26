@@ -7,10 +7,14 @@ export function openDB(name: string, version: number, handleUpgrade: (e: IDBVers
   });
 }
 
-export type Migration = (db: IDBDatabase) => any;
+export type Migration = (db: IDBDatabase, tx: IDBTransaction) => any;
 
 export const migrate = (migrations: Migration[]) => (event: IDBVersionChangeEvent) =>
-  migrations.slice(event.oldVersion, event.newVersion!).map((migrate) => migrate((event.target as any).result as IDBDatabase));
+  migrations
+    .slice(event.oldVersion, event.newVersion!)
+    .map((migrate) =>
+      migrate((event.target as any).result as IDBDatabase, (event.target as any).transaction as IDBTransaction)
+    );
 
 export function storesTx<ResultType>(
   db: IDBDatabase,
@@ -57,7 +61,9 @@ function wrapStore(store: IDBObjectStore) {
   }) as any as IDBPromiseObjectStore;
 }
 
-type PromisifyIDBRequest<ReqType extends IDBRequest> = ReqType extends IDBRequest<infer ReturnType> ? Promise<ReturnType> : never;
+type PromisifyIDBRequest<ReqType extends IDBRequest> = ReqType extends IDBRequest<infer ReturnType>
+  ? Promise<ReturnType>
+  : never;
 
 type IDBPromiseObjectStore = {
   [key in keyof IDBObjectStore]: IDBObjectStore[key] extends (...args: infer ArgsType) => IDBRequest<infer T>
