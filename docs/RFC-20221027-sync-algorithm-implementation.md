@@ -25,6 +25,9 @@
     - No CORS friendly API
     - GraphQL can return tarball/zip URL
     - With Browser extension CORS header override, the tarball/zip URL can be fetched in browser
+      - Prefer zip to tarball due to path ambiguity in the tarball format
+      - Zip output should ideally be a byte stream to optimize unzipping performance
+        - Explored in /experiments/2022-11-12-gh-clone-with-untar
     - Need Web Compression API or pako.js to decompress the binary
     - Could be a solution for manual import
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
