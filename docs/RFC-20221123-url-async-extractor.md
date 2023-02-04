@@ -1,0 +1,6 @@
+- Problem
+  - Each URL have two "faces"
+    - The front side contains the URL name contextualized to the current page
+      - The display name is available on the viewing page
+    - The back side contains the source name without context
+      - The display name requires an extra hop to extra and is not immediately available

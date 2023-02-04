@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lens</title>
+    <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
+    <link rel="stylesheet" href="./styles/popup.css" />
+  </head>
+  <body>
+    <h1>Hello lens</h1>
+    <button data-action="scan">Scan</button>
+    <button data-action="capture"><span id="capture-checkmark" hidden>✓ </span>Capture</button>
+    <details>
+      <summary><span id="out-node-count">0</span> out</summary>
+      <ul id="out-nodes"></ul>
+    </details>
+    <details>
+      <summary><span id="in-node-count">0</span> in</summary>
+      <ul id="in-nodes"></ul>
+    </details>
+    <details>
+      <summary><span id="out-edge-count">0</span> latent</summary>
+      <ul id="out-edges"></ul>
+    </details>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

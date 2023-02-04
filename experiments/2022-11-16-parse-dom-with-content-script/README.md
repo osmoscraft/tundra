@@ -1,0 +1,1 @@
+- Popup injects function into content and receive result in one round trip

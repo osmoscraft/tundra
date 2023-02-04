@@ -1,0 +1,6 @@
+- Script JIT injection + RPC vs. Script pre-install + messaging
+  - JIT increase message 20ms latency
+- Pre-execution and store in background vs. Script pre-install + messaging
+  - Background thread communication still increase 10ms latency after saving 10ms by pre-execution
+  - If execution is longer than 20ms, Background pre-execution will become better solution
+- Untested: Communicate with persistent port

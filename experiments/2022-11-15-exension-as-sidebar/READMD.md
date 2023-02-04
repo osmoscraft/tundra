@@ -1,0 +1,6 @@
+- Pros:
+  - Visually integrated
+  - Proven by VisBug
+- Cons:
+  - Doesn't work on YouTube due to prototype pollution on CustomElements
+  - Loading takes several jumps. [See RFC](../../docs/RFC-20221114-boot.md)

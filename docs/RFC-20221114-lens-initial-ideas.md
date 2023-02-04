@@ -1,0 +1,5 @@
+- On-page real-time search
+- Structured view: nested lists
+- Link quality assessment
+- Noise reduction, ad removal
+- Personal browsing tools

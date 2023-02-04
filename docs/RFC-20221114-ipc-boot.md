@@ -1,0 +1,9 @@
+- Use web component for style isolation
+- Content script
+  - Cannot create web component
+  - Can request js files from extension
+- Boot sequence
+  - Service worker injects content script
+  - Content script get extension web UI js, injects as script tag
+  - web UI loads
+- Ref: https://github.com/GoogleChromeLabs/ProjectVisBug

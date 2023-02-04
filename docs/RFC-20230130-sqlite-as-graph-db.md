@@ -1,0 +1,33 @@
+# SQLite
+
+- SQLite wasm library is available to all browser
+  - Compiled with FTS5 and JSON extensions
+- Origin Private Filesystem (OPFS) is available on Chrome and Safari
+  - High performance storage backend with persistence to local files
+- Content can be modeled with 3 tables
+- Document table
+  - guid: base62 uuid
+  - urlList: whitespace separated list of URLs. The first one is considered canonical while others considered alternative
+  - title: optional
+  - createdOn: timestamp
+  - updatedOn: timestamp
+  - outboundUrlList: whilespace separated list of URLs, referenced by this document
+  - body: optional text content
+  - data: optional structured data
+- Graph Index
+  - urlList: index for document.urlList
+  - outboundUrlList: index for document.outboundUrlList
+  - tokenizer should treat all URL characters as valid token chars
+- Content index
+  - title: index for document.title
+  - content: index for document.content
+- How does Graph query work?
+  - Find inbound captured nodes (pseudocode)
+    - `SELECT * FROM graph_idx MATCH {outboundUrlList} : urlList_item1 OR urlList_item2 OR urlList_item3`
+  - Find outbound captured nodes
+    - `SELECT * FROM graph_idx MATCH {urlList} : outboundUrlList_item1 OR outboundUrlList_item2 OR outboundUrlList_item3`
+  - Find outbound nodes shared by other captured nodes
+    - `SELECT * FROM graph_idx MATCH {outboundUrlList} : outboundUrlList_item1 OR outboundUrlList_item2 OR outboundUrlList_item3`
+- Triggers are used to push Docment table changes into Graph and Content index
+- Results are ranked by default bm25, a good proxy to estimate similarity by number of shared URLs between two node
+- Data synchronization can be performed with GitHub/GitLab API, diffing between commits

@@ -1,0 +1,31 @@
+- Graphs
+  - People
+    - By co-appearance
+    - By mentioned on blogs
+  - Paper
+    - Citation graph
+  - Code repository
+    - Dependency graph
+- Interesting relationship
+  - People both mentioned in the same article/podcast/youtube video
+  - One blog article referenced by other blog articles
+  - One code repo mentioned in the README by another repo as inspiration
+- Relationship schemas
+  - src entity - |relationship| -> target entity
+- Entity
+  - Webpage (Basic)
+  - Note
+  - Topic
+  - Person
+    - Author
+    - Appearance
+  - Article: Post, Episode, Video
+  - Media: Blog, Magazine, Digest, Podcast, Channel
+- Relationship
+  - Referenced (Basic, anonymous asystemmetric)
+  - Related to (anonymous systemmetric)
+  - Contains (spatial)
+  - Afer (temporal)
+  - Leads to (causal)
+  - Agrees with/Contradicts (logical)
+  - Is one of (collection)

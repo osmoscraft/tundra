@@ -1,0 +1,3 @@
+- Background injects content
+- Content eager crawl and send to background
+- Popup fetch from background

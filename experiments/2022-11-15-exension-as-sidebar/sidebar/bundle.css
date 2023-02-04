@@ -1,0 +1,15 @@
+lens-sidebar-element {
+  color-scheme: light dark;
+  font-family: monospace;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  bottom: 20px;
+  width: clamp(320px, 30vw, 600px);
+  background-color: Canvas;
+  border: 1px solid ButtonBOrder;
+  border-radius: 8px;
+  overflow: hidden;
+
+  z-index: 2147483640; /* stay below VisBug: https://github.com/GoogleChromeLabs/ProjectVisBug/blob/main/app/components/_variables.css */
+}
