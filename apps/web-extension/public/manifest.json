@@ -18,17 +18,7 @@
     "128": "/images/icon@128.png"
   },
   "options_page": "options.html",
-  "permissions": ["activeTab", "declarativeNetRequest"],
-  "host_permissions": ["*://*.github.com/*"],
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "ruleset_1",
-        "enabled": true,
-        "path": "rules.json"
-      }
-    ]
-  },
+  "permissions": ["activeTab"],
   "cross_origin_embedder_policy": {
     "value": "require-corp"
   },
