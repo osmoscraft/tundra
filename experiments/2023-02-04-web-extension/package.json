@@ -8,8 +8,8 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/chrome": "^0.0.200",
-    "@types/node": "^18.11.9",
+    "@types/chrome": "^0.0.212",
+    "@types/node": "^18.11.18",
     "esbuild": "^0.15.13"
   },
   "dependencies": {}
