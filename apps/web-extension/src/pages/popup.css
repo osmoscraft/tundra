@@ -1,7 +1,7 @@
 @layer variables, reset, defaults;
 
-@import url("./styles/reset.css") layer(reset);
-@import url("./styles/defaults.css") layer(defaults);
+@import url("../styles/reset.css");
+@import url("../styles/defaults.css");
 
 body {
   width: 30rem;

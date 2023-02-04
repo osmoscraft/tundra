@@ -3,11 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "concurrently --raw npm:dev:*",
+    "dev": "rm -rf dist && concurrently --raw npm:dev:*",
     "build": "rm -rf dist && concurrently --raw npm:build:* && npm run pack",
     "dev:pages": "npm run build:pages -- --watch",
     "dev:assets": "npm run build:assets -- --watch",
-    "build:pages": "esbuild src/*-page.ts --bundle --outdir=dist/unpacked",
+    "build:pages": "esbuild src/pages/*.ts --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked"
   },

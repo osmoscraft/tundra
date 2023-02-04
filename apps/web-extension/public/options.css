@@ -1,9 +1,0 @@
-@layer variables, reset, defaults;
-
-@import url("./styles/reset.css") layer(reset);
-@import url("./styles/defaults.css") layer(defaults);
-
-body {
-  font-size: 100%;
-  font-family: monospace;
-}
