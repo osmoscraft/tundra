@@ -1,0 +1,21 @@
+{
+  "name": "web-extension",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "concurrently --raw npm:dev:*",
+    "build": "rm -rf dist && concurrently --raw npm:build:*",
+    "dev:pages": "npm run build:pages -- --watch",
+    "dev:assets": "npm run build:assets -- --watch",
+    "build:pages": "esbuild src/*-page.ts --bundle --outdir=dist/unpacked",
+    "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/chrome": "^0.0.212",
+    "@types/node": "^18.11.18",
+    "concurrently": "^7.6.0",
+    "esbuild": "^0.17.5"
+  },
+  "dependencies": {}
+}

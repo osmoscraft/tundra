@@ -1,0 +1,10 @@
+@layer variables, reset, defaults;
+
+@import url("./styles/reset.css") layer(reset);
+@import url("./styles/defaults.css") layer(defaults);
+
+body {
+  width: 30rem;
+  font-size: 100%;
+  font-family: monospace;
+}
