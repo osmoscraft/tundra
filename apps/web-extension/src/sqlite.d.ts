@@ -1,6 +1,12 @@
 export interface Sqlite3Db {
   exec: DbExec;
   prepare: (sql: string) => Statement;
+  selectArray: (sql: string) => any[];
+  selectArrays: (sql: string) => any[][];
+  selectObject: (sql: string) => Record<string, any>;
+  selectObjects: (sql: string) => Record<string, any>[];
+  selectValue: (sql: string) => any;
+  selectValues: (sql: string) => any[];
   close: () => void;
 }
 
