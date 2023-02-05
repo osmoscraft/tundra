@@ -1,0 +1,1 @@
+INSERT INTO node VALUES (:id, :urls, :target_urls, :title);

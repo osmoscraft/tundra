@@ -28,7 +28,10 @@ declare namespace Sqlite3 {
   }
 
   export interface ExecConfig {
-    sql: string;
+    sql?: string;
+    /**
+     * a single value valid as an argument for `Stmt.bind()`. This is only applied to the first non-empty statement in the SQL which has any bindable parameters.
+     */
     bind?: BindValue | Record<string, BindValue> | BindValue[];
     saveSql?: any[]; // TODO refine typing
     returnValue?: "this" | "resultRows" | "saveSql";

@@ -1,4 +1,4 @@
-INSERT INTO document VALUES
+INSERT INTO node VALUES
   ('id_01', 'https://alpha.com', 'https://bravo-alt.com', 'Apple'),
   ('id_02', 'https://bravo.com https://bravo-alt.com', 'https://charlie.com', 'Apple v2'),
   ('id_03', 'https://delta.com', 'https://alpha.com https://bravo.com', 'Orange'),
