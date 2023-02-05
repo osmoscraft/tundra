@@ -1,4 +1,4 @@
-import type { Sqlite3Db } from "./sqlite";
+import type { Sqlite3Db } from "./typings/sqlite";
 declare const self: DedicatedWorkerGlobalScope;
 
 const start = async function (sqlite3: any) {
@@ -46,24 +46,12 @@ async function main() {
   console.log("[worker] online");
 
   if (self.crossOriginIsolated) {
-    importScripts("sqlite3/sqlite3.js");
+    // assign path to a `const` to prevent bundler from analyzing the import of static assets
+    const sqlite3Entry = "./sqlite3/sqlite3.mjs";
+    import(sqlite3Entry).then((entry) => entry.default()).then(start);
   } else {
     console.error("[worker] Disabled: crossOriginIsolated");
   }
-
-  (self as any)
-    .sqlite3InitModule({
-      print: console.log,
-      printErr: console.error,
-    })
-    .then(function (sqlite3: any) {
-      console.log("Done initializing. Running demo...");
-      try {
-        start(sqlite3);
-      } catch (e: any) {
-        console.error("Exception:", e.message);
-      }
-    });
 }
 
 main();

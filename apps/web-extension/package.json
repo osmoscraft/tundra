@@ -10,7 +10,7 @@
     "dev:worker": "npm run build:worker -- --watch",
     "build:pages": "esbuild src/pages/*.ts --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
-    "build:worker": "esbuild src/worker.ts --format=iife --bundle --outdir=dist/unpacked",
+    "build:worker": "esbuild src/worker.ts  --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked"
   },
   "type": "module",

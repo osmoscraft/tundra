@@ -22,7 +22,7 @@ export default async function main() {
   //     console.log(event2.result);
   //   },
   // });
-  const worker = new Worker("./worker.js?sqlite3.dir=sqlite3");
+  const worker = new Worker("./worker.js", { type: "module" });
   document.querySelector("#download")!.addEventListener("click", () => {
     worker.postMessage({ name: "request-download" });
   });
