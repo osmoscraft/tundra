@@ -10,7 +10,7 @@ const start = async function (sqlite3: any) {
 
   let db: Sqlite3Db;
   if (sqlite3.opfs) {
-    db = new sqlite3.opfs.OpfsDb("/mydb.sqlite3");
+    db = new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
     log("The OPFS is available.");
   } else {
     throw new Error("OPFS is not available");

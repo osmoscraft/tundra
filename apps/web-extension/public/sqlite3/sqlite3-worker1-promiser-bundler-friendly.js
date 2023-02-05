@@ -124,20 +124,7 @@ self.sqlite3Worker1Promiser = function callee(config = callee.defaultConfig){
 };
 self.sqlite3Worker1Promiser.defaultConfig = {
   worker: function(){
-    let theJs = "sqlite3-worker1.js";
-    if(this.currentScript){
-      const src = this.currentScript.src.split('/');
-      src.pop();
-      theJs = src.join('/')+'/' + theJs;
-      
-    }else{
-      
-      const urlParams = new URL(self.location.href).searchParams;
-      if(urlParams.has('sqlite3.dir')){
-        theJs = urlParams.get('sqlite3.dir') + '/' + theJs;
-      }
-    }
-    return new Worker(theJs + self.location.search);
+    return new Worker("sqlite3-worker1.js");
   }.bind({
     currentScript: self?.document?.currentScript
   }),

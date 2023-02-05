@@ -33,13 +33,7 @@
 */
 "use strict";
 (()=>{
-  const urlParams = new URL(self.location.href).searchParams;
-  let theJs = 'sqlite3.js';
-  if(urlParams.has('sqlite3.dir')){
-    theJs = urlParams.get('sqlite3.dir') + '/' + theJs;
-  }
-  
-  importScripts(theJs);
+  importScripts('sqlite3.js');
   sqlite3InitModule().then((sqlite3)=>{
     sqlite3.initWorker1API();
   });
