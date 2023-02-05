@@ -1,38 +1,17 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
 import UPSERT_SAMPLE_DATA from "./modules/db/upsert-sample-data.sql";
-import type { Sqlite3Db } from "./typings/sqlite";
+import initSqlite3 from "./sqlite3/sqlite3.mjs";
 declare const self: DedicatedWorkerGlobalScope;
 
-const start = async function (sqlite3: any) {
-  performance.mark("inner start");
-  const log = console.log.bind(console);
+if (!self.crossOriginIsolated) {
+  throw new Error("[worker] Disabled: crossOriginIsolated");
+}
 
-  const capi = sqlite3.capi; /*C-style API*/
-  const oo = sqlite3.oo1; /*high-level OO API*/
-  log("sqlite3 version", capi.sqlite3_libversion(), capi.sqlite3_sourceid());
-
-  let db: Sqlite3Db;
-  if (sqlite3.opfs) {
-    db = new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
-    log("The OPFS is available.");
-  } else {
-    throw new Error("OPFS is not available");
-  }
-
-  try {
-    performance.mark("t3");
-    db.exec(CREATE_SCHEMA);
-    console.log("schema created", performance.measure("d", "t3").duration);
-
-    performance.mark("t4");
-    db.exec(UPSERT_SAMPLE_DATA);
-    console.log("sample inserted", performance.measure("d", "t4").duration);
-  } finally {
-    db.close();
-  }
-  console.log(performance.measure("d", "inner start").duration);
-  console.log(performance.measure("d", "start").duration);
-};
+const dbPromise = initSqlite3().then((sqlite3) => {
+  if (!sqlite3.opfs) throw new Error("OPFS is not loaded");
+  console.debug("sqlite3 version", sqlite3.capi.sqlite3_libversion(), sqlite3.capi.sqlite3_sourceid());
+  return new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
+});
 
 self.addEventListener("message", async (event) => {
   console.log(event);
@@ -50,14 +29,18 @@ self.addEventListener("message", async (event) => {
 
 async function main() {
   console.log("[worker] online");
-  performance.mark("start");
+  const db = await dbPromise;
 
-  if (self.crossOriginIsolated) {
-    // assign path to a `const` to prevent bundler from analyzing the import of static assets
-    const sqlite3Entry = "./sqlite3/sqlite3.mjs";
-    import(sqlite3Entry).then((entry) => entry.default()).then(start);
-  } else {
-    console.error("[worker] Disabled: crossOriginIsolated");
+  try {
+    performance.mark("t3");
+    db.exec(CREATE_SCHEMA);
+    console.log("schema created", performance.measure("d", "t3").duration);
+
+    performance.mark("t4");
+    db.exec(UPSERT_SAMPLE_DATA);
+    console.log("sample inserted", performance.measure("d", "t4").duration);
+  } finally {
+    db.close();
   }
 }
 
