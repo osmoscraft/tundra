@@ -1,7 +1,10 @@
+import CREATE_SCHEMA from "./modules/db/create-schema.sql";
+import UPSERT_SAMPLE_DATA from "./modules/db/upsert-sample-data.sql";
 import type { Sqlite3Db } from "./typings/sqlite";
 declare const self: DedicatedWorkerGlobalScope;
 
 const start = async function (sqlite3: any) {
+  performance.mark("inner start");
   const log = console.log.bind(console);
 
   const capi = sqlite3.capi; /*C-style API*/
@@ -17,15 +20,18 @@ const start = async function (sqlite3: any) {
   }
 
   try {
-    db.exec("CREATE TABLE IF NOT EXISTS t(a,b)");
-    db.exec({
-      sql: "INSERT INTO t(a,b) VALUES (?,?), (?,?)",
-      bind: [1, 2, 3, 4],
-    });
-    console.log(db.selectObjects("SELECT * FROM t ORDER BY a LIMIT 10"));
+    performance.mark("t3");
+    db.exec(CREATE_SCHEMA);
+    console.log("schema created", performance.measure("d", "t3").duration);
+
+    performance.mark("t4");
+    db.exec(UPSERT_SAMPLE_DATA);
+    console.log("sample inserted", performance.measure("d", "t4").duration);
   } finally {
     db.close();
   }
+  console.log(performance.measure("d", "inner start").duration);
+  console.log(performance.measure("d", "start").duration);
 };
 
 self.addEventListener("message", async (event) => {
@@ -44,6 +50,7 @@ self.addEventListener("message", async (event) => {
 
 async function main() {
   console.log("[worker] online");
+  performance.mark("start");
 
   if (self.crossOriginIsolated) {
     // assign path to a `const` to prevent bundler from analyzing the import of static assets
