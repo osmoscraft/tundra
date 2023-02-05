@@ -1,4 +1,3 @@
-import { downloadFile } from "../utils/download-file";
 import "./popup.css";
 
 export default async function main() {
@@ -7,15 +6,6 @@ export default async function main() {
   const on = (selector: string, type: string, callback: (e: Event) => any) =>
     document.querySelector(selector)?.addEventListener(type, callback);
 
-  on("#download", "click", () => {
-    worker.postMessage({ name: "request-download" });
-  });
-  on("#clear", "click", () => {
-    worker.postMessage({ name: "request-clear" });
-  });
-  on("#reset", "click", () => {
-    worker.postMessage({ name: "request-reset" });
-  });
   on("#capture-form", "submit", (e) => {
     e.preventDefault();
 
@@ -28,12 +18,6 @@ export default async function main() {
       title: captureData.get("title"),
       target_urls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href).join(" "),
     });
-  });
-
-  worker.addEventListener("message", async (msg) => {
-    if (msg.data?.name === "file-download-ready") {
-      downloadFile(msg.data.file);
-    }
   });
 
   getActiveTab()

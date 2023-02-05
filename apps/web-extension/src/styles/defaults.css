@@ -6,3 +6,11 @@ html {
   font-family: inherit;
   font-size: inherit;
 }
+
+input:where([type="text"], [type="url"], [type="search"]) {
+  padding: 0.25rem;
+}
+
+button {
+  padding: 0.25rem;
+}
