@@ -9,13 +9,16 @@
   </head>
   <body>
     <button id="download">Download DB</button>
+    <button id="clear">Clear DB</button>
     <button id="reset">Reset DB</button>
 
     <form id="capture-form">
-      <label for="omnibox">Search</label>
-      <input id="omnibox" name="omnibox" type="text" />
-      <ul id="target-url-list"></ul>
+      <label for="url">URL</label>
+      <input id="url" name="url" type="url" />
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" />
       <button type="submit">Capture</button>
+      <ul id="target-url-list"></ul>
     </form>
 
     <script type="module" src="./popup.js"></script>

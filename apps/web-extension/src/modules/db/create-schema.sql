@@ -31,7 +31,7 @@ CREATE TRIGGER IF NOT EXISTS tgr_fts_url_ai AFTER INSERT ON node BEGIN
 END;
 
 CREATE TRIGGER IF NOT EXISTS tgr_fts_url_ad AFTER DELETE ON node BEGIN
-  INSERT INTO fts_url(fts_url, rowid, url, target_urls) VALUES('delete', old.rowid, old.urls, old.target_urls);
+  INSERT INTO fts_url(fts_url, rowid, urls, target_urls) VALUES('delete', old.rowid, old.urls, old.target_urls);
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_fts_url_au AFTER UPDATE ON node BEGIN

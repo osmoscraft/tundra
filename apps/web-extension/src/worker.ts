@@ -1,4 +1,5 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
+import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
 import UPSERT_SAMPLE_DATA from "./modules/db/upsert-sample-data.sql";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
@@ -15,6 +16,8 @@ const openDb = () =>
     return new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
   });
 
+const db = await openDb();
+
 self.addEventListener("message", async (event) => {
   switch (event.data?.name) {
     case "request-download": {
@@ -24,43 +27,46 @@ self.addEventListener("message", async (event) => {
       self.postMessage({ name: "file-download-ready", file });
       break;
     }
+    case "request-clear": {
+      db.exec(DELETE_ALL_NODES);
+      break;
+    }
     case "request-reset": {
       const root = await navigator.storage.getDirectory();
       await root.removeEntry("mydb.sqlite3");
       break;
     }
     case "request-capture": {
-      const db = await openDb();
-      try {
-        db.exec(UPSERT_NODE, {
-          bind: {
-            ":id": Date.now().toString(),
-            ":urls": event.data.urls,
-            ":target_urls": event.data.target_urls,
-            ":title": event.data.title,
-          },
-        });
-      } finally {
-        db.close();
-      }
+      performance.mark("upsertNodeStart");
+      console.log(event.data);
+      db.exec(UPSERT_NODE, {
+        bind: {
+          ":id": Date.now().toString(),
+          ":urls": event.data.urls,
+          ":target_urls": event.data.target_urls,
+          ":title": event.data.title,
+        },
+      });
+      console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
     }
   }
 });
 
 async function main() {
   console.log("[worker] online");
-  const db = await openDb();
-
   try {
     performance.mark("createSchemaStart");
     db.exec(CREATE_SCHEMA);
     console.log("schema created", performance.measure("createSchema", "createSchemaStart").duration);
 
-    performance.mark("upsertSampleDataStart");
-    db.exec(UPSERT_SAMPLE_DATA);
-    console.log("sample inserted", performance.measure("upsertSampleData", "upsertSampleDataStart").duration);
+    if ((self as any).DEBUG_MODE === "true") {
+      performance.mark("upsertSampleDataStart");
+      db.exec(UPSERT_SAMPLE_DATA);
+      console.log("sample inserted", performance.measure("upsertSampleData", "upsertSampleDataStart").duration);
+    }
   } finally {
-    db.close();
+    // TODO evaludation potential memory leak with persisted db conneciton
+    // db.close();
   }
 }
 
