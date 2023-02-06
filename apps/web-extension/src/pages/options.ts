@@ -1,4 +1,6 @@
+import type { MessageToMain, RequestClear, RequestDownload, RequestReset } from "../typings/messages";
 import { downloadFile } from "../utils/download-file";
+import { postMessage } from "../utils/post-message";
 import "./options.css";
 export default async function main() {
   const worker = new Worker("./worker.js", { type: "module" });
@@ -8,20 +10,20 @@ export default async function main() {
     const action = (e.target as HTMLElement)?.closest("[data-action]")?.getAttribute("data-action");
     switch (action) {
       case "download":
-        worker.postMessage({ name: "request-download" });
+        postMessage<RequestDownload>(worker, { name: "request-download" });
         break;
       case "clear":
-        worker.postMessage({ name: "request-clear" });
+        postMessage<RequestClear>(worker, { name: "request-clear" });
         break;
       case "reset":
-        worker.postMessage({ name: "request-reset" });
+        postMessage<RequestReset>(worker, { name: "request-reset" });
         break;
     }
   });
 
-  worker.addEventListener("message", async (msg) => {
-    if (msg.data?.name === "file-download-ready") {
-      downloadFile(msg.data.file);
+  worker.addEventListener("message", async (event: MessageEvent<MessageToMain>) => {
+    if (event.data?.name === "file-download-ready") {
+      downloadFile(event.data.file);
     }
   });
 }

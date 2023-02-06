@@ -1,5 +1,7 @@
 import { extractLinks } from "../modules/extraction/extract-links";
+import type { MessageToMain, RequestCapture, RequestRecent } from "../typings/messages";
 import { getActiveTab } from "../utils/get-active-tab";
+import { postMessage } from "../utils/post-message";
 import "./popup.css";
 
 export default async function main() {
@@ -16,20 +18,18 @@ export default async function main() {
     const captureForm = document.querySelector<HTMLFormElement>("#capture-form")!;
     const captureData = new FormData(captureForm);
 
-    worker.postMessage({
+    postMessage<RequestCapture>(worker, {
       name: "request-capture",
-      urls: captureData.get("url"),
-      title: captureData.get("title"),
+      urls: captureData.get("url") as string,
+      title: captureData.get("title") as string,
       target_urls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href).join(" "),
     });
   });
 
   // render recent nodes
-  worker.postMessage({
-    name: "request-recent",
-  });
+  postMessage<RequestRecent>(worker, { name: "request-recent" });
 
-  worker.addEventListener("message", (event) => {
+  worker.addEventListener("message", (event: MessageEvent<MessageToMain>) => {
     switch (event.data?.name) {
       case "recent-nodes-ready":
         console.log(event.data);

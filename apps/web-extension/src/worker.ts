@@ -4,6 +4,8 @@ import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
 import UPSERT_SAMPLE_DATA from "./modules/db/upsert-sample-data.sql";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
+import type { FileDownloadReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
+import { postMessage } from "./utils/post-message";
 declare const self: DedicatedWorkerGlobalScope;
 
 if (!self.crossOriginIsolated) {
@@ -12,7 +14,7 @@ if (!self.crossOriginIsolated) {
 
 const dbPromise = initDb();
 
-self.addEventListener("message", async (event) => {
+self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) => {
   console.log(`[worker] received`, event.data);
   const db = await dbPromise;
   switch (event.data?.name) {
@@ -20,7 +22,7 @@ self.addEventListener("message", async (event) => {
       const root = await navigator.storage.getDirectory();
       const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
       const file = await dbFileHandle.getFile();
-      self.postMessage({ name: "file-download-ready", file });
+      postMessage<FileDownloadReady>(self, { name: "file-download-ready", file });
       break;
     }
     case "request-clear": {
@@ -33,8 +35,8 @@ self.addEventListener("message", async (event) => {
       break;
     }
     case "request-recent": {
-      const nodes = db.selectObjects(SELECT_RECENT_NODES);
-      self.postMessage({ name: "recent-nodes-ready", nodes });
+      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; urls: string }[];
+      postMessage<RecentNodesReady>(self, { name: "recent-nodes-ready", nodes });
       break;
     }
     case "request-capture": {
@@ -48,7 +50,11 @@ self.addEventListener("message", async (event) => {
         },
       });
       console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
+      break;
     }
+    default:
+      const exhausted: never = event.data;
+      throw exhausted;
   }
 });
 
