@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS node (
 	urls	      TEXT NOT NULL,
 	target_urls	TEXT,
 	title	      TEXT,
+  modified_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	PRIMARY     KEY("id")
 );
 

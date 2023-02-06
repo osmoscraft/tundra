@@ -8,14 +8,20 @@
     <link rel="stylesheet" href="./popup.css" />
   </head>
   <body>
-    <form id="capture-form">
-      <label for="url">URL</label>
-      <input id="url" name="url" type="url" />
-      <label for="title">Title</label>
-      <input id="title" name="title" type="text" />
-      <button type="submit">Capture</button>
-      <ul id="target-url-list"></ul>
-    </form>
+    <div class="app-layout">
+      <input id="omnibox" type="search" placeholder="Keywords or URL" data-area="menu" />
+      <ul id="recent-list" data-area="list">
+        loading...
+      </ul>
+      <form data-area="item" id="capture-form">
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" placeholder="https://" />
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" />
+        <button type="submit">Capture</button>
+        <ul id="target-url-list"></ul>
+      </form>
+    </div>
 
     <script type="module" src="./popup.js"></script>
   </body>

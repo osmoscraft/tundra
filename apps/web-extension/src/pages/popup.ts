@@ -4,7 +4,11 @@ import "./popup.css";
 
 export default async function main() {
   const worker = new Worker("./worker.js", { type: "module" });
+  const omnibox = document.querySelector<HTMLInputElement>("#omnibox")!;
   const captureForm = document.querySelector<HTMLFormElement>("#capture-form")!;
+  const recentList = document.querySelector<HTMLUListElement>("#recent-list")!;
+
+  omnibox.addEventListener("input", (e) => {});
 
   captureForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -20,10 +24,33 @@ export default async function main() {
     });
   });
 
+  // render recent nodes
+  worker.postMessage({
+    name: "request-recent",
+  });
+
+  worker.addEventListener("message", (event) => {
+    switch (event.data?.name) {
+      case "recent-nodes-ready": {
+        console.log(event.data);
+        recentList.innerHTML = /*html*/ `
+          ${(event.data as any).nodes
+            .map(
+              (node: any) => /*html*/ `
+            <li>${node.title}</li>
+          `
+            )
+            .join("")}
+        `;
+        break;
+      }
+    }
+  });
+
+  // render active tab
   getActiveTab()
     .then(([activeTab]) => {
       if (!activeTab?.id) throw Error("No active tab available");
-
       performance.mark("linkExtractionStart");
       return chrome.scripting.executeScript({
         target: { tabId: activeTab.id },

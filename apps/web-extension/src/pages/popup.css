@@ -5,3 +5,20 @@ body {
   width: 40rem;
   font-size: 100%;
 }
+
+.app-layout {
+  display: grid;
+  grid-template:
+    "menu menu" auto
+    "list item" 1fr / auto 1fr;
+}
+
+.app-layout [data-area="menu"] {
+  grid-area: menu;
+}
+.app-layout [data-area="list"] {
+  grid-area: list;
+}
+.app-layout [data-area="item"] {
+  grid-area: item;
+}

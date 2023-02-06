@@ -1,1 +1,1 @@
-INSERT INTO node VALUES (:id, :urls, :target_urls, :title);
+INSERT INTO node(id, urls, target_urls, title) VALUES (:id, :urls, :target_urls, :title);
