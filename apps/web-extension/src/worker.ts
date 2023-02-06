@@ -1,10 +1,10 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
 import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
+import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
-import UPSERT_SAMPLE_DATA from "./modules/db/upsert-sample-data.sql";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
-import type { FileDownloadReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
+import type { FileDownloadReady, MatchNodesReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
 import { postMessage } from "./utils/post-message";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -35,8 +35,16 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       break;
     }
     case "request-recent": {
-      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; urls: string }[];
+      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string }[];
       postMessage<RecentNodesReady>(self, { name: "recent-nodes-ready", nodes });
+      break;
+    }
+    case "request-text-match": {
+      const nodes = db.selectObjects(MATCH_NODES_BY_TEXT, {
+        ":query": event.data.query,
+      }) as { title: string; url: string; html: string }[];
+      console.log("matched", nodes);
+      postMessage<MatchNodesReady>(self, { name: "match-nodes-ready", nodes });
       break;
     }
     case "request-capture": {
@@ -44,7 +52,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       db.exec(UPSERT_NODE, {
         bind: {
           ":id": Date.now().toString(),
-          ":urls": event.data.urls,
+          ":url": event.data.url,
           ":target_urls": event.data.target_urls,
           ":title": event.data.title,
         },
@@ -65,12 +73,6 @@ async function initDb() {
     performance.mark("createSchemaStart");
     db.exec(CREATE_SCHEMA);
     console.log("schema created", performance.measure("createSchema", "createSchemaStart").duration);
-
-    if ((self as any).DEBUG_MODE === "true") {
-      performance.mark("upsertSampleDataStart");
-      db.exec(UPSERT_SAMPLE_DATA);
-      console.log("sample inserted", performance.measure("upsertSampleData", "upsertSampleDataStart").duration);
-    }
   } finally {
     // TODO evaludation potential memory leak with persisted db conneciton
     // db.close();

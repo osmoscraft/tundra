@@ -1,5 +1,5 @@
 import { extractLinks } from "../modules/extraction/extract-links";
-import type { MessageToMain, RequestCapture, RequestRecent } from "../typings/messages";
+import type { MessageToMain, RequestCapture, RequestRecent, RequestTextMatch } from "../typings/messages";
 import { getActiveTab } from "../utils/get-active-tab";
 import { postMessage } from "../utils/post-message";
 import "./popup.css";
@@ -8,9 +8,25 @@ export default async function main() {
   const worker = new Worker("./worker.js", { type: "module" });
   const omnibox = document.querySelector<HTMLInputElement>("#omnibox")!;
   const captureForm = document.querySelector<HTMLFormElement>("#capture-form")!;
-  const recentList = document.querySelector<HTMLUListElement>("#recent-list")!;
+  const nodeList = document.querySelector<HTMLUListElement>("#node-list")!;
 
-  omnibox.addEventListener("input", (e) => {});
+  omnibox.addEventListener("input", (e) => {
+    const query = (e.target as HTMLInputElement).value.trim();
+    if (!query.length) {
+      postMessage<RequestRecent>(worker, { name: "request-recent" });
+    } else {
+      const internalQuery = query
+        .replace(/[\'"]/g, "")
+        .replace(/\s+/g, " ")
+        .split(" ")
+        .map((word) => `"${word}"*`)
+        .join(" ");
+
+      console.log("internalQuery", internalQuery);
+      performance.mark(`queryStart`);
+      postMessage<RequestTextMatch>(worker, { name: "request-text-match", query: internalQuery });
+    }
+  });
 
   captureForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -18,9 +34,10 @@ export default async function main() {
     const captureForm = document.querySelector<HTMLFormElement>("#capture-form")!;
     const captureData = new FormData(captureForm);
 
+    // TODO support alt ulrs
     postMessage<RequestCapture>(worker, {
       name: "request-capture",
-      urls: captureData.get("url") as string,
+      url: captureData.get("url") as string,
       title: captureData.get("title") as string,
       target_urls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href).join(" "),
     });
@@ -32,8 +49,15 @@ export default async function main() {
   worker.addEventListener("message", (event: MessageEvent<MessageToMain>) => {
     switch (event.data?.name) {
       case "recent-nodes-ready":
-        console.log(event.data);
-        recentList.innerHTML = (event.data as any).nodes.map((node: any) => /*html*/ `<li>${node.title}</li>`).join("");
+        nodeList.innerHTML = event.data.nodes
+          .map((node) => /*html*/ `<li><a href="${node.url}" target="_blank">${node.title}</a></li>`)
+          .join("");
+        break;
+      case "match-nodes-ready":
+        console.log("query", performance.measure("query", `queryStart`).duration);
+        nodeList.innerHTML = event.data.nodes
+          .map((node) => /*html*/ `<li><a href="${node.url}" target="_blank">${node.html}</a></li>`)
+          .join("");
         break;
     }
   });
@@ -53,7 +77,7 @@ export default async function main() {
       const extraction = results[0]?.result;
       if (!extraction) throw new Error("Scripting error");
 
-      document.querySelector<HTMLInputElement>("#url")!.value = extraction.urls!;
+      document.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
       document.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
       document.querySelector<HTMLUListElement>("#target-url-list")!.innerHTML = extraction.target_urls
         .map(
@@ -63,6 +87,9 @@ export default async function main() {
         )
         .join("");
     });
+
+  // autofocus
+  omnibox.focus();
 }
 
 main();

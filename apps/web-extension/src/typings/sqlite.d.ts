@@ -13,12 +13,12 @@ declare namespace Sqlite3 {
     new (path: string, flags?: string): DB;
     exec: DbExec;
     prepare: (sql: string) => Statement;
-    selectArray: (sql: string) => any[];
-    selectArrays: (sql: string) => any[][];
-    selectObject: (sql: string) => Record<string, any>;
-    selectObjects: (sql: string) => Record<string, any>[];
-    selectValue: (sql: string) => any;
-    selectValues: (sql: string) => any[];
+    selectArray: (sql: string, bind?: Bind) => any[];
+    selectArrays: (sql: string, bind?: Bind) => any[][];
+    selectObject: (sql: string, bind?: Bind) => Record<string, any>;
+    selectObjects: (sql: string, bind?: Bind) => Record<string, any>[];
+    selectValue: (sql: string, bind?: Bind) => any;
+    selectValues: (sql: string, bind?: Bind) => any[];
     close: () => void;
   }
 
@@ -32,7 +32,7 @@ declare namespace Sqlite3 {
     /**
      * a single value valid as an argument for `Stmt.bind()`. This is only applied to the first non-empty statement in the SQL which has any bindable parameters.
      */
-    bind?: BindValue | Record<string, BindValue> | BindValue[];
+    bind?: Bind;
     saveSql?: any[]; // TODO refine typing
     returnValue?: "this" | "resultRows" | "saveSql";
     callback?: (result: any) => any; // TODO refine typing
@@ -49,6 +49,8 @@ declare namespace Sqlite3 {
      */
     rowMode?: "array" | "object" | "stmt" | number | string;
   }
+
+  export type Bind = BindValue | Record<string, BindValue> | BindValue[];
 
   export type BindValue = null | undefined | number | boolean | string | Uint8Array | Int8Array | ArrayBuffer;
 

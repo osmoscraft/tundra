@@ -1,6 +1,7 @@
 export interface Extraction {
   title: string;
-  urls: string;
+  url: string;
+  alt_url: string | null;
   target_urls: { title: string; url: string }[];
 }
 
@@ -10,7 +11,8 @@ export function extractLinks(): Extraction {
     emptyTextToNull(document.querySelector(`meta[property="og:title"]`)?.getAttribute("content")) ??
     emptyTextToNull(document.querySelector("title")?.textContent) ??
     "Untitled";
-  const urls = emptyTextToNull(document.querySelector(`link[rel="canonical"]`)?.getAttribute("href")) ?? location.href;
+  const canonical = emptyTextToNull(document.querySelector(`link[rel="canonical"]`)?.getAttribute("href"));
+  const url = location.href;
   const target_anchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer) *)")];
   const target_urls = target_anchors
     .map((anchor) => {
@@ -28,7 +30,8 @@ export function extractLinks(): Extraction {
   console.log("[content-script] extracted ", target_urls);
   return {
     title,
-    urls,
+    url: canonical ?? url,
+    alt_url: canonical !== url ? url : null,
     target_urls,
   };
 }

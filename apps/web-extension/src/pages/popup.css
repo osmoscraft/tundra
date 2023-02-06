@@ -22,3 +22,14 @@ body {
 .app-layout [data-area="item"] {
   grid-area: item;
 }
+
+.node-list {
+  width: 16rem;
+}
+
+.node-list li {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
