@@ -31,19 +31,10 @@ export default async function main() {
 
   worker.addEventListener("message", (event) => {
     switch (event.data?.name) {
-      case "recent-nodes-ready": {
+      case "recent-nodes-ready":
         console.log(event.data);
-        recentList.innerHTML = /*html*/ `
-          ${(event.data as any).nodes
-            .map(
-              (node: any) => /*html*/ `
-            <li>${node.title}</li>
-          `
-            )
-            .join("")}
-        `;
+        recentList.innerHTML = (event.data as any).nodes.map((node: any) => /*html*/ `<li>${node.title}</li>`).join("");
         break;
-      }
     }
   });
 
