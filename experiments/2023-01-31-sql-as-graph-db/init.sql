@@ -1,91 +1,45 @@
--- Create the document table if not exists
-CREATE TABLE document (
-	id	        TEXT NOT NULL,
-	urls	      TEXT NOT NULL,
-	target_urls	TEXT,
-	title	      TEXT,
-	PRIMARY     KEY("id")
-);
-
--- Create the FTS virtual table for title column
-CREATE VIRTUAL TABLE fts_content USING fts5(id, title, urls, content='document');
-
-CREATE TRIGGER tgr_fts_content_ai AFTER INSERT ON document BEGIN
-    INSERT INTO fts_content(rowid, title) VALUES(new.rowid, new.title);
-END;
-
-CREATE TRIGGER tgr_fts_content_ad AFTER DELETE ON document BEGIN
-  INSERT INTO fts_content(fts_content, rowid, title) VALUES('delete', old.rowid, old.title);
-END;
-
-CREATE TRIGGER trg_fts_content_au AFTER UPDATE ON document BEGIN
-  INSERT INTO fts_content(fts_content, rowid, title) VALUES('delete', old.rowid, old.title);
-  INSERT INTO fts_content(rowid, title) VALUES(new.rowid, new.title);
-END;
-
--- Create the FTS virtual table for urls and target_urls columns, with custom tokenizer
-CREATE VIRTUAL TABLE fts_url USING fts5(id, title, urls, target_urls, content=document);
-
-CREATE TRIGGER tgr_fts_url_ai AFTER INSERT ON document BEGIN
-    INSERT INTO fts_url(rowid, urls, target_urls) VALUES (new.rowid, new.urls, new.target_urls);
-END;
-
-CREATE TRIGGER tgr_fts_url_ad AFTER DELETE ON document BEGIN
-  INSERT INTO fts_url(fts_url, rowid, url, target_urls) VALUES('delete', old.rowid, old.urls, old.target_urls);
-END;
-
-CREATE TRIGGER trg_fts_url_au AFTER UPDATE ON document BEGIN
-  INSERT INTO fts_url(fts_url, rowid, urls, target_urls) VALUES('delete', old.rowid, old.urls, old.target_urls);
-  INSERT INTO fts_url(rowid, urls, target_urls) VALUES (new.rowid, new.urls, new.target_urls);
-END;
-
--- Insert sample data
-INSERT INTO document VALUES
-  ('id_01', 'https://alpha.com', 'https://bravo-alt.com', 'Apple'),
-  ('id_02', 'https://bravo.com https://bravo-alt.com', 'https://charlie.com', 'Apple v2'),
-  ('id_03', 'https://delta.com', 'https://alpha.com https://bravo.com', 'Orange'),
-  ('id_04', 'https://echo.com https://foxtrot.com', 'https://alpha.com https://charlie.com https://echo.com', 'Orange apple'),
-  ('id_05', 'https://golf.com', 'https://charlie.com', 'App center'),
-  ('id_06', 'https://hotel.com', 'https://bravo.com https://charlie.com', 'Banana apps');
-
 -- Enable CLI headers
 .headers on
 .mode box
 .separator ROW "\n"
 .nullvalue NULL
 
--- Sample queries
+-- Create the node table if not exists
+CREATE TABLE IF NOT EXISTS node (
+  body        TEXT,
+  meta        TEXT,
+  -- modified_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- virtual columns from JSON extractions
+  alt_urls    TEXT GENERATED ALWAYS AS (json_extract(meta, '$.altUrls')),
+  id          TEXT GENERATED ALWAYS AS (json_extract(meta, '$.id')) NOT NULL UNIQUE,
+  modified_at TEXT GENERATED ALWAYS AS (json_extract(meta, '$.modifiedAt')) NOT NULL,
+  tags        TEXT GENERATED ALWAYS AS (json_extract(meta, '$.tags')),
+  target_urls TEXT GENERATED ALWAYS AS (json_extract(meta, '$.targetUrls')),
+  title       TEXT GENERATED ALWAYS AS (json_extract(meta, '$.title')) NOT NULL,
+  url         TEXT GENERATED ALWAYS AS (json_extract(meta, '$.url'))
+);
 
-SELECT * FROM document;
+CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(alt_urls, body, tags, target_urls, title, url, content=node);
 
-SELECT * FROM fts_url;
+CREATE TRIGGER IF NOT EXISTS tgr_node_fts_ai AFTER INSERT ON node BEGIN
+    INSERT INTO node_fts(rowid, alt_urls, tags, target_urls, title, url)
+    VALUES (new.rowid, new.alt_urls, new.tags, new.target_urls, new.title, new.url);
+END;
 
--- Find inbound nodes to 'id_02'
-SELECT * FROM fts_url WHERE target_urls MATCH (
-  SELECT REPLACE(urls, ' ', ' OR ') FROM fts_url WHERE id = 'id_02'
-) ORDER BY rank;
+CREATE TRIGGER IF NOT EXISTS tgr_node_fts_ad AFTER DELETE ON node BEGIN
+  INSERT INTO node_fts(node_fts, rowid, alt_urls, tags, target_urls, title, url)
+  VALUES('delete', old.rowid, old.alt_urls, old.tags, old.target_urls, old.title, old.url);
+END;
 
--- Find outbound nodes from 'id_04'
-SELECT * FROM fts_url WHERE urls MATCH (
-  SELECT REPLACE(target_urls, ' ', ' OR ') FROM fts_url WHERE id = 'id_04'
-) ORDER BY rank;
+CREATE TRIGGER IF NOT EXISTS trg_node_fts_au AFTER UPDATE ON node BEGIN
+  INSERT INTO node_fts( node_fts, rowid, alt_urls, tags, target_urls, title, url)
+  VALUES('delete', old.rowid, old.alt_urls, old.tags, old.target_urls, old.title, old.url);
+  INSERT INTO node_fts(rowid, alt_urls, tags, target_urls, title, url)
+  VALUES (new.rowid, new.alt_urls, new.tags, new.target_urls, new.title, new.url);
+END;
 
--- Find nodes who share outbound nodes with 'id_03'
-SELECT * FROM fts_url WHERE target_urls MATCH (
-  SELECT REPLACE(target_urls, ' ', ' OR ') FROM fts_url WHERE id = 'id_03'
-) ORDER BY rank;
+INSERT INTO node(meta, body) VALUES
+  ('{"id": "0001", "modifiedAt": "20220101T12:34:00Z", "url": "https://alpha.com", "title": "My doc 1", "altUrls": "http://alpha.com", "targetUrls": "https://bravo.com", "tags": ["tag1", "tag2"]}', '# Hello, this is a document!'),
+  ('{"id": "0002", "modifiedAt": "20220101T12:34:00Z", "title": "My doc 2", "targetUrls": "https://bravo.com"}', '# Hello, this is a document!');
 
-
-SELECT * FROM fts_content;
-
--- Find nodes with 'apple' in title
-SELECT * FROM fts_content WHERE title MATCH 'apple' ORDER BY rank;
-
--- Find nodes with 'app' in title
-SELECT * FROM fts_content WHERE title MATCH 'app' ORDER BY rank;
-
--- Find nodes with 'app-' prefix in the title
-SELECT * FROM fts_content WHERE title MATCH 'app*' ORDER BY rank;
-
--- Use PRAGMA for migration tracking
-PRAGMA user_version;
+SELECT * FROM node_fts WHERE node_fts MATCH '"bravo"';
