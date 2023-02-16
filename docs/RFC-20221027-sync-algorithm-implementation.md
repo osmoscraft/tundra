@@ -29,6 +29,7 @@
       - Zip output should ideally be a byte stream to optimize unzipping performance
         - Explored in /experiments/2022-11-12-gh-clone-with-untar
     - Need Web Compression API or pako.js to decompress the binary
+    - Zip decompression exploration: [unzip](./RFC-20230216-unzip.md)
     - Could be a solution for manual import
   - [List tree](https://docs.github.com/en/rest/git/trees#get-a-tree)
     - Supports recursion
