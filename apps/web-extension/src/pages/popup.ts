@@ -39,8 +39,11 @@ export default async function main() {
       name: "request-capture",
       url: captureData.get("url") as string,
       title: captureData.get("title") as string,
-      target_urls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href).join(" "),
+      targetUrls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href),
     });
+
+    // re-render recent nodes
+    postMessage<RequestRecent>(worker, { name: "request-recent" });
   });
 
   // render recent nodes

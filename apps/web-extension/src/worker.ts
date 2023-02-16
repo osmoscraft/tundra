@@ -35,14 +35,14 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       break;
     }
     case "request-recent": {
-      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string }[];
+      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string | null }[];
       postMessage<RecentNodesReady>(self, { name: "recent-nodes-ready", nodes });
       break;
     }
     case "request-text-match": {
       const nodes = db.selectObjects(MATCH_NODES_BY_TEXT, {
         ":query": event.data.query,
-      }) as { title: string; url: string; html: string }[];
+      }) as { title: string; url: string | null; html: string }[];
       console.log("matched", nodes);
       postMessage<MatchNodesReady>(self, { name: "match-nodes-ready", nodes });
       break;
@@ -51,10 +51,14 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       performance.mark("upsertNodeStart");
       db.exec(UPSERT_NODE, {
         bind: {
-          ":id": Date.now().toString(),
-          ":url": event.data.url,
-          ":target_urls": event.data.target_urls,
-          ":title": event.data.title,
+          ":meta": JSON.stringify({
+            id: Date.now().toString(),
+            url: event.data.url,
+            targetUrls: event.data.targetUrls,
+            title: event.data.title,
+            modifiedAt: new Date().toISOString(),
+          }),
+          ":body": "Hello world",
         },
       });
       console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);

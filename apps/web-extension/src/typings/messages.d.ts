@@ -11,7 +11,7 @@ export type MessageToMain = RecentNodesReady | FileDownloadReady | MatchNodesRea
 export interface RequestCapture {
   name: "request-capture";
   url: string;
-  target_urls: string;
+  targetUrls: string[];
   title: string;
 }
 
@@ -38,12 +38,12 @@ export interface RequestTextMatch {
 
 export interface RecentNodesReady {
   name: "recent-nodes-ready";
-  nodes: { title: string; url: string }[];
+  nodes: { title: string; url: string | null }[];
 }
 
 export interface MatchNodesReady {
   name: "match-nodes-ready";
-  nodes: { title: string; url: string; html: string }[];
+  nodes: { title: string; url: string | null; html: string }[];
 }
 
 export interface FileDownloadReady {
