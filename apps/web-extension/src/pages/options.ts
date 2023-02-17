@@ -1,24 +1,58 @@
-import type { MessageToMain, RequestClear, RequestDownload, RequestReset } from "../typings/messages";
+import { connectionToForm, formToConnection, getConnection, saveConnection } from "../modules/git/connection";
+import { testConnection } from "../modules/git/github/operations";
+import type { MessageToMain, RequestClear, RequestClone, RequestDownload, RequestReset } from "../typings/messages";
 import { downloadFile } from "../utils/download-file";
 import { postMessage } from "../utils/post-message";
+
 import "./options.css";
+
 export default async function main() {
   const worker = new Worker("./worker.js", { type: "module" });
-  const menu = document.querySelector("menu")!;
+  const form = document.querySelector("form")!;
 
-  menu.addEventListener("click", (e) => {
+  form.addEventListener("click", (e) => {
     const action = (e.target as HTMLElement)?.closest("[data-action]")?.getAttribute("data-action");
+    if (action) e.preventDefault();
+
     switch (action) {
-      case "download":
+      case "download": {
         postMessage<RequestDownload>(worker, { name: "request-download" });
         break;
-      case "clear":
+      }
+      case "clear": {
         postMessage<RequestClear>(worker, { name: "request-clear" });
         break;
-      case "reset":
+      }
+      case "clone": {
+        const connection = getConnection();
+        if (!connection) return;
+        postMessage<RequestClone>(worker, { name: "request-clone", connection });
+        break;
+      }
+      case "reset": {
         postMessage<RequestReset>(worker, { name: "request-reset" });
         break;
+      }
+      case "save-connection": {
+        if (!form.reportValidity()) return;
+        saveConnection(formToConnection(form));
+        break;
+      }
+      case "test-connection": {
+        if (!form.reportValidity()) return;
+        const connection = formToConnection(form);
+
+        testConnection(connection);
+        // postMessage<RequestTestConnection>(worker, { name: "request-test-connection", connection });
+        break;
+      }
     }
+  });
+
+  connectionToForm(getConnection() || {}, form);
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
   });
 
   worker.addEventListener("message", async (event: MessageEvent<MessageToMain>) => {

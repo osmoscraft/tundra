@@ -1,10 +1,15 @@
+import type { GitConnection } from "../modules/git/connection";
+import type { GitHubConnection } from "../modules/git/github/operations";
+
 export type MessageToWorker =
   | RequestCapture
   | RequestClear
+  | RequestClone
   | RequestDownload
   | RequestRecent
   | RequestReset
-  | RequestTextMatch;
+  | RequestTextMatch
+  | RequestTestConnection;
 
 export type MessageToMain = RecentNodesReady | FileDownloadReady | MatchNodesReady;
 
@@ -19,6 +24,11 @@ export interface RequestClear {
   name: "request-clear";
 }
 
+export interface RequestClone {
+  name: "request-clone";
+  connection: GitConnection;
+}
+
 export interface RequestDownload {
   name: "request-download";
 }
@@ -29,6 +39,11 @@ export interface RequestRecent {
 
 export interface RequestReset {
   name: "request-reset";
+}
+
+export interface RequestTestConnection {
+  name: "request-test-connection";
+  connection: GitHubConnection;
 }
 
 export interface RequestTextMatch {

@@ -19,8 +19,9 @@
   },
   "options_page": "options.html",
   "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://*.github.com/*"],
   "content_security_policy": {
-    "extension_pages": "default-src 'self' 'wasm-unsafe-eval'"
+    "extension_pages": "default-src 'self' 'wasm-unsafe-eval'; connect-src https://*.github.com"
   },
   "cross_origin_embedder_policy": {
     "value": "require-corp"
