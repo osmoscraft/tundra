@@ -1,5 +1,5 @@
 import { apiV4, unwrap } from "./api-proxy";
-import TARBALL_URL from "./queries/tarball-url.graphql";
+import ARCHIVE_URL from "./queries/archive-url.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
 
 export interface GitHubConnection {
@@ -21,30 +21,29 @@ export async function testConnection(connection: GitHubConnection) {
   return true;
 }
 
-export interface TarballUrl {
+export interface ArchiveUrl {
   repository: {
     defaultBranchRef: {
       target: {
         oid: string;
         tarballUrl: string;
+        zipballUrl: string;
       };
     };
   };
 }
-export interface TarballUrlVariables {
+export interface ArhicveUrlVariables {
   owner: string;
   repo: string;
 }
 export async function download(connection: GitHubConnection): Promise<{ oid: string; blob: Blob }> {
-  const response = await apiV4<TarballUrlVariables, TarballUrl>(connection, TARBALL_URL, connection);
+  const response = await apiV4<ArhicveUrlVariables, ArchiveUrl>(connection, ARCHIVE_URL, connection);
   const data = unwrap(response);
-  const url = data.repository.defaultBranchRef.target.tarballUrl;
+  const url = data.repository.defaultBranchRef.target.zipballUrl;
   const oid = data.repository.defaultBranchRef.target.oid;
   console.log(`Found tarball ${url}`);
 
-  const blob = await fetch(url)
-    .then((response) => response.body!.pipeThrough(new (globalThis as any).DecompressionStream("gzip")))
-    .then((decompressedStream) => new Response(decompressedStream).blob());
+  const blob = await fetch(url).then((response) => response.blob());
 
   return { blob, oid };
 }

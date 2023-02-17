@@ -1,10 +1,11 @@
-query GetTarballUrl($owner: String!, $repo: String!) {
+query GetArchiveUrl($owner: String!, $repo: String!) {
   repository(owner: $owner, name: $repo) {
     defaultBranchRef {
       target {
         ... on Commit {
           oid
           tarballUrl
+          zipballUrl
         }
       }
     }

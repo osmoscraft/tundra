@@ -1,6 +1,12 @@
 import { connectionToForm, formToConnection, getConnection, saveConnection } from "../modules/git/connection";
-import { testConnection } from "../modules/git/github/operations";
-import type { MessageToMain, RequestClear, RequestClone, RequestDownload, RequestReset } from "../typings/messages";
+import type {
+  MessageToMain,
+  RequestClear,
+  RequestClone,
+  RequestDownload,
+  RequestReset,
+  RequestTestConnection,
+} from "../typings/messages";
 import { downloadFile } from "../utils/download-file";
 import { postMessage } from "../utils/post-message";
 
@@ -41,9 +47,7 @@ export default async function main() {
       case "test-connection": {
         if (!form.reportValidity()) return;
         const connection = formToConnection(form);
-
-        testConnection(connection);
-        // postMessage<RequestTestConnection>(worker, { name: "request-test-connection", connection });
+        postMessage<RequestTestConnection>(worker, { name: "request-test-connection", connection });
         break;
       }
     }

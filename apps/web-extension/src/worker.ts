@@ -3,7 +3,7 @@ import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
-import { testConnection } from "./modules/git/github/operations";
+import { download, testConnection } from "./modules/git/github/operations";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type { FileDownloadReady, MatchNodesReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
 import { postMessage } from "./utils/post-message";
@@ -48,6 +48,12 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       break;
     }
     case "request-clone": {
+      const connection = event.data.connection;
+      const { blob, oid } = await download(connection);
+      console.log(blob);
+      const file = new File([blob], `${oid}.zip`, { type: blob.type });
+      postMessage<FileDownloadReady>(self, { name: "file-download-ready", file });
+      break;
     }
     case "request-reset": {
       const root = await navigator.storage.getDirectory();
