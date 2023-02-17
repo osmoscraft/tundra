@@ -1,3 +1,4 @@
+import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { apiV4, unwrap } from "./api-proxy";
 import ARCHIVE_URL from "./queries/archive-url.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
@@ -36,14 +37,26 @@ export interface ArhicveUrlVariables {
   owner: string;
   repo: string;
 }
-export async function download(connection: GitHubConnection): Promise<{ oid: string; blob: Blob }> {
+export async function download(
+  connection: GitHubConnection
+): Promise<{ oid: string; entries: { name: string; content: string }[] }> {
   const response = await apiV4<ArhicveUrlVariables, ArchiveUrl>(connection, ARCHIVE_URL, connection);
   const data = unwrap(response);
   const url = data.repository.defaultBranchRef.target.zipballUrl;
   const oid = data.repository.defaultBranchRef.target.oid;
-  console.log(`Found tarball ${url}`);
+  console.log(`Found zipball ${url}`);
 
-  const blob = await fetch(url).then((response) => response.blob());
+  const zipReader = new ZipReader(new HttpReader(url));
+  const entriesGen = await zipReader.getEntriesGenerator();
+  const resultEntries = [];
+  performance.mark("decompression-start");
+  for await (const entry of entriesGen) {
+    const textWriter = new TextWriter();
+    resultEntries.push({ name: entry.filename, content: await entry.getData(textWriter) });
+  }
+  await zipReader.close();
+  console.log("decompression", performance.measure("decompression", "decompression-start").duration);
 
-  return { blob, oid };
+  // instead of return all entries, pipe through sqlite loader
+  return { oid, entries: resultEntries };
 }

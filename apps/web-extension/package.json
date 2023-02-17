@@ -20,5 +20,7 @@
     "concurrently": "^7.6.0",
     "esbuild": "^0.17.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@zip.js/zip.js": "^2.6.65"
+  }
 }

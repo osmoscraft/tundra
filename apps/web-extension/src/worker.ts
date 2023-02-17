@@ -49,10 +49,8 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     }
     case "request-clone": {
       const connection = event.data.connection;
-      const { blob, oid } = await download(connection);
-      console.log(blob);
-      const file = new File([blob], `${oid}.zip`, { type: blob.type });
-      postMessage<FileDownloadReady>(self, { name: "file-download-ready", file });
+      const { entries, oid } = await download(connection);
+      console.log(oid, entries);
       break;
     }
     case "request-reset": {
