@@ -1,11 +1,9 @@
-query ArchiveUrl($owner: String!, $repo: String!) {
+query HeadRef($owner: String!, $repo: String!) {
   repository(owner: $owner, name: $repo) {
     defaultBranchRef {
       target {
         ... on Commit {
           oid
-          tarballUrl
-          zipballUrl
         }
       }
     }

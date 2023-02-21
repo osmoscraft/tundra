@@ -1,6 +1,7 @@
 import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { apiV4, unwrap } from "./api-proxy";
 import ARCHIVE_URL from "./queries/archive-url.graphql";
+import HEAD_REF from "./queries/head-ref.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
 
 export interface GitHubConnection {
@@ -9,20 +10,20 @@ export interface GitHubConnection {
   token: string;
 }
 
-export interface TestConnection {
+export interface TestConnectionOutput {
   viewer: {
     login: string;
   };
 }
 export async function testConnection(connection: GitHubConnection) {
-  const response = await apiV4<undefined, TestConnection>(connection, TEST_CONNECTION);
+  const response = await apiV4<undefined, TestConnectionOutput>(connection, TEST_CONNECTION);
   const data = unwrap(response);
   const login = data.viewer.login;
   console.log(`Successfully logged in as "${login}"`);
   return true;
 }
 
-export interface ArchiveUrl {
+export interface ArchiveUrlOutput {
   repository: {
     defaultBranchRef: {
       target: {
@@ -41,7 +42,7 @@ export async function download(
   connection: GitHubConnection,
   onItem: (path: string, getContent: () => Promise<string>) => any
 ): Promise<{ oid: string }> {
-  const response = await apiV4<ArhicveUrlVariables, ArchiveUrl>(connection, ARCHIVE_URL, connection);
+  const response = await apiV4<ArhicveUrlVariables, ArchiveUrlOutput>(connection, ARCHIVE_URL, connection);
   const data = unwrap(response);
   const url = data.repository.defaultBranchRef.target.zipballUrl;
   const oid = data.repository.defaultBranchRef.target.oid;
@@ -60,4 +61,24 @@ export async function download(
   console.log("decompression", performance.measure("decompression", "decompression-start").duration);
 
   return { oid };
+}
+
+export interface HeadRefVariables {
+  owner: string;
+  repo: string;
+}
+
+export interface HeadRefOutput {
+  repository: {
+    defaultBranchRef: {
+      target: {
+        oid: string;
+      };
+    };
+  };
+}
+
+export async function getRemoteHeadRef(connection: GitHubConnection) {
+  const response = await apiV4<HeadRefVariables, HeadRefOutput>(connection, HEAD_REF, connection);
+  return response.data.repository.defaultBranchRef.target.oid;
 }

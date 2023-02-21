@@ -5,7 +5,7 @@ import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
-import { download, testConnection } from "./modules/git/github/operations";
+import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
 import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type { FileDownloadReady, MatchNodesReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
@@ -93,7 +93,13 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     case "request-sync": {
       const localHeadRef = db.selectObject(GET_REF, { ":type": "head" })?.id;
 
-      const remoteHeadRef = ""; // TODO fetch from github
+      const connection = event.data.connection;
+      const remoteHeadRef = await getRemoteHeadRef(connection);
+
+      console.log("[localRef, remoteRef]:", [localHeadRef, remoteHeadRef]);
+      if (localHeadRef === remoteHeadRef) return;
+
+      // get the difference between local and remote and apply to DB
 
       break;
     }
