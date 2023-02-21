@@ -1,0 +1,1 @@
+INSERT INTO node(body, meta, change) VALUES (:body, :meta, :change);

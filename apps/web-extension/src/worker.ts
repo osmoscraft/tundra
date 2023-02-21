@@ -1,10 +1,11 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
 import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
 import GET_REF from "./modules/db/get-ref.sql";
+import INSERT_NODE from "./modules/db/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
+import SELECT_CHANGED_NODES from "./modules/db/select-changed-nodes.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
-import UPSERT_NODE from "./modules/db/upsert-node.sql";
 import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
 import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
@@ -24,7 +25,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
   switch (event.data?.name) {
     case "request-capture": {
       performance.mark("upsertNodeStart");
-      db.exec(UPSERT_NODE, {
+      db.exec(INSERT_NODE, {
         bind: {
           ":meta": JSON.stringify({
             id: Date.now().toString(),
@@ -34,6 +35,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
             modifiedAt: new Date().toISOString(),
           }),
           ":body": "Hello world",
+          ":change": "created",
         },
       });
       console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
@@ -62,7 +64,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
         const meta = JSON.parse(header);
         console.log([meta, body]);
 
-        db.exec(UPSERT_NODE, {
+        db.exec(INSERT_NODE, {
           bind: {
             ":meta": JSON.stringify({
               id: meta.id,
@@ -79,6 +81,11 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       });
 
       break;
+    }
+    case "request-push": {
+      const changedNodes = db.selectObjects(SELECT_CHANGED_NODES);
+      console.log("local changed nodes:", changedNodes);
+      // TODO create commit and update remote ref
     }
     case "request-reset": {
       const root = await navigator.storage.getDirectory();

@@ -1,0 +1,1 @@
+SELECT * FROM node WHERE change IS NOT NULL;

@@ -6,6 +6,7 @@ export type MessageToWorker =
   | RequestClear
   | RequestClone
   | RequestDownload
+  | RequestPush
   | RequestRecent
   | RequestReset
   | RequestSync
@@ -32,6 +33,11 @@ export interface RequestClone {
 
 export interface RequestDownload {
   name: "request-download";
+}
+
+export interface RequestPush {
+  name: "request-push";
+  connection: GitConnection;
 }
 
 export interface RequestRecent {

@@ -4,6 +4,7 @@ import type {
   RequestClear,
   RequestClone,
   RequestDownload,
+  RequestPush,
   RequestReset,
   RequestSync,
   RequestTestConnection,
@@ -34,6 +35,12 @@ export default async function main() {
         const connection = getConnection();
         if (!connection) return;
         postMessage<RequestClone>(worker, { name: "request-clone", connection });
+        break;
+      }
+      case "push": {
+        const connection = getConnection();
+        if (!connection) return;
+        postMessage<RequestPush>(worker, { name: "request-push", connection });
         break;
       }
       case "reset": {
