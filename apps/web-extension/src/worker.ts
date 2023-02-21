@@ -49,8 +49,14 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     }
     case "request-clone": {
       const connection = event.data.connection;
-      const { entries, oid } = await download(connection);
-      console.log(oid, entries);
+      const { oid } = await download(connection, async (path, getContent) => {
+        console.log([path, await getContent()]);
+        // TODO filter paths to nodes folder, markdown file only
+        // TODO split content into frontmatter and body
+      });
+      console.log(oid);
+      // TODO load items into DB, then set head ref to oid
+
       break;
     }
     case "request-reset": {

@@ -38,8 +38,9 @@ export interface ArhicveUrlVariables {
   repo: string;
 }
 export async function download(
-  connection: GitHubConnection
-): Promise<{ oid: string; entries: { name: string; content: string }[] }> {
+  connection: GitHubConnection,
+  onItem: (path: string, getContent: () => Promise<string>) => any
+): Promise<{ oid: string }> {
   const response = await apiV4<ArhicveUrlVariables, ArchiveUrl>(connection, ARCHIVE_URL, connection);
   const data = unwrap(response);
   const url = data.repository.defaultBranchRef.target.zipballUrl;
@@ -48,15 +49,16 @@ export async function download(
 
   const zipReader = new ZipReader(new HttpReader(url));
   const entriesGen = await zipReader.getEntriesGenerator();
-  const resultEntries = [];
+
   performance.mark("decompression-start");
+
   for await (const entry of entriesGen) {
     const textWriter = new TextWriter();
-    resultEntries.push({ name: entry.filename, content: await entry.getData(textWriter) });
+    await onItem(entry.filename, () => entry.getData(textWriter));
   }
   await zipReader.close();
   console.log("decompression", performance.measure("decompression", "decompression-start").duration);
 
   // instead of return all entries, pipe through sqlite loader
-  return { oid, entries: resultEntries };
+  return { oid };
 }
