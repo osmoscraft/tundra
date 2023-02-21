@@ -51,7 +51,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
             title: event.data.title,
             modifiedAt: new Date().toISOString(),
           }),
-          ":body": "Hello world",
+          ":body": event.data.body,
           ":change": "created",
         },
       });

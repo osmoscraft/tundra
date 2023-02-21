@@ -45,6 +45,7 @@ export default async function main() {
       name: "request-capture",
       url: captureData.get("url") as string,
       title: captureData.get("title") as string,
+      body: captureData.get("body") as string,
       targetUrls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href),
     });
 

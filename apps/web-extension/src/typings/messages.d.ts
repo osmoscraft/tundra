@@ -26,6 +26,7 @@ export interface RequestCapture {
   url: string;
   targetUrls: string[];
   title: string;
+  body: string;
 }
 
 export interface RequestClear {
