@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS node (
   body        TEXT,
   meta        TEXT,
+  change      TEXT CHECK (change IN ('created', 'modified', 'deleted')),
   -- virtual columns from JSON extractions
   alt_urls    TEXT GENERATED ALWAYS AS (json_extract(meta, '$.altUrls')),
   id          TEXT GENERATED ALWAYS AS (json_extract(meta, '$.id')) NOT NULL UNIQUE,
