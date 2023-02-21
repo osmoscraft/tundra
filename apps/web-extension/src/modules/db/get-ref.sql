@@ -1,0 +1,1 @@
+SELECT * FROM ref WHERE type = :type LIMIT 1  

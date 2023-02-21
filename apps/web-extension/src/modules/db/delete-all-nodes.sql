@@ -1,1 +1,2 @@
 DELETE FROM node;
+DELETE FROM ref;

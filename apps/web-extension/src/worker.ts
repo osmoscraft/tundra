@@ -1,9 +1,12 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
 import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
+import GET_REF from "./modules/db/get-ref.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
+import SET_REF from "./modules/db/set-ref.sql";
 import UPSERT_NODE from "./modules/db/upsert-node.sql";
 import { download, testConnection } from "./modules/git/github/operations";
+import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type { FileDownloadReady, MatchNodesReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
 import { postMessage } from "./utils/post-message";
@@ -49,14 +52,31 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     }
     case "request-clone": {
       const connection = event.data.connection;
+
+      db.exec(DELETE_ALL_NODES);
+
       const { oid } = await download(connection, async (path, getContent) => {
-        console.log([path, await getContent()]);
         // TODO filter paths to nodes folder, markdown file only
-        // TODO split content into frontmatter and body
+        if (!path.includes("/nodes/") || !path.endsWith(".md")) return;
+        const [header, body] = splitByFence(await getContent());
+        const meta = JSON.parse(header);
+        console.log([meta, body]);
+
+        db.exec(UPSERT_NODE, {
+          bind: {
+            ":meta": JSON.stringify({
+              id: meta.id,
+              title: meta.title,
+              modifiedAt: meta.modifiedAt,
+            }),
+            ":body": body,
+          },
+        });
       });
-      console.log(oid);
-      // TODO load items into DB, then set head ref to oid
-      // Reference: /workspaces/tinykb/experiments/2022-07-30-original-web/src/sync/sync.ts
+
+      db.exec(SET_REF, {
+        bind: { ":type": "head", ":id": oid },
+      });
 
       break;
     }
@@ -68,6 +88,13 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     case "request-recent": {
       const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string | null }[];
       postMessage<RecentNodesReady>(self, { name: "recent-nodes-ready", nodes });
+      break;
+    }
+    case "request-sync": {
+      const localHeadRef = db.selectObject(GET_REF, { ":type": "head" })?.id;
+
+      const remoteHeadRef = ""; // TODO fetch from github
+
       break;
     }
     case "request-test-connection": {

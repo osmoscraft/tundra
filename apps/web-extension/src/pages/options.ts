@@ -5,6 +5,7 @@ import type {
   RequestClone,
   RequestDownload,
   RequestReset,
+  RequestSync,
   RequestTestConnection,
 } from "../typings/messages";
 import { downloadFile } from "../utils/download-file";
@@ -42,6 +43,12 @@ export default async function main() {
       case "save-connection": {
         if (!form.reportValidity()) return;
         saveConnection(formToConnection(form));
+        break;
+      }
+      case "sync": {
+        const connection = getConnection();
+        if (!connection) return;
+        postMessage<RequestSync>(worker, { name: "request-sync", connection });
         break;
       }
       case "test-connection": {

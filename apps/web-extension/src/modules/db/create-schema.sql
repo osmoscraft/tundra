@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS node (
   url         TEXT GENERATED ALWAYS AS (json_extract(meta, '$.url'))
 );
 
-CREATE TABLE iF NOT EXISTS ref (
-  head TEXT
+CREATE TABLE IF NOT EXISTS ref (
+  type TEXT PRIMARY KEY,
+  id   TEXT NOT NULL
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(alt_urls, body, tags, target_urls, title, url, content=node);

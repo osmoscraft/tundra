@@ -8,6 +8,7 @@ export type MessageToWorker =
   | RequestDownload
   | RequestRecent
   | RequestReset
+  | RequestSync
   | RequestTextMatch
   | RequestTestConnection;
 
@@ -39,6 +40,11 @@ export interface RequestRecent {
 
 export interface RequestReset {
   name: "request-reset";
+}
+
+export interface RequestSync {
+  name: "request-sync";
+  connection: GitConnection;
 }
 
 export interface RequestTestConnection {
