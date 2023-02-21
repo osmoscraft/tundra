@@ -56,6 +56,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       });
       console.log(oid);
       // TODO load items into DB, then set head ref to oid
+      // Reference: /workspaces/tinykb/experiments/2022-07-30-original-web/src/sync/sync.ts
 
       break;
     }

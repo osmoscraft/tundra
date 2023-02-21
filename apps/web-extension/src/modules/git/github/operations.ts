@@ -59,6 +59,5 @@ export async function download(
   await zipReader.close();
   console.log("decompression", performance.measure("decompression", "decompression-start").duration);
 
-  // instead of return all entries, pipe through sqlite loader
   return { oid };
 }
