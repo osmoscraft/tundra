@@ -1,5 +1,11 @@
 import { extractLinks } from "../modules/extraction/extract-links";
-import type { MessageToMain, RequestCapture, RequestRecent, RequestTextMatch } from "../typings/messages";
+import type {
+  MessageToMain,
+  RequestActiveTabMatch,
+  RequestCapture,
+  RequestRecent,
+  RequestTextMatch,
+} from "../typings/messages";
 import { getActiveTab } from "../utils/get-active-tab";
 import { postMessage } from "../utils/post-message";
 import "./popup.css";
@@ -44,6 +50,12 @@ export default async function main() {
 
     // re-render recent nodes
     postMessage<RequestRecent>(worker, { name: "request-recent" });
+
+    // re-render active tab
+    postMessage<RequestActiveTabMatch>(worker, {
+      name: "request-active-tab-match",
+      url: captureData.get("url") as string,
+    });
   });
 
   // render recent nodes
@@ -51,17 +63,31 @@ export default async function main() {
 
   worker.addEventListener("message", (event: MessageEvent<MessageToMain>) => {
     switch (event.data?.name) {
-      case "recent-nodes-ready":
+      case "respond-recent-nodes": {
         nodeList.innerHTML = event.data.nodes
           .map((node) => /*html*/ `<li><a href="${node.url}" target="_blank">${node.title}</a></li>`)
           .join("");
         break;
-      case "match-nodes-ready":
+      }
+      case "respond-match-nodes": {
         console.log("query", performance.measure("query", `queryStart`).duration);
         nodeList.innerHTML = event.data.nodes
           .map((node) => /*html*/ `<li><a href="${node.url}" target="_blank">${node.html}</a></li>`)
           .join("");
         break;
+      }
+      case "respond-active-tab-match": {
+        console.log("active tab match", event.data);
+        // TODO update master list, auto-select first match, then update details
+        const matchedNode = event.data.nodes[0];
+        if (!matchedNode) return;
+        captureForm.querySelector<HTMLInputElement>("#url")!.value = matchedNode.url!;
+        captureForm.querySelector<HTMLInputElement>("#title")!.value = matchedNode.title!;
+        captureForm.querySelector<HTMLInputElement>("#body")!.value = matchedNode.body!;
+        captureForm.querySelector<HTMLButtonElement>(`button[type="submit"]`)!.textContent = "Update";
+
+        break;
+      }
     }
   });
 
@@ -80,6 +106,10 @@ export default async function main() {
       const extraction = results[0]?.result;
       if (!extraction) throw new Error("Scripting error");
 
+      // check DB for existing node
+      postMessage<RequestActiveTabMatch>(worker, { name: "request-active-tab-match", url: extraction.url! });
+
+      // assuming no existing node, render creation form
       document.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
       document.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
       document.querySelector<HTMLUListElement>("#target-url-list")!.innerHTML = extraction.target_urls

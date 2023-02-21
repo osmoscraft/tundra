@@ -2,6 +2,7 @@ import type { GitConnection } from "../modules/git/connection";
 import type { GitHubConnection } from "../modules/git/github/operations";
 
 export type MessageToWorker =
+  | RequestActiveTabMatch
   | RequestCapture
   | RequestClear
   | RequestClone
@@ -13,7 +14,12 @@ export type MessageToWorker =
   | RequestTextMatch
   | RequestTestConnection;
 
-export type MessageToMain = RecentNodesReady | FileDownloadReady | MatchNodesReady;
+export type MessageToMain = RespondActiveTabMatch | RespondRecentNodes | RespondFileDownload | RespondMatchNodes;
+
+export interface RequestActiveTabMatch {
+  name: "request-active-tab-match";
+  url: string;
+}
 
 export interface RequestCapture {
   name: "request-capture";
@@ -63,17 +69,22 @@ export interface RequestTextMatch {
   query: string;
 }
 
-export interface RecentNodesReady {
-  name: "recent-nodes-ready";
+export interface RespondActiveTabMatch {
+  name: "respond-active-tab-match";
+  nodes: { title: string; url: string | null; targetUrls: string[]; body: string }[];
+}
+
+export interface RespondRecentNodes {
+  name: "respond-recent-nodes";
   nodes: { title: string; url: string | null }[];
 }
 
-export interface MatchNodesReady {
-  name: "match-nodes-ready";
+export interface RespondMatchNodes {
+  name: "respond-match-nodes";
   nodes: { title: string; url: string | null; html: string }[];
 }
 
-export interface FileDownloadReady {
-  name: "file-download-ready";
+export interface RespondFileDownload {
+  name: "respond-file-download";
   file: File;
 }

@@ -3,13 +3,20 @@ import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
 import GET_REF from "./modules/db/get-ref.sql";
 import INSERT_NODE from "./modules/db/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
+import MATCH_NODES_BY_URL from "./modules/db/match-nodes-by-url.sql";
 import SELECT_CHANGED_NODES from "./modules/db/select-changed-nodes.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
 import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
 import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
-import type { FileDownloadReady, MatchNodesReady, MessageToWorker, RecentNodesReady } from "./typings/messages";
+import type {
+  MessageToWorker,
+  RespondActiveTabMatch,
+  RespondFileDownload,
+  RespondMatchNodes,
+  RespondRecentNodes,
+} from "./typings/messages";
 import { postMessage } from "./utils/post-message";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -23,6 +30,16 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
   console.log(`[worker] received`, event.data);
   const db = await dbPromise;
   switch (event.data?.name) {
+    case "request-active-tab-match": {
+      const matchedNodes = db.selectObjects(MATCH_NODES_BY_URL, { ":url": event.data.url }) as {
+        body: string;
+        title: string;
+        targetUrls: string[];
+        url: string | null;
+      }[];
+      postMessage<RespondActiveTabMatch>(self, { name: "respond-active-tab-match", nodes: matchedNodes });
+      break;
+    }
     case "request-capture": {
       performance.mark("upsertNodeStart");
       db.exec(INSERT_NODE, {
@@ -45,7 +62,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       const root = await navigator.storage.getDirectory();
       const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
       const file = await dbFileHandle.getFile();
-      postMessage<FileDownloadReady>(self, { name: "file-download-ready", file });
+      postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
       break;
     }
     case "request-clear": {
@@ -94,7 +111,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     }
     case "request-recent": {
       const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string | null }[];
-      postMessage<RecentNodesReady>(self, { name: "recent-nodes-ready", nodes });
+      postMessage<RespondRecentNodes>(self, { name: "respond-recent-nodes", nodes });
       break;
     }
     case "request-sync": {
@@ -120,7 +137,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
         ":query": event.data.query,
       }) as { title: string; url: string | null; html: string }[];
       console.log("matched", nodes);
-      postMessage<MatchNodesReady>(self, { name: "match-nodes-ready", nodes });
+      postMessage<RespondMatchNodes>(self, { name: "respond-match-nodes", nodes });
       break;
     }
     default:
