@@ -2,7 +2,8 @@ import { extractLinks } from "../modules/extraction/extract-links";
 import type {
   MessageToMain,
   RequestActiveTabMatch,
-  RequestCapture,
+  RequestNodeCapture,
+  RequestNodeUpdate,
   RequestRecent,
   RequestTextMatch,
 } from "../typings/messages";
@@ -40,14 +41,26 @@ export default async function main() {
     const captureForm = document.querySelector<HTMLFormElement>("#capture-form")!;
     const captureData = new FormData(captureForm);
 
-    // TODO support alt ulrs
-    postMessage<RequestCapture>(worker, {
-      name: "request-capture",
-      url: captureData.get("url") as string,
-      title: captureData.get("title") as string,
-      body: captureData.get("body") as string,
-      targetUrls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href),
-    });
+    const nodeId = captureData.get("id") as string;
+
+    if (nodeId) {
+      // update
+      postMessage<RequestNodeUpdate>(worker, {
+        name: "request-node-update",
+        id: nodeId,
+        body: captureData.get("body") as string,
+      });
+    } else {
+      // capture
+      // TODO support alt ulrs
+      postMessage<RequestNodeCapture>(worker, {
+        name: "request-node-capture",
+        url: captureData.get("url") as string,
+        title: captureData.get("title") as string,
+        body: captureData.get("body") as string,
+        targetUrls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href),
+      });
+    }
 
     // re-render recent nodes
     postMessage<RequestRecent>(worker, { name: "request-recent" });

@@ -3,7 +3,7 @@ import type { GitHubConnection } from "../modules/git/github/operations";
 
 export type MessageToWorker =
   | RequestActiveTabMatch
-  | RequestCapture
+  | RequestNodeCapture
   | RequestClear
   | RequestClone
   | RequestDownload
@@ -13,21 +13,13 @@ export type MessageToWorker =
   | RequestSync
   | RequestTextMatch
   | RequestTestConnection
-  | RequestUpdate;
+  | RequestNodeUpdate;
 
 export type MessageToMain = RespondActiveTabMatch | RespondRecentNodes | RespondFileDownload | RespondMatchNodes;
 
 export interface RequestActiveTabMatch {
   name: "request-active-tab-match";
   url: string;
-}
-
-export interface RequestCapture {
-  name: "request-capture";
-  url: string;
-  targetUrls: string[];
-  title: string;
-  body: string;
 }
 
 export interface RequestClear {
@@ -41,6 +33,20 @@ export interface RequestClone {
 
 export interface RequestDownload {
   name: "request-download";
+}
+
+export interface RequestNodeCapture {
+  name: "request-node-capture";
+  url: string;
+  targetUrls: string[];
+  title: string;
+  body: string;
+}
+
+export interface RequestNodeUpdate {
+  name: "request-node-update";
+  id: string;
+  body: string;
 }
 
 export interface RequestPush {
@@ -69,12 +75,6 @@ export interface RequestTestConnection {
 export interface RequestTextMatch {
   name: "request-text-match";
   query: string;
-}
-
-export interface RequestUpdate {
-  name: "request-update";
-  id: string;
-  body: string;
 }
 
 export interface RespondActiveTabMatch {

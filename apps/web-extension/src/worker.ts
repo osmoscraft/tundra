@@ -7,6 +7,7 @@ import MATCH_NODES_BY_URL from "./modules/db/match-nodes-by-url.sql";
 import SELECT_CHANGED_NODES from "./modules/db/select-changed-nodes.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
+import UPDATE_NODE_BODY from "./modules/db/update-node-body.sql";
 import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
 import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
@@ -41,31 +42,6 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       postMessage<RespondActiveTabMatch>(self, { name: "respond-active-tab-match", nodes: matchedNodes });
       break;
     }
-    case "request-capture": {
-      performance.mark("upsertNodeStart");
-      db.exec(INSERT_NODE, {
-        bind: {
-          ":meta": JSON.stringify({
-            id: Date.now().toString(),
-            url: event.data.url,
-            targetUrls: event.data.targetUrls,
-            title: event.data.title,
-            modifiedAt: new Date().toISOString(),
-          }),
-          ":body": event.data.body,
-          ":change": "created",
-        },
-      });
-      console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
-      break;
-    }
-    case "request-download": {
-      const root = await navigator.storage.getDirectory();
-      const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
-      const file = await dbFileHandle.getFile();
-      postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
-      break;
-    }
     case "request-clear": {
       db.exec(DELETE_ALL_NODES);
       break;
@@ -98,6 +74,40 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
         bind: { ":type": "head", ":id": oid },
       });
 
+      break;
+    }
+    case "request-download": {
+      const root = await navigator.storage.getDirectory();
+      const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
+      const file = await dbFileHandle.getFile();
+      postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
+      break;
+    }
+    case "request-node-capture": {
+      performance.mark("upsertNodeStart");
+      db.exec(INSERT_NODE, {
+        bind: {
+          ":meta": JSON.stringify({
+            id: Date.now().toString(),
+            url: event.data.url,
+            targetUrls: event.data.targetUrls,
+            title: event.data.title,
+            modifiedAt: new Date().toISOString(),
+          }),
+          ":body": event.data.body,
+          ":change": "created",
+        },
+      });
+      console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
+      break;
+    }
+    case "request-node-update": {
+      db.exec(UPDATE_NODE_BODY, {
+        bind: {
+          ":id": event.data.id,
+          ":body": event.data.body,
+        },
+      });
       break;
     }
     case "request-push": {
@@ -139,9 +149,6 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       }) as { title: string; url: string | null; html: string }[];
       console.log("matched", nodes);
       postMessage<RespondMatchNodes>(self, { name: "respond-match-nodes", nodes });
-      break;
-    }
-    case "request-update": {
       break;
     }
     default:
