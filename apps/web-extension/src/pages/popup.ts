@@ -82,6 +82,7 @@ export default async function main() {
         // TODO update master list, auto-select first match, then update details
         const matchedNode = event.data.nodes[0];
         if (!matchedNode) return;
+        captureForm.querySelector<HTMLInputElement>("#id")!.value = matchedNode.id!;
         captureForm.querySelector<HTMLInputElement>("#url")!.value = matchedNode.url!;
         captureForm.querySelector<HTMLInputElement>("#title")!.value = matchedNode.title!;
         captureForm.querySelector<HTMLInputElement>("#body")!.value = matchedNode.body!;

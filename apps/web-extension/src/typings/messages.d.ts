@@ -12,7 +12,8 @@ export type MessageToWorker =
   | RequestReset
   | RequestSync
   | RequestTextMatch
-  | RequestTestConnection;
+  | RequestTestConnection
+  | RequestUpdate;
 
 export type MessageToMain = RespondActiveTabMatch | RespondRecentNodes | RespondFileDownload | RespondMatchNodes;
 
@@ -70,9 +71,15 @@ export interface RequestTextMatch {
   query: string;
 }
 
+export interface RequestUpdate {
+  name: "request-update";
+  id: string;
+  body: string;
+}
+
 export interface RespondActiveTabMatch {
   name: "respond-active-tab-match";
-  nodes: { title: string; url: string | null; targetUrls: string[]; body: string }[];
+  nodes: { id: string; title: string; url: string | null; targetUrls: string[]; body: string }[];
 }
 
 export interface RespondRecentNodes {

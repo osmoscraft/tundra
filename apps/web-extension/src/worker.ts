@@ -32,6 +32,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
   switch (event.data?.name) {
     case "request-active-tab-match": {
       const matchedNodes = db.selectObjects(MATCH_NODES_BY_URL, { ":url": event.data.url }) as {
+        id: string;
         body: string;
         title: string;
         targetUrls: string[];
@@ -138,6 +139,9 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       }) as { title: string; url: string | null; html: string }[];
       console.log("matched", nodes);
       postMessage<RespondMatchNodes>(self, { name: "respond-match-nodes", nodes });
+      break;
+    }
+    case "request-update": {
       break;
     }
     default:

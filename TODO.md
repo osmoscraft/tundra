@@ -1,27 +1,2 @@
-- Config module
-  - [x] Storage Read/write
-  - [x] Config UI
-- Sync module
-  - [x] GitHub connection testing
-  - [ ] GitHub blank repo init
-  - [ ] GitLab connection testing
-  - [ ] GitHub/GitLab GraphQL API audit
-- Content module
-  - [x] Indexed DB init
-  - [ ] File content Read/Write
-- Search module
-  - [ ] Ephemeral indexer
-  - [ ] Full text search
-- Editor module
-  - [ ] List editing
-  - [ ] Link editing
-- HCI
-  - [ ] Command and status bar layout optimization
-- Infrastructure
-  - [ ] Single-purpose extension for CORS fetch
-  - [ ] Async pipe for chaining async requests
-  - [ ] Subscription for server log streaming
-  - [x] Req/Res based event handling
-  - [x] Status bar
-  - [x] Action bar
-  - [x] Focus trap
+- DB: automated timestamp
+- DB: allow metadata update via json patch
