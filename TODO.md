@@ -5,3 +5,4 @@
 - Capture: single column capture form
 - Preview mode: show title, notes, and connection stats
 - Edit mode: show Title, URL, feed url, tag, alt url, and note editor
+- Sync: require network, edit one doc at a time, no need to track local history
