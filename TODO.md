@@ -1,2 +1,7 @@
 - DB: automated timestamp
 - DB: allow metadata update via json patch
+- DB + Git: Store the entire doc as a json file, avoid frontmatter parsing
+- Options: display all docs
+- Capture: single column capture form
+- Preview mode: show title, notes, and connection stats
+- Edit mode: show Title, URL, feed url, tag, alt url, and note editor
