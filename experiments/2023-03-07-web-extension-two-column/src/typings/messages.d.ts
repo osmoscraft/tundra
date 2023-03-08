@@ -13,9 +13,7 @@ export type MessageToWorker =
   | RequestTextMatch
   | RequestTestConnection;
 
-export type MessageToMainV2 = {
-  respondFileDownload: File;
-};
+export type MessageToMain = RespondActiveTabMatch | RespondRecentNodes | RespondFileDownload | RespondMatchNodes;
 
 export interface RequestActiveTabMatch {
   name: "request-active-tab-match";

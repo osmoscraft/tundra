@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TinyKB</title>
+    <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <form>
+      <fieldset>
+        <legend>Database</legend>
+        <menu>
+          <button data-action="download">Download DB</button>
+          <button data-action="clear">Clear DB</button>
+          <button data-action="reset">Nuke DB</button>
+        </menu>
+      </fieldset>
+      <fieldset>
+        <legend>Git</legend>
+        <label>
+          Repo
+          <input type="text" name="repo" />
+        </label>
+        <label>
+          Owner
+          <input type="text" name="owner" />
+        </label>
+        <label>
+          Token
+          <input type="password" name="token" />
+        </label>
+        <button data-action="save-connection">Save</button>
+        <button data-action="test-connection">Test</button>
+        <button data-action="clone">Clone</button>
+        <button data-action="push">Push</button>
+        <button data-action="sync">Sync</button>
+      </fieldset>
+    </form>
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>

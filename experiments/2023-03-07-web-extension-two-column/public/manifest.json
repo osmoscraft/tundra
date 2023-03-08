@@ -1,0 +1,32 @@
+{
+  "name": "TinyKB",
+  "description": "Personal knowledge base for the web",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/images/icon@16.png",
+      "32": "/images/icon@32.png",
+      "48": "/images/icon@48.png",
+      "128": "/images/icon@128.png"
+    }
+  },
+  "icons": {
+    "16": "/images/icon@16.png",
+    "48": "/images/icon@48.png",
+    "128": "/images/icon@128.png"
+  },
+  "options_page": "options.html",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://*.github.com/*"],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self' 'wasm-unsafe-eval'; connect-src https://*.github.com"
+  },
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  }
+}

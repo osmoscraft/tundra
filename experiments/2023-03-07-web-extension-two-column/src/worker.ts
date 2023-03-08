@@ -9,9 +9,9 @@ import SET_REF from "./modules/db/set-ref.sql";
 import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type {
-  MessageToMainV2,
   MessageToWorker,
   RespondActiveTabMatch,
+  RespondFileDownload,
   RespondMatchNodes,
   RespondRecentNodes,
 } from "./typings/messages";
@@ -70,8 +70,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       const root = await navigator.storage.getDirectory();
       const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
       const file = await dbFileHandle.getFile();
-      // postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
-      postMessage<MessageToMainV2>(self, { respondFileDownload: file });
+      postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
       break;
     }
     case "request-node-capture": {

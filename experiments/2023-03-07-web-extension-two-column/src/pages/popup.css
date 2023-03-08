@@ -1,0 +1,35 @@
+@import url("../styles/reset.css");
+@import url("../styles/defaults.css");
+
+body {
+  width: 40rem;
+  font-size: 100%;
+}
+
+.app-layout {
+  display: grid;
+  grid-template:
+    "menu   menu" auto
+    "master details" 1fr / auto 1fr;
+}
+
+.app-layout [data-area="menu"] {
+  grid-area: menu;
+}
+.app-layout [data-area="master"] {
+  grid-area: master;
+}
+.app-layout [data-area="details"] {
+  grid-area: details;
+}
+
+.node-list {
+  width: 16rem;
+}
+
+.node-list li {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

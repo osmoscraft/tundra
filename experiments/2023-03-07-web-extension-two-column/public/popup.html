@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TinyKB</title>
+    <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <input id="omnibox" type="search" placeholder="Keywords or URL" data-area="menu" />
+      <div data-area="master">
+        <ul id="node-list" class="node-list">
+          loading...
+        </ul>
+      </div>
+      <form data-area="details" id="capture-form">
+        <label for="id">id</label>
+        <input readonly id="id" name="id" />
+        <br />
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" placeholder="https://" />
+        <br />
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" />
+        <br />
+        <label for="body">Note</label>
+        <textarea id="body" name="body"></textarea>
+        <br />
+        <button type="submit">Capture</button>
+        <ul id="target-url-list"></ul>
+      </form>
+    </div>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

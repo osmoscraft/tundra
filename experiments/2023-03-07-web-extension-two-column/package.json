@@ -15,12 +15,12 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/chrome": "^0.0.220",
-    "@types/node": "^18.14.6",
+    "@types/chrome": "^0.0.212",
+    "@types/node": "^18.11.18",
     "concurrently": "^7.6.0",
-    "esbuild": "^0.17.11"
+    "esbuild": "^0.17.5"
   },
   "dependencies": {
-    "@zip.js/zip.js": "^2.6.75"
+    "@zip.js/zip.js": "^2.6.65"
   }
 }
