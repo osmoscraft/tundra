@@ -7,13 +7,11 @@ export type MessageToWorker =
   | RequestClear
   | RequestClone
   | RequestDownload
-  | RequestPush
   | RequestRecent
   | RequestReset
   | RequestSync
   | RequestTextMatch
-  | RequestTestConnection
-  | RequestNodeUpdate;
+  | RequestTestConnection;
 
 export type MessageToMain = RespondActiveTabMatch | RespondRecentNodes | RespondFileDownload | RespondMatchNodes;
 
@@ -40,18 +38,7 @@ export interface RequestNodeCapture {
   url: string;
   targetUrls: string[];
   title: string;
-  body: string;
-}
-
-export interface RequestNodeUpdate {
-  name: "request-node-update";
-  id: string;
-  body: string;
-}
-
-export interface RequestPush {
-  name: "request-push";
-  connection: GitConnection;
+  note: string;
 }
 
 export interface RequestRecent {
@@ -79,7 +66,7 @@ export interface RequestTextMatch {
 
 export interface RespondActiveTabMatch {
   name: "respond-active-tab-match";
-  nodes: { id: string; title: string; url: string | null; targetUrls: string[]; body: string }[];
+  nodes: { id: string; note: string; title: string; url: string | null; targetUrls: string[] }[];
 }
 
 export interface RespondRecentNodes {

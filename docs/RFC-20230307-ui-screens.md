@@ -1,0 +1,15 @@
+- Popup
+  - Page summary
+    - Capture status: new, captured, updating (captured with pending changes)
+    - Title
+    - URL
+    - Tags
+    - Details
+    - Graph stats
+      - Known sources, known targets, other sources that share targets
+- Manager
+  - Sync
+    - Git connection setup/testing
+    - Import/Export
+  - Search
+  - Browse

@@ -3,7 +3,6 @@ import type {
   MessageToMain,
   RequestActiveTabMatch,
   RequestNodeCapture,
-  RequestNodeUpdate,
   RequestRecent,
   RequestTextMatch,
 } from "../typings/messages";
@@ -45,11 +44,6 @@ export default async function main() {
 
     if (nodeId) {
       // update
-      postMessage<RequestNodeUpdate>(worker, {
-        name: "request-node-update",
-        id: nodeId,
-        body: captureData.get("body") as string,
-      });
     } else {
       // capture
       // TODO support alt ulrs
@@ -57,7 +51,7 @@ export default async function main() {
         name: "request-node-capture",
         url: captureData.get("url") as string,
         title: captureData.get("title") as string,
-        body: captureData.get("body") as string,
+        note: captureData.get("body") as string,
         targetUrls: [...captureForm.querySelectorAll("a")].map((anchor) => anchor.href),
       });
     }
@@ -98,7 +92,7 @@ export default async function main() {
         captureForm.querySelector<HTMLInputElement>("#id")!.value = matchedNode.id!;
         captureForm.querySelector<HTMLInputElement>("#url")!.value = matchedNode.url!;
         captureForm.querySelector<HTMLInputElement>("#title")!.value = matchedNode.title!;
-        captureForm.querySelector<HTMLInputElement>("#body")!.value = matchedNode.body!;
+        captureForm.querySelector<HTMLInputElement>("#body")!.value = matchedNode.note!;
         captureForm.querySelector<HTMLButtonElement>(`button[type="submit"]`)!.textContent = "Update";
 
         break;

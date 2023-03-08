@@ -4,12 +4,9 @@ import GET_REF from "./modules/db/get-ref.sql";
 import INSERT_NODE from "./modules/db/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import MATCH_NODES_BY_URL from "./modules/db/match-nodes-by-url.sql";
-import SELECT_CHANGED_NODES from "./modules/db/select-changed-nodes.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
-import UPDATE_NODE_BODY from "./modules/db/update-node-body.sql";
 import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
-import { splitByFence } from "./modules/markdown/fence";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type {
   MessageToWorker,
@@ -34,7 +31,7 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
     case "request-active-tab-match": {
       const matchedNodes = db.selectObjects(MATCH_NODES_BY_URL, { ":url": event.data.url }) as {
         id: string;
-        body: string;
+        note: string;
         title: string;
         targetUrls: string[];
         url: string | null;
@@ -54,18 +51,11 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       const { oid } = await download(connection, async (path, getContent) => {
         // TODO filter paths to nodes folder, markdown file only
         if (!path.includes("/nodes/") || !path.endsWith(".md")) return;
-        const [header, body] = splitByFence(await getContent());
-        const meta = JSON.parse(header);
-        console.log([meta, body]);
+        const value = JSON.parse(await getContent());
 
         db.exec(INSERT_NODE, {
           bind: {
-            ":meta": JSON.stringify({
-              id: meta.id,
-              title: meta.title,
-              modifiedAt: meta.modifiedAt,
-            }),
-            ":body": body,
+            ":value": value,
           },
         });
       });
@@ -87,33 +77,18 @@ self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) =>
       performance.mark("upsertNodeStart");
       db.exec(INSERT_NODE, {
         bind: {
-          ":meta": JSON.stringify({
+          ":value": JSON.stringify({
             id: Date.now().toString(),
             url: event.data.url,
             targetUrls: event.data.targetUrls,
             title: event.data.title,
             modifiedAt: new Date().toISOString(),
+            note: event.data.note,
           }),
-          ":body": event.data.body,
-          ":change": "created",
         },
       });
       console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
       break;
-    }
-    case "request-node-update": {
-      db.exec(UPDATE_NODE_BODY, {
-        bind: {
-          ":id": event.data.id,
-          ":body": event.data.body,
-        },
-      });
-      break;
-    }
-    case "request-push": {
-      const changedNodes = db.selectObjects(SELECT_CHANGED_NODES);
-      console.log("local changed nodes:", changedNodes);
-      // TODO create commit and update remote ref
     }
     case "request-reset": {
       const root = await navigator.storage.getDirectory();
