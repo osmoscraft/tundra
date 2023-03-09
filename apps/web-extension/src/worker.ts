@@ -1,145 +1,57 @@
 import CREATE_SCHEMA from "./modules/db/create-schema.sql";
-import DELETE_ALL_NODES from "./modules/db/delete-all-nodes.sql";
-import GET_REF from "./modules/db/get-ref.sql";
-import INSERT_NODE from "./modules/db/insert-node.sql";
-import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
-import MATCH_NODES_BY_URL from "./modules/db/match-nodes-by-url.sql";
-import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
-import SET_REF from "./modules/db/set-ref.sql";
-import { download, getRemoteHeadRef, testConnection } from "./modules/sync/github/operations";
+import { download, testConnection } from "./modules/sync/github/operations";
+import { getNotifier, getResponder } from "./modules/worker/notify";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
-import type {
-  MessageToMainV2,
-  MessageToWorker,
-  RespondActiveTabMatch,
-  RespondMatchNodes,
-  RespondRecentNodes,
-} from "./typings/messages";
-import { postMessage } from "./utils/post-message";
+import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
 if (!self.crossOriginIsolated) {
   throw new Error("[worker] Disabled: crossOriginIsolated");
 }
 
-const dbPromise = initDb();
+const notifyMain = getNotifier<MessageToMainV2>(self);
+const respondMain = getResponder<MessageToMainV2>(self);
+const dbPromise = initDb((message) => notifyMain({ log: message }));
 
-self.addEventListener("message", async (event: MessageEvent<MessageToWorker>) => {
-  console.log(`[worker] received`, event.data);
-  const db = await dbPromise;
-  switch (event.data?.name) {
-    case "request-active-tab-match": {
-      const matchedNodes = db.selectObjects(MATCH_NODES_BY_URL, { ":url": event.data.url }) as {
-        id: string;
-        note: string;
-        title: string;
-        targetUrls: string[];
-        url: string | null;
-      }[];
-      postMessage<RespondActiveTabMatch>(self, { name: "respond-active-tab-match", nodes: matchedNodes });
-      break;
-    }
-    case "request-clear": {
-      db.exec(DELETE_ALL_NODES);
-      break;
-    }
-    case "request-clone": {
-      const connection = event.data.connection;
+self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>) => {
+  const data = message.data;
+  console.log(`[worker] received`, data);
 
-      db.exec(DELETE_ALL_NODES);
+  if (data.requestStatus) {
+    notifyMain({ log: "Worker online" });
+  }
 
-      const { oid } = await download(connection, async (path, getContent) => {
-        // TODO filter paths to nodes folder, markdown file only
-        if (!path.includes("/nodes/") || !path.endsWith(".md")) return;
-        const value = JSON.parse(await getContent());
+  if (data.requestGithubConnectionTest) {
+    notifyMain({ log: "Testing connection..." });
+    const isSuccess = await testConnection(data.requestGithubConnectionTest);
+    notifyMain({ log: isSuccess ? "Connection sucessful!" : "Connection failed." });
 
-        db.exec(INSERT_NODE, {
-          bind: {
-            ":value": value,
-          },
-        });
-      });
+    respondMain(message.data, { respondGithubConnectionTest: { isSuccess } });
+  }
 
-      db.exec(SET_REF, {
-        bind: { ":type": "head", ":id": oid },
-      });
+  if (data.requestGithubDownload) {
+    notifyMain({ log: "Testing connection..." });
 
-      break;
-    }
-    case "request-download": {
-      const root = await navigator.storage.getDirectory();
-      const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
-      const file = await dbFileHandle.getFile();
-      // postMessage<RespondFileDownload>(self, { name: "respond-file-download", file });
-      postMessage<MessageToMainV2>(self, { respondFileDownload: file });
-      break;
-    }
-    case "request-node-capture": {
-      performance.mark("upsertNodeStart");
-      db.exec(INSERT_NODE, {
-        bind: {
-          ":value": JSON.stringify({
-            id: Date.now().toString(),
-            url: event.data.url,
-            targetUrls: event.data.targetUrls,
-            title: event.data.title,
-            modifiedAt: new Date().toISOString(),
-            note: event.data.note,
-          }),
-        },
-      });
-      console.log("node upserted", performance.measure("upsertNode", "upsertNodeStart").duration);
-      break;
-    }
-    case "request-reset": {
-      const root = await navigator.storage.getDirectory();
-      await root.removeEntry("mydb.sqlite3");
-      break;
-    }
-    case "request-recent": {
-      const nodes = db.selectObjects(SELECT_RECENT_NODES) as { title: string; url: string | null }[];
-      postMessage<RespondRecentNodes>(self, { name: "respond-recent-nodes", nodes });
-      break;
-    }
-    case "request-sync": {
-      const localHeadRef = db.selectObject(GET_REF, { ":type": "head" })?.id;
+    const db = await dbPromise;
+    // TODO load item path and content into DB
 
-      const connection = event.data.connection;
-      const remoteHeadRef = await getRemoteHeadRef(connection);
+    let itemCount = 0;
+    const onItem = (path: string, getContent: () => Promise<string>) => {
+      notifyMain({ log: `Download item ${++itemCount} ${path}` });
+    };
 
-      console.log("[localRef, remoteRef]:", [localHeadRef, remoteHeadRef]);
-      if (localHeadRef === remoteHeadRef) return;
-
-      // get the difference between local and remote and apply to DB
-
-      break;
-    }
-    case "request-test-connection": {
-      const connection = event.data.connection;
-      testConnection(connection);
-      break;
-    }
-    case "request-text-match": {
-      const nodes = db.selectObjects(MATCH_NODES_BY_TEXT, {
-        ":query": event.data.query,
-      }) as { title: string; url: string | null; html: string }[];
-      console.log("matched", nodes);
-      postMessage<RespondMatchNodes>(self, { name: "respond-match-nodes", nodes });
-      break;
-    }
-    default:
-      const exhausted: never = event.data;
-      throw exhausted;
+    await download(data.requestGithubDownload, onItem);
   }
 });
 
-async function initDb() {
-  console.log("[worker] online");
+async function initDb(notify: (message: string) => void) {
+  notify("Initializing DB...");
   const db = await openDb();
   try {
     performance.mark("createSchemaStart");
     db.exec(CREATE_SCHEMA);
     console.log("schema created", performance.measure("createSchema", "createSchemaStart").duration);
+    notify("DB initialized");
   } finally {
     // TODO evaludation potential memory leak with persisted db conneciton
     // db.close();

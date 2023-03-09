@@ -1,5 +1,5 @@
 import type { GitConnection } from "../modules/sync/connection";
-import type { GitHubConnection } from "../modules/sync/github/operations";
+import type { GithubConnection } from "../modules/sync/github/config-storage";
 
 export type MessageToWorker =
   | RequestActiveTabMatch
@@ -13,8 +13,18 @@ export type MessageToWorker =
   | RequestTextMatch
   | RequestTestConnection;
 
+export type MessageToWorkerV2 = {
+  requestStatus?: boolean;
+  requestGithubConnectionTest?: GithubConnection;
+  requestGithubDownload?: GithubConnection;
+};
+
 export type MessageToMainV2 = {
-  respondFileDownload: File;
+  log?: string;
+  respondGithubConnectionTest?: {
+    isSuccess: boolean;
+  };
+  respondFileDownload?: File;
 };
 
 export interface RequestActiveTabMatch {

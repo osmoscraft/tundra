@@ -1,13 +1,18 @@
+import type { MessageToMainV2, MessageToWorkerV2 } from "../../../typings/messages";
 import { attachShadowHtml } from "../../../utils/dom";
+import { loadWorker } from "../../worker/load-worker";
+import { getNotifier, getRequester } from "../../worker/notify";
 import { getConnection, GithubConnection, saveConnection } from "./config-storage";
 import template from "./github-config-element.html";
-import { download, testConnection } from "./operations";
 
 export class GithubConfigElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private form = this.shadowRoot.querySelector("form")!;
   private menu = this.shadowRoot.querySelector("menu")!;
   private status = this.shadowRoot.querySelector("#status")!;
+  private worker = loadWorker();
+  private notifyWorker = getNotifier<MessageToWorkerV2>(this.worker);
+  private requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(this.worker);
 
   connectedCallback() {
     this.load();
@@ -20,44 +25,41 @@ export class GithubConfigElement extends HTMLElement {
       this.save();
     });
 
+    this.worker.addEventListener("message", (e) => {
+      const data = e.data as MessageToMainV2;
+
+      if (data.log) {
+        this.reportStatus(data.log);
+      }
+    });
+
+    this.notifyWorker({ requestStatus: true });
+
     this.menu.addEventListener("click", async (e) => {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "test": {
-          this.reportStatus("Testing...");
-
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
           const connection = getConnection();
           if (!connection) break;
 
-          const success = await testConnection(connection);
-          this.reportStatus(success ? "Success" : "Failed");
+          this.notifyWorker({ requestGithubConnectionTest: connection });
           break;
         }
 
         case "import": {
-          this.reportStatus("Testing...");
-
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
           const connection = getConnection();
           if (!connection) break;
 
-          const testSuccess = await testConnection(connection);
-          this.reportStatus(testSuccess ? "Success" : "Failed");
-          if (!testSuccess) break;
+          const { respondGithubConnectionTest } = await this.requestWorker({ requestGithubConnectionTest: connection });
+          if (!respondGithubConnectionTest?.isSuccess) break;
 
-          this.reportStatus("Importing...");
-          let itemCount = 0;
-          // TODO open BD
-          const onItem = () => {
-            itemCount++;
-            this.reportStatus(itemCount.toString());
-          };
-          await download(connection, onItem);
+          await this.requestWorker({ requestGithubDownload: connection });
 
           break;
         }
@@ -90,7 +92,6 @@ export class GithubConfigElement extends HTMLElement {
   }
 
   private reportStatus(text: string) {
-    console.log(this.status.textContent!.split("\n"));
     this.status.textContent = [...this.status.textContent!.split("\n").filter(Boolean), text].slice(-100).join("\n");
 
     this.status.scrollTop = this.status.scrollHeight;
