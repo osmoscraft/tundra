@@ -1,7 +1,6 @@
-import CREATE_SCHEMA from "./modules/db/create-schema.sql";
+import { initDb } from "./modules/db/init";
 import { download, testConnection } from "./modules/sync/github/operations";
 import { getNotifier, getResponder } from "./modules/worker/notify";
-import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -43,29 +42,5 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     await download(data.requestGithubDownload, onItem);
   }
 });
-
-async function initDb(notify: (message: string) => void) {
-  notify("Initializing DB...");
-  const db = await openDb();
-  try {
-    performance.mark("createSchemaStart");
-    db.exec(CREATE_SCHEMA);
-    console.log("schema created", performance.measure("createSchema", "createSchemaStart").duration);
-    notify("DB initialized");
-  } finally {
-    // TODO evaludation potential memory leak with persisted db conneciton
-    // db.close();
-  }
-
-  return db;
-}
-
-function openDb() {
-  return initSqlite3().then((sqlite3) => {
-    if (!sqlite3.opfs) throw new Error("OPFS is not loaded");
-    console.debug("sqlite3 version", sqlite3.capi.sqlite3_libversion(), sqlite3.capi.sqlite3_sourceid());
-    return new sqlite3.oo1.OpfsDb("/mydb.sqlite3");
-  });
-}
 
 export default self;
