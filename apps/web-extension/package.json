@@ -8,7 +8,7 @@
     "dev:pages": "npm run build:pages -- --watch",
     "dev:assets": "npm run build:assets -- --watch",
     "dev:worker": "npm run build:worker -- --watch",
-    "build:pages": "esbuild src/pages/*.ts --loader:.graphql=text --bundle --outdir=dist/unpacked",
+    "build:pages": "esbuild src/pages/*.ts --loader:.html=text --loader:.graphql=text --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/worker.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked"

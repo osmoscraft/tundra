@@ -1,5 +1,5 @@
-import type { GitConnection } from "../modules/git/connection";
-import type { GitHubConnection } from "../modules/git/github/operations";
+import type { GitConnection } from "../modules/sync/connection";
+import type { GitHubConnection } from "../modules/sync/github/operations";
 
 export type MessageToWorker =
   | RequestActiveTabMatch

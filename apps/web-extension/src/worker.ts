@@ -6,7 +6,7 @@ import MATCH_NODES_BY_TEXT from "./modules/db/match-nodes-by-text.sql";
 import MATCH_NODES_BY_URL from "./modules/db/match-nodes-by-url.sql";
 import SELECT_RECENT_NODES from "./modules/db/select-recent-nodes.sql";
 import SET_REF from "./modules/db/set-ref.sql";
-import { download, getRemoteHeadRef, testConnection } from "./modules/git/github/operations";
+import { download, getRemoteHeadRef, testConnection } from "./modules/sync/github/operations";
 import initSqlite3 from "./sqlite3/sqlite3.mjs";
 import type {
   MessageToMainV2,

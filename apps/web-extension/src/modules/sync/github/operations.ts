@@ -1,21 +1,16 @@
 import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { apiV4, unwrap } from "./api-proxy";
+import type { GithubConnection } from "./config-storage";
 import ARCHIVE_URL from "./queries/archive-url.graphql";
 import HEAD_REF from "./queries/head-ref.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
-
-export interface GitHubConnection {
-  owner: string;
-  repo: string;
-  token: string;
-}
 
 export interface TestConnectionOutput {
   viewer: {
     login: string;
   };
 }
-export async function testConnection(connection: GitHubConnection) {
+export async function testConnection(connection: GithubConnection) {
   const response = await apiV4<undefined, TestConnectionOutput>(connection, TEST_CONNECTION);
   const data = unwrap(response);
   const login = data.viewer.login;
@@ -39,7 +34,7 @@ export interface ArhicveUrlVariables {
   repo: string;
 }
 export async function download(
-  connection: GitHubConnection,
+  connection: GithubConnection,
   onItem: (path: string, getContent: () => Promise<string>) => any
 ): Promise<{ oid: string }> {
   const response = await apiV4<ArhicveUrlVariables, ArchiveUrlOutput>(connection, ARCHIVE_URL, connection);
@@ -78,7 +73,7 @@ export interface HeadRefOutput {
   };
 }
 
-export async function getRemoteHeadRef(connection: GitHubConnection) {
+export async function getRemoteHeadRef(connection: GithubConnection) {
   const response = await apiV4<HeadRefVariables, HeadRefOutput>(connection, HEAD_REF, connection);
   return response.data.repository.defaultBranchRef.target.oid;
 }
