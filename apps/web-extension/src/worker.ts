@@ -30,8 +30,10 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       changeType: ChangeType.Create,
     };
 
+    // TODO try github repository content API to further reduce network traffic
     const result = await push(data.requestCapture!.githubConnection, [draft]);
     respondMain(data, { respondCapture: result?.commitSha ?? "" });
+
     // TODO pull latest to DB
   }
 
