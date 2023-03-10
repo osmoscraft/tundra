@@ -1,5 +1,6 @@
 import { CaptureData, CaptureFormElement } from "../modules/capture/capture-form-element";
 import { extractLinks } from "../modules/capture/extract-links";
+import { getConnection } from "../modules/sync/github/config-storage";
 import { loadWorker } from "../modules/worker/load-worker";
 import { getNotifier, getRequester } from "../modules/worker/notify";
 import type { MessageToMainV2, MessageToWorkerV2 } from "../typings/messages";
@@ -15,10 +16,20 @@ const requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(worker);
 export default async function main() {
   const captureForm = document.querySelector<CaptureFormElement>("capture-form-element")!;
 
-  captureForm.addEventListener("request-capture", ((e: CustomEvent<CaptureData>) => {
-    notifyWorker({ requestCapture: e.detail });
+  captureForm.addEventListener("request-capture", async (e) => {
+    const connection = getConnection();
+    if (!connection) return;
+
+    const { respondCapture } = await requestWorker({
+      requestCapture: {
+        githubConnection: connection,
+        data: (e as CustomEvent<CaptureData>).detail,
+      },
+    });
+
+    console.log(`[capture]`, respondCapture);
     captureForm.reset();
-  }) as EventListener);
+  });
 
   getActiveTab()
     .then(([activeTab]) => {

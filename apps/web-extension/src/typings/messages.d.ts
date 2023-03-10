@@ -1,7 +1,11 @@
+import type { CaptureData } from "../modules/capture/capture-form-element";
 import type { GithubConnection } from "../modules/sync/github/config-storage";
 
 export type MessageToWorkerV2 = {
-  requestCapture?: CaptureData;
+  requestCapture?: {
+    githubConnection: GithubConnection;
+    data: CaptureData;
+  };
   requestDbClear?: boolean;
   requestDbDownload?: boolean;
   requestDbNuke?: boolean;
@@ -12,8 +16,9 @@ export type MessageToWorkerV2 = {
 
 export type MessageToMainV2 = {
   log?: string;
+  respondCapture?: string;
+  respondDbDownload?: File;
   respondGithubConnectionTest?: {
     isSuccess: boolean;
   };
-  respondDbDownload?: File;
 };

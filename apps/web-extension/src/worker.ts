@@ -1,5 +1,5 @@
 import { getDbFile, initDb } from "./modules/db/init";
-import { download, testConnection } from "./modules/sync/github/operations";
+import { ChangeType, download, DraftNode, push, testConnection } from "./modules/sync/github/operations";
 import { getNotifier, getResponder } from "./modules/worker/notify";
 
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
@@ -23,8 +23,16 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
   if (data.requestCapture) {
     console.log(data);
-    // push to remote
-    // pull latest to DB
+
+    const draft: DraftNode = {
+      path: `${Date.now().toString()}.json`,
+      content: JSON.stringify(data.requestCapture.data!, null, 2),
+      changeType: ChangeType.Create,
+    };
+
+    const result = await push(data.requestCapture!.githubConnection, [draft]);
+    respondMain(data, { respondCapture: result?.commitSha ?? "" });
+    // TODO pull latest to DB
   }
 
   if (data.requestDbClear) {
@@ -70,7 +78,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       db.exec(INSERT_NODE, {
         bind: {
           ":path": path.slice(path.indexOf("/")),
-          ":value": await getContent(),
+          ":content": await getContent(),
         },
       });
     };
