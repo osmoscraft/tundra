@@ -25,7 +25,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     console.log(data);
 
     const draft: DraftNode = {
-      path: `${Date.now().toString()}.json`,
+      path: `nodes/${Date.now().toString()}.json`,
       content: JSON.stringify(data.requestCapture.data!, null, 2),
       changeType: ChangeType.Create,
     };
@@ -77,7 +77,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
       db.exec(INSERT_NODE, {
         bind: {
-          ":path": path.slice(path.indexOf("/")),
+          ":path": path.slice(path.indexOf("/") + 1),
           ":content": await getContent(),
         },
       });

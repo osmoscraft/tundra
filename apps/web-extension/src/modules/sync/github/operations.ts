@@ -3,6 +3,7 @@ import { apiV4, unwrap } from "./api-proxy";
 import type { GithubConnection } from "./config-storage";
 import ARCHIVE_URL from "./queries/archive-url.graphql";
 import HEAD_REF from "./queries/head-ref.graphql";
+import ROOT_TREE from "./queries/root-tree.graphql";
 import TEST_CONNECTION from "./queries/test-connection.graphql";
 
 export interface TestConnectionOutput {
@@ -83,6 +84,34 @@ export async function getRemoteHeadRef(connection: GithubConnection) {
   return response.data.repository.defaultBranchRef.target.oid;
 }
 
+export interface RootTreeVariables {
+  owner: string;
+  repo: string;
+}
+
+export interface RootTreeOutput {
+  repository: {
+    defaultBranchRef: {
+      name: string;
+      target: {
+        oid: string;
+        tree: {
+          oid: string;
+        };
+      };
+    };
+  };
+}
+
+export async function getRootTree(connection: GithubConnection) {
+  const response = await apiV4<RootTreeVariables, RootTreeOutput>(connection, ROOT_TREE, connection);
+  return {
+    defaultBranch: response.data.repository.defaultBranchRef.name,
+    rootCommit: response.data.repository.defaultBranchRef.target.oid,
+    rootTreeSha: response.data.repository.defaultBranchRef.target.tree.oid,
+  };
+}
+
 export interface DraftNode {
   path: string;
   content: string;
@@ -99,7 +128,7 @@ export enum ChangeType {
 export interface PushResult {
   commitSha: string;
 }
-export async function push(context: GithubConnection, drafts: DraftNode[]): Promise<PushResult | null> {
+export async function push(connection: GithubConnection, drafts: DraftNode[]): Promise<PushResult | null> {
   if (!drafts.length) {
     console.log(`[push] nothing to push`);
     return null;
@@ -110,12 +139,9 @@ export async function push(context: GithubConnection, drafts: DraftNode[]): Prom
 
   console.log(`[push]`, { updateItems, deleteItems });
 
-  const branch = await getDefaultBranch(context);
-  const commit = await getCommit(context, { sha: branch.commit.sha });
-  const rootTree = await getTree(context, { sha: commit.tree.sha });
-  const nodesTreeSha = rootTree.tree.find((node) => node.path === "nodes")?.sha;
-  const nodesTree = nodesTreeSha ? await getTree(context, { sha: nodesTreeSha }) : undefined;
-  const nodesTreePatch = [
+  const { defaultBranch, rootCommit, rootTreeSha } = await getRootTree(connection);
+
+  const rootTreePatch = [
     ...updateItems.map((item) => ({
       path: item.path,
       mode: ObjectMode.File,
@@ -130,39 +156,23 @@ export async function push(context: GithubConnection, drafts: DraftNode[]): Prom
     })),
   ];
 
-  const updatedNodesTree = await createTree(context, {
-    base_tree: nodesTree?.sha,
-    tree: nodesTreePatch,
-  });
-
-  console.log(`[push] nodes tree updated`, updatedNodesTree.sha);
-
-  const rootTreePatch = [
-    {
-      path: "nodes",
-      mode: ObjectMode.Sudirectory,
-      type: ObjectType.Tree,
-      sha: updatedNodesTree.sha,
-    },
-  ];
-
-  const updatedRootTree = await createTree(context, {
-    base_tree: rootTree.sha,
+  const updatedRootTree = await createTree(connection, {
+    base_tree: rootTreeSha,
     tree: rootTreePatch,
   });
 
-  console.log(`[push] root tree updated`, updatedNodesTree.sha);
+  console.log(`[push] root tree updated`, updatedRootTree.sha);
 
-  const updatedCommit = await createCommit(context, {
+  const updatedCommit = await createCommit(connection, {
     message: "tinykb changes",
     tree: updatedRootTree.sha,
-    parents: [commit.sha],
+    parents: [rootCommit],
   });
 
   console.log(`[push] commit created`, updatedCommit.sha);
 
-  const updatedRef = await updateRef(context, {
-    ref: `refs/heads/${branch.name}`,
+  const updatedRef = await updateRef(connection, {
+    ref: `refs/heads/${defaultBranch}`,
     sha: updatedCommit.sha,
   });
 
@@ -170,80 +180,6 @@ export async function push(context: GithubConnection, drafts: DraftNode[]): Prom
   return {
     commitSha: updatedCommit.sha,
   };
-}
-
-export interface Branch {
-  commit: {
-    sha: string;
-  };
-  name: string;
-}
-
-export async function getDefaultBranch(context: GithubConnection): Promise<Branch> {
-  const { repo, owner, token } = context;
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`, {
-    headers: new Headers({
-      Authorization: "Basic " + self.btoa(`${owner}:${token}`),
-      "Content-Type": "application/json",
-    }),
-  });
-
-  const branches = (await response.json()) as any[];
-  if (branches?.length) {
-    return branches[0];
-  }
-  throw new Error("No branch found");
-}
-
-// ref: https://docs.github.com/en/rest/git/commits#get-a-commit
-export interface GetCommitInput {
-  sha: string;
-}
-
-export interface Commit {
-  sha: string;
-  tree: {
-    sha: string;
-  };
-}
-
-export async function getCommit(context: GithubConnection, input: GetCommitInput): Promise<Commit> {
-  const { token, owner, repo } = context;
-
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/commits/${input.sha}`, {
-    headers: new Headers({
-      Authorization: "Basic " + self.btoa(`${owner}:${token}`),
-      "Content-Type": "application/json",
-    }),
-  });
-
-  return await response.json();
-}
-
-export interface GetTreeInput {
-  sha: string;
-}
-export interface Tree {
-  sha: string;
-  tree: {
-    path: string;
-    sha: string;
-    type: string;
-    mode: string;
-  }[];
-}
-
-export async function getTree(context: GithubConnection, input: GetTreeInput): Promise<Tree> {
-  const { token, owner, repo } = context;
-
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${input.sha}`, {
-    headers: new Headers({
-      Authorization: "Basic " + self.btoa(`${owner}:${token}`),
-      "Content-Type": "application/json",
-    }),
-  });
-
-  return await response.json();
 }
 
 export interface CreateTreeInput {
@@ -344,4 +280,21 @@ export const enum ObjectType {
   Blob = "blob",
   Tree = "tree",
   Commit = "commit",
+}
+
+export interface Commit {
+  sha: string;
+  tree: {
+    sha: string;
+  };
+}
+
+export interface Tree {
+  sha: string;
+  tree: {
+    path: string;
+    sha: string;
+    type: string;
+    mode: string;
+  }[];
 }
