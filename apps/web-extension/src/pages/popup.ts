@@ -25,7 +25,7 @@ export default async function main() {
       // TODO check DB for existing node
 
       // assuming no existing node, render creation form
-      captureForm.loadPage(extraction);
+      captureForm.loadExtractionResult(extraction);
     });
 }
 

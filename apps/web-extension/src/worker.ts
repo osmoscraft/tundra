@@ -21,6 +21,12 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   const data = message.data;
   console.log(`[worker] received`, data);
 
+  if (data.requestCapture) {
+    console.log(data);
+    // push to remote
+    // pull latest to DB
+  }
+
   if (data.requestDbClear) {
     const db = await dbPromise;
     db.exec(DELETE_ALL_NODES);

@@ -3,14 +3,11 @@ import { attachShadowHtml } from "../../utils/dom";
 import { loadWorker } from "../worker/load-worker";
 import { getNotifier, getRequester } from "../worker/notify";
 import template from "./capture-form-element.html";
+import type { Extraction } from "./extract-links";
 
-export interface Page {
+export interface CaptureData {
   url: string;
   title: string;
-  target_urls: {
-    title: string;
-    url: string;
-  }[];
 }
 
 export class CaptureFormElement extends HTMLElement {
@@ -21,13 +18,24 @@ export class CaptureFormElement extends HTMLElement {
   private requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(this.worker);
 
   connectedCallback() {
-    this.form.addEventListener("submit", (e) => e.preventDefault());
+    this.form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const captureData = new FormData(this.form);
+
+      this.notifyWorker({
+        requestCapture: {
+          url: captureData.get("url") as string,
+          title: captureData.get("title") as string,
+        },
+      });
+    });
   }
 
-  loadPage(page: Page) {
-    this.shadowRoot.querySelector<HTMLInputElement>("#url")!.value = page.url!;
-    this.shadowRoot.querySelector<HTMLInputElement>("#title")!.value = page.title!;
-    this.shadowRoot.querySelector<HTMLUListElement>("#target-url-list")!.innerHTML = page.target_urls
+  loadExtractionResult(extraction: Extraction) {
+    this.shadowRoot.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
+    this.shadowRoot.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
+    this.shadowRoot.querySelector<HTMLUListElement>("#target-url-list")!.innerHTML = extraction.targetUrls
       .map(
         (url) => /*html*/ `
       <li><a href="${url.url}" target="_blank">${url.title}</a></li>
