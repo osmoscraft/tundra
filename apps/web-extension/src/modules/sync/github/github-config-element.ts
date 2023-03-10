@@ -18,20 +18,7 @@ export class GithubConfigElement extends HTMLElement {
     this.load();
 
     this.form.addEventListener("submit", (e) => e.preventDefault());
-
-    this.form.addEventListener("input", (e) => {
-      e.preventDefault();
-      if (!this.form.checkValidity()) return;
-      this.save();
-    });
-
-    this.worker.addEventListener("message", (e) => {
-      const data = e.data as MessageToMainV2;
-
-      if (data.log) {
-        this.reportStatus(data.log);
-      }
-    });
+    this.form.addEventListener("input", (e) => this.save());
 
     this.notifyWorker({ requestStatus: true });
 
@@ -89,11 +76,5 @@ export class GithubConfigElement extends HTMLElement {
     };
 
     return connection;
-  }
-
-  private reportStatus(text: string) {
-    this.status.textContent = [...this.status.textContent!.split("\n").filter(Boolean), text].slice(-100).join("\n");
-
-    this.status.scrollTop = this.status.scrollHeight;
   }
 }

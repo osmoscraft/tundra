@@ -1,0 +1,27 @@
+<form class="db-config">
+  <fieldset>
+    <legend>DB</legend>
+      <menu>
+        <button data-action="download">Download</button>
+        <button data-action="clear">Clear</button>
+        <button data-action="nuke">Nuke</button>
+      </menu>
+    </div>
+  </fieldset>
+</form>
+
+<style>
+  .db-config fieldset {
+    display: grid;
+    padding-inline: 16px;
+  }
+  .db-config menu {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+
+</style>

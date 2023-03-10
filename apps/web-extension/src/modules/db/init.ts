@@ -18,6 +18,18 @@ export async function initDb(log: (message: string) => void) {
   return db;
 }
 
+export async function destoryDb() {
+  const root = await navigator.storage.getDirectory();
+  await root.removeEntry("mydb.sqlite3");
+}
+
+export async function getDbFile() {
+  const root = await navigator.storage.getDirectory();
+  const dbFileHandle = await await root.getFileHandle("mydb.sqlite3");
+  const file = await dbFileHandle.getFile();
+  return file;
+}
+
 function openDb() {
   return initSqlite3().then((sqlite3) => {
     if (!sqlite3.opfs) throw new Error("OPFS is not loaded");

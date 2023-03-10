@@ -11,11 +11,16 @@ export interface TestConnectionOutput {
   };
 }
 export async function testConnection(connection: GithubConnection) {
-  const response = await apiV4<undefined, TestConnectionOutput>(connection, TEST_CONNECTION);
-  const data = unwrap(response);
-  const login = data.viewer.login;
-  console.log(`Successfully logged in as "${login}"`);
-  return true;
+  try {
+    const response = await apiV4<undefined, TestConnectionOutput>(connection, TEST_CONNECTION);
+    const data = unwrap(response);
+    const login = data.viewer.login;
+    console.log(`Successfully logged in as "${login}"`);
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
 }
 
 export interface ArchiveUrlOutput {

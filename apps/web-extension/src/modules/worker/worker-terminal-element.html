@@ -1,0 +1,27 @@
+<form class="worker-terminal">
+  <fieldset>
+    <legend>Worker</legend>
+    <div class="field">
+      <label>Status</label>
+      <textarea readonly id="status" rows="5"></textarea>
+    </div>
+  </fieldset>
+</form>
+<style>
+  .worker-terminal fieldset {
+    display: grid;
+    padding-inline: 16px;
+  }
+  .worker-terminal label {
+    display: block;
+  }
+  .worker-terminal label + * {
+    margin-top: 4px;
+  }
+  .worker-terminal textarea {
+    resize: none;
+  }
+  .worker-terminal .field {
+    display: grid;
+  }
+</style>

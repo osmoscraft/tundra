@@ -1,2 +1,2 @@
 -- TODO auto generate base meta with timestamp
-INSERT INTO node(value) VALUES (:value);
+INSERT INTO node(path, value) VALUES (:path, :value);

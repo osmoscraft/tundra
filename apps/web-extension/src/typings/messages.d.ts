@@ -14,6 +14,9 @@ export type MessageToWorker =
   | RequestTestConnection;
 
 export type MessageToWorkerV2 = {
+  requestDbClear?: boolean;
+  requestDbDownload?: boolean;
+  requestDbNuke?: boolean;
   requestStatus?: boolean;
   requestGithubConnectionTest?: GithubConnection;
   requestGithubDownload?: GithubConnection;
@@ -24,7 +27,7 @@ export type MessageToMainV2 = {
   respondGithubConnectionTest?: {
     isSuccess: boolean;
   };
-  respondFileDownload?: File;
+  respondDbDownload?: File;
 };
 
 export interface RequestActiveTabMatch {

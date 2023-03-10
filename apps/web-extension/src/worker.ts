@@ -1,6 +1,11 @@
-import { initDb } from "./modules/db/init";
+import { getDbFile, initDb } from "./modules/db/init";
 import { download, testConnection } from "./modules/sync/github/operations";
 import { getNotifier, getResponder } from "./modules/worker/notify";
+
+import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
+import INSERT_NODE from "./modules/db/statements/insert-node.sql";
+
+import { destoryDb } from "./modules/db/init";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -15,6 +20,22 @@ const dbPromise = initDb((message) => notifyMain({ log: message }));
 self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>) => {
   const data = message.data;
   console.log(`[worker] received`, data);
+
+  if (data.requestDbClear) {
+    const db = await dbPromise;
+    db.exec(DELETE_ALL_NODES);
+    notifyMain({ log: "DB cleared." });
+  }
+
+  if (data.requestDbDownload) {
+    const file = await getDbFile();
+    respondMain(data, { respondDbDownload: file });
+  }
+
+  if (data.requestDbNuke) {
+    await destoryDb();
+    notifyMain({ log: "DB nuked." });
+  }
 
   if (data.requestStatus) {
     notifyMain({ log: "Worker online" });
@@ -34,9 +55,18 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     const db = await dbPromise;
     // TODO load item path and content into DB
 
+    db.exec(DELETE_ALL_NODES);
+
     let itemCount = 0;
-    const onItem = (path: string, getContent: () => Promise<string>) => {
+    const onItem = async (path: string, getContent: () => Promise<string>) => {
       notifyMain({ log: `Download item ${++itemCount} ${path}` });
+
+      db.exec(INSERT_NODE, {
+        bind: {
+          ":path": path.slice(path.indexOf("/")),
+          ":value": await getContent(),
+        },
+      });
     };
 
     await download(data.requestGithubDownload, onItem);
