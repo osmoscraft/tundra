@@ -1,11 +1,57 @@
-<form data-area="details" id="capture-form">
-  <label for="url">URL</label>
-  <input id="url" name="url" type="url" placeholder="https://" />
-  <br />
-  <label for="title">Title</label>
-  <input id="title" name="title" type="text" />
-  <br />
-
-  <button type="submit">Capture</button>
+<form data-area="details" class="capture-form">
+  <fieldset>
+    <legend>Capture</legend>
+    <div class="field-list">
+      <div class="field">
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" placeholder="https://" />
+      </div>
+      <div class="field">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" />
+      </div>
+      <menu>
+        <button type="submit">Capture</button>
+      </menu>
+    </div>
+  </fieldset>
   <ul id="target-url-list"></ul>
 </form>
+
+<style>
+  .capture-form {
+    width: 32rem;
+  }
+  .capture-form input,
+  textarea {
+    padding: 0.25rem;
+  }
+  .capture-form fieldset {
+    display: grid;
+    padding-inline: 16px;
+  }
+  .capture-form label {
+    display: block;
+  }
+  .capture-form label + * {
+    margin-top: 4px;
+  }
+  .capture-form menu {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+  .capture-form .field-list {
+    display: grid;
+    gap: 12px;
+  }
+  .capture-form textarea {
+    resize: none;
+  }
+  .capture-form .field {
+    display: grid;
+  }
+</style>
