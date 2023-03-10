@@ -23,13 +23,19 @@ export class CaptureFormElement extends HTMLElement {
 
       const captureData = new FormData(this.form);
 
-      this.notifyWorker({
-        requestCapture: {
-          url: captureData.get("url") as string,
-          title: captureData.get("title") as string,
-        },
-      });
+      this.dispatchEvent(
+        new CustomEvent<CaptureData>("request-capture", {
+          detail: {
+            url: captureData.get("url") as string,
+            title: captureData.get("title") as string,
+          },
+        })
+      );
     });
+  }
+
+  reset() {
+    this.form.reset();
   }
 
   loadExtractionResult(extraction: Extraction) {
