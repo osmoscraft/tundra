@@ -1,11 +1,12 @@
-import { CaptureData, CaptureFormElement } from "../modules/capture/capture-form-element";
-import { extractLinks } from "../modules/capture/extract-links";
-import { getConnection } from "../modules/sync/github/config-storage";
-import { loadWorker } from "../modules/worker/load-worker";
-import { getNotifier, getRequester } from "../modules/worker/notify";
-import type { MessageToMainV2, MessageToWorkerV2 } from "../typings/messages";
-import { getActiveTab } from "../utils/get-active-tab";
-import "./popup.css";
+import { CaptureData, CaptureFormElement } from "./modules/capture/capture-form-element";
+import { extractLinks } from "./modules/capture/extract-links";
+import { getConnection } from "./modules/sync/github/config-storage";
+import { loadWorker } from "./modules/worker/load-worker";
+import { getNotifier, getRequester } from "./modules/worker/notify";
+import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
+import { getActiveTab } from "./utils/get-active-tab";
+
+import "./styles/global.css";
 
 customElements.define("capture-form-element", CaptureFormElement);
 
