@@ -1,0 +1,26 @@
+# Content Organization
+
+- Projects
+  - A project contains a purpose for which content is created or captured
+  - A project involves actions with outcome that can be tracked as progress
+    - Reading articles, making bookmarks, writing notes, making connections, finish TODO tasks
+  - A project contains
+    - RSS sources
+    - Bookmarks
+    - Notes
+    - TODOs
+  - A project may recursively contain child projects
+  - Example projects
+    - Online course learning
+    - Reading books
+    - Reading blogs
+    - Work with AI
+    - Personal blogging
+    - Web dev career growth
+    - Build knowledge management system
+- Timeline
+  - A thread to track the progress of projects and discover content
+  - Each day, timeline displays
+    - New articles from RSS sources
+    - Bookmarks captured on that day
+    - Notes taken on that day
