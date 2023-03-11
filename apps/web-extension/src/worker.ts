@@ -4,8 +4,10 @@ import { getNotifier, getResponder } from "./modules/worker/notify";
 
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
+import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 
 import { destoryDb } from "./modules/db/init";
+import { internalQuery } from "./modules/search/get-query";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -46,6 +48,22 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   if (data.requestDbDownload) {
     const file = await getDbFile();
     respondMain(data, { respondDbDownload: file });
+  }
+
+  if (data.requestDbSearch) {
+    const db = await dbPromise;
+    const normalizedQuery = internalQuery(data.requestDbSearch.query);
+    const nodes = (
+      db.selectObjects(MATCH_NODES_BY_TEXT, {
+        ":query": normalizedQuery,
+      }) as { path: string; content: string }[]
+    )
+      .filter((rawNode) => rawNode.path.endsWith(".json"))
+      .map((rawNode) => ({
+        path: rawNode.path,
+        content: JSON.parse(rawNode.content),
+      }));
+    respondMain(data, { respondDbSearch: nodes });
   }
 
   if (data.requestDbNuke) {

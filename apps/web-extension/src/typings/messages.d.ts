@@ -9,6 +9,9 @@ export type MessageToWorkerV2 = {
   requestDbClear?: boolean;
   requestDbDownload?: boolean;
   requestDbNuke?: boolean;
+  requestDbSearch?: {
+    query: string;
+  };
   requestStatus?: boolean;
   requestGithubConnectionTest?: GithubConnection;
   requestGithubDownload?: GithubConnection;
@@ -18,6 +21,7 @@ export type MessageToMainV2 = {
   log?: string;
   respondCapture?: string;
   respondDbDownload?: File;
+  respondDbSearch?: { path: string; content: any }[];
   respondGithubConnectionTest?: {
     isSuccess: boolean;
   };

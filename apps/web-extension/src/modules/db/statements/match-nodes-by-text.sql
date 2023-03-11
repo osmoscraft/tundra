@@ -1,1 +1,2 @@
-SELECT path,value,highlight(node_fts, 2, '<b>', '</b>') as html FROM node_fts WHERE value MATCH :query ORDER BY rank LIMIT 10;
+SELECT path,content FROM node_fts WHERE content MATCH :query ORDER BY rank LIMIT 10;
+-- SELECT path,content,highlight(node_fts, 1, '<b>', '</b>') as html FROM node_fts WHERE content MATCH :query ORDER BY rank LIMIT 10;

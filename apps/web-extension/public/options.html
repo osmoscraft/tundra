@@ -8,9 +8,22 @@
     <link rel="stylesheet" href="./options.css" />
   </head>
   <body>
-    <worker-terminal-element></worker-terminal-element>
-    <github-config-element></github-config-element>
-    <db-config-element></db-config-element>
+    <fieldset>
+      <legend>Worker</legend>
+      <worker-terminal-element></worker-terminal-element>
+    </fieldset>
+    <fieldset>
+      <legend>GitHub</legend>
+      <github-config-element></github-config-element>
+    </fieldset>
+    <fieldset>
+      <legend>DB</legend>
+      <db-config-element></db-config-element>
+    </fieldset>
+    <fieldset>
+      <legend>Search</legend>
+      <omnibox-element></omnibox-element>
+    </fieldset>
     <script type="module" src="./options.js"></script>
   </body>
 </html>
