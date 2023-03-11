@@ -5,6 +5,7 @@ import { getNotifier, getResponder } from "./modules/worker/notify";
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
+import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
 
 import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
@@ -24,8 +25,6 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   console.log(`[worker] received`, data);
 
   if (data.requestCapture) {
-    console.log(data);
-
     const draft: DraftNode = {
       path: `nodes/${Date.now().toString()}.json`,
       content: JSON.stringify(data.requestCapture.data!, null, 2),
@@ -48,6 +47,25 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   if (data.requestDbDownload) {
     const file = await getDbFile();
     respondMain(data, { respondDbDownload: file });
+  }
+
+  if (data.requestDbNodesByPaths) {
+    const db = await dbPromise;
+    const results = data.requestDbNodesByPaths
+      .flatMap((path) =>
+        db.selectObjects<{ path: string; content: any }>(SELECT_NODE_BY_PATH, {
+          ":path": path,
+        })
+      )
+      .filter((rawNode) => rawNode.path.endsWith(".json"))
+      .map((rawNode) => ({
+        path: rawNode.path,
+        content: JSON.parse(rawNode.content),
+      }));
+
+    respondMain(data, {
+      respondDbNodesByPaths: results,
+    });
   }
 
   if (data.requestDbSearch) {

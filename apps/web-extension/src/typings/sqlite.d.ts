@@ -15,8 +15,8 @@ declare namespace Sqlite3 {
     prepare: (sql: string) => Statement;
     selectArray: (sql: string, bind?: Bind) => any[];
     selectArrays: (sql: string, bind?: Bind) => any[][];
-    selectObject: (sql: string, bind?: Bind) => Record<string, any>;
-    selectObjects: (sql: string, bind?: Bind) => Record<string, any>[];
+    selectObject: <T>(sql: string, bind?: Bind) => T; // nullable?
+    selectObjects: <T>(sql: string, bind?: Bind) => T[];
     selectValue: (sql: string, bind?: Bind) => any;
     selectValues: (sql: string, bind?: Bind) => any[];
     close: () => void;

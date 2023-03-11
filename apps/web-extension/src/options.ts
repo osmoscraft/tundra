@@ -21,6 +21,7 @@ const requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(worker);
 
 export default function main() {
   const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
+  const editor = document.querySelector<EditorElement>("editor-element")!;
 
   omnibox.addEventListener("load-default", () => omnibox.setSuggestions([]));
   omnibox.addEventListener("search", async (e) => {
@@ -34,8 +35,18 @@ export default function main() {
       }))
     );
   });
-  omnibox.addEventListener("open", (e) => {
-    console.log((e as CustomEvent<OpenEventDetail>).detail);
+  omnibox.addEventListener("open", async (e) => {
+    const path = (e as CustomEvent<OpenEventDetail>).detail;
+    const { respondDbNodesByPaths } = await requestWorker({ requestDbNodesByPaths: [path] });
+
+    const foundNode = respondDbNodesByPaths?.[0];
+
+    if (foundNode) {
+      editor.load({
+        path: foundNode.path,
+        ...foundNode.content,
+      });
+    }
   });
 }
 

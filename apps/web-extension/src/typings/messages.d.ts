@@ -8,6 +8,7 @@ export type MessageToWorkerV2 = {
   };
   requestDbClear?: boolean;
   requestDbDownload?: boolean;
+  requestDbNodesByPaths?: string[];
   requestDbNuke?: boolean;
   requestDbSearch?: {
     query: string;
@@ -21,6 +22,7 @@ export type MessageToMainV2 = {
   log?: string;
   respondCapture?: string;
   respondDbDownload?: File;
+  respondDbNodesByPaths?: { path: string; content: any }[];
   respondDbSearch?: { path: string; content: any }[];
   respondGithubConnectionTest?: {
     isSuccess: boolean;
