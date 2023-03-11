@@ -8,11 +8,16 @@ import type { Extraction } from "./extract-links";
 export interface CaptureData {
   url: string;
   title: string;
+  links: {
+    title: string;
+    url: string;
+  }[];
 }
 
 export class CaptureFormElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private form = this.shadowRoot.querySelector("form")!;
+  private linkList = this.shadowRoot.getElementById("link-list") as HTMLUListElement;
   private worker = loadWorker();
   private notifyWorker = getNotifier<MessageToWorkerV2>(this.worker);
   private requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(this.worker);
@@ -28,6 +33,10 @@ export class CaptureFormElement extends HTMLElement {
           detail: {
             url: captureData.get("url") as string,
             title: captureData.get("title") as string,
+            links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
+              title: anchor.innerText,
+              url: anchor.href,
+            })),
           },
         })
       );
@@ -39,9 +48,9 @@ export class CaptureFormElement extends HTMLElement {
   }
 
   loadExtractionResult(extraction: Extraction) {
-    this.shadowRoot.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
-    this.shadowRoot.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
-    this.shadowRoot.querySelector<HTMLUListElement>("#target-url-list")!.innerHTML = extraction.targetUrls
+    this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
+    this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
+    this.linkList!.innerHTML = extraction.links
       .map(
         (url) => /*html*/ `
       <li><a href="${url.url}" target="_blank">${url.title}</a></li>

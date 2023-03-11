@@ -2,7 +2,7 @@ export interface Extraction {
   title: string;
   url: string;
   altUrl: string | null;
-  targetUrls: { title: string; url: string }[];
+  links: { title: string; url: string }[];
 }
 
 export function extractLinks(): Extraction {
@@ -13,8 +13,8 @@ export function extractLinks(): Extraction {
     "Untitled";
   const canonical = emptyTextToNull(document.querySelector(`link[rel="canonical"]`)?.getAttribute("href"));
   const url = location.href;
-  const targetAnchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer) *)")];
-  const targetUrls = targetAnchors
+  const anchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer) *)")];
+  const links = anchors
     .map((anchor) => {
       try {
         return { title: anchor.innerText.trim(), url: new URL(anchor.href) };
@@ -27,11 +27,11 @@ export function extractLinks(): Extraction {
     .map((link) => ({ title: link.title, url: link.url.href }))
     .filter((link, index, array) => array.findIndex((otherLink) => otherLink.url === link.url) === index); // deduplicate
 
-  console.log("[content-script] extracted ", targetUrls);
+  console.log("[content-script] extracted ", links);
   return {
     title,
     url: canonical ?? url,
     altUrl: canonical !== url ? url : null,
-    targetUrls: targetUrls,
+    links: links,
   };
 }
