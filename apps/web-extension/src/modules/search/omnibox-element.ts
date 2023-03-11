@@ -2,10 +2,13 @@ import { attachShadowHtml } from "../../utils/dom";
 import template from "./omnibox-element.html";
 
 export interface OmniboxSuggestion {
+  path: string;
   title: string;
 }
 
 export type QueryEventDetail = string;
+
+export type OpenEventDetail = string;
 
 export class OmniboxElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
@@ -26,9 +29,17 @@ export class OmniboxElement extends HTMLElement {
         this.dispatchEvent(new Event("load-default"));
       }
     });
+
+    this.nodeList.addEventListener("click", (e) => {
+      const path = (e.target as HTMLButtonElement).closest("[data-path]")?.getAttribute("data-path");
+      if (!path) return;
+      this.dispatchEvent(new CustomEvent("open", { detail: path }));
+    });
   }
 
   setSuggestions(items: OmniboxSuggestion[]) {
-    this.nodeList.innerHTML = items.map((item) => `<li>${item.title}</li>`).join("");
+    this.nodeList.innerHTML = items
+      .map((item) => `<li><button data-path="${item.path}">${item.title}</button></li>`)
+      .join("");
   }
 }

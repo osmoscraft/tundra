@@ -1,5 +1,6 @@
 import { DbConfigElement } from "./modules/db/db-config-element";
-import { OmniboxElement, QueryEventDetail } from "./modules/search/omnibox-element";
+import { EditorElement } from "./modules/editor/editor-element";
+import { OmniboxElement, OpenEventDetail, QueryEventDetail } from "./modules/search/omnibox-element";
 import { GithubConfigElement } from "./modules/sync/github/github-config-element";
 import { loadWorker } from "./modules/worker/load-worker";
 import { getNotifier, getRequester } from "./modules/worker/notify";
@@ -12,6 +13,7 @@ customElements.define("worker-terminal-element", WorkerTerminalElement);
 customElements.define("github-config-element", GithubConfigElement);
 customElements.define("db-config-element", DbConfigElement);
 customElements.define("omnibox-element", OmniboxElement);
+customElements.define("editor-element", EditorElement);
 
 const worker = loadWorker();
 const notifyWorker = getNotifier<MessageToWorkerV2>(worker);
@@ -27,9 +29,13 @@ export default function main() {
     });
     omnibox.setSuggestions(
       (respondDbSearch ?? []).map((item) => ({
+        path: item.path,
         title: item.content.title,
       }))
     );
+  });
+  omnibox.addEventListener("open", (e) => {
+    console.log((e as CustomEvent<OpenEventDetail>).detail);
   });
 }
 

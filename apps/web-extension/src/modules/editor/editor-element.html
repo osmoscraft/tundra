@@ -1,0 +1,35 @@
+<form class="editor">
+  <div class="field-list">
+    <div class="field">
+      <label for="url">URL</label>
+      <input id="url" name="url" type="url" placeholder="https://" />
+    </div>
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" />
+    </div>
+  </div>
+</form>
+
+<style>
+  .editor input,
+  textarea {
+    padding: 0.25rem;
+  }
+  .editor label {
+    display: block;
+  }
+  .editor label + * {
+    margin-top: 4px;
+  }
+  .editor .field-list {
+    display: grid;
+    gap: 12px;
+  }
+  .editor textarea {
+    resize: none;
+  }
+  .editor .field {
+    display: grid;
+  }
+</style>
