@@ -5,3 +5,4 @@
 - Capture: single column capture form
 - Sync: require network, edit one doc at a time, no need to track local history
 - UI: add a DB form with clear/nuke/download options
+- Sync: replace diff with WASM lib compiled from Rust

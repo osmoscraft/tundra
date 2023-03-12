@@ -1,3 +1,4 @@
+import { b64EncodeUnicode } from "../../../../utils/base64";
 import { apiV3, getGitHubInit } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
 
@@ -28,7 +29,7 @@ export async function updateContent(
       method: "PUT",
       body: JSON.stringify({
         message: "tinykb update",
-        content: self.btoa(fileChange.content),
+        content: b64EncodeUnicode(fileChange.content), // This cannot handle non-ASCII characters
       }),
     },
     `https://api.github.com/repos/${connection.owner}/${connection.repo}/contents/${fileChange.path}`

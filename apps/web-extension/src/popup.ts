@@ -29,6 +29,13 @@ export default async function main() {
     });
 
     console.log(`[capture]`, respondCapture);
+
+    await requestWorker({
+      requestGithubPull: connection,
+    });
+
+    console.log("[capture] pulled");
+
     captureForm.reset();
   });
 

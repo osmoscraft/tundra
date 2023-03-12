@@ -59,6 +59,8 @@ export class GithubConfigElement extends HTMLElement {
           if (!connection) break;
 
           await this.requestWorker({ requestGithubPull: connection });
+
+          break;
         }
       }
     });

@@ -1,3 +1,5 @@
+import { applyPatch, parsePatch } from "diff";
+
 import { getDbFile, initDb } from "./modules/db/init";
 import { getNotifier, getResponder } from "./modules/worker/notify";
 
@@ -7,14 +9,15 @@ import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
 import SET_REF from "./modules/db/statements/set-ref.sql";
+import UPSERT_NODE from "./modules/db/statements/upsert-node.sql";
 
 import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
+import { compare } from "./modules/sync/github/operations/compare";
 import { download } from "./modules/sync/github/operations/download";
 import { getRemoteHeadRef } from "./modules/sync/github/operations/get-remote-head-ref";
 import { testConnection } from "./modules/sync/github/operations/test-connection";
 import { updateContent } from "./modules/sync/github/operations/update-content";
-import { ChangeType, type BulkFileChangeItem } from "./modules/sync/github/operations/update-content-bulk";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -31,23 +34,19 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   console.log(`[worker] received`, data);
 
   if (data.requestCapture) {
-    const draft: BulkFileChangeItem = {
-      path: `nodes/${Date.now().toString()}.json`,
-      content: JSON.stringify(data.requestCapture.data!, null, 2),
-      changeType: ChangeType.Create,
-    };
-
+    // const draft: BulkFileChangeItem = {
+    //   path: `nodes/${Date.now().toString()}.json`,
+    //   content: JSON.stringify(data.requestCapture.data!, null, 2),
+    //   changeType: ChangeType.Create,
+    // };
+    // const pushResult = await updateContentBulk(data.requestCapture!.githubConnection, [draft]);
     const pushResult = await updateContent(data.requestCapture!.githubConnection, {
       path: `nodes/${Date.now().toString()}.json`,
       content: JSON.stringify(data.requestCapture.data!, null, 2),
     });
 
-    // TODO sync with remote
-
     console.log("pushed", pushResult);
     respondMain(data, { respondCapture: pushResult.commit.sha });
-
-    // TODO pull latest to DB
   }
 
   if (data.requestDbClear) {
@@ -179,6 +178,60 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       });
       return;
     }
+
+    const compareResults = await compare(data.requestGithubPull, {
+      base: localHeadRef.id,
+      head: remoteHeadRef,
+    });
+
+    console.log(`[pull] compare results`, compareResults);
+
+    const allChangedFiles = compareResults.files
+      .filter((file) => file.filename.startsWith("nodes/"))
+      .map((file) => ({
+        path: file.filename,
+        localContent:
+          db.selectObject<{ path: string; content: string }>(SELECT_NODE_BY_PATH, {
+            ":path": file.filename,
+          })?.content ?? "",
+        patch: file.patch,
+        parsedPatches: parsePatch(file.patch),
+      }));
+
+    console.log(`[pull] all changes`, allChangedFiles);
+
+    const patchedFiles = allChangedFiles.map((change) => ({
+      ...change,
+      latestContent: applyPatch(change.localContent, change.parsedPatches[0]),
+    }));
+
+    console.log(`[pull] all patched`, patchedFiles);
+
+    patchedFiles.forEach((change) => {
+      notifyMain({ log: `Updating ${change.path}` });
+      db.exec(UPSERT_NODE, {
+        bind: {
+          ":path": change.path,
+          ":content": change.latestContent,
+        },
+      });
+    });
+
+    db.exec(SET_REF, {
+      bind: {
+        ":type": "head",
+        ":id": remoteHeadRef,
+      },
+    });
+
+    respondMain(data, {
+      respondGitHubPull: {
+        isSuccess: true,
+        changeCount: patchedFiles.length,
+      },
+    });
+
+    notifyMain({ log: `Pull success. ${patchedFiles.length} files updated.  ` });
   }
 });
 
