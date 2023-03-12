@@ -16,6 +16,7 @@ export type MessageToWorkerV2 = {
   requestStatus?: boolean;
   requestGithubConnectionTest?: GithubConnection;
   requestGithubDownload?: GithubConnection;
+  requestGithubPull?: GithubConnection;
 };
 
 export type MessageToMainV2 = {
@@ -26,5 +27,9 @@ export type MessageToMainV2 = {
   respondDbSearch?: { path: string; content: any }[];
   respondGithubConnectionTest?: {
     isSuccess: boolean;
+  };
+  respondGitHubPull?: {
+    isSuccess: boolean;
+    changeCount: number;
   };
 };

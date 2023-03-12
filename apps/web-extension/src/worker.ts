@@ -1,8 +1,8 @@
 import { getDbFile, initDb } from "./modules/db/init";
-import { ChangeType, download, DraftNode, testConnection, updateContent } from "./modules/sync/github/operations";
 import { getNotifier, getResponder } from "./modules/worker/notify";
 
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
+import GET_REF from "./modules/db/statements/get-ref.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
@@ -10,6 +10,10 @@ import SET_REF from "./modules/db/statements/set-ref.sql";
 
 import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
+import { download } from "./modules/sync/github/operations/download";
+import { testConnection } from "./modules/sync/github/operations/test-connection";
+import { updateContent } from "./modules/sync/github/operations/update-content";
+import { ChangeType, type BulkFileChangeItem } from "./modules/sync/github/operations/update-content-bulk";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -26,14 +30,12 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   console.log(`[worker] received`, data);
 
   if (data.requestCapture) {
-    const draft: DraftNode = {
+    const draft: BulkFileChangeItem = {
       path: `nodes/${Date.now().toString()}.json`,
       content: JSON.stringify(data.requestCapture.data!, null, 2),
       changeType: ChangeType.Create,
     };
 
-    // TODO try github repository content API to further reduce network traffic
-    // const result = await pushBulk(data.requestCapture!.githubConnection, [draft]);
     const pushResult = await updateContent(data.requestCapture!.githubConnection, {
       path: `nodes/${Date.now().toString()}.json`,
       content: JSON.stringify(data.requestCapture.data!, null, 2),
@@ -112,6 +114,9 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
   if (data.requestGithubDownload) {
     notifyMain({ log: "Testing connection..." });
+    const isSuccess = await testConnection(data.requestGithubDownload);
+    notifyMain({ log: isSuccess ? "Connection sucessful!" : "Connection failed." });
+    if (!isSuccess) return;
 
     const db = await dbPromise;
     // TODO load item path and content into DB
@@ -142,6 +147,26 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     };
 
     await download(data.requestGithubDownload, onItem, onComplete);
+  }
+
+  if (data.requestGithubPull) {
+    const db = await dbPromise;
+    const localHeadRef = db.selectObject<{ id: string; type: string }>(GET_REF, {
+      ":type": "head",
+    });
+
+    if (!localHeadRef) {
+      notifyMain({ log: `No local ref. An initial import is required.` });
+      respondMain(data, {
+        respondGitHubPull: {
+          isSuccess: false,
+          changeCount: 0,
+        },
+      });
+      return;
+    }
+
+    // compare local with remote
   }
 });
 

@@ -50,6 +50,16 @@ export class GithubConfigElement extends HTMLElement {
 
           break;
         }
+
+        case "pull": {
+          const isValid = this.form.checkValidity();
+          if (!isValid) break;
+
+          const connection = getConnection();
+          if (!connection) break;
+
+          await this.requestWorker({ requestGithubPull: connection });
+        }
       }
     });
   }

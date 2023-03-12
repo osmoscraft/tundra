@@ -13,11 +13,11 @@ declare namespace Sqlite3 {
     new (path: string, flags?: string): DB;
     exec: DbExec;
     prepare: (sql: string) => Statement;
-    selectArray: (sql: string, bind?: Bind) => any[];
+    selectArray: (sql: string, bind?: Bind) => any[] | undefined;
     selectArrays: (sql: string, bind?: Bind) => any[][];
-    selectObject: <T>(sql: string, bind?: Bind) => T; // nullable?
+    selectObject: <T>(sql: string, bind?: Bind) => T | undefined;
     selectObjects: <T>(sql: string, bind?: Bind) => T[];
-    selectValue: (sql: string, bind?: Bind) => any;
+    selectValue: (sql: string, bind?: Bind) => any | undefined;
     selectValues: (sql: string, bind?: Bind) => any[];
     close: () => void;
   }
