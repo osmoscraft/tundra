@@ -1,7 +1,7 @@
 import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { apiV4, unwrap } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
-import ARCHIVE_URL from "./queries/archive-url.graphql";
+import ARCHIVE_URL from "../queries/archive-url.graphql";
 
 export interface ArchiveUrlOutput {
   repository: {

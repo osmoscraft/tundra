@@ -1,6 +1,6 @@
 import { apiV4 } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
-import HEAD_REF from "./queries/head-ref.graphql";
+import HEAD_REF from "../queries/head-ref.graphql";
 
 export interface HeadRefVariables {
   owner: string;

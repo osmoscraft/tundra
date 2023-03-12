@@ -11,6 +11,7 @@ import SET_REF from "./modules/db/statements/set-ref.sql";
 import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
 import { download } from "./modules/sync/github/operations/download";
+import { getRemoteHeadRef } from "./modules/sync/github/operations/get-remote-head-ref";
 import { testConnection } from "./modules/sync/github/operations/test-connection";
 import { updateContent } from "./modules/sync/github/operations/update-content";
 import { ChangeType, type BulkFileChangeItem } from "./modules/sync/github/operations/update-content-bulk";
@@ -167,6 +168,17 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     }
 
     // compare local with remote
+    const remoteHeadRef = await getRemoteHeadRef(data.requestGithubPull);
+    if (localHeadRef.id === remoteHeadRef) {
+      notifyMain({ log: `Already up-to-date.` });
+      respondMain(data, {
+        respondGitHubPull: {
+          isSuccess: true,
+          changeCount: 0,
+        },
+      });
+      return;
+    }
   }
 });
 

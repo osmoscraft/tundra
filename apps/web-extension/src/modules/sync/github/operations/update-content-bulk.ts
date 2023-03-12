@@ -1,7 +1,9 @@
 import type { GithubConnection } from "../config-storage";
-import { createCommit, ObjectMode, ObjectType, updateRef } from "../operations";
+import { createCommit } from "./create-commit";
 import { createTree } from "./create-tree";
 import { getRootTree } from "./get-root-tree";
+import { ObjectMode, ObjectType } from "./types";
+import { updateRef } from "./update-ref";
 
 export interface BulkFileChangeItem {
   path: string;
