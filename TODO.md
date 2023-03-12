@@ -2,3 +2,5 @@
 - Capture: add description and tags field
 - Worker: refactor handler to standard input + context format
 - Sync: replace diff with WASM lib compiled from Rust
+- Data: write a memo to json converter
+- Crawl: allow programmatic crawling of bookmarks and incrementally add links
