@@ -1,11 +1,12 @@
 import { getDbFile, initDb } from "./modules/db/init";
-import { ChangeType, download, DraftNode, push, testConnection } from "./modules/sync/github/operations";
+import { ChangeType, download, DraftNode, testConnection, updateContent } from "./modules/sync/github/operations";
 import { getNotifier, getResponder } from "./modules/worker/notify";
 
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
+import SET_REF from "./modules/db/statements/set-ref.sql";
 
 import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
@@ -32,8 +33,16 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     };
 
     // TODO try github repository content API to further reduce network traffic
-    const result = await push(data.requestCapture!.githubConnection, [draft]);
-    respondMain(data, { respondCapture: result?.commitSha ?? "" });
+    // const result = await pushBulk(data.requestCapture!.githubConnection, [draft]);
+    const pushResult = await updateContent(data.requestCapture!.githubConnection, {
+      path: `nodes/${Date.now().toString()}.json`,
+      content: JSON.stringify(data.requestCapture.data!, null, 2),
+    });
+
+    // TODO sync with remote
+
+    console.log("pushed", pushResult);
+    respondMain(data, { respondCapture: pushResult.commit.sha });
 
     // TODO pull latest to DB
   }
@@ -121,7 +130,18 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       });
     };
 
-    await download(data.requestGithubDownload, onItem);
+    const onComplete = (commitSha: string) => {
+      db.exec(SET_REF, {
+        bind: {
+          ":type": "head",
+          ":id": commitSha,
+        },
+      });
+
+      notifyMain({ log: `Head ref updated ${commitSha}` });
+    };
+
+    await download(data.requestGithubDownload, onItem, onComplete);
   }
 });
 

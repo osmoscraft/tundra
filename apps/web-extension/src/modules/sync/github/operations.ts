@@ -1,5 +1,5 @@
 import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
-import { apiV4, unwrap } from "./api-proxy";
+import { apiV3, apiV4, getGitHubInit, unwrap } from "./api-proxy";
 import type { GithubConnection } from "./config-storage";
 import ARCHIVE_URL from "./queries/archive-url.graphql";
 import HEAD_REF from "./queries/head-ref.graphql";
@@ -41,7 +41,8 @@ export interface ArhicveUrlVariables {
 }
 export async function download(
   connection: GithubConnection,
-  onItem: (path: string, getContent: () => Promise<string>) => any
+  onItem: (path: string, getContent: () => Promise<string>) => any,
+  onComplete: (commitSha: string) => any
 ): Promise<{ oid: string }> {
   const response = await apiV4<ArhicveUrlVariables, ArchiveUrlOutput>(connection, ARCHIVE_URL, connection);
   const data = unwrap(response);
@@ -58,6 +59,9 @@ export async function download(
     const textWriter = new TextWriter();
     await onItem(entry.filename, () => entry.getData(textWriter));
   }
+
+  await onComplete(oid);
+
   await zipReader.close();
   console.log("decompression", performance.measure("decompression", "decompression-start").duration);
 
@@ -112,6 +116,41 @@ export async function getRootTree(connection: GithubConnection) {
   };
 }
 
+export interface FileChange {
+  path: string;
+  content: string;
+}
+
+export interface UpdateContentResult {
+  content: {
+    name: string;
+    path: string;
+    sha: string;
+  };
+  commit: {
+    sha: string;
+  };
+}
+
+export async function updateContent(
+  connection: GithubConnection,
+  fileChange: FileChange
+): Promise<UpdateContentResult> {
+  const update = await apiV3<UpdateContentResult>(
+    {
+      ...getGitHubInit(connection),
+      method: "PUT",
+      body: JSON.stringify({
+        message: "tinykb update",
+        content: self.btoa(fileChange.content),
+      }),
+    },
+    `https://api.github.com/repos/${connection.owner}/${connection.repo}/contents/${fileChange.path}`
+  );
+
+  return update;
+}
+
 export interface DraftNode {
   path: string;
   content: string;
@@ -128,7 +167,7 @@ export enum ChangeType {
 export interface PushResult {
   commitSha: string;
 }
-export async function push(connection: GithubConnection, drafts: DraftNode[]): Promise<PushResult | null> {
+export async function pushBulk(connection: GithubConnection, drafts: DraftNode[]): Promise<PushResult | null> {
   if (!drafts.length) {
     console.log(`[push] nothing to push`);
     return null;
