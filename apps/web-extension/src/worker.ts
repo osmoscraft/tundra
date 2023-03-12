@@ -8,6 +8,7 @@ import GET_REF from "./modules/db/statements/get-ref.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
+import SELECT_RECENT_NODES from "./modules/db/statements/select-recent-nodes.sql";
 import SET_REF from "./modules/db/statements/set-ref.sql";
 import UPSERT_NODE from "./modules/db/statements/upsert-node.sql";
 
@@ -42,7 +43,14 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     // const pushResult = await updateContentBulk(data.requestCapture!.githubConnection, [draft]);
     const pushResult = await updateContent(data.requestCapture!.githubConnection, {
       path: `nodes/${Date.now().toString()}.json`,
-      content: JSON.stringify(data.requestCapture.data!, null, 2),
+      content: JSON.stringify(
+        {
+          ...data.requestCapture.data,
+          modifiedAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
     });
 
     console.log("pushed", pushResult);
@@ -77,6 +85,19 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     respondMain(data, {
       respondDbNodesByPaths: results,
     });
+  }
+
+  if (data.requestDbNodesRecent) {
+    const db = await dbPromise;
+    const nodes = db
+      .selectObjects<{ path: string; content: string }>(SELECT_RECENT_NODES)
+      .filter((rawNode) => rawNode.path.endsWith(".json"))
+      .map((rawNode) => ({
+        path: rawNode.path,
+        content: JSON.parse(rawNode.content),
+      }));
+
+    respondMain(data, { respondDbNodesRecent: nodes });
   }
 
   if (data.requestDbSearch) {
@@ -125,7 +146,12 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
     let itemCount = 0;
     const onItem = async (path: string, getContent: () => Promise<string>) => {
-      notifyMain({ log: `Download item ${++itemCount} ${path}` });
+      if (!path.endsWith(".json")) {
+        notifyMain({ log: `Skip non-json item ${++itemCount} ${path}` });
+        return;
+      } else {
+        notifyMain({ log: `Download item ${++itemCount} ${path}` });
+      }
 
       db.exec(INSERT_NODE, {
         bind: {

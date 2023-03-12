@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS node (
   path        TEXT PRIMARY KEY,
-  content     TEXT
+  content     TEXT,
   -- virtual columns from JSON extractions
   -- alt_urls    TEXT GENERATED ALWAYS AS (json_extract(content, '$.altUrls')),
   -- id          TEXT GENERATED ALWAYS AS (json_extract(content, '$.id')) NOT NULL UNIQUE,
-  -- modified_at TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')) NOT NULL,
+  modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt'))
   -- note        TEXT GENERATED ALWAYS AS (json_extract(content, '$.note')),
   -- tags        TEXT GENERATED ALWAYS AS (json_extract(content, '$.tags')),
   -- target_urls TEXT GENERATED ALWAYS AS (json_extract(content, '$.targetUrls')),

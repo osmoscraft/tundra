@@ -23,8 +23,20 @@ export default function main() {
   const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
   const editor = document.querySelector<EditorElement>("editor-element")!;
 
-  omnibox.addEventListener("load-default", () => omnibox.setSuggestions([]));
-  omnibox.addEventListener("search", async (e) => {
+  const handleLoadDefault = async () => {
+    const { respondDbNodesRecent } = await requestWorker({
+      requestDbNodesRecent: true,
+    });
+
+    omnibox.setSuggestions(
+      (respondDbNodesRecent ?? []).map((item) => ({
+        path: item.path,
+        title: item.content.title,
+      }))
+    );
+  };
+
+  const handleSearch = async (e: Event) => {
     const { respondDbSearch } = await requestWorker({
       requestDbSearch: { query: (e as CustomEvent<QueryEventDetail>).detail },
     });
@@ -34,8 +46,9 @@ export default function main() {
         title: item.content.title,
       }))
     );
-  });
-  omnibox.addEventListener("open", async (e) => {
+  };
+
+  const handleOpen = async (e: Event) => {
     const path = (e as CustomEvent<OpenEventDetail>).detail;
     const { respondDbNodesByPaths } = await requestWorker({ requestDbNodesByPaths: [path] });
 
@@ -47,7 +60,14 @@ export default function main() {
         ...foundNode.content,
       });
     }
-  });
+  };
+
+  omnibox.addEventListener("load-default", handleLoadDefault);
+  omnibox.addEventListener("search", handleSearch);
+  omnibox.addEventListener("open", handleOpen);
+
+  // initial load
+  handleLoadDefault();
 }
 
 main();
