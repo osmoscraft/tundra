@@ -1,8 +1,3 @@
 - DB: automated timestamp
-- DB: allow metadata update via json patch
-- DB + Git: Store the entire doc as a json file, avoid frontmatter parsing
-- Options: display all docs
-- Capture: single column capture form
-- Sync: require network, edit one doc at a time, no need to track local history
-- UI: add a DB form with clear/nuke/download options
+- Worker: refactor handler to standard input + context format
 - Sync: replace diff with WASM lib compiled from Rust
