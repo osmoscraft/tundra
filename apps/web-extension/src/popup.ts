@@ -58,18 +58,9 @@ export default async function main() {
 
   const loadCaptureForm = async (extraction: Extraction) => {
     const { respondDbNodesByUrls } = await requestWorker({ requestDbNodesByUrls: [extraction.url] });
-    console.log(respondDbNodesByUrls);
 
     if (respondDbNodesByUrls?.[0]) {
-      captureForm.loadExisting(
-        {
-          title: respondDbNodesByUrls[0].content.title,
-          description: respondDbNodesByUrls[0].content.description,
-          url: respondDbNodesByUrls[0].content.url,
-          links: respondDbNodesByUrls[0].content.links,
-        },
-        respondDbNodesByUrls[0].path
-      );
+      captureForm.loadExisting(respondDbNodesByUrls[0].content, respondDbNodesByUrls[0].path);
     } else {
       captureForm.loadExtractionResult(extraction);
     }

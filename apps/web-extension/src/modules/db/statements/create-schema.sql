@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS node (
   -- title       TEXT GENERATED ALWAYS AS (json_extract(content, '$.title')) NOT NULL,
   modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')),
   tags       TEXT GENERATED ALWAYS AS (json_extract(content, '$.tags')),
-  url        TEXT GENERATED ALWAYS AS (json_extract(content, '$.url'))
-  links      TEXT GENERATED ALWAYS AS (json_extract(content, '$.links')),
+  url        TEXT GENERATED ALWAYS AS (json_extract(content, '$.url')),
+  links      TEXT GENERATED ALWAYS AS (json_extract(content, '$.links'))
 );
 
 CREATE TABLE IF NOT EXISTS ref (

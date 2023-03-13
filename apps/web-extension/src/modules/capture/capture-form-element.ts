@@ -13,6 +13,7 @@ export interface CaptureRequest {
       title: string;
       url: string;
     }[];
+    tags: string[];
   };
   isUpdate: boolean;
 }
@@ -40,6 +41,11 @@ export class CaptureFormElement extends HTMLElement {
               url: captureData.get("url") as string,
               title: captureData.get("title") as string,
               description: captureData.get("description") as string,
+              tags: (captureData.get("tags") as string)
+                .split(",")
+                .filter(Boolean)
+                .map((tag) => tag.trim())
+                .sort(),
               links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
                 title: anchor.innerText,
                 url: anchor.href,
@@ -58,16 +64,18 @@ export class CaptureFormElement extends HTMLElement {
 
   loadExisting(extraction: Extraction, path: string) {
     this.form.querySelector<HTMLInputElement>("#path")!.value = path;
-    this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
-    this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
-    this.form.querySelector<HTMLInputElement>("#description")!.value = extraction.description!;
-    this.linkList!.innerHTML = extraction.links
-      .map(
-        (url) => /*html*/ `
+    this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url;
+    this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title;
+    this.form.querySelector<HTMLInputElement>("#description")!.value = extraction.description ?? "";
+    this.form.querySelector<HTMLInputElement>("#tags")!.value = extraction.tags?.join(", ") ?? "";
+    this.linkList!.innerHTML =
+      extraction.links
+        ?.map(
+          (url) => /*html*/ `
       <li><a href="${url.url}" target="_blank">${url.title}</a></li>
     `
-      )
-      .join("");
+        )
+        .join("") ?? "";
 
     this.submit.textContent = "Update";
   }
@@ -77,13 +85,15 @@ export class CaptureFormElement extends HTMLElement {
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
     this.form.querySelector<HTMLInputElement>("#description")!.value = "";
-    this.linkList!.innerHTML = extraction.links
-      .map(
-        (url) => /*html*/ `
+    this.form.querySelector<HTMLInputElement>("#tags")!.value = extraction.tags?.join(", ") ?? "";
+    this.linkList!.innerHTML =
+      extraction.links
+        ?.map(
+          (url) => /*html*/ `
       <li><a href="${url.url}" target="_blank">${url.title}</a></li>
     `
-      )
-      .join("");
+        )
+        .join("") ?? "";
 
     this.submit.textContent = "Capture";
   }

@@ -1,8 +1,9 @@
 export interface Extraction {
   title: string;
   url: string;
-  links: { title: string; url: string }[];
-  description: string;
+  links?: { title: string; url: string }[];
+  tags?: string[];
+  description?: string;
 }
 
 export function extractLinks(): Extraction {
@@ -33,5 +34,6 @@ export function extractLinks(): Extraction {
     url: canonical ?? url,
     links: links,
     description: "",
+    tags: [],
   };
 }
