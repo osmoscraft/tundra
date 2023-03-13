@@ -40,16 +40,16 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   console.log(`[worker] received`, data);
 
   if (data.requestCapture) {
-    const currentNode = data.requestCapture.data.isUpdate
-      ? await getContent(data.requestCapture.githubConnection, data.requestCapture.data.path)
+    const currentNode = data.requestCapture.isUpdate
+      ? await getContent(data.requestCapture.githubConnection, data.requestCapture.node.path)
       : undefined;
 
     const pushResult = await updateContent(data.requestCapture!.githubConnection, {
-      path: data.requestCapture.data.path,
+      path: data.requestCapture.node.path,
       sha: currentNode?.sha,
       content: JSON.stringify(
         {
-          ...data.requestCapture.data,
+          ...data.requestCapture.node,
           modifiedAt: new Date().toISOString(),
         },
         null,

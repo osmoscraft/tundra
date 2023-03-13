@@ -4,15 +4,17 @@ import template from "./capture-form-element.html";
 import type { Extraction } from "./extract-links";
 
 export interface CaptureRequest {
-  isUpdate: boolean;
-  path: string;
-  url: string;
-  title: string;
-  description: string;
-  links: {
-    title: string;
+  node: {
+    path: string;
     url: string;
-  }[];
+    title: string;
+    description: string;
+    links: {
+      title: string;
+      url: string;
+    }[];
+  };
+  isUpdate: boolean;
 }
 
 export class CaptureFormElement extends HTMLElement {
@@ -33,15 +35,17 @@ export class CaptureFormElement extends HTMLElement {
       this.dispatchEvent(
         new CustomEvent<CaptureRequest>("request-capture", {
           detail: {
+            node: {
+              path: existingPath ? existingPath : `nodes/${Date.now()}.json`,
+              url: captureData.get("url") as string,
+              title: captureData.get("title") as string,
+              description: captureData.get("description") as string,
+              links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
+                title: anchor.innerText,
+                url: anchor.href,
+              })),
+            },
             isUpdate: !!existingPath,
-            path: existingPath ? existingPath : `nodes/${Date.now()}.json`,
-            url: captureData.get("url") as string,
-            title: captureData.get("title") as string,
-            description: captureData.get("description") as string,
-            links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
-              title: anchor.innerText,
-              url: anchor.href,
-            })),
           },
         })
       );

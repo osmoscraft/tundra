@@ -1,40 +1,39 @@
-<form class="editor">
+<form class="source-code">
   <div class="field-list">
     <div class="field">
       <label for="path">Path</label>
       <input id="path" name="path" type="text" />
     </div>
     <div class="field">
-      <label for="url">URL</label>
-      <input id="url" name="url" type="url" />
-    </div>
-    <div class="field">
-      <label for="title">Title</label>
-      <input id="title" name="title" type="text" />
+      <label for="source">Source</label>
+      <pre><code></code></pre>
     </div>
   </div>
   <ul id="link-list"></ul>
 </form>
 
 <style>
-  .editor input,
+  .source-code input,
   textarea {
     padding: 0.25rem;
   }
-  .editor label {
+  .source-code label {
     display: block;
   }
-  .editor label + * {
+  .source-code label + * {
     margin-top: 4px;
   }
-  .editor .field-list {
+  .source-code .field-list {
     display: grid;
     gap: 12px;
   }
-  .editor textarea {
+  .source-code textarea {
     resize: none;
   }
-  .editor .field {
+  .source-code .field {
     display: grid;
+  }
+  .source-code pre {
+    overflow-x: auto;
   }
 </style>

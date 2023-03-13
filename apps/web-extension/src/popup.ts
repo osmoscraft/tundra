@@ -24,7 +24,8 @@ export default async function main() {
     const { respondCapture } = await requestWorker({
       requestCapture: {
         githubConnection: connection,
-        data: (e as CustomEvent<CaptureRequest>).detail,
+        node: (e as CustomEvent<CaptureRequest>).detail.node,
+        isUpdate: (e as CustomEvent<CaptureRequest>).detail.isUpdate,
       },
     });
 

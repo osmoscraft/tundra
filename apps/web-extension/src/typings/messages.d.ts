@@ -4,7 +4,8 @@ import type { GithubConnection } from "../modules/sync/github/config-storage";
 export type MessageToWorkerV2 = {
   requestCapture?: {
     githubConnection: GithubConnection;
-    data: CaptureRequest;
+    node: CaptureRequest["node"];
+    isUpdate: boolean;
   };
   requestDbClear?: boolean;
   requestDbDownload?: boolean;
