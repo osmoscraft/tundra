@@ -1,4 +1,5 @@
-- Capture: add description and tags field
+- Capture: add tagging
+- DB: add project management
 - Worker: refactor handler to standard input + context format
 - Sync: replace diff with WASM lib compiled from Rust
 - Data: write a memo to json converter
