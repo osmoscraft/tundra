@@ -63,6 +63,7 @@ export default async function main() {
       captureForm.loadExisting(
         {
           title: respondDbNodesByUrls[0].content.title,
+          description: respondDbNodesByUrls[0].content.description,
           url: respondDbNodesByUrls[0].content.url,
           links: respondDbNodesByUrls[0].content.links,
         },

@@ -8,6 +8,7 @@ export interface CaptureRequest {
   path: string;
   url: string;
   title: string;
+  description: string;
   links: {
     title: string;
     url: string;
@@ -36,6 +37,7 @@ export class CaptureFormElement extends HTMLElement {
             path: existingPath ? existingPath : `nodes/${Date.now()}.json`,
             url: captureData.get("url") as string,
             title: captureData.get("title") as string,
+            description: captureData.get("description") as string,
             links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
               title: anchor.innerText,
               url: anchor.href,
@@ -54,6 +56,7 @@ export class CaptureFormElement extends HTMLElement {
     this.form.querySelector<HTMLInputElement>("#path")!.value = path;
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
+    this.form.querySelector<HTMLInputElement>("#description")!.value = extraction.description!;
     this.linkList!.innerHTML = extraction.links
       .map(
         (url) => /*html*/ `
@@ -69,6 +72,7 @@ export class CaptureFormElement extends HTMLElement {
     this.form.querySelector<HTMLInputElement>("#path")!.value = "";
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
+    this.form.querySelector<HTMLInputElement>("#description")!.value = "";
     this.linkList!.innerHTML = extraction.links
       .map(
         (url) => /*html*/ `
