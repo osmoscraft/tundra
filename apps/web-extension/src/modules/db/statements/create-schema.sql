@@ -4,12 +4,12 @@ CREATE TABLE IF NOT EXISTS node (
   -- virtual columns from JSON extractions
   -- alt_urls    TEXT GENERATED ALWAYS AS (json_extract(content, '$.altUrls')),
   -- id          TEXT GENERATED ALWAYS AS (json_extract(content, '$.id')) NOT NULL UNIQUE,
-  modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt'))
   -- note        TEXT GENERATED ALWAYS AS (json_extract(content, '$.note')),
   -- tags        TEXT GENERATED ALWAYS AS (json_extract(content, '$.tags')),
   -- target_urls TEXT GENERATED ALWAYS AS (json_extract(content, '$.targetUrls')),
   -- title       TEXT GENERATED ALWAYS AS (json_extract(content, '$.title')) NOT NULL,
-  -- url         TEXT GENERATED ALWAYS AS (json_extract(content, '$.url'))
+  modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')),
+  url         TEXT GENERATED ALWAYS AS (json_extract(content, '$.url'))
 );
 
 CREATE TABLE IF NOT EXISTS ref (

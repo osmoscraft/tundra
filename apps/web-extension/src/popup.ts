@@ -1,5 +1,5 @@
-import { CaptureData, CaptureFormElement } from "./modules/capture/capture-form-element";
-import { extractLinks } from "./modules/capture/extract-links";
+import { CaptureFormElement, CaptureRequest } from "./modules/capture/capture-form-element";
+import { Extraction, extractLinks } from "./modules/capture/extract-links";
 import { getConnection } from "./modules/sync/github/config-storage";
 import { loadWorker } from "./modules/worker/load-worker";
 import { getNotifier, getRequester } from "./modules/worker/notify";
@@ -17,14 +17,14 @@ const requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(worker);
 export default async function main() {
   const captureForm = document.querySelector<CaptureFormElement>("capture-form-element")!;
 
-  captureForm.addEventListener("request-capture", async (e) => {
+  const handleCapture = async (e: Event) => {
     const connection = getConnection();
     if (!connection) return;
 
     const { respondCapture } = await requestWorker({
       requestCapture: {
         githubConnection: connection,
-        data: (e as CustomEvent<CaptureData>).detail,
+        data: (e as CustomEvent<CaptureRequest>).detail,
       },
     });
 
@@ -36,28 +36,44 @@ export default async function main() {
 
     console.log("[capture] pulled");
 
-    captureForm.reset();
-  });
+    location.reload();
+  };
 
-  getActiveTab()
-    .then(([activeTab]) => {
-      if (!activeTab?.id) throw Error("No active tab available");
-      performance.mark("linkExtractionStart");
-      return chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: extractLinks,
-      });
-    })
-    .then((results) => {
-      console.log("Extraction: ", performance.measure("linkExtraction", "linkExtractionStart").duration);
-      const extraction = results[0]?.result;
-      if (!extraction) throw new Error("Scripting error");
+  captureForm.addEventListener("request-capture", handleCapture);
 
-      // TODO check DB for existing node
-
-      // assuming no existing node, render creation form
-      captureForm.loadExtractionResult(extraction);
+  const extractLinksOnActiveTab = async (tabs: chrome.tabs.Tab[]) => {
+    const [activeTab] = tabs;
+    if (!activeTab?.id) throw Error("No active tab available");
+    performance.mark("linkExtractionStart");
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      func: extractLinks,
     });
+    console.log("Extraction: ", performance.measure("linkExtraction", "linkExtractionStart").duration);
+    const extraction = results[0]?.result;
+    if (!extraction) throw new Error("Scripting error");
+    return extraction;
+  };
+
+  const loadCaptureForm = async (extraction: Extraction) => {
+    const { respondDbNodesByUrls } = await requestWorker({ requestDbNodesByUrls: [extraction.url] });
+    console.log(respondDbNodesByUrls);
+
+    if (respondDbNodesByUrls?.[0]) {
+      captureForm.loadExisting(
+        {
+          title: respondDbNodesByUrls[0].content.title,
+          url: respondDbNodesByUrls[0].content.url,
+          links: respondDbNodesByUrls[0].content.links,
+        },
+        respondDbNodesByUrls[0].path
+      );
+    } else {
+      captureForm.loadExtractionResult(extraction);
+    }
+  };
+
+  getActiveTab().then(extractLinksOnActiveTab).then(loadCaptureForm);
 }
 
 main();

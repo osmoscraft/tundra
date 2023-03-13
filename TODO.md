@@ -1,5 +1,4 @@
 - Capture: add description and tags field
-- Capture: update existing capture if URL exists
 - Worker: refactor handler to standard input + context format
 - Sync: replace diff with WASM lib compiled from Rust
 - Data: write a memo to json converter

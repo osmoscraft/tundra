@@ -1,11 +1,11 @@
-import type { MessageToMainV2, MessageToWorkerV2 } from "../../typings/messages";
 import { attachShadowHtml } from "../../utils/dom";
 import { loadWorker } from "../worker/load-worker";
-import { getNotifier, getRequester } from "../worker/notify";
 import template from "./capture-form-element.html";
 import type { Extraction } from "./extract-links";
 
-export interface CaptureData {
+export interface CaptureRequest {
+  isUpdate: boolean;
+  path: string;
   url: string;
   title: string;
   links: {
@@ -18,9 +18,8 @@ export class CaptureFormElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private form = this.shadowRoot.querySelector("form")!;
   private linkList = this.shadowRoot.getElementById("link-list") as HTMLUListElement;
+  private submit = this.shadowRoot.querySelector(`button[type="submit"]`) as HTMLButtonElement;
   private worker = loadWorker();
-  private notifyWorker = getNotifier<MessageToWorkerV2>(this.worker);
-  private requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(this.worker);
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => {
@@ -28,9 +27,13 @@ export class CaptureFormElement extends HTMLElement {
 
       const captureData = new FormData(this.form);
 
+      const existingPath = captureData.get("path") as string;
+
       this.dispatchEvent(
-        new CustomEvent<CaptureData>("request-capture", {
+        new CustomEvent<CaptureRequest>("request-capture", {
           detail: {
+            isUpdate: !!existingPath,
+            path: existingPath ? existingPath : `nodes/${Date.now()}.json`,
             url: captureData.get("url") as string,
             title: captureData.get("title") as string,
             links: [...this.linkList.querySelectorAll("a")].map((anchor) => ({
@@ -47,7 +50,8 @@ export class CaptureFormElement extends HTMLElement {
     this.form.reset();
   }
 
-  loadExtractionResult(extraction: Extraction) {
+  loadExisting(extraction: Extraction, path: string) {
+    this.form.querySelector<HTMLInputElement>("#path")!.value = path;
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
     this.linkList!.innerHTML = extraction.links
@@ -57,5 +61,22 @@ export class CaptureFormElement extends HTMLElement {
     `
       )
       .join("");
+
+    this.submit.textContent = "Update";
+  }
+
+  loadExtractionResult(extraction: Extraction) {
+    this.form.querySelector<HTMLInputElement>("#path")!.value = "";
+    this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
+    this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
+    this.linkList!.innerHTML = extraction.links
+      .map(
+        (url) => /*html*/ `
+      <li><a href="${url.url}" target="_blank">${url.title}</a></li>
+    `
+      )
+      .join("");
+
+    this.submit.textContent = "Capture";
   }
 }

@@ -1,7 +1,6 @@
 export interface Extraction {
   title: string;
   url: string;
-  altUrl: string | null;
   links: { title: string; url: string }[];
 }
 
@@ -31,7 +30,6 @@ export function extractLinks(): Extraction {
   return {
     title,
     url: canonical ?? url,
-    altUrl: canonical !== url ? url : null,
     links: links,
   };
 }

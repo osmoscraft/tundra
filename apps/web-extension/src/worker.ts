@@ -4,10 +4,12 @@ import { getDbFile, initDb } from "./modules/db/init";
 import { getNotifier, getResponder } from "./modules/worker/notify";
 
 import DELETE_ALL_NODES from "./modules/db/statements/delete-all-nodes.sql";
+import DELETE_NODE from "./modules/db/statements/delete-node.sql";
 import GET_REF from "./modules/db/statements/get-ref.sql";
 import INSERT_NODE from "./modules/db/statements/insert-node.sql";
 import MATCH_NODES_BY_TEXT from "./modules/db/statements/match-nodes-by-text.sql";
 import SELECT_NODE_BY_PATH from "./modules/db/statements/select-node-by-path.sql";
+import SELECT_NODE_BY_URL from "./modules/db/statements/select-node-by-url.sql";
 import SELECT_RECENT_NODES from "./modules/db/statements/select-recent-nodes.sql";
 import SET_REF from "./modules/db/statements/set-ref.sql";
 import UPSERT_NODE from "./modules/db/statements/upsert-node.sql";
@@ -16,6 +18,7 @@ import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
 import { compare } from "./modules/sync/github/operations/compare";
 import { download } from "./modules/sync/github/operations/download";
+import { getContent } from "./modules/sync/github/operations/get-content";
 import { getRemoteHeadRef } from "./modules/sync/github/operations/get-remote-head-ref";
 import { testConnection } from "./modules/sync/github/operations/test-connection";
 import { updateContent } from "./modules/sync/github/operations/update-content";
@@ -35,14 +38,13 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
   console.log(`[worker] received`, data);
 
   if (data.requestCapture) {
-    // const draft: BulkFileChangeItem = {
-    //   path: `nodes/${Date.now().toString()}.json`,
-    //   content: JSON.stringify(data.requestCapture.data!, null, 2),
-    //   changeType: ChangeType.Create,
-    // };
-    // const pushResult = await updateContentBulk(data.requestCapture!.githubConnection, [draft]);
+    const currentNode = data.requestCapture.data.isUpdate
+      ? await getContent(data.requestCapture.githubConnection, data.requestCapture.data.path)
+      : undefined;
+
     const pushResult = await updateContent(data.requestCapture!.githubConnection, {
-      path: `nodes/${Date.now().toString()}.json`,
+      path: data.requestCapture.data.path,
+      sha: currentNode?.sha,
       content: JSON.stringify(
         {
           ...data.requestCapture.data,
@@ -53,7 +55,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       ),
     });
 
-    console.log("pushed", pushResult);
+    console.log("created", pushResult);
     respondMain(data, { respondCapture: pushResult.commit.sha });
   }
 
@@ -98,6 +100,25 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       }));
 
     respondMain(data, { respondDbNodesRecent: nodes });
+  }
+
+  if (data.requestDbNodesByUrls) {
+    const db = await dbPromise;
+    const results = data.requestDbNodesByUrls
+      .flatMap((url) =>
+        db.selectObjects<{ path: string; content: any }>(SELECT_NODE_BY_URL, {
+          ":url": url,
+        })
+      )
+      .filter((rawNode) => rawNode.path.endsWith(".json"))
+      .map((rawNode) => ({
+        path: rawNode.path,
+        content: JSON.parse(rawNode.content),
+      }));
+
+    respondMain(data, {
+      respondDbNodesByUrls: results,
+    });
   }
 
   if (data.requestDbSearch) {
@@ -214,6 +235,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
     const allChangedFiles = compareResults.files
       .filter((file) => file.filename.startsWith("nodes/"))
+      .filter((file) => file.status !== "removed")
       .map((file) => ({
         path: file.filename,
         localContent:
@@ -233,12 +255,25 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
 
     console.log(`[pull] all patched`, patchedFiles);
 
+    const allDeletedFiles = compareResults.files
+      .filter((file) => file.filename.startsWith("nodes/"))
+      .filter((file) => file.status === "removed");
+
     patchedFiles.forEach((change) => {
       notifyMain({ log: `Updating ${change.path}` });
       db.exec(UPSERT_NODE, {
         bind: {
           ":path": change.path,
           ":content": change.latestContent,
+        },
+      });
+    });
+
+    allDeletedFiles.forEach((file) => {
+      notifyMain({ log: `Deleting ${file.filename}` });
+      db.exec(DELETE_NODE, {
+        bind: {
+          ":path": file.filename,
         },
       });
     });
@@ -257,7 +292,7 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       },
     });
 
-    notifyMain({ log: `Pull success. ${patchedFiles.length} files updated.  ` });
+    notifyMain({ log: `Pull success. ${patchedFiles.length} updated. ${allDeletedFiles.length} deleted.` });
   }
 });
 
