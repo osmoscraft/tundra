@@ -1,3 +1,4 @@
+- DB: experiement with yaml styled data
 - Capture: add tagging
 - DB: add project management
 - Worker: refactor handler to standard input + context format
