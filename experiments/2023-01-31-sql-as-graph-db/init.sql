@@ -11,64 +11,87 @@ CREATE TABLE IF NOT EXISTS node (
   -- alt_urls    TEXT GENERATED ALWAYS AS (json_extract(content, '$.altUrls')),
   -- id          TEXT GENERATED ALWAYS AS (json_extract(content, '$.id')) NOT NULL UNIQUE,
   -- createdAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.createdAt')),
-  modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')),
-  searchText TEXT GENERATED ALWAYS AS (json_remove(content, '$.modifiedAt'))
+  -- modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')),
+  -- searchText TEXT GENERATED ALWAYS AS (json_remove(content, '$.modifiedAt'))
   -- note        TEXT GENERATED ALWAYS AS (json_extract(content, '$.note')),
-  -- tags        TEXT GENERATED ALWAYS AS (json_extract(content, '$.tags')),
-  -- target_urls TEXT GENERATED ALWAYS AS (json_extract(content, '$.targetUrls')),
-  -- title       TEXT GENERATED ALWAYS AS (json_extract(content, '$.title')) NOT NULL,
-  -- url         TEXT GENERATED ALWAYS AS (json_extract(content, '$.url'))
+  tags        TEXT GENERATED ALWAYS AS (json_extract(content, '$.tags')),
+  links       TEXT GENERATED ALWAYS AS (json_extract(content, '$.links')),
+  title       TEXT GENERATED ALWAYS AS (json_extract(content, '$.title')),
+  url         TEXT GENERATED ALWAYS AS (json_extract(content, '$.url'))
 );
 
-CREATE TABLE IF NOT EXISTS ref (
-  type TEXT PRIMARY KEY,
-  id   TEXT NOT NULL
-);
 
-CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, searchText, content=node);
+CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, title, tagList, targetUrlList, anyText);
+-- CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, anyText, title, tagList, content='');
 
-
--- FTS trigger
 
 CREATE TRIGGER IF NOT EXISTS tgr_node_fts_ai AFTER INSERT ON node BEGIN
-  INSERT INTO node_fts(rowid, path, searchText)
-  VALUES (new.rowid, new.path, new.searchText);
-  UPDATE node SET content=json_set(content, '$.modifiedAt', strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE rowid = new.rowid;
+  INSERT INTO node_fts(rowid, path, title, tagList, targetUrlList, anyText)
+  VALUES (
+    new.rowid,
+    new.path,
+    new.title,
+    (SELECT group_concat(value) FROM json_each(new.tags)),
+    (SELECT group_concat(value) FROM json_tree(new.links) WHERE key = 'url'),
+    (SELECT group_concat(value) FROM json_tree(new.content) WHERE atom iS NOT NULL)
+  );
 END;
 
 CREATE TRIGGER IF NOT EXISTS tgr_node_fts_ad AFTER DELETE ON node BEGIN
-  INSERT INTO node_fts(node_fts, rowid, path, searchText)
-  VALUES('delete', old.rowid, old.path, old.searchText);
+  INSERT INTO node_fts(node_fts, rowid, path, title, tagList, targetUrlList, anyText)
+  VALUES(
+    'delete',
+    old.rowid,
+    old.path,
+    old.title,
+    (SELECT group_concat(value) FROM json_each(old.tags)),
+    (SELECT group_concat(value) FROM json_tree(old.links) WHERE key = 'url'),
+    (SELECT group_concat(value) FROM json_tree(old.content) WHERE atom iS NOT NULL)
+  );
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_node_fts_au AFTER UPDATE ON node BEGIN
-  INSERT INTO node_fts(node_fts, rowid, path, searchText)
-  VALUES('delete', old.rowid, old.path, old.searchText);
-  INSERT INTO node_fts(rowid, path, searchText)
-  VALUES (new.rowid, new.path, new.searchText);
-  UPDATE node SET content=json_set(content, '$.modifiedAt', strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE rowid = new.rowid;
+  INSERT INTO node_fts(node_fts, rowid, path, title, tagList, targetUrlList, anyText)
+  VALUES(
+    'delete',
+    old.rowid,
+    old.path,
+    old.title,
+    (SELECT group_concat(value) FROM json_each(old.tags)),
+    (SELECT group_concat(value) FROM json_tree(old.links) WHERE key = 'url'),
+    (SELECT group_concat(value) FROM json_tree(old.content) WHERE atom iS NOT NULL)
+  );
+  INSERT INTO node_fts(rowid, path, title, tagList, targetUrlList, anyText)
+  VALUES (
+    new.rowid,
+    new.path,
+    new.title,
+    (SELECT group_concat(value) FROM json_each(new.tags)),
+    (SELECT group_concat(value) FROM json_tree(new.links) WHERE key = 'url'),
+    (SELECT group_concat(value) FROM json_tree(new.content) WHERE atom iS NOT NULL)
+  );
 END;
 
 
 INSERT INTO node(path, content) VALUES
-  ('0001.json', '{"title": "Title 1"}'),
-  ('0002.json', '{"title": "Title 2"}'),
-  ('0003.json', '{"title": "Title 3"}');
+  ('0001.json', '{"title": "Title 1", "tags": ["book", "todo"]}'),
+  ('0002.json', '{"title": "Title 2", "links": [{"title": "Link 1", "url": "https://example.com/1"}, {"title": "Link 2", "url": "https://example.com/2"}]}'),
+  ('0003.json', '{"title": "Title 3", "Description": "Once upon a time, there is a boy."}');
 
-SELECT * FROM node;
 
-UPDATE node SET content='{"title": "Title modified"}' WHERE path = '0002.json';
+UPDATE node SET content='{"title": "Title 3 modified"}' WHERE path = '0003.json';
 
-SELECT * FROM node;
 
-INSERT INTO node(path, content) VALUES
-  ('0004.json', '{"title": "Title 4"}');
+-- SELECT * FROM node_fts WHERE node_fts MATCH '"modified"';
+-- SELECT rowid FROM node_fts;
+-- SELECT * FROM node_fts;
 
-UPDATE node SET content='{"title": "Title modified 22"}' WHERE path = '0003.json';
 
-INSERT INTO node(path, content) VALUES
-  ('0005.json', '{"title": "Title 5"}');
-
-SELECT * FROM node;
-
-SELECT * FROM node_fts WHERE node_fts MATCH '"modified"';
+SELECT * FROM node WHERE rowid IN (
+  SELECT rowid FROM node_fts
+  -- SELECT rowid FROM node_fts WHERE node_fts MATCH '"modified"'
+);
+-- SELECT * FROM node_fts;
+-- SELECT * FROM node;
+-- UPDATE node SET content='{"title": "Title 3 modified"}' WHERE path = '0003.json';
+SELECT * FROM node where PATH = '0003.json';
