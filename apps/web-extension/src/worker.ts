@@ -18,11 +18,13 @@ import { destoryDb } from "./modules/db/init";
 import { internalQuery } from "./modules/search/get-query";
 import { compare } from "./modules/sync/github/operations/compare";
 import { download } from "./modules/sync/github/operations/download";
+import { getBlob } from "./modules/sync/github/operations/get-blob";
 import { getContent } from "./modules/sync/github/operations/get-content";
 import { getRemoteHeadRef } from "./modules/sync/github/operations/get-remote-head-ref";
 import { testConnection } from "./modules/sync/github/operations/test-connection";
 import { updateContent } from "./modules/sync/github/operations/update-content";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
+import { b64DecodeUnicode } from "./utils/base64";
 declare const self: DedicatedWorkerGlobalScope;
 
 if (!self.crossOriginIsolated) {
@@ -238,20 +240,25 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
       .filter((file) => file.status !== "removed")
       .map((file) => ({
         path: file.filename,
+        sha: file.sha,
         localContent:
           db.selectObject<{ path: string; content: string }>(SELECT_NODE_BY_PATH, {
             ":path": file.filename,
           })?.content ?? "",
         patch: file.patch,
-        parsedPatches: parsePatch(file.patch),
+        parsedPatches: file.patch ? parsePatch(file.patch) : null,
       }));
 
     console.log(`[pull] all changes`, allChangedFiles);
 
-    const patchedFiles = allChangedFiles.map((change) => ({
-      ...change,
-      latestContent: applyPatch(change.localContent, change.parsedPatches[0]),
-    }));
+    const patchedFiles = await Promise.all(
+      allChangedFiles.map(async (change) => ({
+        ...change,
+        latestContent: change.parsedPatches
+          ? applyPatch(change.localContent, change.parsedPatches[0])
+          : b64DecodeUnicode((await getBlob(data.requestGithubPull!, { sha: change.sha })).content),
+      }))
+    );
 
     console.log(`[pull] all patched`, patchedFiles);
 
