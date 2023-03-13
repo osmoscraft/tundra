@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS node (
 );
 
 
-CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, title, tagList, targetUrlList, anyText, content='');
+CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, title, tagList, targetUrlList, anyText);
 -- CREATE VIRTUAL TABLE IF NOT EXISTS node_fts USING fts5(path, anyText, title, tagList, content='');
 
 
@@ -75,12 +75,23 @@ END;
 
 INSERT INTO node(path, content) VALUES
   ('0001.json', '{"title": "Title 1", "tags": ["book", "todo"]}'),
-  ('0002.json', '{"title": "Title 2", "links": [{"title": "Link custom", "url": "https://example.com/1"}, {"title": "Link 2", "url": "https://example.com/2"}]}'),
+  ('0002.json', '{"title": "Title 2", "links": [{"title": "Link 1", "url": "https://example.com/1"}, {"title": "Link 2", "url": "https://example.com/2"}]}'),
   ('0003.json', '{"title": "Title 3", "Description": "Once upon a time, there is a boy."}');
 
 
 UPDATE node SET content='{"title": "Title 3 modified"}' WHERE path = '0003.json';
 
+
+-- SELECT * FROM node_fts WHERE node_fts MATCH '"modified"';
+-- SELECT rowid FROM node_fts;
+-- SELECT * FROM node_fts;
+
+
 SELECT * FROM node WHERE rowid IN (
-  SELECT rowid FROM node_fts WHERE node_fts MATCH '"Link custom"'
+  SELECT rowid FROM node_fts
+  -- SELECT rowid FROM node_fts WHERE node_fts MATCH '"modified"'
 );
+-- SELECT * FROM node_fts;
+-- SELECT * FROM node;
+-- UPDATE node SET content='{"title": "Title 3 modified"}' WHERE path = '0003.json';
+SELECT * FROM node where PATH = '0003.json';
