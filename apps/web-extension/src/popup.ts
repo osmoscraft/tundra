@@ -1,5 +1,6 @@
 import { CaptureFormElement, CaptureRequest } from "./modules/capture/capture-form-element";
 import { Extraction, extractLinks } from "./modules/capture/extract-links";
+import { GraphStatsElement } from "./modules/graph/graph-stats-element";
 import { getConnection } from "./modules/sync/github/config-storage";
 import { loadWorker } from "./modules/worker/load-worker";
 import { getNotifier, getRequester } from "./modules/worker/notify";
@@ -9,6 +10,7 @@ import { getActiveTab } from "./utils/get-active-tab";
 import "./styles/global.css";
 
 customElements.define("capture-form-element", CaptureFormElement);
+customElements.define("graph-stats-element", GraphStatsElement);
 
 const worker = loadWorker();
 const notifyWorker = getNotifier<MessageToWorkerV2>(worker);
