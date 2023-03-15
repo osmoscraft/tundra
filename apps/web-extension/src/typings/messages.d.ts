@@ -16,6 +16,7 @@ export type MessageToWorkerV2 = {
   requestDbSearch?: {
     query: string;
   };
+  requestGraphStatsByUrl?: string;
   requestStatus?: boolean;
   requestGithubConnectionTest?: GithubConnection;
   requestGithubDownload?: GithubConnection;
@@ -38,4 +39,5 @@ export type MessageToMainV2 = {
     isSuccess: boolean;
     changeCount: number;
   };
+  respondGraphStats?: {};
 };

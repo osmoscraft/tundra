@@ -15,6 +15,7 @@ import SET_REF from "./modules/db/statements/set-ref.sql";
 import UPSERT_NODE from "./modules/db/statements/upsert-node.sql";
 
 import { destoryDb } from "./modules/db/init";
+import { getGraphStats } from "./modules/graph/get-graph-stats";
 import { internalQuery } from "./modules/search/get-query";
 import { compare } from "./modules/sync/github/operations/compare";
 import { download } from "./modules/sync/github/operations/download";
@@ -300,6 +301,11 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     });
 
     notifyMain({ log: `Pull success. ${patchedFiles.length} updated. ${allDeletedFiles.length} deleted.` });
+  }
+
+  if (data.requestGraphStatsByUrl) {
+    const db = await dbPromise;
+    const stats = getGraphStats({ db, url: data.requestGraphStatsByUrl, linkUrls: [] });
   }
 });
 
