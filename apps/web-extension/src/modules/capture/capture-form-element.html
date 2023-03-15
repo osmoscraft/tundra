@@ -1,33 +1,30 @@
 <form data-area="details" class="capture-form">
-  <fieldset>
-    <legend>Capture</legend>
-    <div class="field-list">
-      <div class="field">
-        <label for="path">Path</label>
-        <input id="path" name="path" type="text" readonly />
-      </div>
-      <div class="field">
-        <label for="url">URL</label>
-        <input id="url" name="url" type="url" placeholder="https://" />
-      </div>
-      <div class="field">
-        <label for="title">Title</label>
-        <input id="title" name="title" type="text" />
-      </div>
-      <div class="field">
-        <label for="description">Description</label>
-        <textarea id="description" name="description"></textarea>
-      </div>
-      <div class="field">
-        <label for="tags">Tags</label>
-        <input id="tags" name="tags" type="text" />
-      </div>
-      <menu>
-        <button type="submit">Capture</button>
-      </menu>
+  <div class="field-list">
+    <div class="field">
+      <label for="path">Path</label>
+      <input id="path" name="path" type="text" readonly />
     </div>
-  </fieldset>
-  <ul id="link-list"></ul>
+    <div class="field">
+      <label for="url">URL</label>
+      <input id="url" name="url" type="url" placeholder="https://" />
+    </div>
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" />
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description"></textarea>
+    </div>
+    <div class="field">
+      <label for="tags">Tags</label>
+      <input id="tags" name="tags" type="text" />
+    </div>
+    <menu>
+      <button type="submit">Capture</button>
+    </menu>
+    <ul id="link-list"></ul>
+  </div>
 </form>
 
 <style>
