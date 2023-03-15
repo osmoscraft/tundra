@@ -1,7 +1,7 @@
-- DB: experiement with yaml styled data
-- DB: add project management
-- Worker: refactor handler to standard input + context format
-- Sync: replace diff with WASM lib compiled from Rust
-- Data: write a memo to json converter
-- Crawl: allow programmatic crawling of bookmarks and incrementally add links
+- Graph: display stats
 - Capture: handle url protocol, utm, canonical mapping
+- Worker: refactor handler to standard input + context format
+- Data: write a memo to json converter
+- DB: add project management
+- Crawl: allow programmatic crawling of bookmarks and incrementally add links
+- Sync: replace diff with WASM lib compiled from Rust
