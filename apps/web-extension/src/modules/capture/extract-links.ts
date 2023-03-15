@@ -14,7 +14,7 @@ export function extractLinks(): Extraction {
     "Untitled";
   const canonical = emptyTextToNull(document.querySelector(`link[rel="canonical"]`)?.getAttribute("href"));
   const url = location.href;
-  const anchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer) *)")];
+  const anchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer,form) *)")];
   const links = anchors
     .map((anchor) => {
       try {
