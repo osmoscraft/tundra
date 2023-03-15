@@ -58,7 +58,15 @@ export default async function main() {
     return extraction;
   };
 
-  const loadCaptureForm = async (extraction: Extraction) => {
+  const handleExtraction = async (extraction: Extraction) => {
+    // wip
+    requestWorker({
+      requestGraphStats: {
+        url: extraction.url,
+        linkUrls: (extraction.links ?? []).map((link) => link.url),
+      },
+    });
+
     const { respondDbNodesByUrls } = await requestWorker({ requestDbNodesByUrls: [extraction.url] });
 
     if (respondDbNodesByUrls?.[0]) {
@@ -68,7 +76,7 @@ export default async function main() {
     }
   };
 
-  getActiveTab().then(extractLinksOnActiveTab).then(loadCaptureForm);
+  getActiveTab().then(extractLinksOnActiveTab).then(handleExtraction);
 }
 
 main();

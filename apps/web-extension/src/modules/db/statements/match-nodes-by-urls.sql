@@ -1,0 +1,1 @@
+SELECT * FROM node_fts WHERE url MATCH :urlList ORDER BY rank;

@@ -1,1 +1,0 @@
-SELECT * FROM node_fts WHERE node_fts.url = :url

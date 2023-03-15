@@ -303,9 +303,12 @@ self.addEventListener("message", async (message: MessageEvent<MessageToWorkerV2>
     notifyMain({ log: `Pull success. ${patchedFiles.length} updated. ${allDeletedFiles.length} deleted.` });
   }
 
-  if (data.requestGraphStatsByUrl) {
+  if (data.requestGraphStats) {
     const db = await dbPromise;
-    const stats = getGraphStats({ db, url: data.requestGraphStatsByUrl, linkUrls: [] });
+    const stats = getGraphStats({ db, url: data.requestGraphStats.url, linkUrls: data.requestGraphStats.linkUrls });
+    console.log("[graph stats] debug", stats);
+
+    respondMain(data, { respondGraphStats: stats });
   }
 });
 

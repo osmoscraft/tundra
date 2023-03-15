@@ -1,4 +1,5 @@
 import type { CaptureRequest } from "../modules/capture/capture-form-element";
+import type { GraphStats } from "../modules/graph/get-graph-stats";
 import type { GithubConnection } from "../modules/sync/github/config-storage";
 
 export type MessageToWorkerV2 = {
@@ -16,7 +17,10 @@ export type MessageToWorkerV2 = {
   requestDbSearch?: {
     query: string;
   };
-  requestGraphStatsByUrl?: string;
+  requestGraphStats?: {
+    url: string;
+    linkUrls: string[];
+  };
   requestStatus?: boolean;
   requestGithubConnectionTest?: GithubConnection;
   requestGithubDownload?: GithubConnection;
@@ -39,5 +43,5 @@ export type MessageToMainV2 = {
     isSuccess: boolean;
     changeCount: number;
   };
-  respondGraphStats?: {};
+  respondGraphStats?: GraphStats;
 };
