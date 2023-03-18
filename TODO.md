@@ -1,5 +1,3 @@
-- URL: get alt url from canonical and og:url
-- URL: sanitize utm params
 - URL: handle alt url matching during lookup
 - URL: handle utm sanitized matching during lookup
 - Capture: handle url protocol, utm, canonical mapping

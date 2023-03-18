@@ -8,9 +8,11 @@
     "dev:pages": "npm run build:pages -- --watch",
     "dev:assets": "npm run build:assets -- --watch",
     "dev:worker": "npm run build:worker -- --watch",
+    "dev:injections": "npm run build:injections -- --watch",
     "build:pages": "esbuild src/options.ts src/popup.ts --loader:.html=text --loader:.graphql=text --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/worker.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
+    "build:injections": "esbuild src/extract-links.ts --format=iife --bundle --global-name='_contentScriptGlobal' --footer:js='_contentScriptGlobal.default()' --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked"
   },
   "type": "module",

@@ -1,5 +1,5 @@
+import type { Extraction } from "./extract-links";
 import { CaptureFormElement, CaptureRequest } from "./modules/capture/capture-form-element";
-import { Extraction, extractLinks } from "./modules/capture/extract-links";
 import { GraphStatsElement } from "./modules/graph/graph-stats-element";
 import { getConnection } from "./modules/sync/github/config-storage";
 import { loadWorker } from "./modules/worker/load-worker";
@@ -51,9 +51,9 @@ export default async function main() {
     const [activeTab] = tabs;
     if (!activeTab?.id) throw Error("No active tab available");
     performance.mark("linkExtractionStart");
-    const results = await chrome.scripting.executeScript({
+    const results = await chrome.scripting.executeScript<any[], Extraction>({
       target: { tabId: activeTab.id },
-      func: extractLinks,
+      files: ["extract-links.js"],
     });
     console.log("Extraction: ", performance.measure("linkExtraction", "linkExtractionStart").duration);
     const extraction = results[0]?.result;
@@ -63,6 +63,7 @@ export default async function main() {
 
   const handleExtraction = async (extraction: Extraction) => {
     // wip
+    console.log(`[extraction]`, extraction);
     const { respondGraphStats } = await requestWorker({
       requestGraphStats: {
         url: extraction.url,

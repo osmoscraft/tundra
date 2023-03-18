@@ -1,12 +1,12 @@
+import type { Extraction } from "../../extract-links";
 import { attachShadowHtml } from "../../utils/dom";
-import { loadWorker } from "../worker/load-worker";
 import template from "./capture-form-element.html";
-import type { Extraction } from "./extract-links";
 
 export interface CaptureRequest {
   node: {
     path: string;
     url: string;
+    altUrls: string[];
     title: string;
     description: string;
     links: {
@@ -23,7 +23,7 @@ export class CaptureFormElement extends HTMLElement {
   private form = this.shadowRoot.querySelector("form")!;
   private linkList = this.shadowRoot.getElementById("link-list") as HTMLUListElement;
   private submit = this.shadowRoot.querySelector(`button[type="submit"]`) as HTMLButtonElement;
-  private worker = loadWorker();
+  private altUrlList = this.shadowRoot.getElementById("alt-url-list") as HTMLUListElement;
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => {
@@ -39,6 +39,7 @@ export class CaptureFormElement extends HTMLElement {
             node: {
               path: existingPath ? existingPath : `nodes/${Date.now()}.json`,
               url: captureData.get("url") as string,
+              altUrls: [...this.altUrlList.querySelectorAll("li")].map((item) => item.textContent!),
               title: captureData.get("title") as string,
               description: captureData.get("description") as string,
               tags: (captureData.get("tags") as string)
@@ -65,6 +66,7 @@ export class CaptureFormElement extends HTMLElement {
   loadExisting(extraction: Extraction, path: string) {
     this.form.querySelector<HTMLInputElement>("#path")!.value = path;
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url;
+    this.altUrlList.innerHTML = extraction.altUrls.map((url) => `<li>${url}</li>`).join("");
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title;
     this.form.querySelector<HTMLInputElement>("#description")!.value = extraction.description ?? "";
     this.form.querySelector<HTMLInputElement>("#tags")!.value = extraction.tags?.join(", ") ?? "";
@@ -83,6 +85,7 @@ export class CaptureFormElement extends HTMLElement {
   loadExtractionResult(extraction: Extraction) {
     this.form.querySelector<HTMLInputElement>("#path")!.value = "";
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
+    this.altUrlList.innerHTML = extraction.altUrls.map((url) => `<li>${url}</li>`).join("");
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
     this.form.querySelector<HTMLInputElement>("#description")!.value = "";
     this.form.querySelector<HTMLInputElement>("#tags")!.value = extraction.tags?.join(", ") ?? "";
