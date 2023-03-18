@@ -1,4 +1,3 @@
-- Graph: display stats
 - Capture: handle url protocol, utm, canonical mapping
 - Worker: refactor handler to standard input + context format
 - Data: write a memo to json converter

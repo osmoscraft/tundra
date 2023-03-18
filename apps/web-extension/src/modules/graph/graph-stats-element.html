@@ -1,8 +1,19 @@
-<dl>
-  <dt>Captured</dt>
-  <dd>?</dd>
-  <dt>In</dt>
-  <dd>?</dd>
-  <dt>Out</dt>
-  <dd>?</dd>
-</dl>
+<div class="graph-stats">
+  <div class="graph-aspect">
+    <div>In</div>
+    <ul id="in-list"></ul>
+  </div>
+  <div class="graph-aspect">
+    <div>Out captured</div>
+    <ul id="out-captured-list"></ul>
+  </div>
+  <div class="graph-aspect">
+    <div>Out shared by captured</div>
+    <ul id="out-shared-list"></ul>
+  </div>
+</div>
+<style>
+  .graph-stats .graph-aspect:has(ul:empty) {
+    display: none;
+  }
+</style>

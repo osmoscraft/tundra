@@ -18,6 +18,7 @@ const requestWorker = getRequester<MessageToWorkerV2, MessageToMainV2>(worker);
 
 export default async function main() {
   const captureForm = document.querySelector<CaptureFormElement>("capture-form-element")!;
+  const graphStats = document.querySelector<GraphStatsElement>("graph-stats-element")!;
 
   const handleCapture = async (e: Event) => {
     const connection = getConnection();
@@ -60,12 +61,13 @@ export default async function main() {
 
   const handleExtraction = async (extraction: Extraction) => {
     // wip
-    requestWorker({
+    const { respondGraphStats } = await requestWorker({
       requestGraphStats: {
         url: extraction.url,
         linkUrls: (extraction.links ?? []).map((link) => link.url),
       },
     });
+    graphStats.loadData(respondGraphStats!);
 
     const { respondDbNodesByUrls } = await requestWorker({ requestDbNodesByUrls: [extraction.url] });
 
