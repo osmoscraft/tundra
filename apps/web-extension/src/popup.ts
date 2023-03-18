@@ -7,10 +7,12 @@ import { getNotifier, getRequester } from "./modules/worker/notify";
 import type { MessageToMainV2, MessageToWorkerV2 } from "./typings/messages";
 import { getActiveTab } from "./utils/get-active-tab";
 
+import { WorkerTerminalElement } from "./modules/worker/worker-terminal-element";
 import "./styles/global.css";
 
 customElements.define("capture-form-element", CaptureFormElement);
 customElements.define("graph-stats-element", GraphStatsElement);
+customElements.define("worker-terminal-element", WorkerTerminalElement);
 
 const worker = loadWorker();
 const notifyWorker = getNotifier<MessageToWorkerV2>(worker);
@@ -78,6 +80,19 @@ export default async function main() {
     }
   };
 
+  // initial sync
+  const connection = getConnection();
+  if (connection) {
+    requestWorker({ requestGithubPull: connection }).then((response) => {
+      if (response.respondGitHubPull!.changeCount) {
+        // need re-extract when there is change
+        getActiveTab().then(extractLinksOnActiveTab).then(handleExtraction);
+      }
+    });
+    //
+  }
+
+  // initial data load
   getActiveTab().then(extractLinksOnActiveTab).then(handleExtraction);
 }
 

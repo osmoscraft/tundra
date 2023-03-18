@@ -13,15 +13,16 @@ export function getRequester<RequestType, ResponseType>(eventTarget: Worker | De
     }
 
     return new Promise<ResponseType>((resolve) => {
+      const messageId = currentMessageId;
       const onceListener = (message: MessageEvent) => {
         const { _mid, ...restOfMessage } = message.data;
-        if (_mid === currentMessageId) {
+        if (_mid === messageId) {
           eventTarget.removeEventListener("message", onceListener as EventListener);
           resolve(restOfMessage);
         }
       };
       eventTarget.addEventListener("message", onceListener as EventListener);
-      eventTarget.postMessage({ ...request, _mid: currentMessageId });
+      eventTarget.postMessage({ ...request, _mid: messageId });
     });
   };
 }
