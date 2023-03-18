@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS node (
   path       TEXT PRIMARY KEY,
   content    TEXT,
   -- virtual columns from JSON extractions
-  -- alt_urls    TEXT GENERATED ALWAYS AS (json_extract(content, '$.altUrls')),
+  -- alt_urls   TEXT GENERATED ALWAYS AS (json_extract(content, '$.altUrls')),
   title      TEXT GENERATED ALWAYS AS (json_extract(content, '$.title')) NOT NULL,
   url        TEXT GENERATED ALWAYS AS (json_extract(content, '$.url')),
   modifiedAt TEXT GENERATED ALWAYS AS (json_extract(content, '$.modifiedAt')),
