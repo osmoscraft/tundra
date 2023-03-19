@@ -1,4 +1,4 @@
-import type { Extraction } from "../../extract-links";
+import type { Extraction } from "../../extract";
 import { attachShadowHtml } from "../../utils/dom";
 import template from "./capture-form-element.html";
 

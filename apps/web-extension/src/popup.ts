@@ -1,4 +1,4 @@
-import type { Extraction } from "./extract-links";
+import type { Extraction } from "./extract";
 import { CaptureFormElement, CaptureRequest } from "./modules/capture/capture-form-element";
 import { GraphStatsElement } from "./modules/graph/graph-stats-element";
 import { getConnection } from "./modules/sync/github/config-storage";
@@ -53,7 +53,7 @@ export default async function main() {
     performance.mark("linkExtractionStart");
     const results = await chrome.scripting.executeScript<any[], Extraction>({
       target: { tabId: activeTab.id },
-      files: ["extract-links.js"],
+      files: ["extract.js"],
     });
     console.log("Extraction: ", performance.measure("linkExtraction", "linkExtractionStart").duration);
     const extraction = results[0]?.result;
