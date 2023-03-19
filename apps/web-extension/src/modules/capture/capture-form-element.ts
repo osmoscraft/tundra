@@ -87,7 +87,7 @@ export class CaptureFormElement extends HTMLElement {
     this.form.querySelector<HTMLInputElement>("#url")!.value = extraction.url!;
     this.altUrlList.innerHTML = extraction.altUrls.map((url) => `<li>${url}</li>`).join("");
     this.form.querySelector<HTMLInputElement>("#title")!.value = extraction.title!;
-    this.form.querySelector<HTMLInputElement>("#description")!.value = "";
+    this.form.querySelector<HTMLInputElement>("#description")!.value = extraction.description;
     this.form.querySelector<HTMLInputElement>("#tags")!.value = extraction.tags?.join(", ") ?? "";
     this.linkList!.innerHTML =
       extraction.links

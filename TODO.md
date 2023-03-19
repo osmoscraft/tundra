@@ -1,6 +1,6 @@
 - URL: handle alt url matching during lookup
 - URL: handle utm sanitized matching during lookup
-- URL: handle YouTube SPA stale canonical URL
+- URL: trim "|" "-" separated site name, using domain match as heuristics
 - Capture: handle url protocol, utm, canonical mapping
 - Worker: refactor handler to standard input + context format
 - Data: write a memo to json converter

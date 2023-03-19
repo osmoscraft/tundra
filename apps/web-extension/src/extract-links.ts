@@ -4,25 +4,48 @@ export interface Extraction {
   title: string;
   url: string;
   altUrls: string[];
-  links?: { title: string; url: string }[];
-  tags?: string[];
-  description?: string;
+  links: { title: string; url: string }[];
+  tags: string[];
+  description: string;
 }
 
-export function extractLinks(): Extraction {
-  const emptyTextToNull = (text?: string | null) => (text?.trim().length ? text.trim() : null);
+export interface PageInfo {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+}
+
+export interface AltUrls {
+  canonicalUrl?: string;
+  shortlink?: string;
+  ogUrl?: string;
+}
+
+export async function extractLinks(): Promise<Extraction> {
+  const serverDomPromise: Promise<Document> = fetch(location.href)
+    .then((response) => response.text())
+    .then((html) => new DOMParser().parseFromString(html, "text/html"));
+
+  const serverAltUrlsPromise = serverDomPromise.then(extractAltUrls).catch(() => ({}));
+  const serverPageInfoPromise = serverDomPromise.then(extractPageInfo).catch(() => ({}));
+
   const title =
     emptyTextToNull(document.querySelector(`meta[property="og:title"]`)?.getAttribute("content")) ??
     emptyTextToNull(document.querySelector("title")?.textContent) ??
     "Untitled";
   const locationHref = location.href;
-  const canonicalUrl = emptyTextToNull(document.querySelector(`link[rel="canonical"]`)?.getAttribute("href"));
-  const shortlink = document.querySelector(`link[rel="shortlink"]`)?.getAttribute("href");
-  const ogUrl = document.querySelector(`meta[property="og:url"]`)?.getAttribute("content");
+  const clientAltUrls = extractAltUrls(document);
+  const clientPageInfo = extractPageInfo(document);
+  const serverAltUrls = await serverAltUrlsPromise;
+  const serverPageInfo = await serverPageInfoPromise;
+  const allAltUrls = { ...clientAltUrls, ...serverAltUrls }; // server takes precedence
+  const pageInfo = { ...clientPageInfo, ...serverPageInfo };
+
   const [url, ...altUrls] = [
-    ...new Set(([canonicalUrl, locationHref, ogUrl, shortlink].filter(Boolean) as string[]).map(getCleanUrl)),
+    ...new Set(([locationHref, ...Object.values(allAltUrls)].filter(Boolean) as string[]).map(getCleanUrl)),
   ];
 
+  // improve anchor extraction quality
   const anchors = [...document.querySelectorAll<HTMLAnchorElement>("a:not(:where(nav,header,footer,form) *)")];
   const links = anchors
     .map((anchor) => {
@@ -37,24 +60,50 @@ export function extractLinks(): Extraction {
     .map((link) => ({ title: link.title, url: link.url.href }))
     .filter((link, index, array) => array.findIndex((otherLink) => otherLink.url === link.url) === index); // deduplicate
 
-  console.log("[content-script] extracted ", {
+  const extraction: Extraction = {
+    title: pageInfo.title!,
+    description: pageInfo.description ?? "",
+    tags: pageInfo.keywords ?? [],
     url,
     altUrls,
-    locationHref,
-    canonicalUrl,
-    shortlink,
-    ogUrl,
     links,
+  };
+
+  console.log("[content-script] extracted ", {
+    title,
+    clientPageInfo,
+    clientAltUrls,
+    serverPageInfo,
+    serverAltUrls,
   });
 
+  return extraction;
+}
+
+function extractAltUrls(dom: Document): AltUrls {
   return {
-    title,
-    url,
-    altUrls,
-    links,
-    description: "",
-    tags: [],
+    canonicalUrl: emptyTextToNull(dom.querySelector(`link[rel="canonical"]`)?.getAttribute("href")) ?? undefined,
+    shortlink: dom.querySelector(`link[rel="shortlink"]`)?.getAttribute("href") ?? undefined,
+    ogUrl: dom.querySelector(`meta[property="og:url"]`)?.getAttribute("content") ?? undefined,
   };
+}
+
+function extractPageInfo(dom: Document): PageInfo {
+  return {
+    title: dom.querySelector(`meta[property="og:title"]`)?.getAttribute("content") ?? dom.title,
+    description:
+      dom.querySelector(`meta[property="og:description"]`)?.getAttribute("content") ??
+      dom.querySelector(`meta[name="description"]`)?.getAttribute("content") ??
+      undefined,
+    keywords: (dom.querySelector(`meta[name="keywords"]`)?.getAttribute("content") ?? "")
+      .split(",")
+      .map((word) => word.trim())
+      .filter(Boolean),
+  };
+}
+
+function emptyTextToNull(text?: string | null) {
+  return text?.trim().length ? text.trim() : null;
 }
 
 export default extractLinks;
