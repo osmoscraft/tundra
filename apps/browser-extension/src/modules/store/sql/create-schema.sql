@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS node (
   path       TEXT PRIMARY KEY,
-  content    TEXT,
+  content    TEXT
   -- virtual columns from JSON extractions
 );
 

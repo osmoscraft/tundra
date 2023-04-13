@@ -8,7 +8,7 @@ declare module "*.graphql" {
   export default content;
 }
 
-declare module "*/sqlite3/sqlite3.mjs" {
+declare module "*/sqlite3.mjs" {
   const apiInitializer: () => Promise<Sqlite3.ApiIndex>;
   export default apiInitializer;
 }

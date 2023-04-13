@@ -12,7 +12,7 @@
     }
   },
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "extension-worker.js",
     "type": "module"
   },
   "icons": {

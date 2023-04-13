@@ -10,7 +10,7 @@
     "dev:worker": "npm run build:worker -- --watch",
     "build:pages": "esbuild src/notebook.ts src/options.ts --loader:.html=text --loader:.graphql=text --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
-    "build:worker": "esbuild src//worker.ts src/background.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
+    "build:worker": "esbuild src/sqlite-worker.ts src/extension-worker.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked"
   },
   "type": "module",
