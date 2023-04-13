@@ -69,6 +69,8 @@
 - GitHub
   - [Compare head commit with base commit](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
     - 300 file limit
+      - If file count > 299, switch to full download
+    - Use GraphQL multi query to download all changed/added files
     - Need to manually apply diffing (consider jsdiff apply patch)
     - Fallback to full clone
     - GraphQL API provides [access to first/last commit](https://stackoverflow.com/questions/45726013/how-can-i-get-last-commit-from-github-api) on default branch.
