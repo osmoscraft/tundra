@@ -1,10 +1,7 @@
-- URL: handle alt url matching during lookup
-- URL: handle utm sanitized matching during lookup
-- URL: trim "|" "-" separated site name, using domain match as heuristics
-- Links: checkbox toggle tracking, badge for graph out nodes and shared out nodes
-- Capture: handle url protocol, utm, canonical mapping
-- Worker: refactor handler to standard input + context format
-- Data: write a memo to json converter
-- DB: add project management
-- Crawl: allow programmatic crawling of bookmarks and incrementally add links
-- Sync: replace diff with WASM lib compiled from Rust
+- Simple textarea based editor (no specific format)
+  - Load text into text area
+  - Allow edit within the text area
+- Store
+  - Persist plaintext in DB, with id-based path
+- Sync
+  - Rewrite GitHub sync module with common interface
