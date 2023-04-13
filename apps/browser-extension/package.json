@@ -1,0 +1,27 @@
+{
+  "name": "browser-extension",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "rm -rf dist && concurrently --raw npm:dev:*",
+    "build": "rm -rf dist && concurrently --raw npm:build:* && npm run pack",
+    "dev:pages": "npm run build:pages -- --watch",
+    "dev:assets": "npm run build:assets -- --watch",
+    "dev:worker": "npm run build:worker -- --watch",
+    "build:pages": "esbuild src/notebook.ts src/options.ts --loader:.html=text --loader:.graphql=text --bundle --outdir=dist/unpacked",
+    "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
+    "build:worker": "esbuild src//worker.ts src/background.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
+    "pack": "node scripts/pack.js --dir dist/unpacked"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/chrome": "^0.0.231",
+    "@types/diff": "^5.0.3",
+    "@types/node": "^18.15.11",
+    "concurrently": "^8.0.1",
+    "esbuild": "^0.17.16"
+  },
+  "dependencies": {
+    "@zip.js/zip.js": "^2.7.2"
+  }
+}
