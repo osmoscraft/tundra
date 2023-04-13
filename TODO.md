@@ -5,3 +5,5 @@
   - Persist plaintext in DB, with id-based path
 - Sync
   - Rewrite GitHub sync module with common interface
+- Net
+  - Proxy access to CORS endpoints, hide chrome extension capabilities
