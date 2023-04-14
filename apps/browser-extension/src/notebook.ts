@@ -1,6 +1,5 @@
-import { getDbWorker } from "./modules/db/get-instance";
+import { getDbWorker } from "./modules/db/get-db-worker";
 import { EditorElement } from "./modules/edit/editor-element";
-import "./notebook.css";
 
 getDbWorker();
 

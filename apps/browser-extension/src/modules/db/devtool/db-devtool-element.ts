@@ -1,6 +1,6 @@
 import type { MessageToDbWorker, MessageToMain } from "../../../typings/messages";
 import { request } from "../../rpc/notify";
-import { getDbWorker } from "../get-instance";
+import { getDbWorker } from "../get-db-worker";
 import "./db-devtool-element.css";
 import template from "./db-devtool-element.html";
 import { downloadFile } from "./download-file";
