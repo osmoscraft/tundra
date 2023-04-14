@@ -1,5 +1,5 @@
-import { apiV3, getGitHubInit } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
+import { apiV3, getGitHubInit } from "../proxy/api-connection";
 
 export interface GetContentResult {
   name: string;

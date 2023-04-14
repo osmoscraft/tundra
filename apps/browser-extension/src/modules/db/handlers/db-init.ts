@@ -3,7 +3,7 @@ import { tap } from "../../fp/tap";
 import CREATE_SCHEMA from "../sql/create-schema.sql";
 import initSqlite3 from "./sqlite3/jswasm/sqlite3.mjs"; // external, relative to worker script
 
-export function initDb(path: string) {
+export function dbInit(path: string) {
   return Promise.resolve(mark("db-init-start"))
     .then(initSqlite3)
     .then(pipe(assertOpfs, logSqlite3Version, openOpfsDb.bind(null, path), createSchema))

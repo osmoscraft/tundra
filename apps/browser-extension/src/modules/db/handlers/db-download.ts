@@ -1,6 +1,6 @@
 import type { DbWorkerHandler } from "./base";
 
-export const handleRequestDownload: DbWorkerHandler = async (context, message) => {
+export const handleRequestDbDownload: DbWorkerHandler = async (context, message) => {
   if (!message.requestDbDownload) return;
 
   const dbFile = await getDbFile(context.dbFilename);

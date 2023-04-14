@@ -1,4 +1,4 @@
-import { testConnection } from "../../sync/github/operations/test-connection";
+import { testConnection } from "../../sync/github/proxy/test-connection";
 import type { DbWorkerHandler } from "./base";
 
 export const handleRequestTestConnection: DbWorkerHandler = async (context, message) => {

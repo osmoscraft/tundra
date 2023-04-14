@@ -1,6 +1,6 @@
-import { apiV4, unwrap } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
 import TEST_CONNECTION from "../queries/test-connection.graphql";
+import { apiV4, unwrap } from "./api-connection";
 
 export interface TestConnectionOutput {
   viewer: {

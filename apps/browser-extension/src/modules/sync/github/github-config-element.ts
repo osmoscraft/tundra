@@ -38,6 +38,7 @@ export class GithubConfigElement extends HTMLElement {
           const connection = getConnection();
           if (!connection) break;
 
+          this.worker.request({ requestGithubImport: connection }).then((res) => console.log("Imported", res));
           break;
         }
 

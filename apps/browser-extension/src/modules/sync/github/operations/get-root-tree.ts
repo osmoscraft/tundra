@@ -1,5 +1,5 @@
-import { apiV4 } from "../api-proxy";
 import type { GithubConnection } from "../config-storage";
+import { apiV4 } from "../proxy/api-connection";
 import ROOT_TREE from "../queries/root-tree.graphql";
 
 export interface RootTreeVariables {
