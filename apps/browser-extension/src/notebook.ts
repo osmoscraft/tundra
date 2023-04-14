@@ -5,5 +5,3 @@ import "./notebook.css";
 getDbWorker();
 
 customElements.define("editor-element", EditorElement);
-
-console.log("hello notebook");
