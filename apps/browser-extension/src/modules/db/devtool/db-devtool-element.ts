@@ -14,10 +14,12 @@ export class DbDevtoolElement extends HTMLElement {
     const menu = this.querySelector("menu")!;
 
     menu.addEventListener("click", async (e) => {
+      const dbWorkerPromise = getDbWorker();
+
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "download": {
-          request<MessageToDbWorker, MessageToMain>(getDbWorker(), { requestDbDownload: true }).then(
+          request<MessageToDbWorker, MessageToMain>(await dbWorkerPromise, { requestDbDownload: true }).then(
             ({ respondDbDownload }) => {
               if (respondDbDownload) {
                 downloadFile(respondDbDownload);
@@ -27,7 +29,12 @@ export class DbDevtoolElement extends HTMLElement {
           break;
         }
 
-        case "nuke": {
+        case "destroy": {
+          request<MessageToDbWorker, MessageToMain>(await dbWorkerPromise, { requestDbDestroy: true }).then(
+            (response) => {
+              if (response.respondDbDestroy) location.reload();
+            }
+          );
           break;
         }
       }

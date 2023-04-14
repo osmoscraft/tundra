@@ -10,7 +10,7 @@ export function initDb(path: string) {
     .then(logSqlite3Version)
     .then(openOpfsDb.bind(null, path))
     .then(createSchema)
-    .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, "DB init"))));
+    .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, "[perf] DB schema init"))));
 }
 
 function createSchema(db: Sqlite3.DB) {

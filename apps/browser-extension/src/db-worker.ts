@@ -1,4 +1,5 @@
 import type { DbWorkerContext } from "./modules/db/handlers/base";
+import { handleDbDestory } from "./modules/db/handlers/destory";
 import { handleRequestDownload } from "./modules/db/handlers/download";
 import { initDb } from "./modules/db/handlers/init";
 import { notify, request, respond } from "./modules/rpc/notify";
@@ -20,7 +21,10 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
   const message = event.data;
   console.log(`[worker] received`, message);
 
+  handleDbDestory(context, message);
   handleRequestDownload(context, message);
 };
 
 self.addEventListener("message", onWorkerMessage);
+
+context.notify({ notifyDbReady: true });

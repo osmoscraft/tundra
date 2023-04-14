@@ -4,7 +4,7 @@ export interface DbWorkerContext {
   dbPromise: Promise<Sqlite3.DB>;
   /** Assumption: db file is at the root of the fs */
   dbFilename: string;
-  notify: (eventTarget: Worker | DedicatedWorkerGlobalScope, message: MessageToMain) => any;
+  notify: (message: MessageToMain) => any;
   request: (request: MessageToMain) => Promise<MessageToDbWorker>;
   respond: (request: any, response: MessageToMain) => any;
 }
