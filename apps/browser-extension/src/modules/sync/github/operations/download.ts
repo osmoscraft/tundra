@@ -2,7 +2,7 @@ import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 
 export interface ZipItem {
   path: string;
-  content: string;
+  readAsText: () => Promise<string>;
 }
 export async function downloadZip(url: string, onItem: (item: ZipItem) => any): Promise<void> {
   const zipReader = new ZipReader(new HttpReader(url));
@@ -12,7 +12,7 @@ export async function downloadZip(url: string, onItem: (item: ZipItem) => any): 
 
   for await (const entry of entriesGen) {
     const textWriter = new TextWriter();
-    await onItem({ path: entry.filename, content: await entry.getData!(textWriter) });
+    await onItem({ path: entry.filename, readAsText: () => entry.getData!(textWriter) });
   }
 
   await zipReader.close();

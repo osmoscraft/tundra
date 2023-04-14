@@ -6,11 +6,19 @@ import type { DbWorkerHandler } from "./base";
 export const handleGithubImport: DbWorkerHandler = async (context, message) => {
   if (!message.requestGithubImport) return;
 
-  const onItem = ({ path, content }: ZipItem) => {
+  const onItem = async ({ path, readAsText }: ZipItem) => {
+    const matchedPath = path.match(/(\/notes\/.*\.md)/)?.[0];
+    if (!matchedPath) {
+      console.log(`[import] skip ${path.slice(path.indexOf("/"))}`);
+      return;
+    }
+
+    const content = await readAsText();
+    console.log(`[import] accept ${matchedPath} (${content.length})`);
     return context.dbPromise.then((db) =>
       db.exec(INSERT_NODE, {
         bind: {
-          ":path": path,
+          ":path": matchedPath,
           ":content": content,
         },
       })
