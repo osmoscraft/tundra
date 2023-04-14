@@ -1,3 +1,7 @@
-export type MessageToWorkerV2 = {};
+export type MessageToDbWorker = {
+  requestDbDownload?: boolean;
+};
 
-export type MessageToMainV2 = {};
+export type MessageToMain = {
+  respondDbDownload?: File;
+};

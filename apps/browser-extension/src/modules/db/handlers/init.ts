@@ -1,4 +1,6 @@
-import CREATE_SCHEMA from "./sql/create-schema.sql";
+import { pipe } from "../../fp/pipe";
+import { tap } from "../../fp/tap";
+import CREATE_SCHEMA from "../sql/create-schema.sql";
 import initSqlite3 from "./sqlite3/jswasm/sqlite3.mjs"; // external, relative to worker script
 
 export function initDb(path: string) {
@@ -8,20 +10,7 @@ export function initDb(path: string) {
     .then(logSqlite3Version)
     .then(openOpfsDb.bind(null, path))
     .then(createSchema)
-    .then(measure.bind(null, "db-init-start"))
-    .then(logDuration.bind(null, "DB init"));
-}
-
-export async function destoryDb(path: string) {
-  const root = await navigator.storage.getDirectory();
-  await root.removeEntry(path);
-}
-
-export async function getDbFile(path: string) {
-  const root = await navigator.storage.getDirectory();
-  const dbFileHandle = await await root.getFileHandle(path);
-  const file = await dbFileHandle.getFile();
-  return file;
+    .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, "DB init"))));
 }
 
 function createSchema(db: Sqlite3.DB) {

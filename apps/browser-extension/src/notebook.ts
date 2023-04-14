@@ -1,8 +1,8 @@
+import { getDbWorker } from "./modules/db/get-instance";
 import { EditorElement } from "./modules/edit/editor-element";
-import { loadWorker } from "./modules/rpc/create-worker";
 import "./notebook.css";
 
-const worker = loadWorker("./sqlite-worker.js");
+getDbWorker();
 
 customElements.define("editor-element", EditorElement);
 
