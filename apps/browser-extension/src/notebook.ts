@@ -1,6 +1,6 @@
-import { getDbWorker } from "./modules/db/get-db-worker";
+import { preloadDbWorker } from "./modules/db/proxy";
 import { EditorElement } from "./modules/edit/editor-element";
 
-getDbWorker();
+preloadDbWorker();
 
 customElements.define("editor-element", EditorElement);

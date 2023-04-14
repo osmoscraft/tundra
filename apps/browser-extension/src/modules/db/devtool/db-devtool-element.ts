@@ -1,40 +1,31 @@
-import type { MessageToDbWorker, MessageToMain } from "../../../typings/messages";
-import { request } from "../../rpc/notify";
-import { getDbWorker } from "../get-db-worker";
-import "./db-devtool-element.css";
+import { attachShadowHtml } from "../../dom/shadow";
+import { getDbWorkerProxy } from "../proxy";
 import template from "./db-devtool-element.html";
 import { downloadFile } from "./download-file";
 
 export class DbDevtoolElement extends HTMLElement {
-  constructor(public innerHTML = template) {
-    super();
-  }
+  shadowRoot = attachShadowHtml(template, this);
+  private menu = this.shadowRoot.querySelector("menu")!;
 
   connectedCallback() {
-    const menu = this.querySelector("menu")!;
-
-    menu.addEventListener("click", async (e) => {
-      const dbWorkerPromise = getDbWorker();
+    this.menu.addEventListener("click", async (e) => {
+      const dbWorker = getDbWorkerProxy();
 
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "download": {
-          request<MessageToDbWorker, MessageToMain>(await dbWorkerPromise, { requestDbDownload: true }).then(
-            ({ respondDbDownload }) => {
-              if (respondDbDownload) {
-                downloadFile(respondDbDownload);
-              }
+          dbWorker.request({ requestDbDownload: true }).then(({ respondDbDownload }) => {
+            if (respondDbDownload) {
+              downloadFile(respondDbDownload);
             }
-          );
+          });
           break;
         }
 
         case "destroy": {
-          request<MessageToDbWorker, MessageToMain>(await dbWorkerPromise, { requestDbDestroy: true }).then(
-            (response) => {
-              if (response.respondDbDestroy) location.reload();
-            }
-          );
+          dbWorker.request({ requestDbDestroy: true }).then((response) => {
+            if (response.respondDbDestroy) location.reload();
+          });
           break;
         }
       }

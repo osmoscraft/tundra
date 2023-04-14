@@ -1,4 +1,4 @@
-import { getDbWorker } from "../../db/get-db-worker";
+import { getDbWorkerProxy } from "../../db/proxy";
 import { attachShadowHtml } from "../../dom/shadow";
 import { getConnection, saveConnection, type GithubConnection } from "./config-storage";
 import template from "./github-config-element.html";
@@ -8,7 +8,7 @@ export class GithubConfigElement extends HTMLElement {
   private form = this.shadowRoot.querySelector("form")!;
   private menu = this.shadowRoot.querySelector("menu")!;
   private status = this.shadowRoot.querySelector("#status")!;
-  private worker = getDbWorker();
+  private worker = getDbWorkerProxy();
 
   connectedCallback() {
     this.load();
@@ -25,6 +25,8 @@ export class GithubConfigElement extends HTMLElement {
 
           const connection = getConnection();
           if (!connection) break;
+
+          this.worker.request({ requestTestConnection: connection }).then((res) => console.log("Is connected?", res));
 
           break;
         }

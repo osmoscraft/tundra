@@ -2,6 +2,7 @@ import type { DbWorkerContext } from "./modules/db/handlers/base";
 import { handleDbDestory } from "./modules/db/handlers/destory";
 import { handleRequestDownload } from "./modules/db/handlers/download";
 import { initDb } from "./modules/db/handlers/init";
+import { handleRequestTestConnection } from "./modules/db/handlers/test-connection";
 import { notify, request, respond } from "./modules/rpc/notify";
 import type { MessageToDbWorker } from "./typings/messages";
 
@@ -23,6 +24,7 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
 
   handleDbDestory(context, message);
   handleRequestDownload(context, message);
+  handleRequestTestConnection(context, message);
 };
 
 self.addEventListener("message", onWorkerMessage);

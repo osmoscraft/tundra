@@ -6,7 +6,7 @@ export interface DbWorkerContext {
   dbFilename: string;
   notify: (message: MessageToMain) => any;
   request: (request: MessageToMain) => Promise<MessageToDbWorker>;
-  respond: (request: any, response: MessageToMain) => any;
+  respond: (request: MessageToDbWorker, response: MessageToMain) => any;
 }
 
 export type DbWorkerHandler = (context: DbWorkerContext, message: MessageToDbWorker) => any;

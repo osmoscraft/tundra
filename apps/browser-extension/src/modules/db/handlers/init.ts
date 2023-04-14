@@ -6,10 +6,7 @@ import initSqlite3 from "./sqlite3/jswasm/sqlite3.mjs"; // external, relative to
 export function initDb(path: string) {
   return Promise.resolve(mark("db-init-start"))
     .then(initSqlite3)
-    .then(assertOpfs)
-    .then(logSqlite3Version)
-    .then(openOpfsDb.bind(null, path))
-    .then(createSchema)
+    .then(pipe(assertOpfs, logSqlite3Version, openOpfsDb.bind(null, path), createSchema))
     .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, "[perf] DB schema init"))));
 }
 
