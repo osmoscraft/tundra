@@ -12,6 +12,7 @@ export async function downloadZip(url: string, onItem: (item: ZipItem) => any): 
 
   for await (const entry of entriesGen) {
     const textWriter = new TextWriter();
+    // lazy read because consumer may filter by path
     await onItem({ path: entry.filename, readAsText: () => entry.getData!(textWriter) });
   }
 
