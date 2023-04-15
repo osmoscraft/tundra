@@ -1,8 +1,12 @@
 declare namespace Sqlite3 {
   export interface ApiIndex {
-    opfs: any;
+    capi: CApi;
     oo1: OO1;
-    capi: any;
+    opfs: any;
+  }
+
+  export interface CApi {
+    sqlite3_libversion(): string;
   }
 
   export interface OO1 {
@@ -36,7 +40,7 @@ declare namespace Sqlite3 {
     saveSql?: any[]; // TODO refine typing
     returnValue?: "this" | "resultRows" | "saveSql";
     callback?: (result: any) => any; // TODO refine typing
-    columnNames?: stirng[];
+    columnNames?: string[];
     resultRows?: any[]; // TODO refine typing
     /**
      * specifies the type of he callback's first argument. It may be any of:
@@ -62,7 +66,7 @@ declare namespace Sqlite3 {
     stepReset: () => Statement;
     finalize: () => void;
     clearBindings: () => void;
-    reset(alsoClearBinds = false): () => Statement;
+    reset(alsoClearBinds?: boolean): () => Statement;
   }
 
   export interface StmtBinder {

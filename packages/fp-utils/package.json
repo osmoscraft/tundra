@@ -1,0 +1,10 @@
+{
+  "name": "@tinykb/fp-utils",
+  "version": "1.0.0",
+  "description": "Functional programming utils",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "keywords": [],
+  "author": "osmoscraft",
+  "license": "MIT"
+}

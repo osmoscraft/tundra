@@ -1,32 +1,23 @@
-import { pipe } from "../../fp/pipe";
-import { tap } from "../../fp/tap";
+import { pipe, tap } from "@tinykb/fp-utils";
+import { getLibversion, loadApiIndex, openOpfsDb } from "@tinykb/sqlite-loader";
 import CREATE_SCHEMA from "../sql/create-schema.sql";
-import initSqlite3 from "./sqlite3/jswasm/sqlite3.mjs"; // external, relative to worker script
 
 export function dbInit(path: string) {
   return Promise.resolve(mark("db-init-start"))
-    .then(initSqlite3)
-    .then(pipe(assertOpfs, logSqlite3Version, openOpfsDb.bind(null, path), createSchema))
+    .then(() => loadApiIndex("./sqlite3/jswasm/"))
+    .then(
+      pipe(
+        tap(pipe(getLibversion, (v: string) => console.log("[db] sqlite version:", v))),
+        openOpfsDb.bind(null, path),
+        createSchema
+      )
+    )
     .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, "[perf] DB schema init"))));
 }
 
 function createSchema(db: Sqlite3.DB) {
   db.exec(CREATE_SCHEMA);
   return db;
-}
-
-function assertOpfs(sqlite3: Sqlite3.ApiIndex) {
-  if (!sqlite3.opfs) throw new Error("OPFS is not loaded");
-  return sqlite3;
-}
-
-function logSqlite3Version(sqlite3: Sqlite3.ApiIndex) {
-  console.debug("sqlite3 version", sqlite3.capi.sqlite3_libversion(), sqlite3.capi.sqlite3_sourceid());
-  return sqlite3;
-}
-
-function openOpfsDb(path: string, sqlite3: Sqlite3.ApiIndex) {
-  return new sqlite3.oo1.OpfsDb(path);
 }
 
 function logDuration(name: string, measure: PerformanceMeasure) {
