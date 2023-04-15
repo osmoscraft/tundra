@@ -1,1 +1,0 @@
-SELECT * FROM node WHERE path = :path

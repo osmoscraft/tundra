@@ -1,21 +1,18 @@
-import type { DbWorkerContext } from "./modules/db/handlers/base";
-import { handleDbDestory } from "./modules/db/handlers/db-destory";
-import { handleRequestDbDownload } from "./modules/db/handlers/db-download";
-import { dbInit } from "./modules/db/handlers/db-init";
-import { handleGithubImport } from "./modules/db/handlers/github-import";
-import { handleRequestTestConnection } from "./modules/db/handlers/test-connection";
 import { notify, request, respond } from "./modules/rpc/notify";
-import { tinyfs } from "./modules/tiny-fs";
+import { TinyFS } from "./modules/tiny-fs";
+import type { DbWorkerContext } from "./modules/worker/handlers/base";
+import { handleDbDestory } from "./modules/worker/handlers/db-destory";
+import { handleRequestDbDownload } from "./modules/worker/handlers/db-download";
+import { handleGithubImport } from "./modules/worker/handlers/github-import";
+import { handleRequestTestConnection } from "./modules/worker/handlers/test-connection";
 import type { MessageToDbWorker } from "./typings/messages";
 
 declare const self: DedicatedWorkerGlobalScope;
 
-const DB_FILENAME = "tinykb.sqlite3";
+const TINYFS_FILENAME = "tinyfs.sqlite3";
 
 const context: DbWorkerContext = {
-  fs: tinyfs.init(`sqlite-fs.sqlite3`),
-  dbFilename: DB_FILENAME,
-  dbPromise: dbInit(`/${DB_FILENAME}`),
+  tinyFS: new TinyFS(`/${TINYFS_FILENAME}`),
   notify: notify.bind(null, self),
   request: (req) => request(self, req),
   respond: respond.bind(null, self),

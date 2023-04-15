@@ -1,10 +1,8 @@
 import type { MessageToDbWorker, MessageToMain } from "../../../typings/messages";
+import type { ITinyFS } from "../../tiny-fs";
 
 export interface DbWorkerContext {
-  fs: Promise<Sqlite3.DB>;
-  dbPromise: Promise<Sqlite3.DB>;
-  /** Assumption: db file is at the root of the fs */
-  dbFilename: string;
+  tinyFS: ITinyFS;
   notify: (message: MessageToMain) => any;
   request: (request: MessageToMain) => Promise<MessageToDbWorker>;
   respond: (request: MessageToDbWorker, response: MessageToMain) => any;

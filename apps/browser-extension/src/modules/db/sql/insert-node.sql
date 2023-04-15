@@ -1,1 +1,0 @@
-INSERT INTO node(path, content) VALUES (:path, :content);

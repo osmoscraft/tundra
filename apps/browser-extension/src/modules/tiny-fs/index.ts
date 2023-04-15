@@ -12,17 +12,45 @@ export interface TinyFile {
   updatedAt: string;
 }
 
-function init(path: string) {
+export type ITinyFS = Pick<TinyFS, keyof TinyFS>;
+
+export class TinyFS implements ITinyFS {
+  private db: Promise<Sqlite3.DB>;
+
+  constructor(private opfsPath: string) {
+    this.db = init(this.opfsPath);
+  }
+
+  async writeText(path: string, content: string) {
+    return writeTextFile(await this.db, path, content);
+  }
+
+  async read(path: string) {
+    return readFile(await this.db, path);
+  }
+
+  async destory() {
+    await this.db;
+    return destoryRootLevelOpfs(opfsPathToRootFilename(this.opfsPath));
+  }
+
+  async getOpfsFile() {
+    await this.db;
+    return getRootLevelOpfsFile(opfsPathToRootFilename(this.opfsPath));
+  }
+}
+
+function init(opfsPath: string) {
   return Promise.resolve(mark("db-init-start"))
     .then(() => loadApiIndex("./sqlite3/jswasm/"))
     .then(
       pipe(
-        tap(pipe(getLibversion, (v: string) => console.log(`[db] ${path} version: ${v}`))),
-        openOpfsDb.bind(null, path),
-        createSchema.bind(null, SCHEMA)
+        tap(pipe(getLibversion, (v: string) => console.log(`[db] ${opfsPath} version: ${v}`))),
+        openOpfsDb.bind(null, opfsPath),
+        (db: Sqlite3.DB) => db.exec(SCHEMA)
       )
     )
-    .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, `[perf] ${path} schema init`))));
+    .then(tap(pipe(measure.bind(null, "db-init-start"), logDuration.bind(null, `[perf] ${opfsPath} schema init`))));
 }
 
 function writeTextFile(db: Sqlite3.DB, filePath: string, content: string) {
@@ -35,15 +63,10 @@ function writeTextFile(db: Sqlite3.DB, filePath: string, content: string) {
   });
 }
 
-function readTextFile(db: Sqlite3.DB, filePath: string) {
+function readFile(db: Sqlite3.DB, filePath: string) {
   return db.selectObject<TinyFile>(SELECT_FILE, {
     ":path": filePath,
   });
-}
-
-function createSchema(schema: string, db: Sqlite3.DB) {
-  db.exec(schema);
-  return db;
 }
 
 function logDuration(name: string, measure: PerformanceMeasure) {
@@ -57,8 +80,22 @@ function measure(markName: string) {
   return performance.measure("", markName);
 }
 
-export const tinyfs = {
-  init,
-  writeTextFile,
-  readTextFile,
-};
+async function destoryRootLevelOpfs(filename: string) {
+  const root = await navigator.storage.getDirectory();
+  await root.removeEntry(filename);
+}
+async function getRootLevelOpfsFile(filename: string) {
+  const root = await navigator.storage.getDirectory();
+  const dbFileHandle = await root.getFileHandle(filename);
+  const file = await dbFileHandle.getFile();
+  return file;
+}
+
+function opfsPathToRootFilename(opfsPath: string) {
+  const [empty, filename, ...emptyList] = opfsPath.split("/");
+  if (empty || emptyList.length) {
+    throw new Error(`Invalid opfsPath "${opfsPath}". It must be in the format "/filename"`);
+  }
+
+  return filename;
+}
