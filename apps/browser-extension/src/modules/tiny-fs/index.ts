@@ -4,14 +4,6 @@ import INSERT_FILE from "./sql/insert-file.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 
-export interface TinyFile {
-  path: string;
-  content: string;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export type ITinyFS = Pick<TinyFS, keyof TinyFS>;
 
 export class TinyFS implements ITinyFS {
@@ -38,6 +30,14 @@ export class TinyFS implements ITinyFS {
     await this.db;
     return getRootLevelOpfsFile(opfsPathToRootFilename(this.opfsPath));
   }
+}
+
+export interface TinyFile {
+  path: string;
+  content: string;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 function init(opfsPath: string) {
