@@ -1,0 +1,14 @@
+{
+  "name": "@tinykb/sqlite",
+  "version": "1.0.0",
+  "description": "Wrapper for SQLite jswasm",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "dev": "echo placholder",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "osmoscraft",
+  "license": "MIT"
+}
