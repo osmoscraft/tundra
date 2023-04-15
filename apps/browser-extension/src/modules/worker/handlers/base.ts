@@ -1,8 +1,10 @@
 import type { MessageToDbWorker, MessageToMain } from "../../../typings/messages";
-import type { ITinyFS } from "../../tiny-fs";
+import type { IFileService } from "../../fs";
+import type { ISyncService } from "../../sync";
 
 export interface DbWorkerContext {
-  tinyFS: ITinyFS;
+  fileService: IFileService;
+  syncService: ISyncService;
   notify: (message: MessageToMain) => any;
   request: (request: MessageToMain) => Promise<MessageToDbWorker>;
   respond: (request: MessageToDbWorker, response: MessageToMain) => any;
