@@ -1,3 +1,5 @@
+[Next](./RFC-20230415-modular-redesign.md)
+
 # High level design
 
 Goal: separate functional units for independent development and deployment
