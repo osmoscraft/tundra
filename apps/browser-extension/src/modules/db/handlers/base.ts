@@ -1,6 +1,7 @@
 import type { MessageToDbWorker, MessageToMain } from "../../../typings/messages";
 
 export interface DbWorkerContext {
+  fs: Promise<Sqlite3.DB>;
   dbPromise: Promise<Sqlite3.DB>;
   /** Assumption: db file is at the root of the fs */
   dbFilename: string;

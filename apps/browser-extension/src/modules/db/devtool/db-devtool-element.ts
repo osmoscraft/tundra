@@ -1,5 +1,5 @@
+import { getDbWorkerProxy } from "../../../db-worker-proxy";
 import { attachShadowHtml } from "../../dom/shadow";
-import { getDbWorkerProxy } from "../proxy";
 import template from "./db-devtool-element.html";
 import { downloadFile } from "./download-file";
 

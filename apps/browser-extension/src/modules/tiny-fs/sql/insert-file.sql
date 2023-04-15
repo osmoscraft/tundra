@@ -1,0 +1,1 @@
+INSERT INTO file(path, type, content) VALUES (:path, :type, :content);

@@ -5,13 +5,15 @@ import { dbInit } from "./modules/db/handlers/db-init";
 import { handleGithubImport } from "./modules/db/handlers/github-import";
 import { handleRequestTestConnection } from "./modules/db/handlers/test-connection";
 import { notify, request, respond } from "./modules/rpc/notify";
+import { tinyfs } from "./modules/tiny-fs";
 import type { MessageToDbWorker } from "./typings/messages";
 
 declare const self: DedicatedWorkerGlobalScope;
 
-export const DB_FILENAME = "tinykb.sqlite3";
+const DB_FILENAME = "tinykb.sqlite3";
 
 const context: DbWorkerContext = {
+  fs: tinyfs.init(`sqlite-fs.sqlite3`),
   dbFilename: DB_FILENAME,
   dbPromise: dbInit(`/${DB_FILENAME}`),
   notify: notify.bind(null, self),

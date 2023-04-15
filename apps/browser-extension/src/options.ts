@@ -1,5 +1,5 @@
+import { preloadDbWorker } from "./db-worker-proxy";
 import { DbDevtoolElement } from "./modules/db/devtool/db-devtool-element";
-import { preloadDbWorker } from "./modules/db/proxy";
 import { GithubConfigElement } from "./modules/sync/github/github-config-element";
 
 preloadDbWorker();

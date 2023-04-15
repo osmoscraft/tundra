@@ -1,5 +1,5 @@
-import type { MessageToDbWorker, MessageToMain } from "../../typings/messages";
-import { notify, request, respond } from "../rpc/notify";
+import { notify, request, respond } from "./modules/rpc/notify";
+import type { MessageToDbWorker, MessageToMain } from "./typings/messages";
 
 let instancePromise: Promise<Worker>;
 function getDbWorker() {

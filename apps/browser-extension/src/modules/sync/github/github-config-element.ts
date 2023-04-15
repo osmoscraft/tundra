@@ -1,4 +1,4 @@
-import { getDbWorkerProxy } from "../../db/proxy";
+import { getDbWorkerProxy } from "../../../db-worker-proxy";
 import { attachShadowHtml } from "../../dom/shadow";
 import { getConnection, saveConnection, type GithubConnection } from "./config-storage";
 import template from "./github-config-element.html";
