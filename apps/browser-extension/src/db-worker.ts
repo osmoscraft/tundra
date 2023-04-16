@@ -12,11 +12,12 @@ export type DbWorkerEventHandler = (context: DbWorkerContext, e: Event) => any;
 
 declare const self: DedicatedWorkerGlobalScope;
 
-const TINYFS_FILENAME = "tinyfs.sqlite3";
+const FS_DB_FILENAME = "tinyfs.sqlite3";
+const SYNC_DB_FILENAME = "tinysync.sqlite3";
 
 const context: DbWorkerContext = {
-  fileService: new FileService(`/${TINYFS_FILENAME}`),
-  syncService: new SyncService(),
+  fileService: new FileService(`/${FS_DB_FILENAME}`),
+  syncService: new SyncService(`/${SYNC_DB_FILENAME}`),
   notify: notify.bind(null, self),
   request: (req) => request(self, req),
   respond: respond.bind(null, self),
