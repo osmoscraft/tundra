@@ -10,6 +10,7 @@ import type { GithubConnection } from "./github/config-storage";
 import type { ZipItem } from "./github/operations/download";
 import { downloadZip } from "./github/operations/download";
 import { getArchive } from "./github/proxy/get-archive";
+import { testConnection } from "./github/proxy/test-connection";
 import SCHEMA from "./sql/schema.sql";
 
 export class SyncService {
@@ -20,8 +21,13 @@ export class SyncService {
       .then(tap(logInitResult.bind(null, opfsPath)))
       .then((result) => result.db);
   }
+
   importGithubArchive(connection: GithubConnection, onItem: (item: ZipItem) => any) {
     return getArchive(connection).then((archive) => downloadZip(archive.zipballUrl, onItem));
+  }
+
+  testConnection(connection: GithubConnection) {
+    return testConnection(connection);
   }
 
   async destory() {
