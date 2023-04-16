@@ -23,7 +23,7 @@ export class GithubConfigElement extends HTMLElement {
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
-          const connection = getConnection();
+          const connection = await getConnection();
           if (!connection) break;
 
           this.worker.request({ requestTestConnection: connection }).then((res) => console.log("Is connected?", res));
@@ -35,7 +35,7 @@ export class GithubConfigElement extends HTMLElement {
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
-          const connection = getConnection();
+          const connection = await getConnection();
           if (!connection) break;
 
           this.worker.request({ requestGithubImport: connection }).then((res) => console.log("Imported", res));
@@ -46,7 +46,7 @@ export class GithubConfigElement extends HTMLElement {
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
-          const connection = getConnection();
+          const connection = await getConnection();
           if (!connection) break;
 
           break;
@@ -55,8 +55,8 @@ export class GithubConfigElement extends HTMLElement {
     });
   }
 
-  private load() {
-    const existingConnection = getConnection();
+  private async load() {
+    const existingConnection = await getConnection();
     if (!existingConnection) return;
 
     this.shadowRoot.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = existingConnection.repo;
