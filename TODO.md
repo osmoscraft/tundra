@@ -1,4 +1,3 @@
-- add creation/update timestamp
 - index files with search
 - load a file into editor
 - save a file
