@@ -14,6 +14,8 @@ export const handleGithubImport: DbWorkerHandler = async (context, message) => {
     await context.fileService.writeText(localPath, content);
   });
 
+  // UPDATE sync db ref
+
   context.respond(message, { respondGithubImport: true });
 };
 
