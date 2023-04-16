@@ -2,6 +2,7 @@ import { tap } from "@tinykb/fp-utils";
 import { destoryOpfsByPath, getOpfsFileByPath, initWithSchema, logInitResult } from "@tinykb/sqlite-utils";
 import CLEAR_DB from "./sql/clear-db.sql";
 import INSERT_FILE from "./sql/insert-file.sql";
+import LIST_FILES from "./sql/list-files.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 
@@ -42,6 +43,13 @@ export class FileService implements IFileService {
   async getOpfsFile() {
     await this.db;
     return getOpfsFileByPath(this.opfsPath);
+  }
+
+  async list(limit: number, offset: number) {
+    return (await this.db).selectObjects<TinyFile>(LIST_FILES, {
+      ":limit": limit,
+      ":offset": offset,
+    });
   }
 }
 

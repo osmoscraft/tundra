@@ -1,11 +1,13 @@
 import { FileService } from "./modules/fs";
 import { notify, request, respond } from "./modules/rpc/notify";
 import { SyncService } from "./modules/sync";
-import type { DbWorkerContext } from "./modules/worker/handlers/base";
+import type { DbWorkerContext, DbWorkerHandler } from "./modules/worker/handlers/base";
 import { handleNotifyGithubConnection } from "./modules/worker/handlers/handle-notify-github-connection";
 import { handleRequestDbClear } from "./modules/worker/handlers/handle-request-db-clear";
 import { handleRequestDbDestory } from "./modules/worker/handlers/handle-request-db-destory";
 import { handleRequestDbExport } from "./modules/worker/handlers/handle-request-db-export";
+import { handleRequestFileByPath } from "./modules/worker/handlers/handle-request-file-by-path";
+import { handleRequestFileList } from "./modules/worker/handlers/handle-request-file-list";
 import { handleRequestGithubConnection } from "./modules/worker/handlers/handle-request-github-connection";
 import { handleRequestGithubImport } from "./modules/worker/handlers/handle-request-github-import";
 import { handleRequestTestConnection } from "./modules/worker/handlers/handle-request-test-connection";
@@ -26,17 +28,27 @@ const context: DbWorkerContext = {
   respond: respond.bind(null, self),
 };
 
+const handlers: Record<string, DbWorkerHandler> = {
+  handleRequestDbClear,
+  handleRequestDbDestory,
+  handleNotifyGithubConnection,
+  handleRequestDbExport,
+  handleRequestFileList,
+  handleRequestFileByPath,
+  handleRequestGithubConnection,
+  handleRequestGithubImport,
+  handleRequestTestConnection,
+};
+
+const messageNameToHandlerName = (text: string) => `handle${text[0].toUpperCase()}${text.slice(1)}`;
+
 const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
   const message = event.data;
   console.log(`[worker] received`, message);
-
-  handleRequestDbClear(context, message);
-  handleRequestDbDestory(context, message);
-  handleNotifyGithubConnection(context, message);
-  handleRequestDbExport(context, message);
-  handleRequestGithubConnection(context, message);
-  handleRequestGithubImport(context, message);
-  handleRequestTestConnection(context, message);
+  Object.keys(message)
+    .filter((key) => key.match(/^(request)|(respond)|(notify)/))
+    .map(messageNameToHandlerName)
+    .map((handlerName) => handlers[handlerName]?.(context, message));
 };
 
 self.addEventListener("message", onWorkerMessage);

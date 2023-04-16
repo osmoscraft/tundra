@@ -1,4 +1,5 @@
-import type { GithubConnection } from "../modules/sync/github/config-storage";
+import type { TinyFile } from "../modules/fs";
+import type { GithubConnection } from "../modules/sync";
 
 export type MessageToDbWorker = {
   notifyGithubConnection?: GithubConnection;
@@ -7,7 +8,8 @@ export type MessageToDbWorker = {
   requestDbExport?: "fs" | "sync";
   requestGithubConnection?: true;
   requestGithubImport?: true;
-  requestFsRecent?: true;
+  requestFileByPath?: string;
+  requestFileList?: true;
   requestTestConnection?: true;
 };
 
@@ -18,6 +20,7 @@ export type MessageToMain = {
   respondDbExport?: File;
   respondGithubConnection?: GithubConnection | null;
   respondGithubImport?: boolean;
-  respondFsRecent?: true;
+  respondFileList?: TinyFile[];
+  respondFileByPath?: TinyFile;
   respondTestConnection?: boolean;
 };
