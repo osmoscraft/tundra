@@ -4,7 +4,7 @@ export type MessageToDbWorker = {
   notifyGithubConnection?: GithubConnection;
   requestDbDestory?: ("fs" | "sync")[];
   requestDbClear?: ("fs" | "sync")[];
-  requestFileDbDownload?: boolean;
+  requestDbExport?: "fs" | "sync";
   requestGithubConnection?: true;
   requestGithubImport?: true;
   requestTestConnection?: true;

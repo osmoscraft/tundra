@@ -5,7 +5,7 @@ import type { DbWorkerContext } from "./modules/worker/handlers/base";
 import { handleNotifyGithubConnection } from "./modules/worker/handlers/handle-notify-github-connection";
 import { handleDbClear } from "./modules/worker/handlers/handle-request-db-clear";
 import { handleDbDestory } from "./modules/worker/handlers/handle-request-db-destory";
-import { handleRequestFileDbDownload } from "./modules/worker/handlers/handle-request-file-db-download";
+import { handleRequestDbExport } from "./modules/worker/handlers/handle-request-db-export";
 import { handleRequestGithubConnection } from "./modules/worker/handlers/handle-request-github-connection";
 import { handleRequestGithubImport } from "./modules/worker/handlers/handle-request-github-import";
 import { handleRequestTestConnection } from "./modules/worker/handlers/handle-request-test-connection";
@@ -33,7 +33,7 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
   handleDbClear(context, message);
   handleDbDestory(context, message);
   handleNotifyGithubConnection(context, message);
-  handleRequestFileDbDownload(context, message);
+  handleRequestDbExport(context, message);
   handleRequestGithubConnection(context, message);
   handleRequestGithubImport(context, message);
   handleRequestTestConnection(context, message);

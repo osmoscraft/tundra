@@ -13,8 +13,16 @@ export class DbDevtoolElement extends HTMLElement {
 
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
-        case "download": {
-          dbWorker.request({ requestFileDbDownload: true }).then(({ respondFileDbDownload: respondDbDownload }) => {
+        case "download-fs": {
+          dbWorker.request({ requestDbExport: "fs" }).then(({ respondFileDbDownload: respondDbDownload }) => {
+            if (respondDbDownload) {
+              downloadFile(respondDbDownload);
+            }
+          });
+          break;
+        }
+        case "download-sync": {
+          dbWorker.request({ requestDbExport: "sync" }).then(({ respondFileDbDownload: respondDbDownload }) => {
             if (respondDbDownload) {
               downloadFile(respondDbDownload);
             }
