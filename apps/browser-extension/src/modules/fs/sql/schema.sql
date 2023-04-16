@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS File (
 );
 
 CREATE TRIGGER IF NOT EXISTS FileTimestampTrigger AFTER UPDATE ON File FOR EACH ROW BEGIN
-  UPDATE File SET updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');
+  UPDATE File SET updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE path = old.path;
 END;
