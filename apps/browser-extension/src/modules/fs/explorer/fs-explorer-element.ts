@@ -10,9 +10,13 @@ export class FsExplorerElement extends HTMLElement {
 
   connectedCallback() {
     this.worker.request({ requestFileList: true }).then(({ respondFileList }) => {
-      this.fileList.innerHTML =
-        respondFileList?.map((item) => `<li><button data-path="${item.path}">${item.path}</button></li>`).join("") ??
-        "Empty";
+      this.fileList.innerHTML = (respondFileList ?? [])
+        .map((item) => `<li><button data-path="${item.path}">${item.path}</button></li>`)
+        .join("");
+
+      if (!respondFileList?.length) {
+        this.fileList.innerHTML = `<div class="empty-placeholder">Empty</dvi>`;
+      }
     });
 
     this.fileList.addEventListener("click", async (e) => {
