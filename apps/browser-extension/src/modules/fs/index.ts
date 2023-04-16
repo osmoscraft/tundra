@@ -6,23 +6,34 @@ import LIST_FILES from "./sql/list-files.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 
-export class FileService implements IFileService {
+export class FileService extends EventTarget implements IFileService {
   private db: Promise<Sqlite3.DB>;
 
   constructor(private opfsPath: string) {
+    super();
     this.db = initWithSchema(opfsPath, SCHEMA)
       .then(tap(logInitResult.bind(null, opfsPath)))
       .then((result) => result.db);
   }
 
   async writeText(path: string, content: string) {
-    return (await this.db).exec(INSERT_FILE, {
+    const db = await this.db;
+
+    const result = db.exec(INSERT_FILE, {
       bind: {
         ":path": path,
         ":type": "text/plain",
         ":content": content,
       },
     });
+
+    this.dispatchEvent(
+      new CustomEvent<AfterWriteInit>("afterwrite", {
+        detail: { newValue: { path, type: "text/plain", content } },
+      })
+    );
+
+    return result;
   }
 
   async read(path: string) {
@@ -54,6 +65,10 @@ export class FileService implements IFileService {
 }
 
 export type IFileService = Pick<FileService, keyof FileService>;
+
+export interface AfterWriteInit {
+  newValue: Omit<TinyFile, "createdAt" | "updatedAt">;
+}
 
 export interface TinyFile {
   path: string;

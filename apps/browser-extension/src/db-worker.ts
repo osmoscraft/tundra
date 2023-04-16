@@ -51,6 +51,8 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
     .map((handlerName) => handlers[handlerName]?.(context, message));
 };
 
+context.fileService.addEventListener("afterwrite", (e) => {});
+
 self.addEventListener("message", onWorkerMessage);
 
 context.notify({ notifyWorkerReady: true });
