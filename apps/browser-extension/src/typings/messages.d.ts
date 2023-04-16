@@ -1,16 +1,19 @@
 import type { GithubConnection } from "../modules/sync/github/config-storage";
 
 export type MessageToDbWorker = {
-  requestDbDestroy?: boolean;
-  requestDbDownload?: boolean;
-  requestGithubImport?: GithubConnection;
-  requestTestConnection?: GithubConnection;
+  notifyGithubConnection?: GithubConnection;
+  requestAllDbDestroy?: boolean;
+  requestFileDbDownload?: boolean;
+  requestGithubConnection?: true;
+  requestGithubImport?: true;
+  requestTestConnection?: true;
 };
 
 export type MessageToMain = {
-  notifyDbReady?: boolean;
-  respondDbDestroy?: boolean;
-  respondDbDownload?: File;
+  notifyWorkerReady?: boolean;
+  respondAllDbDestroy?: boolean;
+  respondFileDbDownload?: File;
+  respondGithubConnection?: GithubConnection | null;
   respondGithubImport?: boolean;
   respondTestConnection?: boolean;
 };

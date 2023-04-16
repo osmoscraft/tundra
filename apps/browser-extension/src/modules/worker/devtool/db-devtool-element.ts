@@ -14,7 +14,7 @@ export class DbDevtoolElement extends HTMLElement {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "download": {
-          dbWorker.request({ requestDbDownload: true }).then(({ respondDbDownload }) => {
+          dbWorker.request({ requestFileDbDownload: true }).then(({ respondFileDbDownload: respondDbDownload }) => {
             if (respondDbDownload) {
               downloadFile(respondDbDownload);
             }
@@ -23,8 +23,8 @@ export class DbDevtoolElement extends HTMLElement {
         }
 
         case "destroy": {
-          dbWorker.request({ requestDbDestroy: true }).then((response) => {
-            if (response.respondDbDestroy) location.reload();
+          dbWorker.request({ requestAllDbDestroy: true }).then((response) => {
+            if (response.respondAllDbDestroy) location.reload();
           });
           break;
         }

@@ -1,13 +1,12 @@
+import type { GithubConnection } from "..";
 import { getDbWorkerProxy } from "../../../db-worker-proxy";
 import { attachShadowHtml } from "../../dom/shadow";
-import { getConnection, saveConnection, type GithubConnection } from "./config-storage";
 import template from "./github-config-element.html";
 
 export class GithubConfigElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private form = this.shadowRoot.querySelector("form")!;
   private menu = this.shadowRoot.querySelector("menu")!;
-  private status = this.shadowRoot.querySelector("#status")!;
   private worker = getDbWorkerProxy();
 
   connectedCallback() {
@@ -23,10 +22,7 @@ export class GithubConfigElement extends HTMLElement {
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
-          const connection = await getConnection();
-          if (!connection) break;
-
-          this.worker.request({ requestTestConnection: connection }).then((res) => console.log("Is connected?", res));
+          this.worker.request({ requestTestConnection: true }).then((res) => console.log("Is connected?", res));
 
           break;
         }
@@ -35,20 +31,12 @@ export class GithubConfigElement extends HTMLElement {
           const isValid = this.form.checkValidity();
           if (!isValid) break;
 
-          const connection = await getConnection();
-          if (!connection) break;
-
-          this.worker.request({ requestGithubImport: connection }).then((res) => console.log("Imported", res));
+          this.worker.request({ requestGithubImport: true }).then((res) => console.log("Imported", res));
           break;
         }
 
         case "pull": {
-          const isValid = this.form.checkValidity();
-          if (!isValid) break;
-
-          const connection = await getConnection();
-          if (!connection) break;
-
+          throw new Error("Not implemented");
           break;
         }
       }
@@ -56,16 +44,16 @@ export class GithubConfigElement extends HTMLElement {
   }
 
   private async load() {
-    const existingConnection = await getConnection();
-    if (!existingConnection) return;
+    const { respondGithubConnection } = await this.worker.request({ requestGithubConnection: true });
+    if (!respondGithubConnection) return;
 
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = existingConnection.repo;
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = existingConnection.owner;
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = existingConnection.token;
+    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = respondGithubConnection.repo;
+    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = respondGithubConnection.owner;
+    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = respondGithubConnection.token;
   }
 
   private save() {
-    saveConnection(this.parseForm());
+    this.worker.notify({ notifyGithubConnection: this.parseForm() });
   }
 
   private parseForm() {

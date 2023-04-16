@@ -1,1 +1,1 @@
-SELECT * FROM File WHERE path = :path
+SELECT * FROM File WHERE path = :path;

@@ -8,7 +8,7 @@ function getDbWorker() {
     const worker = new Worker("./db-worker.js", { type: "module" });
 
     const handleDbReady = (event: MessageEvent<MessageToMain>) => {
-      if (event.data.notifyDbReady) {
+      if (event.data.notifyWorkerReady) {
         resolve(worker);
         worker.removeEventListener("message", handleDbReady);
         console.log(`[perf] DB worker spawn: ${performance.measure("", "db-worker-load-start").duration.toFixed(2)}ms`);
