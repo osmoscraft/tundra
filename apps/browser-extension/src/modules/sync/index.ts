@@ -18,11 +18,14 @@ export class SyncService {
       .then((result) => result.db);
   }
 
-  async importGithubArchive(onItem: (item: ZipItem) => any) {
+  async *importGithubArchive(): AsyncGenerator<ZipItem> {
     const connection = await this.getConnection();
     if (!connection) throw new Error("Missing connection");
     const archive = await getArchive(connection);
-    await downloadZip(archive.zipballUrl, onItem);
+    const itemsGenerator = downloadZip(archive.zipballUrl);
+
+    yield* itemsGenerator;
+
     await this.setGithubRef(archive.oid);
   }
 
@@ -53,7 +56,7 @@ export class SyncService {
 
   async destory() {
     await this.db;
-    return destoryOpfsByPath(this.opfsPath);
+    await destoryOpfsByPath(this.opfsPath);
   }
 
   async getOpfsFile() {

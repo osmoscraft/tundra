@@ -1,21 +1,20 @@
-import type { ZipItem } from "../../sync/github/operations/download";
 import type { DbWorkerHandler } from "./base";
 
 export const handleRequestGithubImport: DbWorkerHandler = async (context, message) => {
   if (!message.requestGithubImport) return;
 
-  const handleGithubArchiveItem = async (item: ZipItem) => {
+  performance.mark("import-start");
+  for await (const item of context.syncService.importGithubArchive()) {
     const parsedPath = parseGithubZipItemPath(item.path);
     if (!parsedPath.localMarkdownNotePath) {
       console.log(`[import] skip ${item.path.slice(item.path.indexOf("/"))}`);
-      return;
+    } else {
+      const content = await item.readAsText();
+      console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);
+      await context.fileService.writeText(parsedPath.localMarkdownNotePath, content);
     }
-    const content = await item.readAsText();
-    console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);
-    await context.fileService.writeText(parsedPath.localMarkdownNotePath, content);
-  };
-
-  await context.syncService.importGithubArchive(handleGithubArchiveItem);
+  }
+  console.log("[perf] import", performance.measure("import duration", "import-start").duration);
 
   context.respond(message, { respondGithubImport: true });
 };
