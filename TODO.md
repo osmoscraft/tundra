@@ -1,9 +1,4 @@
-- Simple textarea based editor (no specific format)
-  - Load text into text area
-  - Allow edit within the text area
-- Store
-  - Persist plaintext in DB, with id-based path
-- Sync
-  - Rewrite GitHub sync module with common interface
-- Net
-  - Proxy access to CORS endpoints, hide chrome extension capabilities
+- display a list of local files
+- load a file into editor
+- save a file
+- stretch: index files with search
