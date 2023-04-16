@@ -1,5 +1,5 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
-import { getDbWorkerProxy } from "../../../db-worker-proxy";
+import { getDbWorkerProxy } from "../../db-worker-proxy";
 import template from "./db-devtool-element.html";
 import { downloadFile } from "./download-file";
 

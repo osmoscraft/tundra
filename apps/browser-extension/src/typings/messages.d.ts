@@ -7,6 +7,7 @@ export type MessageToDbWorker = {
   requestDbExport?: "fs" | "sync";
   requestGithubConnection?: true;
   requestGithubImport?: true;
+  requestFsRecent?: true;
   requestTestConnection?: true;
 };
 
@@ -17,5 +18,6 @@ export type MessageToMain = {
   respondDbExport?: File;
   respondGithubConnection?: GithubConnection | null;
   respondGithubImport?: boolean;
+  respondFsRecent?: true;
   respondTestConnection?: boolean;
 };
