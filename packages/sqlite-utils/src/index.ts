@@ -60,19 +60,27 @@ function execSchema(schema: string, db: Sqlite3.DB) {
   return db;
 }
 
-export async function destoryRootLevelOpfs(filename: string) {
+export function destoryOpfsByPath(path: string) {
+  return destoryRootLevelOpfs(opfsPathToRootFilename(path));
+}
+
+export function getOpfsFileByPath(path: string) {
+  return getRootLevelOpfsFile(opfsPathToRootFilename(path));
+}
+
+async function destoryRootLevelOpfs(filename: string) {
   const root = await navigator.storage.getDirectory();
   await root.removeEntry(filename);
 }
 
-export async function getRootLevelOpfsFile(filename: string) {
+async function getRootLevelOpfsFile(filename: string) {
   const root = await navigator.storage.getDirectory();
   const dbFileHandle = await root.getFileHandle(filename);
   const file = await dbFileHandle.getFile();
   return file;
 }
 
-export function opfsPathToRootFilename(opfsPath: string) {
+function opfsPathToRootFilename(opfsPath: string) {
   const [empty, filename, ...emptyList] = opfsPath.split("/");
   if (empty || emptyList.length) {
     throw new Error(`Invalid opfsPath "${opfsPath}". It must be in the format "/filename"`);

@@ -1,11 +1,5 @@
 import { tap } from "@tinykb/fp-utils";
-import {
-  destoryRootLevelOpfs,
-  getRootLevelOpfsFile,
-  initWithSchema,
-  logInitResult,
-  opfsPathToRootFilename,
-} from "@tinykb/sqlite-utils";
+import { destoryOpfsByPath, getOpfsFileByPath, initWithSchema, logInitResult } from "@tinykb/sqlite-utils";
 import type { GithubConnection } from "./github/config-storage";
 import type { ZipItem } from "./github/operations/download";
 import { downloadZip } from "./github/operations/download";
@@ -32,12 +26,12 @@ export class SyncService {
 
   async destory() {
     await this.db;
-    return destoryRootLevelOpfs(opfsPathToRootFilename(this.opfsPath));
+    return destoryOpfsByPath(this.opfsPath);
   }
 
   async getOpfsFile() {
     await this.db;
-    return getRootLevelOpfsFile(opfsPathToRootFilename(this.opfsPath));
+    return getOpfsFileByPath(this.opfsPath);
   }
 }
 

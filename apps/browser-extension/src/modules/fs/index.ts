@@ -1,11 +1,5 @@
 import { tap } from "@tinykb/fp-utils";
-import {
-  destoryRootLevelOpfs,
-  getRootLevelOpfsFile,
-  initWithSchema,
-  logInitResult,
-  opfsPathToRootFilename,
-} from "@tinykb/sqlite-utils";
+import { destoryOpfsByPath, getOpfsFileByPath, initWithSchema, logInitResult } from "@tinykb/sqlite-utils";
 import INSERT_FILE from "./sql/insert-file.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
@@ -37,12 +31,12 @@ export class FileService implements IFileService {
 
   async destory() {
     await this.db;
-    return destoryRootLevelOpfs(opfsPathToRootFilename(this.opfsPath));
+    return destoryOpfsByPath(this.opfsPath);
   }
 
   async getOpfsFile() {
     await this.db;
-    return getRootLevelOpfsFile(opfsPathToRootFilename(this.opfsPath));
+    return getOpfsFileByPath(this.opfsPath);
   }
 }
 
