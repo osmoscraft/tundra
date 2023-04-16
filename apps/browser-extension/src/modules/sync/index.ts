@@ -5,12 +5,8 @@ import { getArchive } from "./github/proxy/get-archive";
 
 export type ISyncService = Pick<SyncService, keyof SyncService>;
 export class SyncService extends EventTarget {
-  importGithubArchive(connection: GithubConnection) {
-    return getArchive(connection).then((archive) =>
-      downloadZip(archive.zipballUrl, (item) =>
-        this.dispatchEvent(new CustomEvent<ImportItemInit>("importItem", { detail: item }))
-      )
-    );
+  importGithubArchive(connection: GithubConnection, onItem: (item: ZipItem) => any) {
+    return getArchive(connection).then((archive) => downloadZip(archive.zipballUrl, onItem));
   }
 }
 
