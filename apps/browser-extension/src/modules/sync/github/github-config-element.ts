@@ -1,6 +1,6 @@
+import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { GithubConnection } from "..";
 import { getDbWorkerProxy } from "../../../db-worker-proxy";
-import { attachShadowHtml } from "../../dom/shadow";
 import template from "./github-config-element.html";
 
 export class GithubConfigElement extends HTMLElement {

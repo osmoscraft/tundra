@@ -1,4 +1,6 @@
+- add creation/update timestamp
+- index files with search
 - display a list of local files
 - load a file into editor
 - save a file
-- stretch: index files with search
+- pull changes

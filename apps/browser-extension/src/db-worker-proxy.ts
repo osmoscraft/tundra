@@ -27,7 +27,7 @@ export interface DbWorkerProxy {
 }
 
 export function preloadDbWorker() {
-  getDbWorker();
+  return getDbWorker();
 }
 
 export function getDbWorkerProxy(): DbWorkerProxy {
