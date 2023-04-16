@@ -5,12 +5,12 @@ export const handleRequestDbExport: DbWorkerHandler = async (context, message) =
   switch (message.requestDbExport) {
     case "fs": {
       const dbFile = await context.fileService.getOpfsFile();
-      context.respond(message, { respondFileDbDownload: dbFile });
+      context.respond(message, { respondDbExport: dbFile });
       break;
     }
     case "sync": {
       const dbFile = await context.syncService.getOpfsFile();
-      context.respond(message, { respondFileDbDownload: dbFile });
+      context.respond(message, { respondDbExport: dbFile });
       break;
     }
   }

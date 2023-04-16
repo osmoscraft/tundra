@@ -1,6 +1,6 @@
 import type { DbWorkerHandler } from "./base";
 
-export const handleDbClear: DbWorkerHandler = async (context, message) => {
+export const handleRequestDbClear: DbWorkerHandler = async (context, message) => {
   if (!message.requestDbClear) return;
   if (message.requestDbClear.includes("fs")) {
     await context.syncService.clearHistory(); // fs clear implies sync service history clear

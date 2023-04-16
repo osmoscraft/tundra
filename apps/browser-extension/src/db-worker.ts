@@ -3,8 +3,8 @@ import { notify, request, respond } from "./modules/rpc/notify";
 import { SyncService } from "./modules/sync";
 import type { DbWorkerContext } from "./modules/worker/handlers/base";
 import { handleNotifyGithubConnection } from "./modules/worker/handlers/handle-notify-github-connection";
-import { handleDbClear } from "./modules/worker/handlers/handle-request-db-clear";
-import { handleDbDestory } from "./modules/worker/handlers/handle-request-db-destory";
+import { handleRequestDbClear } from "./modules/worker/handlers/handle-request-db-clear";
+import { handleRequestDbDestory } from "./modules/worker/handlers/handle-request-db-destory";
 import { handleRequestDbExport } from "./modules/worker/handlers/handle-request-db-export";
 import { handleRequestGithubConnection } from "./modules/worker/handlers/handle-request-github-connection";
 import { handleRequestGithubImport } from "./modules/worker/handlers/handle-request-github-import";
@@ -30,8 +30,8 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
   const message = event.data;
   console.log(`[worker] received`, message);
 
-  handleDbClear(context, message);
-  handleDbDestory(context, message);
+  handleRequestDbClear(context, message);
+  handleRequestDbDestory(context, message);
   handleNotifyGithubConnection(context, message);
   handleRequestDbExport(context, message);
   handleRequestGithubConnection(context, message);

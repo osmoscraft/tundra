@@ -14,7 +14,7 @@ export class DbDevtoolElement extends HTMLElement {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "download-fs": {
-          dbWorker.request({ requestDbExport: "fs" }).then(({ respondFileDbDownload: respondDbDownload }) => {
+          dbWorker.request({ requestDbExport: "fs" }).then(({ respondDbExport: respondDbDownload }) => {
             if (respondDbDownload) {
               downloadFile(respondDbDownload);
             }
@@ -22,7 +22,7 @@ export class DbDevtoolElement extends HTMLElement {
           break;
         }
         case "download-sync": {
-          dbWorker.request({ requestDbExport: "sync" }).then(({ respondFileDbDownload: respondDbDownload }) => {
+          dbWorker.request({ requestDbExport: "sync" }).then(({ respondDbExport: respondDbDownload }) => {
             if (respondDbDownload) {
               downloadFile(respondDbDownload);
             }
