@@ -1,4 +1,4 @@
-- index files with search
+- graph service index files with fts on fs change event
 - load a file into editor
 - save a file
 - pull changes

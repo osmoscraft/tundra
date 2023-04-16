@@ -2,7 +2,7 @@
 
 # Business-driven modules
 
-- Local Persistence
+- File
   - FS with metadata
   - Agonostic of content
 - Graph

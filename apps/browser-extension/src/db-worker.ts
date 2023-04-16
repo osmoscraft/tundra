@@ -1,4 +1,5 @@
 import { FileService } from "./modules/fs";
+import { GraphService } from "./modules/graph";
 import { notify, request, respond } from "./modules/rpc/notify";
 import { SyncService } from "./modules/sync";
 import type { DbWorkerContext, DbWorkerHandler } from "./modules/worker/handlers/base";
@@ -19,9 +20,11 @@ declare const self: DedicatedWorkerGlobalScope;
 
 const FS_DB_FILENAME = "tinyfs.sqlite3";
 const SYNC_DB_FILENAME = "tinysync.sqlite3";
+const GRAPH_DB_FILENAME = "tinygraph.sqlite3";
 
 const context: DbWorkerContext = {
   fileService: new FileService(`/${FS_DB_FILENAME}`),
+  graphSerivce: new GraphService(`/$${GRAPH_DB_FILENAME}`),
   syncService: new SyncService(`/${SYNC_DB_FILENAME}`),
   notify: notify.bind(null, self),
   request: (req) => request(self, req),
@@ -51,7 +54,10 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
     .map((handlerName) => handlers[handlerName]?.(context, message));
 };
 
-context.fileService.addEventListener("afterwrite", (e) => {});
+context.fileService.addEventListener("afterwrite", (e) => {
+  // update graph service
+  // update sync service
+});
 
 self.addEventListener("message", onWorkerMessage);
 
