@@ -5,6 +5,7 @@ import { downloadZip } from "./github/operations/download";
 import { getArchive } from "./github/proxy/get-archive";
 import { testConnection } from "./github/proxy/test-connection";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
+import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 
@@ -20,7 +21,15 @@ export class SyncService {
   async importGithubArchive(onItem: (item: ZipItem) => any) {
     const connection = await this.getConnection();
     if (!connection) throw new Error("Missing connection");
-    return getArchive(connection).then((archive) => downloadZip(archive.zipballUrl, onItem));
+    const archive = await getArchive(connection);
+    await downloadZip(archive.zipballUrl, onItem);
+    await this.setGithubRef(archive.oid);
+  }
+
+  private async setGithubRef(id: string) {
+    return (await this.db).exec(REPLACE_GITHUB_REF, {
+      bind: { ":id": id },
+    });
   }
 
   async setConnection(connection: GithubConnection) {

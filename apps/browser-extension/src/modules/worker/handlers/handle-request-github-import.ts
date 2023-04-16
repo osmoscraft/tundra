@@ -1,24 +1,32 @@
+import type { ZipItem } from "../../sync/github/operations/download";
 import type { DbWorkerHandler } from "./base";
 
 export const handleRequestGithubImport: DbWorkerHandler = async (context, message) => {
   if (!message.requestGithubImport) return;
 
-  await context.syncService.importGithubArchive(async (item) => {
-    const localPath = githubZipItemPathToLocalPath(item.path);
-    if (!localPath) {
+  const handleGithubArchiveItem = async (item: ZipItem) => {
+    const parsedPath = parseGithubZipItemPath(item.path);
+    if (!parsedPath.localMarkdownNotePath) {
       console.log(`[import] skip ${item.path.slice(item.path.indexOf("/"))}`);
       return;
     }
     const content = await item.readAsText();
-    console.log(`[import] accept ${localPath} (size: ${content.length})`);
-    await context.fileService.writeText(localPath, content);
-  });
+    console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);
+    await context.fileService.writeText(parsedPath.localMarkdownNotePath, content);
+  };
 
-  // UPDATE sync db ref
+  await context.syncService.importGithubArchive(handleGithubArchiveItem);
 
   context.respond(message, { respondGithubImport: true });
 };
 
-function githubZipItemPathToLocalPath(zipItemPath: string) {
-  return zipItemPath.match(/(\/notes\/.*\.md)/)?.[0];
+interface ParsedPath {
+  archivePath: string;
+  localMarkdownNotePath?: string;
+}
+function parseGithubZipItemPath(zipItemPath: string): ParsedPath {
+  return {
+    archivePath: zipItemPath,
+    localMarkdownNotePath: zipItemPath.match(/(\/notes\/.*\.md)/)?.[0],
+  };
 }
