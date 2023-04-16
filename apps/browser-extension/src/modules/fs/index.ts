@@ -5,11 +5,10 @@ import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 
 export type IFileService = Pick<FileService, keyof FileService>;
-export class FileService extends EventTarget implements IFileService {
+export class FileService implements IFileService {
   private db: Promise<Sqlite3.DB>;
 
   constructor(private opfsPath: string) {
-    super();
     this.db = init(this.opfsPath);
   }
 
