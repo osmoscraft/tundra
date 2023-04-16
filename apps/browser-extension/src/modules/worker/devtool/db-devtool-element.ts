@@ -22,9 +22,21 @@ export class DbDevtoolElement extends HTMLElement {
           break;
         }
 
-        case "destroy": {
-          dbWorker.request({ requestAllDbDestroy: true }).then((response) => {
-            if (response.respondAllDbDestroy) location.reload();
+        case "clear-all": {
+          dbWorker.request({ requestDbClear: ["fs", "sync"] });
+          break;
+        }
+
+        case "destroy-all": {
+          dbWorker.request({ requestDbDestory: ["fs", "sync"] }).then((response) => {
+            if (response.respondDbDestroy) location.reload();
+          });
+          break;
+        }
+
+        case "destroy-fs": {
+          dbWorker.request({ requestDbDestory: ["fs"] }).then((response) => {
+            if (response.respondDbDestroy) location.reload();
           });
           break;
         }

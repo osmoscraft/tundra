@@ -4,6 +4,8 @@ import type { ZipItem } from "./github/operations/download";
 import { downloadZip } from "./github/operations/download";
 import { getArchive } from "./github/proxy/get-archive";
 import { testConnection } from "./github/proxy/test-connection";
+import CLEAR_DB from "./sql/clear-db.sql";
+import CLEAR_HISTORY from "./sql/clear-history.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
@@ -52,6 +54,14 @@ export class SyncService {
 
   async getConnection() {
     return (await this.db).selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
+  }
+
+  async clear() {
+    return (await this.db).exec(CLEAR_DB);
+  }
+
+  async clearHistory() {
+    return (await this.db).exec(CLEAR_HISTORY);
   }
 
   async destory() {
