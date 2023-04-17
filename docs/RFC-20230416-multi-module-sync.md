@@ -36,3 +36,14 @@
     - Upload latest content, with Local.to as content
   - FS module listens to mergeRemoteEvent, revertLocalEvent
     - Write to FS and emit file change event
+
+# Between FS module and Graph module
+
+- Graph module listens to FS change event
+  - Parse the file and update the corresponding Graph node
+  - Emits graphUpdatedEvent when it has persisted the node
+- On app start
+  - Compare the latest timestamp between Graph and FS module
+    - If Graph < FS, Graph should index all files from FS that has newer timestamp
+      - File module can re-emit the changes, with from and to both being the same latest value
+    - If Graph > FS, error. Graph must be rebuilt from scratch
