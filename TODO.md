@@ -2,3 +2,4 @@
 - load a file into editor
 - save a file
 - pull changes
+- Idea: tree-sitter with markdown parser
