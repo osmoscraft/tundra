@@ -3,3 +3,4 @@
 - save a file
 - pull changes
 - Idea: tree-sitter with markdown parser
+- Idea: use filesystem for version management, ala real editor
