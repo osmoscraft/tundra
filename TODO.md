@@ -4,3 +4,5 @@
 - pull changes
 - Idea: tree-sitter with markdown parser
 - Idea: use filesystem for version management, ala real editor
+  - e.g. Once a file is tracking a remote, editing it creates a backup copy
+  - 'file.md' -edit-> 'file.md (edited)' + 'file.md~' -commit-> 'file.md'
