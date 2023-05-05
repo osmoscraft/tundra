@@ -54,10 +54,8 @@ const onWorkerMessage = (event: MessageEvent<MessageToDbWorker>) => {
     .map((handlerName) => handlers[handlerName]?.(context, message));
 };
 
-context.fileService.addEventListener("afterwrite", (e) => {
-  // update graph service
-  // update sync service
-});
+context.fileService.addEventListener("prewrite", (e) => {});
+context.fileService.addEventListener("postwrite", (e) => {});
 
 self.addEventListener("message", onWorkerMessage);
 

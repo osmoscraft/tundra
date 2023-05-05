@@ -11,7 +11,7 @@ export const handleRequestGithubImport: DbWorkerHandler = async (context, messag
     } else {
       const content = await item.readAsText();
       console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);
-      await context.fileService.writeText(parsedPath.localMarkdownNotePath, content);
+      await context.fileService.write(parsedPath.localMarkdownNotePath, "text/plain", content);
     }
   }
   console.log("[perf] import", performance.measure("import duration", "import-start").duration);

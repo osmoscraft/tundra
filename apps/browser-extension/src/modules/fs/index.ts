@@ -16,24 +16,33 @@ export class FileService extends EventTarget implements IFileService {
       .then((result) => result.db);
   }
 
-  async writeText(path: string, content: string) {
+  async write(path: string, type: string, content: string) {
     const db = await this.db;
+    const oldFile = await this.read(path);
 
-    const result = db.exec(INSERT_FILE, {
+    this.dispatchEvent(
+      new CustomEvent<PreWriteInit>("prewrite", {
+        detail: { oldFile, newFile: { path, type, content } },
+      })
+    );
+
+    db.exec(INSERT_FILE, {
       bind: {
         ":path": path,
-        ":type": "text/plain",
+        ":type": type,
         ":content": content,
       },
     });
 
+    const newFile = await this.read(path);
+
     this.dispatchEvent(
-      new CustomEvent<AfterWriteInit>("afterwrite", {
-        detail: { newValue: { path, type: "text/plain", content } },
+      new CustomEvent<PostWriteInit>("postwrite", {
+        detail: { oldFile, newFile },
       })
     );
 
-    return result;
+    return;
   }
 
   async read(path: string) {
@@ -66,8 +75,13 @@ export class FileService extends EventTarget implements IFileService {
 
 export type IFileService = Pick<FileService, keyof FileService>;
 
-export interface AfterWriteInit {
-  newValue: Omit<TinyFile, "createdAt" | "updatedAt">;
+export interface PreWriteInit {
+  oldFile?: TinyFile;
+  newFile?: Omit<TinyFile, "createdAt" | "updatedAt">;
+}
+export interface PostWriteInit {
+  oldFile?: TinyFile;
+  newFile?: TinyFile;
 }
 
 export interface TinyFile {
