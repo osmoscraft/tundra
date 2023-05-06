@@ -3,9 +3,12 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "settings": {},
   "remoteUser": "node",
   "forwardPorts": [8080],
   "postCreateCommand": "./.devcontainer/init.sh",
-  "extensions": ["esbenp.prettier-vscode"]
+  "customizations": {
+    "vscode": {
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  }
 }

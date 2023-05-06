@@ -1,30 +1,12 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { createPeer } from ".";
+import { createClient } from ".";
 
 describe(() => {
-  it("Creates peer", () => {
-    const testPeer = createPeer({
-      handlers: {},
-      remote: null,
-    });
-    assert(testPeer);
-  });
+  it("Client/Empty", () => {
+    const handlers = {};
 
-  it("Add router", () => {
-    const testPeer = createPeer({
-      handlers: {},
-      remote: null,
-    });
-    assert(testPeer);
-  });
-
-  it("Call remote", () => {
-    const testPeer = createPeer({
-      handlers: {
-        doSomething: () => {},
-      },
-      remote: null,
-    });
+    const testClient = createClient<typeof handlers>();
+    assert(testClient);
   });
 });

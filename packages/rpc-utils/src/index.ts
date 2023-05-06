@@ -21,28 +21,32 @@ export function createPeer<T extends {}>(config: PeerConfig<T>) {
   );
 }
 
+const serve = (() => {}) as any;
+
 async function demo() {
-  // ideal interface
-  const server = createPeer({
-    requestSomething: (req: any) => {}, // register a handler
-    subscribeToSomething: () => new EventTarget(), // register a subscription
-    generateSomething: function* generator() {}, // register a generator
-  }).inbound(workerPort(self as WorkerGlobalScope));
-  server.stop();
+  const handlers = {
+    doSomething: async () => {},
+    doSomethingElse: async () => {},
+  };
 
-  const client = createClient({} as Worker).outbound();
-  const response = await client.requestSomething({});
-  const unsub = await client.subscribeToSomething();
-  await client.generateSomething().next();
+  // server side
+  const server = rx(handlers, self as WorkerGlobalScope);
 
-  function createClient(config: any) {
-    return {} as any;
-  }
-  function createPeer(config: any) {
-    return {} as any;
-  }
+  // client side
+  const client = createClient<typeof handlers>({});
+  client.doSomething();
+}
 
-  function workerPort(worker: WorkerGlobalScope) {
-    return {} as any;
-  }
+export function createClient<T extends {}>(...args: any[]): T {
+  return new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        return (...args: any[]) => {
+          console.log("proxy called", { target, prop, args });
+          // send message to worker
+        };
+      },
+    }
+  ) as T;
 }
