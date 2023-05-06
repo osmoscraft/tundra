@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext"],
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Node",
+    "strict": true,
+    "noEmit": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src"]
+}
