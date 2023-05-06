@@ -11,10 +11,15 @@ export type MessageToDbWorker = {
   requestFileByPath?: string;
   requestFileList?: true;
   requestTestConnection?: true;
+  requestCheckHealth?: true;
 };
 
 export type MessageToMain = {
   notifyWorkerReady?: boolean;
+  respondCheckHealth?: {
+    ok: boolean;
+    error?: string;
+  };
   respondDbClear?: boolean;
   respondDbDestroy?: boolean;
   respondDbExport?: File;

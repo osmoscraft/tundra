@@ -13,6 +13,10 @@ export class DbDevtoolElement extends HTMLElement {
 
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
+        case "check-health": {
+          dbWorker.request({ requestCheckHealth: true }).then(console.log);
+          break;
+        }
         case "download-fs": {
           dbWorker.request({ requestDbExport: "fs" }).then(({ respondDbExport: respondDbDownload }) => {
             if (respondDbDownload) {

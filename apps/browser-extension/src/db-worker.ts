@@ -4,6 +4,7 @@ import { notify, request, respond } from "./modules/rpc/notify";
 import { SyncService } from "./modules/sync";
 import type { DbWorkerContext, DbWorkerHandler } from "./modules/worker/handlers/base";
 import { handleNotifyGithubConnection } from "./modules/worker/handlers/handle-notify-github-connection";
+import { handleRequestCheckHealth } from "./modules/worker/handlers/handle-request-check-health";
 import { handleRequestDbClear } from "./modules/worker/handlers/handle-request-db-clear";
 import { handleRequestDbDestory } from "./modules/worker/handlers/handle-request-db-destory";
 import { handleRequestDbExport } from "./modules/worker/handlers/handle-request-db-export";
@@ -24,7 +25,7 @@ const GRAPH_DB_FILENAME = "tinygraph.sqlite3";
 
 const context: DbWorkerContext = {
   fileService: new FileService(`/${FS_DB_FILENAME}`),
-  graphSerivce: new GraphService(`/$${GRAPH_DB_FILENAME}`),
+  graphSerivce: new GraphService(`/${GRAPH_DB_FILENAME}`),
   syncService: new SyncService(`/${SYNC_DB_FILENAME}`),
   notify: notify.bind(null, self),
   request: (req) => request(self, req),
@@ -32,6 +33,7 @@ const context: DbWorkerContext = {
 };
 
 const handlers: Record<string, DbWorkerHandler> = {
+  handleRequestCheckHealth,
   handleRequestDbClear,
   handleRequestDbDestory,
   handleNotifyGithubConnection,
