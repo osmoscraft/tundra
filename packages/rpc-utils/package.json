@@ -1,0 +1,16 @@
+{
+  "name": "rpc-utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch ./src/index.test.ts",
+    "test": "tsx ./src/index.test.ts"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.1.0",
+    "tsx": "^3.12.7"
+  }
+}
