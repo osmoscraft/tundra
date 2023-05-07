@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { client, server } from ".";
-import { getMockPorts } from "./ports/mock";
+import { client } from "./client";
+import { getMockPorts } from "./ports";
+import { server } from "./server";
 
 describe("Setup", () => {
   it("Start and stop tx", () => {

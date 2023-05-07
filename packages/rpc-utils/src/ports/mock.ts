@@ -1,4 +1,4 @@
-import type { IPort } from "..";
+import type { IPort } from "../types";
 
 export function getMockPorts(): {
   port1: IPort;

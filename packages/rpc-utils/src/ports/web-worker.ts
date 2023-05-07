@@ -1,4 +1,4 @@
-import type { IPort } from "..";
+import type { IPort } from "../types";
 
 export function dedicatedWorkerPort(dedicatedWorkerGlobalScope: DedicatedWorkerGlobalScope): IPort {
   return messageEventPort(dedicatedWorkerGlobalScope);
