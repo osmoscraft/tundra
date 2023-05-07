@@ -1,4 +1,4 @@
-import type { Async, FirstInArray, Fn, LastInArray } from "./type";
+import type { FirstInArray, Fn, LastInArray } from "./type";
 
 export function pipe<T extends Fn[]>(...fns: T): (...args: Parameters<FirstInArray<T>>) => ReturnType<LastInArray<T>> {
   return ((x: any) => fns.reduce((v, f) => f(v), x)) as any;
@@ -14,6 +14,6 @@ export function shortPipe<T extends Fn[]>(
 // A more efficient version of asyncPipe, which only awaits the last step
 export function asyncPipe<T extends Fn[]>(
   ...fns: T
-): (...args: Parameters<FirstInArray<T>>) => Async<ReturnType<LastInArray<T>>> {
+): (...args: Parameters<FirstInArray<T>>) => Promise<Awaited<ReturnType<LastInArray<T>>>> {
   return ((x: any) => fns.reduce((v, f) => v.then(f), Promise.resolve(x))) as any;
 }

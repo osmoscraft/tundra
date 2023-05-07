@@ -7,5 +7,3 @@ export type ParametersTypeOrNever<MaybeFn> = MaybeFn extends (...args: infer Par
   ? ParametersType
   : never;
 export type ReturnTypeOrNever<MaybeFn> = MaybeFn extends () => infer ReturnType ? ReturnType : never;
-
-export type Async<T> = T extends Promise<any> ? T : Promise<T>;
