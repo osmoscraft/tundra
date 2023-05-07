@@ -1,0 +1,1 @@
+DELETE FROM File WHERE path = :path;

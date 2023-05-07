@@ -1,5 +1,9 @@
 /// <reference path="./typings.d.ts" />
 
+export function sqlite3Opfs(sqliteWasmPath: string, dbPath: string) {
+  return loadApiIndex(sqliteWasmPath).then(openOpfsDb.bind(null, dbPath));
+}
+
 /**
  * Load SQLite API index
  *

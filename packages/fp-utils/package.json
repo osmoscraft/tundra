@@ -8,6 +8,7 @@
   "author": "osmoscraft",
   "license": "MIT",
   "scripts": {
+    "dev": "tsx watch ./src/index.test.ts",
     "test": "tsx ./src/index.test.ts"
   },
   "devDependencies": {

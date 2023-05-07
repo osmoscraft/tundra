@@ -4,3 +4,5 @@ import type { DataWorkerRoutes } from "../workers/data-worker";
 const worker = new Worker("./data-worker.js", { type: "module" });
 
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
+
+proxy.checkHealth().then(console.log).catch(console.error);

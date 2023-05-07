@@ -1,19 +1,21 @@
-import type { FirstInArray, Fn, LastInArray } from "./type";
+import type { FirstInArrayOrAny, Fn, LastInArrayOrAny } from "./type";
 
-export function pipe<T extends Fn[]>(...fns: T): (...args: Parameters<FirstInArray<T>>) => ReturnType<LastInArray<T>> {
+export function pipe<T extends Fn[]>(
+  ...fns: T
+): (...args: Parameters<FirstInArrayOrAny<T>>) => ReturnType<LastInArrayOrAny<T>> {
   return ((x: any) => fns.reduce((v, f) => f(v), x)) as any;
 }
 
 // Once an a step returns nullish, skip the rest of the steps and just return null
 export function shortPipe<T extends Fn[]>(
   ...fns: T
-): (...args: Parameters<FirstInArray<T>>) => null | ReturnType<LastInArray<T>> {
+): (...args: Parameters<FirstInArrayOrAny<T>>) => null | ReturnType<LastInArrayOrAny<T>> {
   return (((x: any) => fns.reduce((v, f) => (v === null || v === undefined ? v : f(v)), x)) as any) ?? null;
 }
 
 // A more efficient version of asyncPipe, which only awaits the last step
 export function asyncPipe<T extends Fn[]>(
   ...fns: T
-): (...args: Parameters<FirstInArray<T>>) => Promise<Awaited<ReturnType<LastInArray<T>>>> {
+): (...args: Parameters<FirstInArrayOrAny<T>>) => Promise<Awaited<ReturnType<LastInArrayOrAny<T>>>> {
   return ((x: any) => fns.reduce((v, f) => v.then(f), Promise.resolve(x))) as any;
 }
