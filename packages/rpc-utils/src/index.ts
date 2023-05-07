@@ -29,8 +29,8 @@ export interface Client<T extends {}> {
 export function client<T extends {}>(config: { port: IPort }): Client<T> {
   const callbackMap = new Map<string, Fn>();
   const handlePortMessage = ({ header, payload }: IPortMessage) => {
-    const callback = callbackMap.get(header.mid)!;
-    callback(payload);
+    const callback = callbackMap.get(header.mid);
+    callback?.(payload);
   };
 
   let mid = 0;
