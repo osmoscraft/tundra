@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "Node",
     "strict": true,

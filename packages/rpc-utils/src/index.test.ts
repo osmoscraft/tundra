@@ -1,12 +1,12 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { client, server } from ".";
-import { getMockChannelPair } from "./channels/mock-channel";
+import { getMockPorts } from "./ports/mock";
 
 describe("Setup", () => {
   it("Start and stop tx", () => {
     const { proxy, stop } = client({
-      channel: getMockChannelPair().channel1,
+      port: getMockPorts().port1,
     });
 
     assert.ok(proxy);
@@ -15,7 +15,7 @@ describe("Setup", () => {
 
   it("Start and stop rx", () => {
     const { stop } = server({
-      channel: getMockChannelPair().channel1,
+      port: getMockPorts().port1,
       routes: {},
     });
 
@@ -25,45 +25,45 @@ describe("Setup", () => {
 
 describe("RPC", () => {
   it("Sync call", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: () => "pong",
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy, stop } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.strictEqual(await proxy.ping(), "pong");
   });
 
   it("Async call", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: () => Promise.resolve("pong"),
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.strictEqual(await proxy.ping(), "pong");
   });
 
   it("Async call parellelism", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const results: string[] = [];
 
@@ -73,12 +73,12 @@ describe("RPC", () => {
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     const slow = proxy.pingSlow().then(() => results.push("slow"));
@@ -89,45 +89,45 @@ describe("RPC", () => {
     assert.deepEqual(results, ["fast", "slow"]);
   });
 
-  it("Stop clears channels", async () => {
-    const { channel1, channel2, inspect } = getMockChannelPair();
+  it("Stop clears ports", async () => {
+    const { port1, port2, inspect } = getMockPorts();
 
     const routes = {
       ping: () => "pong",
     };
 
     const { stop: stopRx } = server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { stop: stopTx } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     stopRx();
     stopTx();
 
-    assert.strictEqual(inspect().channel1Callbacks.length, 0);
-    assert.strictEqual(inspect().channel2Callbacks.length, 0);
+    assert.strictEqual(inspect().port1Callbacks.length, 0);
+    assert.strictEqual(inspect().port2Callbacks.length, 0);
   });
 });
 
 describe("Error handling", () => {
   it("Reject without reason", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: () => Promise.reject(),
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);
@@ -137,19 +137,19 @@ describe("Error handling", () => {
   });
 
   it("Reject non-error value", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: () => Promise.reject("broken"),
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);
@@ -159,19 +159,19 @@ describe("Error handling", () => {
   });
 
   it("Reject error value", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: () => Promise.reject(new Error("broken")),
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);
@@ -183,7 +183,7 @@ describe("Error handling", () => {
   });
 
   it("Throw undefined", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: (() => {
@@ -192,12 +192,12 @@ describe("Error handling", () => {
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);
@@ -207,7 +207,7 @@ describe("Error handling", () => {
   });
 
   it("Throw non-error value", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: (() => {
@@ -216,12 +216,12 @@ describe("Error handling", () => {
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);
@@ -231,7 +231,7 @@ describe("Error handling", () => {
   });
 
   it("Throw error value", async () => {
-    const { channel1, channel2 } = getMockChannelPair();
+    const { port1, port2 } = getMockPorts();
 
     const routes = {
       ping: (() => {
@@ -241,12 +241,12 @@ describe("Error handling", () => {
     };
 
     server({
-      channel: channel1,
+      port: port1,
       routes,
     });
 
     const { proxy } = client<typeof routes>({
-      channel: channel2,
+      port: port2,
     });
 
     assert.rejects(proxy.ping);

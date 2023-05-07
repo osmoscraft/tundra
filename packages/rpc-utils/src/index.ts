@@ -8,13 +8,13 @@ type AsyncProxy<FnsMap> = {
     : never;
 };
 
-export interface IChannel {
-  emit: (message: IMessage) => any;
-  on: (callback: (message: IMessage) => void) => void;
-  off: (callback: (message: IMessage) => void) => void;
+export interface IPort {
+  emit: (message: IPortMessage) => any;
+  on: (callback: (message: IPortMessage) => void) => void;
+  off: (callback: (message: IPortMessage) => void) => void;
 }
 
-export interface IMessage {
+export interface IPortMessage {
   header: {
     mid: string;
   };
@@ -26,17 +26,17 @@ export interface Client<T extends {}> {
   stop: () => any;
 }
 
-export function client<T extends {}>(config: { channel: IChannel }): Client<T> {
+export function client<T extends {}>(config: { port: IPort }): Client<T> {
   const callbackMap = new Map<string, Fn>();
-  const handleChannelMessage = ({ header, payload }: IMessage) => {
+  const handlePortMessage = ({ header, payload }: IPortMessage) => {
     const callback = callbackMap.get(header.mid)!;
     callback(payload);
   };
 
   let mid = 0;
 
-  const stop = () => config.channel.off(handleChannelMessage);
-  config.channel.on(handleChannelMessage);
+  const stop = () => config.port.off(handlePortMessage);
+  config.port.on(handlePortMessage);
 
   const proxy = new Proxy(
     {},
@@ -59,7 +59,7 @@ export function client<T extends {}>(config: { channel: IChannel }): Client<T> {
             };
 
             callbackMap.set(currentMid, callback);
-            config.channel.emit(packet);
+            config.port.emit(packet);
           }),
     }
   ) as AsyncProxy<T>;
@@ -74,22 +74,20 @@ export interface Server {
   stop: () => any;
 }
 
-export function server(config: { channel: IChannel; routes: Record<string, Fn> }): Server {
-  const handleChannelData = async (data: any) => {
-    const { header, payload } = data;
-
-    const createMessage: (payload: any) => IMessage = (payload) => ({ header: { mid: header.mid }, payload });
+export function server(config: { port: IPort; routes: Record<string, Fn> }): Server {
+  const handleChannelMessage = async ({ header, payload }: IPortMessage) => {
+    const createResponse: (payload: any) => IPortMessage = (payload) => ({ header: { mid: header.mid }, payload });
 
     try {
       const output = await config.routes[payload.prop](payload.args);
-      config.channel.emit(createMessage({ result: output }));
+      config.port.emit(createResponse({ result: output }));
     } catch (e: any) {
-      config.channel.emit(createMessage({ result: null, error: encodeError(e) }));
+      config.port.emit(createResponse({ result: null, error: encodeError(e) }));
     }
   };
 
-  const stop = () => config.channel.off(handleChannelData);
-  config.channel.on(handleChannelData);
+  const stop = () => config.port.off(handleChannelMessage);
+  config.port.on(handleChannelMessage);
 
   return {
     stop,
