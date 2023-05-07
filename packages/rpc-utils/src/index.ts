@@ -1,12 +1,12 @@
 import { decodeError, encodeError } from "./error";
 
-type Fn<T extends any[] = any[], K = any> = (...args: T) => K;
+type Fn<ArgsType extends any[] = any[], ReturnType = any> = (...args: ArgsType) => ReturnType;
 
 type AsyncProxy<FnsMap> = {
-  [K in keyof FnsMap]: FnsMap[K] extends Fn<infer Args, infer Return> ? Fn<Args, Promise<Awaited<Return>>> : never;
+  [K in keyof FnsMap]: FnsMap[K] extends Fn<infer ArgsType, infer ReturnType>
+    ? Fn<ArgsType, Promise<Awaited<ReturnType>>>
+    : never;
 };
-
-Promise.resolve();
 
 export interface IChannel {
   emit: (message: IMessage) => any;
@@ -21,12 +21,12 @@ export interface IMessage {
   payload: any;
 }
 
-export interface Tx<T extends {}> {
+export interface Client<T extends {}> {
   proxy: AsyncProxy<T>;
   stop: () => any;
 }
 
-export function tx<T extends {}>(config: { channel: IChannel }): Tx<T> {
+export function client<T extends {}>(config: { channel: IChannel }): Client<T> {
   const callbackMap = new Map<string, Fn>();
   const handleChannelMessage = ({ header, payload }: IMessage) => {
     const callback = callbackMap.get(header.mid)!;
@@ -70,18 +70,18 @@ export function tx<T extends {}>(config: { channel: IChannel }): Tx<T> {
   };
 }
 
-export interface Rx {
+export interface Server {
   stop: () => any;
 }
 
-export function rx(config: { channel: IChannel; handlers: Record<string, Fn> }): Rx {
+export function server(config: { channel: IChannel; routes: Record<string, Fn> }): Server {
   const handleChannelData = async (data: any) => {
     const { header, payload } = data;
 
     const createMessage: (payload: any) => IMessage = (payload) => ({ header: { mid: header.mid }, payload });
 
     try {
-      const output = await config.handlers[payload.prop](payload.args);
+      const output = await config.routes[payload.prop](payload.args);
       config.channel.emit(createMessage({ result: output }));
     } catch (e: any) {
       config.channel.emit(createMessage({ result: null, error: encodeError(e) }));

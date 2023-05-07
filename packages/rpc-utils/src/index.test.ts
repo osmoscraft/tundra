@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { rx, tx } from ".";
+import { client, server } from ".";
 import { getMockChannelPair } from "./channel";
 
 describe("Setup", () => {
   it("Start and stop tx", () => {
-    const { proxy, stop } = tx({
+    const { proxy, stop } = client({
       channel: getMockChannelPair().channel1,
     });
 
@@ -14,9 +14,9 @@ describe("Setup", () => {
   });
 
   it("Start and stop rx", () => {
-    const { stop } = rx({
+    const { stop } = server({
       channel: getMockChannelPair().channel1,
-      handlers: {},
+      routes: {},
     });
 
     assert.doesNotThrow(stop);
@@ -27,16 +27,16 @@ describe("RPC", () => {
   it("Sync call", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => "pong",
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy, stop } = tx<typeof handlers>({
+    const { proxy, stop } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -46,16 +46,16 @@ describe("RPC", () => {
   it("Async call", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => Promise.resolve("pong"),
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -67,17 +67,17 @@ describe("RPC", () => {
 
     const results: string[] = [];
 
-    const handlers = {
+    const routes = {
       pingFast: () => Promise.resolve("fast"),
       pingSlow: () => new Promise((resolve) => setTimeout(() => resolve("pong"), 1)),
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -92,16 +92,16 @@ describe("RPC", () => {
   it("Stop clears channels", async () => {
     const { channel1, channel2, inspect } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => "pong",
     };
 
-    const { stop: stopRx } = rx({
+    const { stop: stopRx } = server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { stop: stopTx } = tx<typeof handlers>({
+    const { stop: stopTx } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -117,16 +117,16 @@ describe("Error handling", () => {
   it("Reject without reason", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => Promise.reject(),
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -139,16 +139,16 @@ describe("Error handling", () => {
   it("Reject non-error value", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => Promise.reject("broken"),
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -161,16 +161,16 @@ describe("Error handling", () => {
   it("Reject error value", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: () => Promise.reject(new Error("broken")),
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -185,18 +185,18 @@ describe("Error handling", () => {
   it("Throw undefined", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: (() => {
         throw undefined;
       }) as () => any,
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -209,18 +209,18 @@ describe("Error handling", () => {
   it("Throw non-error value", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: (() => {
         throw "broken";
       }) as () => any,
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
@@ -233,19 +233,19 @@ describe("Error handling", () => {
   it("Throw error value", async () => {
     const { channel1, channel2 } = getMockChannelPair();
 
-    const handlers = {
+    const routes = {
       ping: (() => {
         const e = new Error("broken");
         throw e;
       }) as () => any,
     };
 
-    rx({
+    server({
       channel: channel1,
-      handlers,
+      routes,
     });
 
-    const { proxy } = tx<typeof handlers>({
+    const { proxy } = client<typeof routes>({
       channel: channel2,
     });
 
