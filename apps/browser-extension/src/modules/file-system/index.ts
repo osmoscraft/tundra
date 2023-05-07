@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce, type Fn } from "@tinykb/fp-utils";
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import INSERT_FILE from "./sql/insert-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
@@ -49,6 +49,15 @@ export async function checkHealth() {
     .then(() => true)
     .catch(() => false)
     .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(() => log("cleanup")));
+}
+
+export function safeFileWriter(preHook?: Fn, postHook?: Fn) {
+  return async (db: Sqlite3.DB, path: string, type: "text/plain", content: string) => {
+    const oldFile = await readFile(db, path);
+    preHook?.(oldFile);
+    await writeFile(db, path, type, content);
+    postHook?.({}); // new file
+  };
 }
 
 export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
