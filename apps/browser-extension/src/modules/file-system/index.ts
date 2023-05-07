@@ -25,7 +25,7 @@ export async function checkHealth() {
     return tap(() => console.log("[check health]", message));
   }
 
-  const isSuccess = await asyncPipe(
+  return await asyncPipe(
     log("attempt to remove previous test db"),
     () => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(log("removed")).catch(log("nothing to remove")),
     log("init opfs"),
@@ -46,14 +46,12 @@ export async function checkHealth() {
         (file: TinyFile) => assertEqual(file?.content, "hello world"),
         log("file read")
       )
-    )
+    ),
+    log("ok")
   )()
-    .then(log("ok"))
     .then(() => true)
     .catch(() => false)
     .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(log("cleanup")));
-
-  return isSuccess;
 }
 
 export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
