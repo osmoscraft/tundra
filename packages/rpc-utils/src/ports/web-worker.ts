@@ -4,11 +4,11 @@ export function dedicatedWorkerPort(dedicatedWorkerGlobalScope: DedicatedWorkerG
   return messageEventPort(dedicatedWorkerGlobalScope);
 }
 
-export function mainPort(worker: Worker): IPort {
+export function dedicatedWorkerHostPort(worker: Worker): IPort {
   return messageEventPort(worker);
 }
 
-function messageEventPort(eventTarget: WithMessageEventTarget): IPort {
+function messageEventPort(eventTarget: MessageEventTarget): IPort {
   const callbacksMap = new Map<any, any>();
 
   return {
@@ -27,7 +27,7 @@ function messageEventPort(eventTarget: WithMessageEventTarget): IPort {
   };
 }
 
-export interface WithMessageEventTarget {
+export interface MessageEventTarget {
   postMessage(message: any): any;
   addEventListener(type: "message", listener: (ev: MessageEvent) => any): any;
   removeEventListener(type: "message", listener: (ev: MessageEvent) => any): any;
