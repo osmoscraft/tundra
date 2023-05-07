@@ -1,4 +1,4 @@
-import { asyncPipe, asyncTap, callOnce, tap } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import INSERT_FILE from "./sql/insert-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
@@ -22,36 +22,33 @@ export async function checkHealth() {
   }
 
   function log(message: string) {
-    return tap(() => console.log("[check health]", message));
+    return console.log("[check health]", message);
   }
 
-  return await asyncPipe(
-    log("attempt to remove previous test db"),
-    () => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(log("removed")).catch(log("nothing to remove")),
-    log("init opfs"),
-    sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs-test.sqlite3"),
-    log("ensure schema"),
-    ensureSchema,
-    asyncTap(
-      asyncPipe(
-        log("write file"),
-        (db: Sqlite3.DB) => writeFile(db, "/test.txt", "text/plain", "hello world"),
-        log("file written")
-      )
-    ),
-    asyncTap(
-      asyncPipe(
-        log("read file"),
-        (db: Sqlite3.DB) => readFile(db, "/test.txt"),
-        (file: TinyFile) => assertEqual(file?.content, "hello world"),
-        log("file read")
-      )
-    ),
-    log("ok")
-  )()
+  async function test() {
+    log("attempt to remove previous test db");
+    await destoryOpfsByPath("/tinykb-fs-test.sqlite3")
+      .then(() => log("removed"))
+      .catch(() => log("nothing to remove"));
+
+    log("init opfs");
+    const db = await sqlite3Opfs("./sqlite3/jswasm/", "/tinykb-fs-test.sqlite3");
+
+    log("ensure schema");
+    await ensureSchema(db), log("write file");
+    writeFile(db, "/test.txt", "text/plain", "hello world");
+    log("file written");
+
+    log("read file");
+    readFile(db, "/test.txt").then((file) => assertEqual(file?.content, "hello world"));
+    log("file read");
+    log("ok");
+  }
+
+  return test()
     .then(() => true)
     .catch(() => false)
-    .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(log("cleanup")));
+    .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(() => log("cleanup")));
 }
 
 export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
