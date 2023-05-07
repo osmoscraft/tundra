@@ -6,7 +6,7 @@ import { getMockChannelPair } from "./channel";
 describe("Setup", () => {
   it("Start and stop tx", () => {
     const { proxy, stop } = tx({
-      channel: getMockChannelPair()[0],
+      channel: getMockChannelPair().channel1,
     });
 
     assert.ok(proxy);
@@ -15,7 +15,7 @@ describe("Setup", () => {
 
   it("Start and stop rx", () => {
     const { stop } = rx({
-      channel: getMockChannelPair()[0],
+      channel: getMockChannelPair().channel1,
       handlers: {},
     });
 
@@ -25,29 +25,26 @@ describe("Setup", () => {
 
 describe("RPC", () => {
   it("Sync call", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: () => "pong",
     };
 
-    const { stop: stopRx } = rx({
+    rx({
       channel: channel1,
       handlers,
     });
 
-    const { proxy, stop: stopTx } = tx<typeof handlers>({
+    const { proxy, stop } = tx<typeof handlers>({
       channel: channel2,
     });
 
     assert.strictEqual(await proxy.ping(), "pong");
-
-    stopRx();
-    stopTx();
   });
 
   it("Async call", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: () => Promise.resolve("pong"),
@@ -66,7 +63,7 @@ describe("RPC", () => {
   });
 
   it("Async call parellelism", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const results: string[] = [];
 
@@ -91,11 +88,34 @@ describe("RPC", () => {
 
     assert.deepEqual(results, ["fast", "slow"]);
   });
+
+  it("Stop clears channels", async () => {
+    const { channel1, channel2, inspect } = getMockChannelPair();
+
+    const handlers = {
+      ping: () => "pong",
+    };
+
+    const { stop: stopRx } = rx({
+      channel: channel1,
+      handlers,
+    });
+
+    const { stop: stopTx } = tx<typeof handlers>({
+      channel: channel2,
+    });
+
+    stopRx();
+    stopTx();
+
+    assert.strictEqual(inspect().channel1Callbacks.length, 0);
+    assert.strictEqual(inspect().channel2Callbacks.length, 0);
+  });
 });
 
 describe("Error handling", () => {
   it("Reject without reason", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: () => Promise.reject(),
@@ -117,7 +137,7 @@ describe("Error handling", () => {
   });
 
   it("Reject non-error value", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: () => Promise.reject("broken"),
@@ -139,7 +159,7 @@ describe("Error handling", () => {
   });
 
   it("Reject error value", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: () => Promise.reject(new Error("broken")),
@@ -163,7 +183,7 @@ describe("Error handling", () => {
   });
 
   it("Throw undefined", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: (() => {
@@ -187,7 +207,7 @@ describe("Error handling", () => {
   });
 
   it("Throw non-error value", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: (() => {
@@ -211,7 +231,7 @@ describe("Error handling", () => {
   });
 
   it("Throw error value", async () => {
-    const [channel1, channel2] = getMockChannelPair();
+    const { channel1, channel2 } = getMockChannelPair();
 
     const handlers = {
       ping: (() => {
