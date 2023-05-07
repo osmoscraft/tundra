@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { client, server } from ".";
-import { getMockChannelPair } from "./channel";
+import { getMockChannelPair } from "./channels/mock-channel";
 
 describe("Setup", () => {
   it("Start and stop tx", () => {

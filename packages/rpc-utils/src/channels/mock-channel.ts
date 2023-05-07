@@ -1,4 +1,4 @@
-import type { IChannel } from ".";
+import type { IChannel } from "..";
 
 export function getMockChannelPair(): {
   channel1: IChannel;
