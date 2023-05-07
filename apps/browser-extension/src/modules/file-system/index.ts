@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce, type Fn } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import INSERT_FILE from "./sql/insert-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
@@ -36,7 +36,7 @@ export async function checkHealth() {
 
     log("ensure schema");
     await ensureSchema(db), log("write file");
-    writeFile(db, "/test.txt", "text/plain", "hello world");
+    writeFileInternal(db, "/test.txt", "text/plain", "hello world");
     log("file written");
 
     log("read file");
@@ -51,16 +51,30 @@ export async function checkHealth() {
     .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(() => log("cleanup")));
 }
 
-export function safeFileWriter(preHook?: Fn, postHook?: Fn) {
+export interface PreWriteHookInput {
+  oldFile?: TinyFile;
+  newFile?: Omit<TinyFile, "createdAt" | "updatedAt">;
+}
+export type PreWriteHook = (input: PreWriteHookInput) => any;
+export interface PostWriteHookInput {
+  oldFile?: TinyFile;
+  newFile?: TinyFile;
+}
+export type PostWriteHook = (input: PostWriteHookInput) => any;
+
+export function safeFileWriter(preHook?: PreWriteHook, postHook?: PostWriteHook) {
   return async (db: Sqlite3.DB, path: string, type: "text/plain", content: string) => {
     const oldFile = await readFile(db, path);
-    preHook?.(oldFile);
-    await writeFile(db, path, type, content);
-    postHook?.({}); // new file
+    preHook?.({ oldFile, newFile: { path, type, content } });
+
+    await writeFileInternal(db, path, type, content);
+
+    const newFile = await readFile(db, path);
+    postHook?.({ oldFile, newFile });
   };
 }
 
-export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
+async function writeFileInternal(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
   return db.exec(INSERT_FILE, {
     bind: {
       ":path": path,

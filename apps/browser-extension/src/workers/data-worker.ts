@@ -1,15 +1,23 @@
 import { asyncPipe } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
-import { checkHealth, fsDbAsync, listFiles, safeFileWriter } from "../modules/file-system";
+import {
+  checkHealth,
+  fsDbAsync,
+  listFiles,
+  safeFileWriter,
+  type PostWriteHook,
+  type PreWriteHook,
+} from "../modules/file-system";
 
 export type DataWorkerRoutes = typeof routes;
 
-function preWriteFile() {}
-function postWriteFile() {}
+const preWriteFile: PreWriteHook = (input) => {};
+const postWriteFile: PostWriteHook = (input) => {};
+const writeFile = safeFileWriter(preWriteFile, postWriteFile);
 
 const routes = {
   checkHealth,
-  writeFile: safeFileWriter(preWriteFile, postWriteFile),
+  writeFile,
   listFiles: asyncPipe(fsDbAsync, (db: Sqlite3.DB) => listFiles(db, 10, 0)),
 };
 
