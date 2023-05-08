@@ -26,6 +26,7 @@
 - Sync module allows revert
   - Sync module requests FS module to write ``content.backup` to file
   - the `onClose` action will delete `content.backup` and `content.new`
+- During initial clone, write each file as `content.backup` and wait for FS to emit `content.new` that cancels out the change
 - Sync module should prominently alert user when it fails to perform the `onOpenForWrite` action
 - Semantics for changes
   - `.backup` does not exist, `.new` does not exist => no change
