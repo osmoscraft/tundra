@@ -16,7 +16,7 @@ export class FileSystemExplorerElement extends HTMLElement {
     const { proxy } = FileSystemExplorerElement.dependencies;
     proxy.listFiles().then((files) => {
       this.fileList.innerHTML = (files ?? [])
-        .map((item) => `<li><button data-path="${item.path}">${item.path}</button></li>`)
+        .map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.path}</a></li>`)
         .join("");
 
       if (!files?.length) {
@@ -24,13 +24,7 @@ export class FileSystemExplorerElement extends HTMLElement {
       }
     });
 
-    this.fileList.addEventListener("click", async (e) => {
-      const path = (e.target as HTMLElement).closest("[data-path]")?.getAttribute("data-path");
-      if (!path) return;
-
-      const file = await proxy.getFile(path);
-      this.code.innerHTML = file?.content ?? "Error: File does not exist";
-    });
+    this.loadNoteFromUrl(proxy);
 
     this.code.addEventListener("keydown", async (e) => {
       switch (getCombo(e)) {
@@ -40,5 +34,12 @@ export class FileSystemExplorerElement extends HTMLElement {
         }
       }
     });
+  }
+
+  private async loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>) {
+    const path = new URLSearchParams(location.search).get("path");
+    if (!path) return;
+    const file = await proxy.getFile(path);
+    this.code.innerHTML = file?.content ?? "Error: File does not exist";
   }
 }
