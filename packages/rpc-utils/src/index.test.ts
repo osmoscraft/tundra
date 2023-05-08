@@ -1,4 +1,4 @@
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { client } from "./client";
 import { getMockPorts } from "./ports";
@@ -42,6 +42,28 @@ describe("RPC", () => {
     });
 
     assert.strictEqual(await proxy.ping(), "pong");
+  });
+
+  it("Arguments passing", async () => {
+    const { port1, port2 } = getMockPorts();
+
+    const result: any[] = [];
+
+    const routes = {
+      saveArgs: (...args: any[]) => result.push(...args),
+    };
+
+    server({
+      port: port1,
+      routes,
+    });
+
+    const { proxy, stop } = client<typeof routes>({
+      port: port2,
+    });
+
+    await proxy.saveArgs(1, null, "test", { a: 42 }, true);
+    assert.deepEqual(result, [1, null, "test", { a: 42 }, true]);
   });
 
   it("Async call", async () => {

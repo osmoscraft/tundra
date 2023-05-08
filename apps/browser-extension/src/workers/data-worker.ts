@@ -1,9 +1,9 @@
-import { asyncPipe } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import {
   checkHealth,
   fsDbAsync,
   listFiles,
+  readFile,
   safeFileWriter,
   type PostWriteHook,
   type PreWriteHook,
@@ -18,7 +18,8 @@ const writeFile = safeFileWriter(preWriteFile, postWriteFile);
 const routes = {
   checkHealth,
   writeFile,
-  listFiles: asyncPipe(fsDbAsync, (db: Sqlite3.DB) => listFiles(db, 10, 0)),
+  getFile: (path: string) => fsDbAsync().then((db) => readFile(db, path)),
+  listFiles: () => fsDbAsync().then((db) => listFiles(db, 10, 0)),
 };
 
 console.log("will attach server");

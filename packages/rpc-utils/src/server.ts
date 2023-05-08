@@ -10,7 +10,7 @@ export function server(config: { port: IPort; routes: Record<string, Fn> }): Ser
     const createResponse: (payload: any) => IPortMessage = (payload) => ({ header: { mid: header.mid }, payload });
 
     try {
-      const output = await config.routes[payload.prop](payload.args);
+      const output = await config.routes[payload.prop](...payload.args);
       config.port.emit(createResponse({ result: output }));
     } catch (e: any) {
       config.port.emit(createResponse({ result: null, error: encodeError(e) }));

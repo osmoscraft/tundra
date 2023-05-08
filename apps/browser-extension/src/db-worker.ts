@@ -18,10 +18,9 @@ export type DbWorkerEventHandler = (context: DbWorkerContext, e: Event) => any;
 
 declare const self: DedicatedWorkerGlobalScope;
 
-const FS_DB_FILENAME = "tinyfs.sqlite3";
+const FS_DB_FILENAME = "tinykb-fs.sqlite3";
 const SYNC_DB_FILENAME = "tinysync.sqlite3";
 const GRAPH_DB_FILENAME = "tinygraph.sqlite3";
-
 const context: DbWorkerContext = {
   fileService: new FileService(`/${FS_DB_FILENAME}`),
   graphSerivce: new GraphService(`/${GRAPH_DB_FILENAME}`),
