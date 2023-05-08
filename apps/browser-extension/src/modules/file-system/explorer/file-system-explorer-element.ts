@@ -1,4 +1,4 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
+import { attachShadowHtml, getCombo } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
 import template from "./file-system-explorer-element.html";
@@ -30,6 +30,15 @@ export class FileSystemExplorerElement extends HTMLElement {
 
       const file = await proxy.getFile(path);
       this.code.innerHTML = file?.content ?? "Error: File does not exist";
+    });
+
+    this.code.addEventListener("keydown", async (e) => {
+      switch (getCombo(e)) {
+        case "ctrl+s": {
+          const newContent = this.code.innerText;
+          break;
+        }
+      }
     });
   }
 }
