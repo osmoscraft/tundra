@@ -29,7 +29,11 @@ export class FileSystemExplorerElement extends HTMLElement {
     this.code.addEventListener("keydown", async (e) => {
       switch (getCombo(e)) {
         case "ctrl+s": {
+          e.preventDefault();
           const newContent = this.code.innerText;
+          const path = new URLSearchParams(location.search).get("path");
+          if (!path) break;
+          proxy.writeFile(path, newContent);
           break;
         }
       }

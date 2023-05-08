@@ -1,9 +1,9 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import INSERT_FILE from "./sql/insert-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
+import UPSERT_FILE from "./sql/upsert-file.sql";
 
 export const fsDbAsync = callOnce(
   asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), ensureSchema)
@@ -75,7 +75,7 @@ export function safeFileWriter(preHook?: PreWriteHook, postHook?: PostWriteHook)
 }
 
 async function writeFileInternal(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
-  return db.exec(INSERT_FILE, {
+  return db.exec(UPSERT_FILE, {
     bind: {
       ":path": path,
       ":type": type,
