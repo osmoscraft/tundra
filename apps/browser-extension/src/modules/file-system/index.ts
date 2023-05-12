@@ -1,18 +1,13 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
-import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
+import { destoryOpfsByPath, exec, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import LIST_FILES from "./sql/list-files.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 import UPSERT_FILE from "./sql/upsert-file.sql";
 
 export const fsDbAsync = callOnce(
-  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), ensureSchema)
+  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), exec.bind(null, SCHEMA))
 );
-
-function ensureSchema(db: Sqlite3.DB) {
-  db.exec(SCHEMA);
-  return db;
-}
 
 export async function checkHealth() {
   function assertEqual(expected?: any, actual?: any) {
@@ -35,8 +30,8 @@ export async function checkHealth() {
     const db = await sqlite3Opfs("./sqlite3/jswasm/", "/tinykb-fs-test.sqlite3");
 
     log("ensure schema");
-    await ensureSchema(db), log("write file");
-    writeFileInternal(db, "/test.txt", "text/plain", "hello world");
+    await exec(SCHEMA, db), log("write file");
+    writeFile(db, "/test.txt", "text/plain", "hello world");
     log("file written");
 
     log("read file");
@@ -51,30 +46,7 @@ export async function checkHealth() {
     .finally(() => destoryOpfsByPath("/tinykb-fs-test.sqlite3").then(() => log("cleanup")));
 }
 
-export interface PreWriteHookInput {
-  oldFile?: TinyFile;
-  newFile?: Omit<TinyFile, "createdAt" | "updatedAt">;
-}
-export type PreWriteHook = (input: PreWriteHookInput) => any;
-export interface PostWriteHookInput {
-  oldFile?: TinyFile;
-  newFile?: TinyFile;
-}
-export type PostWriteHook = (input: PostWriteHookInput) => any;
-
-export function safeFileWriter(preHook?: PreWriteHook, postHook?: PostWriteHook) {
-  return async (db: Sqlite3.DB, path: string, type: "text/plain", content: string) => {
-    const oldFile = await readFile(db, path);
-    preHook?.({ oldFile, newFile: { path, type, content } });
-
-    await writeFileInternal(db, path, type, content);
-
-    const newFile = await readFile(db, path);
-    postHook?.({ oldFile, newFile });
-  };
-}
-
-async function writeFileInternal(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
+export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
   return db.exec(UPSERT_FILE, {
     bind: {
       ":path": path,

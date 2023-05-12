@@ -53,13 +53,13 @@ export function initWithSchema(opfsPath: string, schema: string): Promise<InitRe
   return Promise.resolve(performance.mark(`init/${opfsPath}`))
     .then(() => loadApiIndex("./sqlite3/jswasm/"))
     .then((api) => ({
-      db: execSchema(schema, openOpfsDb(opfsPath, api)),
+      db: exec(schema, openOpfsDb(opfsPath, api)),
       libVersion: getLibversion(api),
       duration: performance.measure(`init/${opfsPath}`, `init/${opfsPath}`).duration,
     }));
 }
 
-function execSchema(schema: string, db: Sqlite3.DB) {
+export function exec(schema: string, db: Sqlite3.DB) {
   db.exec(schema);
   return db;
 }
