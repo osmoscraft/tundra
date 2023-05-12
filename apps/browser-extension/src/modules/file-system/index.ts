@@ -1,15 +1,15 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
-import { destoryOpfsByPath, exec, sqlite3Opfs } from "@tinykb/sqlite-utils";
+import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import LIST_FILES from "./sql/list-files.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 import UPSERT_FILE from "./sql/upsert-file.sql";
 
 export const fsDbAsync = callOnce(
-  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), exec.bind(null, SCHEMA))
+  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), (db: Sqlite3.DB) => db.exec(SCHEMA))
 );
 
-export async function checkHealth() {
+export async function checkFsHealth() {
   function assertEqual(expected?: any, actual?: any) {
     if (expected !== actual) {
       throw new Error(`Assert equal filed\nExpeced: ${expected}\nActual: ${actual}`);
@@ -30,7 +30,8 @@ export async function checkHealth() {
     const db = await sqlite3Opfs("./sqlite3/jswasm/", "/tinykb-fs-test.sqlite3");
 
     log("ensure schema");
-    await exec(SCHEMA, db), log("write file");
+    db.exec(SCHEMA);
+    log("write file");
     writeFile(db, "/test.txt", "text/plain", "hello world");
     log("file written");
 
