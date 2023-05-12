@@ -3,6 +3,8 @@ import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 import UPSERT_FILE from "./sql/upsert-file.sql";
+import UPSERT_LOCAL_CHANGE from "./sql/upsert-local-change.sql";
+import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
 
 export const syncDbAsync = callOnce(
   asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/", "/tinykb-fs.sqlite3"), (db: Sqlite3.DB) => db.exec(SCHEMA))
@@ -37,12 +39,21 @@ export async function checkSyncHealth() {
       ":path": file.path,
     });
 
-    if (actual?.source !== expected.source) {
-      throw new Error(`Assert equal filed: ${file.path}\nExpeced: ${expected.source}\nActual: ${actual?.source}`);
-    }
+    assertChange(file.path, actual, expected);
+  }
 
-    if (actual?.status !== expected.status) {
-      throw new Error(`Assert equal filed: ${file.path}\nExpeced: ${expected.status}\nActual: ${actual?.status}`);
+  function assertChange(
+    message: string,
+    actual?: { source: string; status: string },
+    expected?: { source: string; status: string }
+  ) {
+    assertStrictEqual(actual?.source, expected?.source, message);
+    assertStrictEqual(actual?.status, expected?.status, message);
+  }
+
+  function assertStrictEqual(actual: any, expected: any, message: string) {
+    if (actual !== expected) {
+      throw new Error(`Assert strict equal failed: ${message}\nExpeced: ${expected}\nActual: ${actual}`);
     }
   }
 
@@ -67,7 +78,81 @@ export async function checkSyncHealth() {
     for (const entry of testEntries) {
       await assertFileState(db, entry.file, entry.expected);
     }
-    log(`test ok: ${testEntries.length} files`);
+    log(`test all file states ok: ${testEntries.length} files`);
+
+    log(`lifecycle: local added > push > local modified > local removed`);
+    await trackLocalChange(db, "/test/new-local-file", "test");
+    assertChange(
+      `local added`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-local-file",
+      }),
+      { source: "local", status: "added" }
+    );
+
+    await trackRemoteChange(db, "/test/new-local-file", "test");
+    assertChange(
+      `local added > push`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-local-file",
+      }),
+      { source: "remote", status: "unchanged" }
+    );
+
+    await trackLocalChange(db, "/test/new-local-file", "test modified");
+    assertChange(
+      `local added > push > local modified`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-local-file",
+      }),
+      { source: "local", status: "modified" }
+    );
+
+    await trackLocalChange(db, "/test/new-local-file", null);
+    assertChange(
+      `local added > push > local modified > local removed`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-local-file",
+      }),
+      { source: "local", status: "removed" }
+    );
+
+    log(`lifecycle: remote added > pull > remote modified > remote removed`);
+    await trackRemoteChange(db, "/test/new-remote-file", "test");
+    assertChange(
+      `remote added`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-remote-file",
+      }),
+      { source: "remote", status: "added" }
+    );
+
+    await trackLocalChange(db, "/test/new-remote-file", "test");
+    assertChange(
+      `remote added > pull`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-remote-file",
+      }),
+      { source: "local", status: "unchanged" }
+    );
+
+    await trackRemoteChange(db, "/test/new-remote-file", "test modified");
+    assertChange(
+      `remote added > pull > remote modified`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-remote-file",
+      }),
+      { source: "remote", status: "modified" }
+    );
+
+    await trackRemoteChange(db, "/test/new-remote-file", null);
+    assertChange(
+      `remote added > pull > remote modified > remote removed`,
+      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+        ":path": "/test/new-remote-file",
+      }),
+      { source: "remote", status: "removed" }
+    );
   }
 
   return test()
@@ -77,4 +162,30 @@ export async function checkSyncHealth() {
       return false;
     })
     .finally(() => destoryOpfsByPath("/tinykb-sync-test.sqlite3").then(() => log("cleanup")));
+}
+
+export async function trackLocalChange(db: Sqlite3.DB, path: string, content: string | null) {
+  db.exec(UPSERT_LOCAL_CHANGE, {
+    bind: {
+      ":path": path,
+      ":localHash": content ? await sha1(content) : null,
+    },
+  });
+}
+
+export async function trackRemoteChange(db: Sqlite3.DB, path: string, content: string | null) {
+  db.exec(UPSERT_REMOTE_CHANGE, {
+    bind: {
+      ":path": path,
+      ":remoteHash": content ? await sha1(content) : null,
+    },
+  });
+}
+
+async function sha1(input: string) {
+  const msgUint8 = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); // convert bytes to hex string
+  return hashHex;
 }
