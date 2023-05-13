@@ -23,6 +23,20 @@ const routes = {
   getFile: (path: string) => fsInit().then((db) => fs.readFile(db, path)),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
+  importGitHubRepo: () =>
+    syncInit().then(async (syncDb) => {
+      // TODO split archive url fetching so the commit ID can be extracted in parallel
+      const items = sync.importGithubArchive(syncDb);
+      const fsDb = await fsInit();
+      // TODO write to sync db as well
+      // todo refactor to async generator map util in FP utils
+      for await (const item of items) {
+        await fs.writeFile(fsDb, item.path, "text/plain", item.content);
+      }
+
+      // TODO set github ref
+      // sync.setGithubRef(syncDb, "...");
+    }),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),

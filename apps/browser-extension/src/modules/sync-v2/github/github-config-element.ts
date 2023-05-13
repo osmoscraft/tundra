@@ -34,7 +34,7 @@ export class GithubConfigElement extends HTMLElement {
         }
 
         case "import": {
-          throw new Error("Not implemented");
+          this.proxy.importGitHubRepo();
           break;
         }
 

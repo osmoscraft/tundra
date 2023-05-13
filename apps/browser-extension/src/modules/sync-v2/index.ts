@@ -5,6 +5,7 @@ import * as github from "./github";
 import CLEAR_CONFIG from "./sql/clear-config.sql";
 import CLEAR_HISTORY from "./sql/clear-history.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
+import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import UPSERT_LOCAL_CHANGE from "./sql/upsert-local-change.sql";
@@ -12,9 +13,13 @@ import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
 
 export * from "./check-health";
 export type { GithubConnection } from "./github";
+export * from "./import";
 
 export const init = callOnce(
-  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => db.exec(SCHEMA))
+  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {
+    db.exec(SCHEMA);
+    return db;
+  })
 );
 
 export function clearConfig(db: Sqlite3.DB) {
@@ -42,6 +47,12 @@ export async function testConnection(db: Sqlite3.DB) {
 
 export async function getConnection(db: Sqlite3.DB) {
   return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
+}
+
+export async function setGithubRef(db: Sqlite3.DB, id: string) {
+  return db.exec(REPLACE_GITHUB_REF, {
+    bind: { ":id": id },
+  });
 }
 
 export async function trackLocalChange(db: Sqlite3.DB, path: string, content: string | null) {
