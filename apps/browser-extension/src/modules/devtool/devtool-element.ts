@@ -14,13 +14,18 @@ export class DevtoolElement extends HTMLElement {
   private menu = this.shadowRoot.querySelector("menu")!;
 
   connectedCallback() {
+    const { proxy } = DevtoolElement.dependencies;
     this.menu.addEventListener("click", async (e) => {
       const dbWorker = getDbWorkerProxy();
 
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "check-health": {
-          DevtoolElement.dependencies.proxy.checkHealth();
+          proxy.checkHealth();
+          break;
+        }
+        case "clear-files": {
+          proxy.clearFiles();
           break;
         }
         case "download-fs": {
@@ -29,6 +34,11 @@ export class DevtoolElement extends HTMLElement {
               downloadFile(respondDbDownload);
             }
           });
+          break;
+        }
+        case "download-fs-db": {
+          const file = await proxy.getFsDbFile();
+          downloadFile(file);
           break;
         }
         case "download-sync": {
@@ -57,6 +67,10 @@ export class DevtoolElement extends HTMLElement {
             if (response.respondDbDestroy) location.reload();
           });
           break;
+        }
+
+        case "rebuild": {
+          proxy.rebuild();
         }
       }
     });
