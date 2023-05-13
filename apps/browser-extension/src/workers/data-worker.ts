@@ -2,6 +2,7 @@ import { asyncPipe, tap } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
+import type { GithubConnection } from "../modules/sync-v2";
 import * as sync from "../modules/sync-v2";
 
 export type DataWorkerRoutes = typeof routes;
@@ -23,6 +24,9 @@ const routes = {
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
+  setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
+  testGithubConnection: asyncPipe(syncInit, sync.testConnection),
+  getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   writeFile: (path: string, content: string) => fsInit().then((db) => fs.writeFile(db, path, "text/plain", content)),
 };
 

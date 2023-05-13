@@ -1,0 +1,56 @@
+<form class="github-config">
+  <div class="field-list">
+    <div class="field">
+      <label>Repo</label>
+      <input type="text" name="repo" required />
+    </div>
+    <div class="field">
+      <label> Owner</label>
+      <input type="text" name="owner" required />
+    </div>
+    <div class="field">
+      <label>Token</label>
+      <input type="password" name="token" required />
+    </div>
+    <menu>
+      <button data-action="test">Test</button>
+      <button data-action="import" disabled>Import</button>
+      <button data-action="export" disabled>Export</button>
+    </menu>
+  </div>
+</form>
+<link rel="stylesheet" href="./styles/reset.css" />
+<style>
+  .github-config input,
+  textarea {
+    padding: 0.25rem;
+  }
+  .github-config fieldset {
+    display: grid;
+    padding-inline: 16px;
+  }
+  .github-config label {
+    display: block;
+  }
+  .github-config label + * {
+    margin-top: 4px;
+  }
+  .github-config menu {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+  .github-config .field-list {
+    display: grid;
+    gap: 12px;
+  }
+  .github-config textarea {
+    resize: none;
+  }
+  .github-config .field {
+    display: grid;
+  }
+</style>

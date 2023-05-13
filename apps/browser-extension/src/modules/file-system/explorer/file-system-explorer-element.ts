@@ -11,10 +11,10 @@ export class FileSystemExplorerElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private fileList = this.shadowRoot.querySelector("ul")!;
   private code = this.shadowRoot.querySelector("code")!;
+  private proxy = FileSystemExplorerElement.dependencies.proxy;
 
   connectedCallback() {
-    const { proxy } = FileSystemExplorerElement.dependencies;
-    proxy.listFiles().then((files) => {
+    this.proxy.listFiles().then((files) => {
       this.fileList.innerHTML = (files ?? [])
         .map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.path}</a></li>`)
         .join("");
@@ -24,7 +24,7 @@ export class FileSystemExplorerElement extends HTMLElement {
       }
     });
 
-    this.loadNoteFromUrl(proxy);
+    this.loadNoteFromUrl(this.proxy);
 
     this.code.addEventListener("keydown", async (e) => {
       switch (getCombo(e)) {
@@ -33,7 +33,7 @@ export class FileSystemExplorerElement extends HTMLElement {
           const newContent = this.code.innerText;
           const path = new URLSearchParams(location.search).get("path");
           if (!path) break;
-          proxy.writeFile(path, newContent);
+          this.proxy.writeFile(path, newContent);
           break;
         }
       }
