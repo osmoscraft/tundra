@@ -1,9 +1,15 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
+import type { AsyncProxy } from "@tinykb/rpc-utils";
 import { getDbWorkerProxy } from "../../db-worker-proxy";
-import template from "./db-devtool-element.html";
+import type { DataWorkerRoutes } from "../../workers/data-worker";
+import template from "./devtool-element.html";
 import { downloadFile } from "./download-file";
 
-export class DbDevtoolElement extends HTMLElement {
+export class DevtoolElement extends HTMLElement {
+  static dependencies: {
+    proxy: AsyncProxy<DataWorkerRoutes>;
+  };
+
   shadowRoot = attachShadowHtml(template, this);
   private menu = this.shadowRoot.querySelector("menu")!;
 
@@ -13,6 +19,10 @@ export class DbDevtoolElement extends HTMLElement {
 
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
+        case "check-health": {
+          DevtoolElement.dependencies.proxy.checkHealth();
+          break;
+        }
         case "download-fs": {
           dbWorker.request({ requestDbExport: "fs" }).then(({ respondDbExport: respondDbDownload }) => {
             if (respondDbDownload) {

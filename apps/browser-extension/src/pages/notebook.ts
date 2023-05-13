@@ -8,5 +8,3 @@ const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worke
 
 FileSystemExplorerElement.dependencies = { proxy };
 customElements.define("file-system-explorer-element", FileSystemExplorerElement);
-
-proxy.checkHealth().then(console.log).catch(console.error);
