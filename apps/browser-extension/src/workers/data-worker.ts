@@ -23,15 +23,12 @@ const routes = {
   getFile: (path: string) => fsInit().then((db) => fs.readFile(db, path)),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
-  importGitHubRepo: () =>
-    Promise.all([fsInit(), syncInit()]).then(async ([fsDb, syncDb]) =>
-      asyncPipe(
-        routes.clearFiles,
-        sync.importGithubItems.bind(null, syncDb),
-        sync.writeEachItemToFile.bind(null, fsDb),
-        exhaustIterator
-      )()
-    ),
+  importGitHubRepo: asyncPipe(
+    async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
+    async () => sync.importGithubItems(await syncInit()),
+    async (generator: AsyncGenerator<sync.GitHubItem>) => sync.writeEachItemToFile(await fsInit(), generator),
+    exhaustIterator
+  ),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
