@@ -1,1 +1,0 @@
-SELECT * FROM File WHERE path = :path;

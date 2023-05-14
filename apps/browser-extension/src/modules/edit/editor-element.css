@@ -1,9 +1,0 @@
-editor-element {
-  padding: 4px;
-  border: 1px solid ButtonBorder;
-  display: block;
-
-  [contenteditable="true"]:focus {
-    outline: none;
-  }
-}

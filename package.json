@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "npm run dev -w apps/browser-extension",
-    "build": "npm run build -w apps/browser-extension"
+    "build": "npm run build -w apps/browser-extension",
+    "test": "npm run test --workspaces --if-present"
   },
   "repository": {
     "type": "git",

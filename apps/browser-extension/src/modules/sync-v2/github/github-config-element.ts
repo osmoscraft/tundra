@@ -1,7 +1,6 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { GithubConnection } from "..";
-import { getDbWorkerProxy } from "../../../db-worker-proxy";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
 import template from "./github-config-element.html";
 
@@ -13,7 +12,6 @@ export class GithubConfigElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
   private form = this.shadowRoot.querySelector("form")!;
   private menu = this.shadowRoot.querySelector("menu")!;
-  private worker = getDbWorkerProxy();
   private proxy = GithubConfigElement.dependencies.proxy;
 
   connectedCallback() {
