@@ -1,15 +1,25 @@
-import { getConnection } from ".";
+import { getConnection, setGithubRef, trackRemoteChange } from ".";
 import * as github from "./github";
+import { getArchive } from "./github";
 
 export interface GitHubItem {
   path: string;
   content: string;
 }
-export async function* importGithubArchive(db: Sqlite3.DB): AsyncGenerator<GitHubItem> {
-  const connection = await getConnection(db);
+
+export async function* importGithubItems(syncDb: Sqlite3.DB): AsyncGenerator<GitHubItem> {
+  const connection = await getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
-  const archive = await github.getArchive(connection);
-  const itemsGenerator = github.downloadZip(archive.zipballUrl);
+  const archive = await getArchive(connection);
+  for await (const item of importGithubArchive(archive.zipballUrl)) {
+    await trackRemoteChange(syncDb, item.path, item.content);
+    yield item;
+  }
+  setGithubRef(syncDb, archive.oid);
+}
+
+async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubItem> {
+  const itemsGenerator = github.downloadZip(zipballUrl);
 
   function parseGithubZipItemPath(zipItemPath: string): ParsedPath {
     return {

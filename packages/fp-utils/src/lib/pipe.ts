@@ -13,7 +13,6 @@ export function shortPipe<T extends Fn[]>(
   return (((x: any) => fns.reduce((v, f) => (v === null || v === undefined ? v : f(v)), x)) as any) ?? null;
 }
 
-// A more efficient version of asyncPipe, which only awaits the last step
 export function asyncPipe<T extends Fn[]>(
   ...fns: T
 ): (...args: Parameters<FirstInArrayOrAny<T>>) => Promise<Awaited<ReturnType<LastInArrayOrAny<T>>>> {
