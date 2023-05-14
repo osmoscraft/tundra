@@ -22,6 +22,7 @@ const routes = {
   clearFiles: () => Promise.all([fsInit().then((db) => fs.clear(db)), syncInit().then((db) => sync.clearHistory(db))]),
   getFile: (path: string) => fsInit().then((db) => fs.readFile(db, path)),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
+  getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
   importGitHubRepo: asyncPipe(
     async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),

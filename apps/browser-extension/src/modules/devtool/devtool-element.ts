@@ -49,6 +49,11 @@ export class DevtoolElement extends HTMLElement {
           });
           break;
         }
+        case "download-sync-db": {
+          const file = await this.proxy.getSyncDbFile();
+          downloadFile(file);
+          break;
+        }
 
         case "clear-all": {
           dbWorker.request({ requestDbClear: ["fs", "sync"] });
