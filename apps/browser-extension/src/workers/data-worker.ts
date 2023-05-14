@@ -1,4 +1,4 @@
-import { asyncPipe, exhaustIterator, tap } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustIterator, mapIteratorAsync, tap } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
@@ -27,14 +27,21 @@ const routes = {
   importGitHubRepo: asyncPipe(
     async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
     async () => sync.importGithubItems(await syncInit()),
-    async (generator: AsyncGenerator<sync.GitHubItem>) => sync.writeEachItemToFile(await fsInit(), generator),
+    async (generator: AsyncGenerator<sync.GitHubItem>) =>
+      mapIteratorAsync(async (item) => {
+        await fs.writeFile(await fsInit(), item.path, "text/plain", item.content);
+        await sync.trackLocalChange(await syncInit(), item.path, item.content);
+      }, generator),
     exhaustIterator
   ),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
-  writeFile: (path: string, content: string) => fsInit().then((db) => fs.writeFile(db, path, "text/plain", content)),
+  writeFile: async (path: string, content: string) => {
+    fs.writeFile(await fsInit(), path, "text/plain", content);
+    sync.trackLocalChange(await syncInit(), path, content);
+  },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });

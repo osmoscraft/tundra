@@ -1,11 +1,14 @@
 import { mapIteratorAsync } from "@tinykb/fp-utils";
-import { getConnection, setGithubRef, trackRemoteChange } from ".";
+import { getConnection, setGithubRef, trackLocalChange, trackRemoteChange } from ".";
 import { writeFile } from "../file-system";
 import * as github from "./github";
 import { getArchive } from "./github";
 
-export function writeEachItemToFile(fsDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
-  return mapIteratorAsync(async (item) => writeFile(fsDb, item.path, "text/plain", item.content), generator);
+export function writeEachItemToFile(fsDb: Sqlite3.DB, syncDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
+  return mapIteratorAsync(async (item) => {
+    await writeFile(fsDb, item.path, "text/plain", item.content);
+    await trackLocalChange(syncDb, item.path, item.content);
+  }, generator);
 }
 
 export interface GitHubItem {
