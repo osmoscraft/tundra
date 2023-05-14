@@ -22,8 +22,8 @@ const routes = {
   clearFiles: () => Promise.all([fsInit().then((db) => fs.clear(db)), syncInit().then((db) => sync.clearHistory(db))]),
   getFile: (path: string) => fsInit().then((db) => fs.readFile(db, path)),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
+  getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
-  listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
   importGitHubRepo: asyncPipe(
     async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
     async () => sync.importGithubItems(await syncInit()),
@@ -34,10 +34,10 @@ const routes = {
       }, generator),
     exhaustIterator
   ),
+  listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
-  getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   writeFile: async (path: string, content: string) => {
     fs.writeFile(await fsInit(), path, "text/plain", content);
     sync.trackLocalChange(await syncInit(), path, content);
