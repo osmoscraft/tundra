@@ -2,8 +2,8 @@ import { asyncPipe, exhaustIterator, mapIteratorAsync, tap } from "@tinykb/fp-ut
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
-import type { GithubConnection } from "../modules/sync-v2";
-import * as sync from "../modules/sync-v2";
+import type { GithubConnection } from "../modules/sync";
+import * as sync from "../modules/sync";
 
 export type DataWorkerRoutes = typeof routes;
 
