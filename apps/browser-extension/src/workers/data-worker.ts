@@ -19,8 +19,8 @@ const routes = {
     tap(() => console.log("check sync")),
     sync.checkHealth
   ),
-  clearFiles: () => Promise.all([fsInit().then((db) => fs.clear(db)), syncInit().then((db) => sync.clearHistory(db))]),
-  getFile: (path: string) => fsInit().then((db) => fs.readFile(db, path)),
+  clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
+  getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
@@ -34,9 +34,9 @@ const routes = {
       }, generator),
     exhaustIterator
   ),
-  listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
+  listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
-  setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
+  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     fs.writeFile(await fsInit(), path, "text/plain", content);
