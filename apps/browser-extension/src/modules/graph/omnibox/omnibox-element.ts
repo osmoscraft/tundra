@@ -1,5 +1,4 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
-import { getDbWorkerProxy } from "../../../db-worker-proxy";
 import template from "./omnibox-element.html";
 
 export interface OmniboxSuggestion {
@@ -16,7 +15,6 @@ export class OmniboxElement extends HTMLElement {
   private form = this.shadowRoot.querySelector("form")!;
   private input = this.form.querySelector(`input[type="search"]`) as HTMLInputElement;
   private nodeList = this.shadowRoot.getElementById("node-list") as HTMLUListElement;
-  private worker = getDbWorkerProxy();
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => e.preventDefault());
