@@ -1,6 +1,12 @@
+import { mapIteratorAsync } from "@tinykb/fp-utils";
 import { getConnection, setGithubRef, trackRemoteChange } from ".";
+import { writeFile } from "../file-system";
 import * as github from "./github";
 import { getArchive } from "./github";
+
+export function writeEachItemToFile(fsDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
+  return mapIteratorAsync(async (item) => writeFile(fsDb, item.path, "text/plain", item.content), generator);
+}
 
 export interface GitHubItem {
   path: string;
@@ -11,11 +17,15 @@ export async function* importGithubItems(syncDb: Sqlite3.DB): AsyncGenerator<Git
   const connection = await getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
   const archive = await getArchive(connection);
-  for await (const item of importGithubArchive(archive.zipballUrl)) {
-    await trackRemoteChange(syncDb, item.path, item.content);
-    yield item;
-  }
+
+  yield* mapIteratorAsync(trackItemRemoteChange.bind(null, syncDb), importGithubArchive(archive.zipballUrl));
+
   setGithubRef(syncDb, archive.oid);
+}
+
+async function trackItemRemoteChange(db: Sqlite3.DB, item: GitHubItem) {
+  await trackRemoteChange(db, item.path, item.content);
+  return item;
 }
 
 async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubItem> {

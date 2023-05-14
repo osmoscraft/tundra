@@ -31,3 +31,9 @@ export async function* mapIteratorAsync<T, K>(
     yield await mapper(value);
   }
 }
+
+export async function exhaustIterator<T>(iterator: AsyncGenerator<T>) {
+  for await (const _value of iterator) {
+    // noop
+  }
+}

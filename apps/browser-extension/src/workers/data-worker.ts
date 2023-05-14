@@ -1,4 +1,4 @@
-import { asyncPipe, tap } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustIterator, tap } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
@@ -24,15 +24,14 @@ const routes = {
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   listFiles: () => fsInit().then((db) => fs.listFiles(db, 10, 0)),
   importGitHubRepo: () =>
-    Promise.all([fsInit(), syncInit()]).then(async ([fsDb, syncDb]) => {
-      await routes.clearFiles();
-      const items = sync.importGithubItems(syncDb);
-
-      // Todo refactor to async generator map util in FP utils
-      for await (const item of items) {
-        await fs.writeFile(fsDb, item.path, "text/plain", item.content);
-      }
-    }),
+    Promise.all([fsInit(), syncInit()]).then(async ([fsDb, syncDb]) =>
+      asyncPipe(
+        routes.clearFiles,
+        sync.importGithubItems.bind(null, syncDb),
+        sync.writeEachItemToFile.bind(null, fsDb),
+        exhaustIterator
+      )()
+    ),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: (connection: GithubConnection) => syncInit().then((db) => sync.setConnection(db, connection)),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
