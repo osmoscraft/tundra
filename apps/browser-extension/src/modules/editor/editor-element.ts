@@ -1,8 +1,30 @@
+import { getCombo } from "@tinykb/dom-utils";
+import type { Fn } from "@tinykb/fp-utils";
 import { htmlToMarkdown, markdownToHtml } from "./codec";
 import "./editor-element.css";
 
+export type Keymap = Record<string, Fn | undefined>;
+
 export class EditorElement extends HTMLElement {
-  connectedCallback() {}
+  focus() {
+    this.querySelector<HTMLElement>("[contenteditable]")?.focus();
+  }
+
+  setKeymap(keymap: Keymap) {
+    const wrappedHandler = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+      const keyCombo = getCombo(e);
+      const matchedHandler = keymap[keyCombo];
+      if (matchedHandler) {
+        e.preventDefault();
+        matchedHandler();
+      }
+    };
+
+    this.addEventListener("keydown", wrappedHandler);
+
+    return () => this.removeEventListener("keydown", wrappedHandler);
+  }
 
   setMarkdown(markdown: string) {
     this.innerHTML = /*html*/ `<div contenteditable="true">${markdownToHtml(markdown)}</div>`;

@@ -1,5 +1,5 @@
 import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
-import { handleCommandPalette, handleListEdit, loadNoteFromUrl } from "../modules/editor/editor";
+import { getDefaultKeymap, loadNoteFromUrl } from "../modules/editor/editor";
 import { EditorElement } from "../modules/editor/editor-element";
 import { FileTreeElement } from "../modules/editor/file-tree-element";
 import { DialogElement } from "../modules/shell/dialog-element";
@@ -19,9 +19,7 @@ customElements.define("editor-element", EditorElement);
 const dialog = document.querySelector<DialogElement>("dialog-element")!;
 const editor = document.querySelector<EditorElement>("editor-element")!;
 
-editor.addEventListener("keydown", async (e) => {
-  handleListEdit(editor, e);
-  handleCommandPalette(dialog, proxy, e);
-});
+const keymap = getDefaultKeymap(editor, dialog, proxy);
+editor.setKeymap(keymap);
 
-loadNoteFromUrl(proxy, editor);
+loadNoteFromUrl(proxy, editor).then(() => editor.focus());
