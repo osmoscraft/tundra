@@ -1,0 +1,48 @@
+editor-element {
+  [contenteditable] {
+    height: 100%;
+    outline: none;
+  }
+}
+
+editor-element {
+  [data-depth]::before {
+    content: " • ";
+    white-space: pre;
+    position: absolute;
+    transform: translateX(-2ch);
+  }
+}
+
+editor-element {
+  [data-depth="0"] {
+    padding-left: 3ch;
+  }
+  [data-depth="1"] {
+    padding-left: 5ch;
+  }
+  [data-depth="2"] {
+    padding-left: 7ch;
+  }
+  [data-depth="3"] {
+    padding-left: 9ch;
+  }
+  [data-depth="4"] {
+    padding-left: 11ch;
+  }
+  [data-depth="5"] {
+    padding-left: 13ch;
+  }
+  [data-depth="6"] {
+    padding-left: 15ch;
+  }
+  [data-depth="7"] {
+    padding-left: 17ch;
+  }
+  [data-depth="8"] {
+    padding-left: 19ch;
+  }
+  [data-depth="9"] {
+    padding-left: 21ch;
+  }
+}

@@ -6,11 +6,13 @@
     <title>TinyKB</title>
     <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
     <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./notebook.css" />
   </head>
   <body>
-    <a href="./options.html">Options</a>
-    <file-system-explorer-element></file-system-explorer-element>
-
+    <shell-element>
+      <editor-element slot="main"></editor-element>
+      <dialog-element slot="dialog">test dialog</dialog-element>
+    </shell-element>
     <script type="module" src="./notebook.js"></script>
   </body>
 </html>
