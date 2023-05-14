@@ -19,3 +19,14 @@ export const attachShadowHtml = (html: string, target: Element) => {
 
   return shadow;
 };
+
+export interface WithStaticDependencies<T> {
+  dependencies: T;
+}
+export function staticDependencies<T, P extends WithStaticDependencies<T>>(
+  klass: P,
+  deps: P extends WithStaticDependencies<infer U> ? U : never
+) {
+  klass.dependencies = deps;
+  return klass;
+}
