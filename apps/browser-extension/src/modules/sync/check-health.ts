@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { trackLocalChange, trackRemoteChange } from ".";
+import { getChangedFiles, trackLocalChange, trackRemoteChange } from ".";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 import UPSERT_FILE from "./sql/upsert-file.sql";
@@ -51,6 +51,12 @@ export async function checkHealth() {
     }
   }
 
+  function assertDefined(actual: any, message: string) {
+    if (typeof actual === "undefined") {
+      throw new Error(`Assert defined failed: ${message}`);
+    }
+  }
+
   function log(message: string) {
     return console.log("[check health]", message);
   }
@@ -67,12 +73,33 @@ export async function checkHealth() {
     log("ensure schema");
     db.exec(SCHEMA);
 
-    log("test all file states");
-    const testEntries = await import("./load-test-data").then((module) => module.getTestDataEntries());
+    log("test single file states");
+    const testEntries = await import("./load-test-data").then((module) => module.getSingleFileTestEntries());
     for (const entry of testEntries) {
       await assertFileState(db, entry.file, entry.expected);
+      log(`single file state ok: ${entry.file.path}`);
     }
-    log(`test all file states ok: ${testEntries.length} files`);
+
+    log("test changed files");
+    const changeEntries = await getChangedFiles(db);
+    testEntries
+      .filter((entry) => entry.expected.status !== "unchanged")
+      .forEach((entry) => {
+        const matchedChangeEntry = changeEntries.find((change) => change.path === entry.file.path);
+        assertDefined(matchedChangeEntry, `change entry not found: ${entry.file.path}`);
+        assertStrictEqual(
+          matchedChangeEntry?.source,
+          entry.expected.source,
+          `change entry source not matched: ${entry.file.path}`
+        );
+        assertStrictEqual(
+          matchedChangeEntry?.status,
+          entry.expected.status,
+          `change entry status not matched: ${entry.file.path}`
+        );
+      });
+
+    log(`test change files ok: ${changeEntries.length} files`);
 
     log(`lifecycle: local added > push > local modified > local removed`);
     await trackLocalChange(db, "/test/new-local-file", "test");

@@ -12,7 +12,7 @@ interface TestDataEntry {
   };
 }
 
-export function getTestDataEntries(): TestDataEntry[] {
+export function getSingleFileTestEntries(): TestDataEntry[] {
   return [
     {
       file: { path: "file-out-1", localAt: "1990-01-01T00:00:00", localHash: null, remoteAt: null, remoteHash: null },

@@ -27,7 +27,7 @@ export function getDefaultKeymap(
     "alt+l": () => editor.indentRelative(1),
     "alt+k": () => editor.moveUp(),
     "alt+j": () => editor.moveDown(),
-    "ctrl+p": () => openCommandPalette(dialog, proxy),
+    "ctrl+space": () => openCommandPalette(dialog, proxy),
     "ctrl+s": () => save(editor, proxy),
   };
 }

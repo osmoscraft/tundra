@@ -4,6 +4,7 @@ import type { GithubConnection } from "./github";
 import * as github from "./github";
 import CLEAR_CONFIG from "./sql/clear-config.sql";
 import CLEAR_HISTORY from "./sql/clear-history.sql";
+import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
@@ -49,7 +50,16 @@ export async function getConnection(db: Sqlite3.DB) {
   return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
 }
 
-export async function setGithubRef(db: Sqlite3.DB, id: string) {
+export interface ChangedFile {
+  path: string;
+  source: "local" | "remote" | "both";
+  status: "added" | "modified" | "removed" | "conflict";
+}
+export function getChangedFiles(db: Sqlite3.DB): ChangedFile[] {
+  return db.selectObjects<ChangedFile>(LIST_FILE_CHANGES);
+}
+
+export function setGithubRef(db: Sqlite3.DB, id: string) {
   return db.exec(REPLACE_GITHUB_REF, {
     bind: { ":id": id },
   });
