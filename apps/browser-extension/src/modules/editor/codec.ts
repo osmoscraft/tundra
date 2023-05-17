@@ -3,7 +3,7 @@ const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/g; // `[title](target)`
 export function markdownToHtml(md: string) {
   return md
     .split("\n")
-    .filter((line) => line.trimStart().startsWith("-"))
+    .filter((line) => line.trimStart().startsWith("- "))
     .map((line) => {
       const listMarkPos = line.indexOf("- ");
       const depth = listMarkPos >> 1; // divide by 2 using right shift
