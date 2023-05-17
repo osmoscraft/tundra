@@ -10,7 +10,13 @@ import "./notebook.css";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
+const routes = {
+  setStatus: (text: string) => statusBar.setText(text),
+};
+// TODO fix duplex communication
+// server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
+export type NotebookRoutes = typeof routes;
 
 customElements.define("shell-element", ShellElement);
 customElements.define("dialog-element", DialogElement);

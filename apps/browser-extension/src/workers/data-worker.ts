@@ -1,9 +1,10 @@
 import { asyncPipe, exhaustIterator, mapIteratorAsync, tap } from "@tinykb/fp-utils";
-import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
+import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import type { NotebookRoutes } from "../pages/notebook";
 
 export type DataWorkerRoutes = typeof routes;
 
@@ -11,6 +12,8 @@ const FS_DB_PATH = "/tinykb-fs.sqlite3";
 const SYNC_DB_PATH = "/tinykb-sync.sqlite3";
 const fsInit = fs.init.bind(null, FS_DB_PATH);
 const syncInit = sync.init.bind(null, SYNC_DB_PATH);
+
+const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 const routes = {
   checkHealth: asyncPipe(
@@ -20,7 +23,6 @@ const routes = {
     sync.checkHealth
   ),
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
-  getChangedFiles: async () => sync.getChangedFiles(await syncInit()),
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
@@ -40,11 +42,15 @@ const routes = {
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
-    fs.writeFile(await fsInit(), path, "text/plain", content);
-    sync.trackLocalChange(await syncInit(), path, content);
+    await fs.writeFile(await fsInit(), path, "text/plain", content);
+    await sync.trackLocalChange(await syncInit(), path, content);
   },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 console.log("[data worker] online");
+
+// on start, report change status
+// TODO fix channel conflict in rpc to allow duplex communication
+// setTimeout(() => syncInit().then((db) => proxy.setStatus(JSON.stringify(sync.getChangedFiles(db)))), 1000);
