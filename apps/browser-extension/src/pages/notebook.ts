@@ -1,4 +1,4 @@
-import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
+import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
 import { getDefaultKeymap, loadNoteFromUrl } from "../modules/editor/editor";
 import { EditorElement } from "../modules/editor/editor-element";
 import { FileTreeElement } from "../modules/editor/file-tree-element";
@@ -13,8 +13,7 @@ const worker = new Worker("./data-worker.js", { type: "module" });
 const routes = {
   setStatus: (text: string) => statusBar.setText(text),
 };
-// TODO fix duplex communication
-// server({ routes, port: dedicatedWorkerHostPort(worker) });
+server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 export type NotebookRoutes = typeof routes;
 

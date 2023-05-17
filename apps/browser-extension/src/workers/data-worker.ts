@@ -52,5 +52,4 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
 console.log("[data worker] online");
 
 // on start, report change status
-// TODO fix channel conflict in rpc to allow duplex communication
-// setTimeout(() => syncInit().then((db) => proxy.setStatus(JSON.stringify(sync.getChangedFiles(db)))), 1000);
+syncInit().then((db) => proxy.setStatus(JSON.stringify(sync.getChangedFiles(db))));

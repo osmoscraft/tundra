@@ -13,7 +13,7 @@ export function client<T extends {}>(config: { port: IPort }): Client<T> {
     callback?.(payload);
   };
 
-  let mid = 0;
+  // let mid = 0;
 
   const stop = () => config.port.off(handlePortMessage);
   config.port.on(handlePortMessage);
@@ -25,7 +25,7 @@ export function client<T extends {}>(config: { port: IPort }): Client<T> {
         (_target, prop) =>
         (...args: any[]) =>
           new Promise((resolve, reject) => {
-            const currentMid = (++mid % Number.MAX_SAFE_INTEGER).toString();
+            const currentMid = crypto.randomUUID();
 
             const packet = { header: { mid: currentMid }, payload: { prop, args } };
 
