@@ -1,6 +1,7 @@
 <div class="c-shell">
   <slot name="main"></slot>
   <slot name="aside"></slot>
+  <slot name="bar"></slot>
   <slot name="dialog"></slot>
 </div>
 <link rel="stylesheet" href="./styles/reset.css" />
@@ -8,6 +9,18 @@
   .c-shell {
     height: 100%;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template:
+      "main aside" 1fr
+      "bar bar" auto / 1fr auto;
+  }
+
+  ::slotted([slot="main"]) {
+    grid-area: main;
+  }
+  ::slotted([slot="aside"]) {
+    grid-area: aside;
+  }
+  ::slotted([slot="bar"]) {
+    grid-area: bar;
   }
 </style>
