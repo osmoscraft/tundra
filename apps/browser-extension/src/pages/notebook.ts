@@ -20,8 +20,11 @@ customElements.define("status-bar-element", StatusBarElement);
 
 const dialog = document.querySelector<DialogElement>("dialog-element")!;
 const editor = document.querySelector<EditorElement>("editor-element")!;
+const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
 
 const keymap = getDefaultKeymap(editor, dialog, proxy);
 editor.setKeymap(keymap);
+
+statusBar.setText("Loading...");
 
 loadNoteFromUrl(proxy, editor).then(() => editor.focus());
