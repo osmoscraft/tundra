@@ -1,10 +1,17 @@
+import { applyPatch, parsePatch } from "diff";
+
 import { asyncPipe, exhaustIterator, mapIteratorAsync, tap } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
+import DELETE_FILE from "../modules/file-system/sql/delete-file.sql";
+import SELECT_FILE from "../modules/file-system/sql/select-file.sql";
+import UPSERT_FILE from "../modules/file-system/sql/upsert-file.sql";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { b64DecodeUnicode } from "../modules/sync/github/base64";
 import { compare } from "../modules/sync/github/operations/compare";
+import { getBlob } from "../modules/sync/github/operations/get-blob";
 import { getRemoteHeadRef } from "../modules/sync/github/operations/get-remote-head-ref";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
@@ -52,14 +59,75 @@ const routes = {
     if (!localHeadRefId) throw new Error("Local repo uninitialized");
 
     const remoteHeadRefId = await getRemoteHeadRef(connection);
-    if (remoteHeadRefId === localHeadRefId) return; // up to date
+    if (remoteHeadRefId === localHeadRefId) {
+      await proxy.setStatus(formatStatus(sync.getChangedFiles(await syncInit())));
+      return; // up to date
+    }
 
     const compareResults = await compare(connection, { base: localHeadRefId, head: remoteHeadRefId });
     console.log(compareResults);
 
-    // merge
-    // push
-    // status update
+    const fsDb = await fsInit();
+
+    // TODO globally trim leading slash
+    const allChangedFiles = compareResults.files
+      .filter((file) => file.filename.startsWith("notes/"))
+      .filter((file) => file.status !== "removed")
+      .map((file) => ({
+        path: `/${file.filename}`,
+        sha: file.sha,
+        localContent:
+          fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
+            ":path": `/${file.filename}`,
+          })?.content ?? "",
+        patch: file.patch,
+        parsedPatches: file.patch ? parsePatch(file.patch) : null,
+      }));
+    console.log(`[pull] all changes`, allChangedFiles);
+
+    // TOOD consolidate with above
+    const patchedFiles = await Promise.all(
+      allChangedFiles.map(async (change) => ({
+        ...change,
+        latestContent: change.parsedPatches
+          ? applyPatch(change.localContent, change.parsedPatches[0])
+          : b64DecodeUnicode((await getBlob(connection!, { sha: change.sha })).content),
+      }))
+    );
+    console.log(`[pull] all patched`, patchedFiles);
+    const allDeletedFiles = compareResults.files
+      .filter((file) => file.filename.startsWith("notes/"))
+      .filter((file) => file.status === "removed");
+
+    const syncDb = await syncInit();
+
+    patchedFiles.forEach((change) => {
+      sync.trackRemoteChange(syncDb, change.path, change.latestContent);
+      fsDb.exec(UPSERT_FILE, {
+        bind: {
+          ":path": change.path,
+          ":type": "text/plain",
+          ":content": change.latestContent,
+        },
+      });
+      console.log("change", change.path);
+      sync.trackLocalChange(syncDb, change.path, change.latestContent);
+    });
+
+    allDeletedFiles.forEach((file) => {
+      sync.trackRemoteChange(syncDb, `/${file.filename}`, null);
+      fsDb.exec(DELETE_FILE, {
+        bind: {
+          ":path": `/${file.filename}`,
+        },
+      });
+      console.log("delete", file.filename);
+      sync.trackLocalChange(syncDb, `/${file.filename}`, null);
+    });
+
+    sync.setGithubRef(syncDb, remoteHeadRefId);
+
+    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {

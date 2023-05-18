@@ -6,5 +6,6 @@ export class StatusBarElement extends HTMLElement {
 
   setText(text: string) {
     this.shadowRoot.getElementById("message")!.textContent = text;
+    this.shadowRoot.getElementById("time")!.textContent = new Date().toLocaleTimeString();
   }
 }

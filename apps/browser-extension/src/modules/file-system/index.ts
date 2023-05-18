@@ -8,7 +8,10 @@ import UPSERT_FILE from "./sql/upsert-file.sql";
 export * from "./check-health";
 
 export const init = callOnce(
-  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => db.exec(SCHEMA))
+  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {
+    db.exec(SCHEMA);
+    return db;
+  })
 );
 
 export function clear(db: Sqlite3.DB) {

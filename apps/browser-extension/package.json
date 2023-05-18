@@ -22,6 +22,7 @@
     "esbuild": "^0.17.16"
   },
   "dependencies": {
-    "@zip.js/zip.js": "^2.7.2"
+    "@zip.js/zip.js": "^2.7.2",
+    "diff": "^5.1.0"
   }
 }
