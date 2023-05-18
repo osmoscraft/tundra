@@ -9,6 +9,7 @@ import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
+import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
 import UPSERT_LOCAL_CHANGE from "./sql/upsert-local-change.sql";
 import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
 
@@ -23,12 +24,29 @@ export const init = callOnce(
   })
 );
 
+export async function getConnection(db: Sqlite3.DB) {
+  return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
+}
+
 export function clearConfig(db: Sqlite3.DB) {
   return db.exec(CLEAR_CONFIG);
 }
 
 export function clearHistory(db: Sqlite3.DB) {
   return db.exec(CLEAR_HISTORY);
+}
+
+export function getGithubRef(db: Sqlite3.DB) {
+  return db.selectObject<{ id: string }>(SELECT_GITHUB_REF) ?? null;
+}
+
+export interface ChangedFile {
+  path: string;
+  source: "local" | "remote" | "both";
+  status: "added" | "modified" | "removed" | "conflict";
+}
+export function getChangedFiles(db: Sqlite3.DB): ChangedFile[] {
+  return db.selectObjects<ChangedFile>(LIST_FILE_CHANGES);
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {
@@ -41,28 +59,15 @@ export async function setConnection(db: Sqlite3.DB, connection: GithubConnection
   });
 }
 
-export async function testConnection(db: Sqlite3.DB) {
-  const connection = await getConnection(db);
-  return !!connection && github.testConnection(connection);
-}
-
-export async function getConnection(db: Sqlite3.DB) {
-  return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
-}
-
-export interface ChangedFile {
-  path: string;
-  source: "local" | "remote" | "both";
-  status: "added" | "modified" | "removed" | "conflict";
-}
-export function getChangedFiles(db: Sqlite3.DB): ChangedFile[] {
-  return db.selectObjects<ChangedFile>(LIST_FILE_CHANGES);
-}
-
 export function setGithubRef(db: Sqlite3.DB, id: string) {
   return db.exec(REPLACE_GITHUB_REF, {
     bind: { ":id": id },
   });
+}
+
+export async function testConnection(db: Sqlite3.DB) {
+  const connection = await getConnection(db);
+  return !!connection && github.testConnection(connection);
 }
 
 export async function trackLocalChange(db: Sqlite3.DB, path: string, content: string | null) {

@@ -4,6 +4,8 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { compare } from "../modules/sync/github/operations/compare";
+import { getRemoteHeadRef } from "../modules/sync/github/operations/get-remote-head-ref";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
@@ -42,7 +44,19 @@ const routes = {
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   syncGitHubRepo: async () => {
+    // ensure connection
+    const connection = await sync.getConnection(await syncInit());
+    if (!connection) throw new Error("Missing connection");
     // fetch
+    const localHeadRefId = sync.getGithubRef(await syncInit())?.id;
+    if (!localHeadRefId) throw new Error("Local repo uninitialized");
+
+    const remoteHeadRefId = await getRemoteHeadRef(connection);
+    if (remoteHeadRefId === localHeadRefId) return; // up to date
+
+    const compareResults = await compare(connection, { base: localHeadRefId, head: remoteHeadRefId });
+    console.log(compareResults);
+
     // merge
     // push
     // status update
