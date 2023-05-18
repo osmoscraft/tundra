@@ -4,6 +4,7 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
 export type DataWorkerRoutes = typeof routes;
@@ -40,6 +41,12 @@ const routes = {
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
+  syncGitHubRepo: async () => {
+    // fetch
+    // merge
+    // push
+    // status update
+  },
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     await fs.writeFile(await fsInit(), path, "text/plain", content);
@@ -52,4 +59,4 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
 console.log("[data worker] online");
 
 // on start, report change status
-syncInit().then((db) => proxy.setStatus(JSON.stringify(sync.getChangedFiles(db))));
+syncInit().then((db) => proxy.setStatus(formatStatus(sync.getChangedFiles(db))));
