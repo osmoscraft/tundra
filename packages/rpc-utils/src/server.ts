@@ -7,7 +7,12 @@ export interface Server {
 
 export function server(config: { port: IPort; routes: Record<string, Fn> }): Server {
   const handleChannelMessage = async ({ header, payload }: IPortMessage) => {
-    const createResponse: (payload: any) => IPortMessage = (payload) => ({ header: { mid: header.mid }, payload });
+    if (header.type !== "req") return; // ignore responses from other servers in case port is used by another client
+
+    const createResponse: (payload: any) => IPortMessage = (payload) => ({
+      header: { mid: header.mid, type: "res" },
+      payload,
+    });
 
     try {
       const output = await config.routes[payload.prop](...payload.args);

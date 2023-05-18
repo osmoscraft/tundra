@@ -13,8 +13,6 @@ export function client<T extends {}>(config: { port: IPort }): Client<T> {
     callback?.(payload);
   };
 
-  // let mid = 0;
-
   const stop = () => config.port.off(handlePortMessage);
   config.port.on(handlePortMessage);
 
@@ -27,7 +25,7 @@ export function client<T extends {}>(config: { port: IPort }): Client<T> {
           new Promise((resolve, reject) => {
             const currentMid = crypto.randomUUID();
 
-            const packet = { header: { mid: currentMid }, payload: { prop, args } };
+            const packet = { header: { mid: currentMid, type: "req" as const }, payload: { prop, args } };
 
             const callback = (payload: { result: any; error: any }) => {
               callbackMap.delete(currentMid);

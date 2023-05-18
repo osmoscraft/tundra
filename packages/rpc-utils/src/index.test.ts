@@ -136,6 +136,83 @@ describe("RPC", () => {
   });
 });
 
+describe("Complex network", () => {
+  it("Single duplex connection", async () => {
+    const { port1, port2, inspect } = getMockPorts();
+
+    const records: string[] = [];
+
+    const routes1 = {
+      ping: () => {
+        records.push("A1");
+      },
+    };
+    const routes2 = {
+      ping: () => records.push("B1"),
+    };
+
+    server({
+      port: port1,
+      routes: routes1,
+    });
+    server({
+      port: port2,
+      routes: routes2,
+    });
+
+    console.log(inspect());
+
+    const { proxy: routes1Proxy } = client<typeof routes1>({
+      port: port2,
+    });
+    const { proxy: routes2Proxy } = client<typeof routes2>({
+      port: port1,
+    });
+
+    await routes1Proxy.ping();
+    assert.deepEqual(records, ["A1"]);
+
+    await routes2Proxy.ping();
+    assert.deepEqual(records, ["A1", "B1"]);
+  });
+
+  it("Multiple connections", async () => {
+    const { port1: portA1, port2: portA2 } = getMockPorts();
+    const { port1: portB1, port2: portB2 } = getMockPorts();
+
+    const records: string[] = [];
+
+    const routesA1 = {
+      ping: () => records.push("A1"),
+    };
+    const routesB1 = {
+      ping: () => records.push("B1"),
+    };
+
+    server({
+      port: portA1,
+      routes: routesA1,
+    });
+    server({
+      port: portB1,
+      routes: routesB1,
+    });
+
+    const { proxy: portA1Proxy } = client<typeof routesA1>({
+      port: portA2,
+    });
+    const { proxy: portB1Proxy } = client<typeof routesB1>({
+      port: portB2,
+    });
+
+    await portA1Proxy.ping();
+    assert.deepEqual(records, ["A1"]);
+
+    await portB1Proxy.ping();
+    assert.deepEqual(records, ["A1", "B1"]);
+  });
+});
+
 describe("Error handling", () => {
   it("Reject without reason", async () => {
     const { port1, port2 } = getMockPorts();

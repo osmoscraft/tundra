@@ -15,6 +15,7 @@ export interface IPort {
 export interface IPortMessage {
   header: {
     mid: string;
+    type: "req" | "res";
   };
   payload: any;
 }
