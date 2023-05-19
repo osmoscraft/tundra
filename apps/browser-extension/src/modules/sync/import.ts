@@ -37,7 +37,7 @@ async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubIt
   function parseGithubZipItemPath(zipItemPath: string): ParsedPath {
     return {
       archivePath: zipItemPath,
-      localMarkdownNotePath: zipItemPath.match(/(\/notes\/.*\.md)/)?.[0],
+      localMarkdownNotePath: zipItemPath.match(/\/(notes\/.*\.md)/)?.[1],
     };
   }
 
@@ -45,7 +45,7 @@ async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubIt
   for await (const item of itemsGenerator) {
     const parsedPath = parseGithubZipItemPath(item.path);
     if (!parsedPath.localMarkdownNotePath) {
-      console.log(`[import] skip ${item.path.slice(item.path.indexOf("/"))}`);
+      console.log(`[import] skip ${item.path.slice(item.path.indexOf("/") + 1)}`);
     } else {
       const content = await item.readAsText();
       console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);

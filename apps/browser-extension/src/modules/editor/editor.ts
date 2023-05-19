@@ -29,7 +29,7 @@ export function getDefaultKeymap(
     "alt+j": () => editor.moveDown(),
     "ctrl+space": () => openCommandPalette(dialog, proxy),
     "ctrl+s": () => save(editor, proxy),
-    "ctrl+shift+s": () => proxy.syncGitHubRepo(),
+    "ctrl+shift+s": () => proxy.syncGitHub(),
   };
 }
 

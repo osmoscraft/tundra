@@ -33,6 +33,9 @@ const routes = {
     sync.checkHealth
   ),
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
+  fetchGithub: async () => {
+    // TBD
+  },
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
@@ -50,7 +53,7 @@ const routes = {
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
-  syncGitHubRepo: async () => {
+  syncGitHub: async () => {
     // ensure connection
     const connection = await sync.getConnection(await syncInit());
     if (!connection) throw new Error("Missing connection");
@@ -69,16 +72,15 @@ const routes = {
 
     const fsDb = await fsInit();
 
-    // TODO globally trim leading slash
     const allChangedFiles = compareResults.files
       .filter((file) => file.filename.startsWith("notes/"))
       .filter((file) => file.status !== "removed")
       .map((file) => ({
-        path: `/${file.filename}`,
+        path: file.filename,
         sha: file.sha,
         localContent:
           fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
-            ":path": `/${file.filename}`,
+            ":path": file.filename,
           })?.content ?? "",
         patch: file.patch,
         parsedPatches: file.patch ? parsePatch(file.patch) : null,
@@ -115,14 +117,14 @@ const routes = {
     });
 
     allDeletedFiles.forEach((file) => {
-      sync.trackRemoteChange(syncDb, `/${file.filename}`, null);
+      sync.trackRemoteChange(syncDb, file.filename, null);
       fsDb.exec(DELETE_FILE, {
         bind: {
-          ":path": `/${file.filename}`,
+          ":path": file.filename,
         },
       });
       console.log("delete", file.filename);
-      sync.trackLocalChange(syncDb, `/${file.filename}`, null);
+      sync.trackLocalChange(syncDb, file.filename, null);
     });
 
     sync.setGithubRef(syncDb, remoteHeadRefId);
