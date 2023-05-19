@@ -3,6 +3,7 @@ import { getConnection, setGithubRef, trackLocalChange, trackRemoteChange } from
 import { writeFile } from "../file-system";
 import * as github from "./github";
 import { getArchive } from "./github";
+import { githubPathToLocalPath, zipPathToGitHubFilePath } from "./path";
 
 export function writeEachItemToFile(fsDb: Sqlite3.DB, syncDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
   return mapIteratorAsync(async (item) => {
@@ -34,28 +35,17 @@ async function trackItemRemoteChange(db: Sqlite3.DB, item: GitHubItem) {
 async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubItem> {
   const itemsGenerator = github.downloadZip(zipballUrl);
 
-  function parseGithubZipItemPath(zipItemPath: string): ParsedPath {
-    return {
-      archivePath: zipItemPath,
-      localMarkdownNotePath: zipItemPath.match(/\/(notes\/.*\.md)/)?.[1],
-    };
-  }
-
   performance.mark("import-start");
   for await (const item of itemsGenerator) {
-    const parsedPath = parseGithubZipItemPath(item.path);
-    if (!parsedPath.localMarkdownNotePath) {
-      console.log(`[import] skip ${item.path.slice(item.path.indexOf("/") + 1)}`);
+    const githubPath = zipPathToGitHubFilePath(item.path);
+    const localPath = githubPathToLocalPath(githubPath);
+    if (!localPath) {
+      console.log(`[import] skip ${githubPath}`);
     } else {
       const content = await item.readAsText();
-      console.log(`[import] accept ${parsedPath.localMarkdownNotePath} (size: ${content.length})`);
-      yield { path: parsedPath.localMarkdownNotePath, content };
+      console.log(`[import] accept ${localPath} (size: ${content.length})`);
+      yield { path: localPath, content };
     }
   }
   console.log("[perf] import", performance.measure("import duration", "import-start").duration);
-}
-
-interface ParsedPath {
-  archivePath: string;
-  localMarkdownNotePath?: string;
 }

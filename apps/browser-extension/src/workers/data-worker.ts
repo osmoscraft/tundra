@@ -72,30 +72,29 @@ const routes = {
 
     const fsDb = await fsInit();
 
-    const allChangedFiles = compareResults.files
-      .filter((file) => file.filename.startsWith("notes/"))
-      .filter((file) => file.status !== "removed")
-      .map((file) => ({
-        path: file.filename,
-        sha: file.sha,
-        localContent:
-          fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
-            ":path": file.filename,
-          })?.content ?? "",
-        patch: file.patch,
-        parsedPatches: file.patch ? parsePatch(file.patch) : null,
-      }));
-    console.log(`[pull] all changes`, allChangedFiles);
-
-    // TOOD consolidate with above
+    // TODO pattern match so iterate only once
     const patchedFiles = await Promise.all(
-      allChangedFiles.map(async (change) => ({
-        ...change,
-        latestContent: change.parsedPatches
-          ? applyPatch(change.localContent, change.parsedPatches[0])
-          : b64DecodeUnicode((await getBlob(connection!, { sha: change.sha })).content),
-      }))
+      compareResults.files
+        .filter((file) => file.filename.startsWith("notes/"))
+        .filter((file) => file.status !== "removed")
+        .map((file) => ({
+          path: file.filename,
+          sha: file.sha,
+          localContent:
+            fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
+              ":path": file.filename,
+            })?.content ?? "",
+          patch: file.patch,
+          parsedPatches: file.patch ? parsePatch(file.patch) : null,
+        }))
+        .map(async (change) => ({
+          ...change,
+          latestContent: change.parsedPatches
+            ? applyPatch(change.localContent, change.parsedPatches[0])
+            : b64DecodeUnicode((await getBlob(connection!, { sha: change.sha })).content),
+        }))
     );
+
     console.log(`[pull] all patched`, patchedFiles);
     const allDeletedFiles = compareResults.files
       .filter((file) => file.filename.startsWith("notes/"))
