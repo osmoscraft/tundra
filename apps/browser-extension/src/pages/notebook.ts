@@ -33,3 +33,4 @@ editor.setKeymap(keymap);
 statusBar.setText("Loading...");
 
 loadNoteFromUrl(proxy, editor).then(() => editor.focus());
+proxy.fetchGithub();

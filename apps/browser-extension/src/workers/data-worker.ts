@@ -4,7 +4,12 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { ensureFetchParameters, getGitHubChangedFiles, pullChangedFile, pullRemovedFile } from "../modules/sync/fetch";
+import {
+  ensureFetchParameters,
+  getChangedFileContent,
+  getGitHubChangedFiles,
+  mergeChangedFile,
+} from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { githubPathToLocalPath } from "../modules/sync/path";
 import { formatStatus } from "../modules/sync/status";
@@ -46,15 +51,30 @@ const routes = {
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   fetchGithub: async () => {
-    // TBD
-  },
-  syncGitHub: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
-    const onCompareResultFile = (file: CompareResultFile) =>
-      Promise.all([pullChangedFile(connection, fsDb, syncDb, file), pullRemovedFile(fsDb, syncDb, file)]);
+    const onCompareResultFile = async (file: CompareResultFile) =>
+      sync.trackRemoteChange(syncDb, file.filename, await getChangedFileContent(connection, fsDb, file));
+
+    await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
+      Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
+    );
+
+    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+  },
+  pullGitHub: async () => {
+    const fsDb = await fsInit();
+    const syncDb = await syncInit();
+    const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
+
+    const onCompareResultFile = async (file: CompareResultFile) => {
+      const latestContent = await getChangedFileContent(connection, fsDb, file);
+      await sync.trackRemoteChange(syncDb, file.filename, latestContent);
+      await mergeChangedFile(fsDb, file.filename, latestContent);
+      await sync.trackLocalChange(syncDb, file.filename, latestContent);
+    };
 
     await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
       Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
