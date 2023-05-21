@@ -27,7 +27,7 @@ export const init = callOnce(
   })
 );
 
-export async function getConnection(db: Sqlite3.DB) {
+export function getConnection(db: Sqlite3.DB) {
   return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
 }
 

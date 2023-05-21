@@ -34,7 +34,7 @@ export function unwrap<T = any>(maybeErrors: { data: T; errors?: any[] }) {
   return maybeErrors.data;
 }
 
-function getGitHubInit(auth: GithubAuth): RequestInit {
+export function getGitHubInit(auth: GithubAuth): RequestInit {
   return {
     headers: new Headers({
       Authorization: "Basic " + (btoa as Window["btoa"])(`${auth.owner}:${auth.token}`),

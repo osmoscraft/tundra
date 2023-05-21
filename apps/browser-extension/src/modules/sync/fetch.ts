@@ -14,7 +14,7 @@ export interface FetchParameters {
   remoteHeadRefId: string;
 }
 export async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchParameters> {
-  const connection = await getConnection(syncDb);
+  const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 
   const localHeadRefId = getGithubRef(syncDb)?.id;

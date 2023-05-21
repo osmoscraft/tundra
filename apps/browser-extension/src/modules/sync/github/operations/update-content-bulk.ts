@@ -7,7 +7,7 @@ import { updateRef } from "./update-ref";
 
 export interface BulkFileChangeItem {
   path: string;
-  content: string;
+  content: string | null; // null when deleting
   changeType: ChangeType;
 }
 
@@ -41,7 +41,7 @@ export async function updateContentBulk(
       path: item.path,
       mode: ObjectMode.File,
       type: ObjectType.Blob,
-      content: item.content,
+      content: item.content!, // null only when deleting
     })),
     ...deleteItems.map((item) => ({
       path: item.path,

@@ -1,6 +1,6 @@
 import type { GithubConnection } from "..";
-import { b64EncodeUnicode } from "../../../../utils/base64";
-import { apiV3, getGitHubInit } from "../proxy/api-connection";
+import { b64EncodeUnicode } from "../base64";
+import { apiV3 } from "../proxy/api-connection";
 
 export interface FileChange {
   path: string;
@@ -24,16 +24,16 @@ export async function updateContent(
   fileChange: FileChange
 ): Promise<UpdateContentResult> {
   const update = await apiV3<UpdateContentResult>(
+    connection,
+    `/repos/${connection.owner}/${connection.repo}/contents/${fileChange.path}`,
     {
-      ...getGitHubInit(connection),
       method: "PUT",
       body: JSON.stringify({
         message: "tinykb update",
         sha: fileChange.sha,
         content: b64EncodeUnicode(fileChange.content), // This cannot handle non-ASCII characters
       }),
-    },
-    `https://api.github.com/repos/${connection.owner}/${connection.repo}/contents/${fileChange.path}`
+    }
   );
 
   return update;

@@ -7,13 +7,10 @@ import * as sync from "../modules/sync";
 import { trackRemoteChange } from "../modules/sync";
 import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
-import {
-  ChangeType,
-  updateContentBulk,
-  type BulkFileChangeItem,
-} from "../modules/sync/github/operations/update-content-bulk";
+import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
+import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
@@ -40,6 +37,7 @@ const routes = {
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   importGitHubRepo: asyncPipe(
+    // TODO refactor to expose ref update logic
     async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
     async () => sync.importGithubItems(await syncInit()),
     async (generator: AsyncGenerator<sync.GitHubItem>) =>
@@ -89,50 +87,24 @@ const routes = {
   pushGitHub: async () => {
     const syncDb = await syncInit();
     const fsDb = await fsInit();
-
-    const connection = await sync.getConnection(syncDb);
-    if (!connection) throw new Error("Missing connection");
-
-    function syncStatusToPushChangeType(staus: sync.DbFileChangeStatus): ChangeType {
-      switch (staus) {
-        case sync.DbFileChangeStatus.Added:
-          return ChangeType.Add;
-        case sync.DbFileChangeStatus.Modified:
-          return ChangeType.Modify;
-        case sync.DbFileChangeStatus.Removed:
-          return ChangeType.Remove;
-        default:
-          throw new Error(`Unsupported status for push operation: ${staus}`);
-      }
-    }
-
+    const { connection } = ensurePushParameters(syncDb);
     const localFileChanges = sync.getLocalChangedFiles(syncDb);
 
-    const fileChanges: BulkFileChangeItem[] = localFileChanges.map((file) => {
-      const localFile = fs.readFile(fsDb, file.path);
-      return {
-        path: file.path,
-        content: localFile?.content || "",
-        changeType: syncStatusToPushChangeType(file.status),
-      };
-    });
+    const fileChanges = localFileChanges.map(fileChangeToBulkFileChangeItem.bind(null, fsDb));
 
     if (!fileChanges.length) {
       console.log("Nothing to push");
       return;
     }
 
-    // push changes to github
     const pushResult = await updateContentBulk(connection, fileChanges);
 
-    // update all remote file hashes
     await Promise.all(
       fileChanges.map((file) =>
         trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
       )
     );
 
-    // update head ref
     sync.setGithubRef(syncDb, pushResult.commitSha);
 
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
