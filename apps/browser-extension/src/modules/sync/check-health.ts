@@ -1,30 +1,18 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import { getChangedFiles, trackLocalChange, trackRemoteChange } from ".";
+import type { TestDataEntry } from "./load-test-data";
 import type { DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE_CHANGE from "./sql/select-file-change.sql";
 import UPSERT_FILE_CHANGE from "./sql/upsert-file-change.sql";
 
 export async function checkHealth() {
-  async function assertFileState(
-    db: Sqlite3.DB,
-    file: {
-      path: string;
-      localAt: string | null;
-      remoteAt: string | null;
-      localHash: string | null;
-      remoteHash: string | null;
-    },
-    expected: {
-      source: string;
-      status: string;
-    }
-  ) {
+  async function assertFileState(db: Sqlite3.DB, file: TestDataEntry["file"], expected: TestDataEntry["expected"]) {
     db.exec(UPSERT_FILE_CHANGE, {
       bind: {
         ":path": file.path,
-        ":localAt": file.localAt,
-        ":remoteAt": file.remoteAt,
+        ":localHashTime": file.localHashTime,
+        ":remoteHashTime": file.remoteHashTime,
         ":localHash": file.localHash,
         ":remoteHash": file.remoteHash,
       },

@@ -1,2 +1,2 @@
-INSERT INTO FileChange(path, localAt, localHash, remoteAt, remoteHash) VALUES (:path, :localAt, :localHash, :remoteAt, :remoteHash)
-ON CONFLICT(path) DO UPDATE SET localAt = :localAt, localHash = :localHash, remoteAt = :remoteAt, remoteHash = :remoteHash;
+INSERT INTO FileChange(path, localHashTime, localHash, remoteHashTime, remoteHash) VALUES (:path, :localHashTime, :localHash, :remoteHashTime, :remoteHash)
+ON CONFLICT(path) DO UPDATE SET localHashTime = :localHashTime, localHash = :localHash, remoteHashTime = :remoteHashTime, remoteHash = :remoteHash;

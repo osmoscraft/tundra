@@ -9,21 +9,21 @@ CREATE TABLE IF NOT EXISTS GithubRef (
 );
 
 CREATE TABLE IF NOT EXISTS FileChange (
-  path       TEXT PRIMARY KEY,
-  localAt    TEXT,
-  localHash  TEXT,
-  remoteAt   TEXT,
-  remoteHash TEXT,
-  source     TEXT GENERATED ALWAYS AS (
+  path           TEXT PRIMARY KEY,
+  localHash      TEXT,
+  localHashTime  TEXT,
+  remoteHash     TEXT,
+  remoteHashTime TEXT,
+  source         TEXT GENERATED ALWAYS AS (
     CASE
-      WHEN localAt > ifnull(remoteAt, 0) THEN 'local'
-      WHEN ifnull(localAt, 0) < remoteAt THEN 'remote'
+      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 'local'
+      WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 'remote'
       ELSE 'both'
     END
   ),
   status     TEXT GENERATED ALWAYS AS (
     CASE
-      WHEN localAt > ifnull(remoteAt, 0) THEN 
+      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 
         CASE
           WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 'removed'
           WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 'added'
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS FileChange (
           WHEN localHash IS NOT remoteHash THEN 'modified'
         END
       
-      WHEN ifnull(localAt, 0) < remoteAt THEN 
+      WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 
         CASE
           WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 'added'
           WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 'removed'

@@ -1,2 +1,2 @@
-INSERT INTO FileChange(path, localAt, localHash, remoteAt, remoteHash) VALUES (:path, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), :localHash, NULL, NULL)
-ON CONFLICT(path) DO UPDATE SET localAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), localHash = :localHash
+INSERT INTO FileChange(path, localHashTime, localHash, remoteHashTime, remoteHash) VALUES (:path, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), :localHash, NULL, NULL)
+ON CONFLICT(path) DO UPDATE SET localHashTime = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), localHash = :localHash

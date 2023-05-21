@@ -10,10 +10,10 @@ export interface DbGithubRef {
 
 export interface DbFileChange {
   path: string;
-  localAt: string; // TODO `localHashTime`
   localHash: string;
-  remoteAt: string;
+  localHashTime: string; // TODO `localHashTime`
   remoteHash: string;
+  remoteHashTime: string;
   source: "local" | "remote" | "both"; // TOOD enum
   status: "removed" | "added" | "unchanged" | "modified" | "conflict"; // TODO enum
 }
