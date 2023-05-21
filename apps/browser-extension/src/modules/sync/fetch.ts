@@ -1,5 +1,6 @@
 import { applyPatch, parsePatch } from "diff";
 import { getConnection, getGithubRef } from ".";
+import type { DbFile } from "../file-system";
 import SELECT_FILE from "../file-system/sql/select-file.sql";
 import type { GithubConnection } from "./github";
 import { b64DecodeUnicode } from "./github/base64";
@@ -50,7 +51,7 @@ export async function getGitHubChangedFileContent(
   // TODO patch won't work if local file has been modified
   // Filter out any files with changes in them
   const localContent =
-    fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
+    fsDb.selectObject<DbFile>(SELECT_FILE, {
       ":path": file.filename,
     })?.content ?? "";
 

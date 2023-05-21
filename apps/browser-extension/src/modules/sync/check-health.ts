@@ -1,8 +1,9 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import { getChangedFiles, trackLocalChange, trackRemoteChange } from ".";
+import type { DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
-import SELECT_FILE from "./sql/select-file.sql";
-import UPSERT_FILE from "./sql/upsert-file.sql";
+import SELECT_FILE_CHANGE from "./sql/select-file-change.sql";
+import UPSERT_FILE_CHANGE from "./sql/upsert-file-change.sql";
 
 export async function checkHealth() {
   async function assertFileState(
@@ -19,7 +20,7 @@ export async function checkHealth() {
       status: string;
     }
   ) {
-    db.exec(UPSERT_FILE, {
+    db.exec(UPSERT_FILE_CHANGE, {
       bind: {
         ":path": file.path,
         ":localAt": file.localAt,
@@ -29,7 +30,7 @@ export async function checkHealth() {
       },
     });
 
-    const actual = db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+    const actual = db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
       ":path": file.path,
     });
 
@@ -105,7 +106,7 @@ export async function checkHealth() {
     await trackLocalChange(db, "/test/new-local-file", "test");
     assertChange(
       `local added`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
       { source: "local", status: "added" }
@@ -114,7 +115,7 @@ export async function checkHealth() {
     await trackRemoteChange(db, "/test/new-local-file", "test");
     assertChange(
       `local added > push`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
       { source: "remote", status: "unchanged" }
@@ -123,7 +124,7 @@ export async function checkHealth() {
     await trackLocalChange(db, "/test/new-local-file", "test modified");
     assertChange(
       `local added > push > local modified`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
       { source: "local", status: "modified" }
@@ -132,7 +133,7 @@ export async function checkHealth() {
     await trackLocalChange(db, "/test/new-local-file", null);
     assertChange(
       `local added > push > local modified > local removed`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
       { source: "local", status: "removed" }
@@ -142,7 +143,7 @@ export async function checkHealth() {
     await trackRemoteChange(db, "/test/new-remote-file", "test");
     assertChange(
       `remote added`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
       { source: "remote", status: "added" }
@@ -151,7 +152,7 @@ export async function checkHealth() {
     await trackLocalChange(db, "/test/new-remote-file", "test");
     assertChange(
       `remote added > pull`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
       { source: "local", status: "unchanged" }
@@ -160,7 +161,7 @@ export async function checkHealth() {
     await trackRemoteChange(db, "/test/new-remote-file", "test modified");
     assertChange(
       `remote added > pull > remote modified`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
       { source: "remote", status: "modified" }
@@ -169,7 +170,7 @@ export async function checkHealth() {
     await trackRemoteChange(db, "/test/new-remote-file", null);
     assertChange(
       `remote added > pull > remote modified > remote removed`,
-      db.selectObject<{ source: string; status: string }>(SELECT_FILE, {
+      db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
       { source: "remote", status: "removed" }
