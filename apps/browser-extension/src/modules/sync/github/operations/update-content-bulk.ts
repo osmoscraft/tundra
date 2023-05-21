@@ -25,16 +25,18 @@ export async function updateContentBulk(
   connection: GithubConnection,
   fileChanges: BulkFileChangeItem[]
 ): Promise<PushResult> {
-  if (!fileChanges.length) {
-    throw new Error("No changes to push");
-  }
-
   const updateItems = fileChanges.filter((draft) => [ChangeType.Add, ChangeType.Modify].includes(draft.changeType));
   const deleteItems = fileChanges.filter((draft) => ChangeType.Remove === draft.changeType);
 
   console.log(`[push]`, { updateItems, deleteItems });
 
   const { defaultBranch, rootCommit, rootTreeSha } = await getRootTree(connection);
+
+  if (!fileChanges.length) {
+    return {
+      commitSha: rootCommit,
+    };
+  }
 
   const rootTreePatch = [
     ...updateItems.map((item) => ({

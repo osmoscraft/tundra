@@ -4,10 +4,10 @@ import type { GithubConnection } from "./github";
 import { ChangeType, type BulkFileChangeItem } from "./github/operations/update-content-bulk";
 import { DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 
-export interface FetchParameters {
+export interface PushParameters {
   connection: GithubConnection;
 }
-export function ensurePushParameters(syncDb: Sqlite3.DB): FetchParameters {
+export function ensurePushParameters(syncDb: Sqlite3.DB): PushParameters {
   const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 

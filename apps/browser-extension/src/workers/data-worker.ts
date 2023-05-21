@@ -4,7 +4,6 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { trackRemoteChange } from "../modules/sync";
 import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -81,7 +80,6 @@ const routes = {
     );
 
     sync.setGithubRef(syncDb, remoteHeadRefId);
-
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
   pushGitHub: async () => {
@@ -89,24 +87,16 @@ const routes = {
     const fsDb = await fsInit();
     const { connection } = ensurePushParameters(syncDb);
     const localFileChanges = sync.getLocalChangedFiles(syncDb);
-
     const fileChanges = localFileChanges.map(fileChangeToBulkFileChangeItem.bind(null, fsDb));
-
-    if (!fileChanges.length) {
-      console.log("Nothing to push");
-      return;
-    }
-
     const pushResult = await updateContentBulk(connection, fileChanges);
 
     await Promise.all(
       fileChanges.map((file) =>
-        trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
+        sync.trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
       )
     );
 
     sync.setGithubRef(syncDb, pushResult.commitSha);
-
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),

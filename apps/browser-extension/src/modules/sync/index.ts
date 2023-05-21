@@ -16,8 +16,10 @@ import UPSERT_LOCAL_CHANGE from "./sql/upsert-local-change.sql";
 import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
 
 export * from "./check-health";
+export * from "./fetch";
 export type { GithubConnection } from "./github";
 export * from "./import";
+export * from "./push";
 export * from "./sql/schema";
 
 export const init = callOnce(
