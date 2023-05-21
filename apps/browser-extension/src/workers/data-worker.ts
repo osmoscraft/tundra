@@ -4,7 +4,7 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { ensureFetchParameters, getChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
+import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
@@ -52,7 +52,7 @@ const routes = {
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
     const onCompareResultFile = async (file: CompareResultFile) =>
-      sync.trackRemoteChange(syncDb, file.filename, await getChangedFileContent(connection, fsDb, file));
+      sync.trackRemoteChange(syncDb, file.filename, await getGitHubChangedFileContent(connection, fsDb, file));
 
     await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
       Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
@@ -66,7 +66,7 @@ const routes = {
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
     const onCompareResultFile = async (file: CompareResultFile) => {
-      const latestContent = await getChangedFileContent(connection, fsDb, file);
+      const latestContent = await getGitHubChangedFileContent(connection, fsDb, file);
       await sync.trackRemoteChange(syncDb, file.filename, latestContent);
       await mergeChangedFile(fsDb, file.filename, latestContent);
       await sync.trackLocalChange(syncDb, file.filename, latestContent);

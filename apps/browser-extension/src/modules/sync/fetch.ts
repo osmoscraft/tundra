@@ -40,7 +40,11 @@ export async function getGitHubChangedFiles(
   return compare(connection, { base: localHeadRefId, head: remoteHeadRefId }).then((results) => results.files);
 }
 
-export async function getChangedFileContent(connection: GithubConnection, fsDb: Sqlite3.DB, file: CompareResultFile) {
+export async function getGitHubChangedFileContent(
+  connection: GithubConnection,
+  fsDb: Sqlite3.DB,
+  file: CompareResultFile
+) {
   if (file.status === "removed") return null;
 
   const localContent =
