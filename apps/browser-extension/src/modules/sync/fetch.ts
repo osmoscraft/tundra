@@ -1,8 +1,6 @@
 import { applyPatch, parsePatch } from "diff";
 import { getConnection, getGithubRef } from ".";
-import DELETE_FILE from "../file-system/sql/delete-file.sql";
 import SELECT_FILE from "../file-system/sql/select-file.sql";
-import UPSERT_FILE from "../file-system/sql/upsert-file.sql";
 import type { GithubConnection } from "./github";
 import { b64DecodeUnicode } from "./github/base64";
 import { compare, type CompareResultFile } from "./github/operations/compare";
@@ -57,24 +55,4 @@ export async function getChangedFileContent(connection: GithubConnection, fsDb: 
     : b64DecodeUnicode((await getBlob(connection!, { sha: file.sha })).content);
 
   return latestContent;
-}
-
-export async function mergeChangedFile(fsDb: Sqlite3.DB, path: string, content: string | null) {
-  if (content === null) {
-    fsDb.exec(DELETE_FILE, {
-      bind: {
-        ":path": path,
-      },
-    });
-    console.log("[merge] delete", path);
-  } else {
-    fsDb.exec(UPSERT_FILE, {
-      bind: {
-        ":path": path,
-        ":type": "text/plain",
-        ":content": content,
-      },
-    });
-    console.log("[merge] change", path);
-  }
 }

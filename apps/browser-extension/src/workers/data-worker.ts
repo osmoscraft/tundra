@@ -4,13 +4,9 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import {
-  ensureFetchParameters,
-  getChangedFileContent,
-  getGitHubChangedFiles,
-  mergeChangedFile,
-} from "../modules/sync/fetch";
+import { ensureFetchParameters, getChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
+import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
@@ -84,6 +80,7 @@ const routes = {
 
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
+  pushGitHub: async () => {},
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     await fs.writeFile(await fsInit(), path, "text/plain", content);
