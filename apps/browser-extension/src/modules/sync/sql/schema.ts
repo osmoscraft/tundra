@@ -1,14 +1,14 @@
-export interface GithubConnection {
+export interface DbGithubConnection {
   owner: string | null;
   repo: string | null;
   token: string;
 }
 
-export interface GithubRef {
+export interface DbGithubRef {
   id: string;
 }
 
-export interface FileChange {
+export interface DbFileChange {
   path: string;
   localAt: string; // TODO `localHashTime`
   localHash: string;

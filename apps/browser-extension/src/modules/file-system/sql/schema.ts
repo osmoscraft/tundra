@@ -1,4 +1,4 @@
-export interface File {
+export interface DbFile {
   path: string;
   type: string | null;
   content: string;
