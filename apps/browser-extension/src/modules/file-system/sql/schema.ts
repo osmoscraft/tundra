@@ -1,7 +1,7 @@
 export interface DbFile {
   path: string;
-  type: string | null;
+  type: "text/markdown"; // TODO, support more types in the future
   content: string;
-  createdAt: string; // TODO `createdTime`
-  updatedAt: string; // TODO `updatedTime`
+  createdTime: string;
+  updatedTime: string;
 }

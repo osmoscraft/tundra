@@ -25,11 +25,12 @@ export async function checkHealth() {
     log("ensure schema");
     db.exec(SCHEMA);
     log("write file");
-    writeFile(db, "/test.txt", "text/plain", "hello world");
+    writeFile(db, "/test.md", "text/markdown", "hello world");
     log("file written");
 
     log("read file");
-    readFile(db, "/test.txt").then((file) => assertEqual(file?.content, "hello world"));
+    const file = readFile(db, "/test.md");
+    assertEqual(file?.content, "hello world");
     log("file read");
     log("ok");
   }

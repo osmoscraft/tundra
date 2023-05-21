@@ -44,7 +44,7 @@ const routes = {
     async () => sync.importGithubItems(await syncInit()),
     async (generator: AsyncGenerator<sync.GitHubItem>) =>
       mapIteratorAsync(async (item) => {
-        await fs.writeFile(await fsInit(), item.path, "text/plain", item.content);
+        await fs.writeFile(await fsInit(), item.path, "text/markdown", item.content);
         await sync.trackLocalChange(await syncInit(), item.path, item.content);
       }, generator),
     exhaustIterator
@@ -139,7 +139,7 @@ const routes = {
   },
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
-    await fs.writeFile(await fsInit(), path, "text/plain", content);
+    await fs.writeFile(await fsInit(), path, "text/markdown", content);
     await sync.trackLocalChange(await syncInit(), path, content);
   },
 };

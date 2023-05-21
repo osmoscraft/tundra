@@ -7,7 +7,7 @@ import { githubPathToLocalPath, zipPathToGitHubFilePath } from "./path";
 
 export function writeEachItemToFile(fsDb: Sqlite3.DB, syncDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
   return mapIteratorAsync(async (item) => {
-    await writeFile(fsDb, item.path, "text/plain", item.content);
+    await writeFile(fsDb, item.path, "text/markdown", item.content);
     await trackLocalChange(syncDb, item.path, item.content);
   }, generator);
 }
