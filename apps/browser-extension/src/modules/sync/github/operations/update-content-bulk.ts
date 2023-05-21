@@ -13,9 +13,9 @@ export interface BulkFileChangeItem {
 
 export enum ChangeType {
   Clean = 0,
-  Create = 1,
-  Update = 2,
-  Delete = 3,
+  Add = 1,
+  Modify = 2,
+  Remove = 3,
 }
 
 export interface PushResult {
@@ -29,8 +29,8 @@ export async function updateContentBulk(
     throw new Error("No changes to push");
   }
 
-  const updateItems = fileChanges.filter((draft) => [ChangeType.Create, ChangeType.Update].includes(draft.changeType));
-  const deleteItems = fileChanges.filter((draft) => ChangeType.Delete === draft.changeType);
+  const updateItems = fileChanges.filter((draft) => [ChangeType.Add, ChangeType.Modify].includes(draft.changeType));
+  const deleteItems = fileChanges.filter((draft) => ChangeType.Remove === draft.changeType);
 
   console.log(`[push]`, { updateItems, deleteItems });
 

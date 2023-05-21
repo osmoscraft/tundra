@@ -1,4 +1,4 @@
-import type { DbFileChange } from "./sql/schema";
+import { DbFileChangeSource, DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 
 export interface TestDataEntry {
   // omit the hash to indicate deletion
@@ -13,7 +13,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         path: "file-out-1",
         localHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "local", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -21,7 +21,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:00",
         localHash: "hash",
       },
-      expected: { source: "local", status: "added" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
     },
     {
       file: {
@@ -29,7 +29,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:01",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "local", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged },
     },
 
     {
@@ -39,7 +39,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "local", status: "added" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
     },
     {
       file: {
@@ -49,7 +49,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: "local", status: "removed" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Removed },
     },
     {
       file: {
@@ -59,7 +59,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: "local", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -69,7 +69,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash2",
       },
-      expected: { source: "local", status: "modified" },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified },
     },
 
     {
@@ -77,7 +77,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         path: "file-in-1",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "remote", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -85,7 +85,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: "remote", status: "added" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added },
     },
     {
       file: {
@@ -93,7 +93,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:00",
         remoteHashTime: "1990-01-01T00:00:01",
       },
-      expected: { source: "remote", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -102,7 +102,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:01",
       },
-      expected: { source: "remote", status: "removed" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Removed },
     },
     {
       file: {
@@ -111,7 +111,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:01",
         remoteHash: "hash",
       },
-      expected: { source: "remote", status: "added" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added },
     },
     {
       file: {
@@ -121,7 +121,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:01",
         remoteHash: "hash",
       },
-      expected: { source: "remote", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -131,12 +131,12 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:01",
         remoteHash: "hash2",
       },
-      expected: { source: "remote", status: "modified" },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Modified },
     },
 
     {
       file: { path: "file-mixed-1" },
-      expected: { source: "both", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -144,7 +144,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:00",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "both", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -153,7 +153,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: "both", status: "conflict" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
     },
     {
       file: {
@@ -162,7 +162,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: "both", status: "conflict" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
     },
     {
       file: {
@@ -172,7 +172,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: "both", status: "unchanged" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -182,7 +182,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash2",
       },
-      expected: { source: "both", status: "conflict" },
+      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
     },
   ];
 }

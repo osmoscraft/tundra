@@ -14,35 +14,47 @@ CREATE TABLE IF NOT EXISTS FileChange (
   localHashTime  TEXT,
   remoteHash     TEXT,
   remoteHashTime TEXT,
-  source         TEXT GENERATED ALWAYS AS (
+  /*
+   1: Local
+   2: Remote
+   3: Both
+   */
+  source         INT GENERATED ALWAYS AS (
     CASE
-      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 'local'
-      WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 'remote'
-      ELSE 'both'
+      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 1
+      WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 2
+      ELSE 3
     END
   ),
-  status     TEXT GENERATED ALWAYS AS (
+  /*
+   0: Unchanged
+   1: Added
+   2: Modified
+   3: Removed
+   4: Conflict
+   */
+  status         INT GENERATED ALWAYS AS (
     CASE
       WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 
         CASE
-          WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 'removed'
-          WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 'added'
-          WHEN localHash IS remoteHash THEN 'unchanged'
-          WHEN localHash IS NOT remoteHash THEN 'modified'
+          WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 3
+          WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 1
+          WHEN localHash IS remoteHash THEN 0
+          WHEN localHash IS NOT remoteHash THEN 2 
         END
       
       WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 
         CASE
-          WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 'added'
-          WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 'removed'
-          WHEN localHash IS remoteHash THEN 'unchanged'
-          WHEN localHash IS NOT remoteHash THEN 'modified'
+          WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 1
+          WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 3
+          WHEN localHash IS remoteHash THEN 0
+          WHEN localHash IS NOT remoteHash THEN 2
         END
       
       ELSE 
         CASE
-          WHEN localHash IS remoteHash THEN 'unchanged'
-          WHEN localHash IS NOT remoteHash THEN 'conflict'
+          WHEN localHash IS remoteHash THEN 0
+          WHEN localHash IS NOT remoteHash THEN 4
         END
       
     END

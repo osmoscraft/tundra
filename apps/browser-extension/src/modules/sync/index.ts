@@ -8,6 +8,7 @@ import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
+import type { DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
@@ -17,6 +18,7 @@ import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
 export * from "./check-health";
 export type { GithubConnection } from "./github";
 export * from "./import";
+export * from "./sql/schema";
 
 export const init = callOnce(
   asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {
@@ -41,17 +43,12 @@ export function getGithubRef(db: Sqlite3.DB) {
   return db.selectObject<{ id: string }>(SELECT_GITHUB_REF) ?? null;
 }
 
-export interface ChangedFile {
-  path: string;
-  source: "local" | "remote" | "both";
-  status: "added" | "modified" | "removed" | "conflict"; // TODO store as enum
-}
-export function getChangedFiles(db: Sqlite3.DB): ChangedFile[] {
-  return db.selectObjects<ChangedFile>(LIST_FILE_CHANGES);
+export function getChangedFiles(db: Sqlite3.DB): DbFileChange[] {
+  return db.selectObjects<DbFileChange>(LIST_FILE_CHANGES);
 }
 
-export function getLocalChangedFiles(db: Sqlite3.DB): ChangedFile[] {
-  return db.selectObjects<ChangedFile>(LIST_LOCAL_FILE_CHANGES);
+export function getLocalChangedFiles(db: Sqlite3.DB): DbFileChange[] {
+  return db.selectObjects<DbFileChange>(LIST_LOCAL_FILE_CHANGES);
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {

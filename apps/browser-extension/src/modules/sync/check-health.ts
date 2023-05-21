@@ -1,7 +1,7 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import { getChangedFiles, trackLocalChange, trackRemoteChange } from ".";
 import type { TestDataEntry } from "./load-test-data";
-import type { DbFileChange } from "./sql/schema";
+import { DbFileChangeSource, DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE_CHANGE from "./sql/select-file-change.sql";
 import UPSERT_FILE_CHANGE from "./sql/upsert-file-change.sql";
@@ -27,8 +27,8 @@ export async function checkHealth() {
 
   function assertChange(
     message: string,
-    actual?: { source: string; status: string },
-    expected?: { source: string; status: string }
+    actual?: { source: DbFileChangeSource; status: DbFileChangeStatus },
+    expected?: { source: DbFileChangeSource; status: DbFileChangeStatus }
   ) {
     assertStrictEqual(actual?.source, expected?.source, message);
     assertStrictEqual(actual?.status, expected?.status, message);
@@ -46,14 +46,14 @@ export async function checkHealth() {
     }
   }
 
-  function log(message: string) {
+  function log(message: any) {
     return console.log("[check health]", message);
   }
 
   async function test() {
     log("attempt to remove previous test db");
     await destoryOpfsByPath("/tinykb-sync-test.sqlite3")
-      .then(() => log("removed"))
+      .then(() => log(DbFileChangeStatus.Removed))
       .catch(() => log("nothing to remove"));
 
     log("init opfs");
@@ -72,7 +72,7 @@ export async function checkHealth() {
     log("test changed files");
     const changeEntries = await getChangedFiles(db);
     testEntries
-      .filter((entry) => entry.expected.status !== "unchanged")
+      .filter((entry) => entry.expected.status !== DbFileChangeStatus.Unchanged)
       .forEach((entry) => {
         const matchedChangeEntry = changeEntries.find((change) => change.path === entry.file.path);
         assertDefined(matchedChangeEntry, `change entry not found: ${entry.file.path}`);
@@ -97,7 +97,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
-      { source: "local", status: "added" }
+      { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added }
     );
 
     await trackRemoteChange(db, "/test/new-local-file", "test");
@@ -106,7 +106,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
-      { source: "remote", status: "unchanged" }
+      { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Unchanged }
     );
 
     await trackLocalChange(db, "/test/new-local-file", "test modified");
@@ -115,7 +115,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
-      { source: "local", status: "modified" }
+      { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified }
     );
 
     await trackLocalChange(db, "/test/new-local-file", null);
@@ -124,7 +124,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-local-file",
       }),
-      { source: "local", status: "removed" }
+      { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Removed }
     );
 
     log(`lifecycle: remote added > pull > remote modified > remote removed`);
@@ -134,7 +134,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
-      { source: "remote", status: "added" }
+      { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added }
     );
 
     await trackLocalChange(db, "/test/new-remote-file", "test");
@@ -143,7 +143,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
-      { source: "local", status: "unchanged" }
+      { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged }
     );
 
     await trackRemoteChange(db, "/test/new-remote-file", "test modified");
@@ -152,7 +152,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
-      { source: "remote", status: "modified" }
+      { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Modified }
     );
 
     await trackRemoteChange(db, "/test/new-remote-file", null);
@@ -161,7 +161,7 @@ export async function checkHealth() {
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
         ":path": "/test/new-remote-file",
       }),
-      { source: "remote", status: "removed" }
+      { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Removed }
     );
   }
 

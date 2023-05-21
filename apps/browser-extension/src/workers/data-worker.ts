@@ -93,14 +93,14 @@ const routes = {
     const connection = await sync.getConnection(syncDb);
     if (!connection) throw new Error("Missing connection");
 
-    function syncStatusToPushChangeType(staus: sync.ChangedFile["status"]): ChangeType {
+    function syncStatusToPushChangeType(staus: sync.DbFileChangeStatus): ChangeType {
       switch (staus) {
-        case "added":
-          return ChangeType.Create;
-        case "modified":
-          return ChangeType.Update;
-        case "removed":
-          return ChangeType.Delete;
+        case sync.DbFileChangeStatus.Added:
+          return ChangeType.Add;
+        case sync.DbFileChangeStatus.Modified:
+          return ChangeType.Modify;
+        case sync.DbFileChangeStatus.Removed:
+          return ChangeType.Remove;
         default:
           throw new Error(`Unsupported status for push operation: ${staus}`);
       }
@@ -128,7 +128,7 @@ const routes = {
     // update all remote file hashes
     await Promise.all(
       fileChanges.map((file) =>
-        trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Delete ? null : file.content)
+        trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
       )
     );
 

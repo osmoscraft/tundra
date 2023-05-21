@@ -8,12 +8,26 @@ export interface DbGithubRef {
   id: string;
 }
 
+export enum DbFileChangeSource {
+  Local = 1,
+  Remote = 2,
+  Both = 3,
+}
+
+export enum DbFileChangeStatus {
+  Unchanged = 0,
+  Added = 1,
+  Modified = 2,
+  Removed = 3,
+  Conflict = 4,
+}
+
 export interface DbFileChange {
   path: string;
   localHash: string;
-  localHashTime: string; // TODO `localHashTime`
+  localHashTime: string;
   remoteHash: string;
   remoteHashTime: string;
-  source: "local" | "remote" | "both"; // TOOD enum
-  status: "removed" | "added" | "unchanged" | "modified" | "conflict"; // TODO enum
+  source: DbFileChangeSource;
+  status: DbFileChangeStatus;
 }
