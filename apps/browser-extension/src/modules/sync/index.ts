@@ -5,6 +5,7 @@ import * as github from "./github";
 import CLEAR_CONFIG from "./sql/clear-config.sql";
 import CLEAR_HISTORY from "./sql/clear-history.sql";
 import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
+import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import SCHEMA from "./sql/schema.sql";
@@ -43,10 +44,14 @@ export function getGithubRef(db: Sqlite3.DB) {
 export interface ChangedFile {
   path: string;
   source: "local" | "remote" | "both";
-  status: "added" | "modified" | "removed" | "conflict";
+  status: "added" | "modified" | "removed" | "conflict"; // TODO store as enum
 }
 export function getChangedFiles(db: Sqlite3.DB): ChangedFile[] {
   return db.selectObjects<ChangedFile>(LIST_FILE_CHANGES);
+}
+
+export function getLocalChangedFiles(db: Sqlite3.DB): ChangedFile[] {
+  return db.selectObjects<ChangedFile>(LIST_LOCAL_FILE_CHANGES);
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {

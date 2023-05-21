@@ -47,6 +47,8 @@ export async function getGitHubChangedFileContent(
 ) {
   if (file.status === "removed") return null;
 
+  // TODO patch won't work if local file has been modified
+  // Filter out any files with changes in them
   const localContent =
     fsDb.selectObject<{ path: string; content: string }>(SELECT_FILE, {
       ":path": file.filename,

@@ -18,7 +18,7 @@ export function clear(db: Sqlite3.DB) {
   return db.exec(CLEAR_FILES);
 }
 
-export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
+export function writeFile(db: Sqlite3.DB, path: string, type: "text/plain", content: string) {
   return db.exec(UPSERT_FILE, {
     bind: {
       ":path": path,
@@ -28,13 +28,13 @@ export async function writeFile(db: Sqlite3.DB, path: string, type: "text/plain"
   });
 }
 
-export async function readFile(db: Sqlite3.DB, path: string) {
+export function readFile(db: Sqlite3.DB, path: string) {
   return db.selectObject<TinyFile>(SELECT_FILE, {
     ":path": path,
   });
 }
 
-export async function listFiles(db: Sqlite3.DB, limit: number, offset: number) {
+export function listFiles(db: Sqlite3.DB, limit: number, offset: number) {
   return db.selectObjects<TinyFile>(LIST_FILES, {
     ":limit": limit,
     ":offset": offset,

@@ -4,8 +4,14 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { trackRemoteChange } from "../modules/sync";
 import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
+import {
+  ChangeType,
+  updateContentBulk,
+  type BulkFileChangeItem,
+} from "../modules/sync/github/operations/update-content-bulk";
 import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
 import { formatStatus } from "../modules/sync/status";
@@ -80,7 +86,57 @@ const routes = {
 
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
-  pushGitHub: async () => {},
+  pushGitHub: async () => {
+    const syncDb = await syncInit();
+    const fsDb = await fsInit();
+
+    const connection = await sync.getConnection(syncDb);
+    if (!connection) throw new Error("Missing connection");
+
+    function syncStatusToPushChangeType(staus: sync.ChangedFile["status"]): ChangeType {
+      switch (staus) {
+        case "added":
+          return ChangeType.Create;
+        case "modified":
+          return ChangeType.Update;
+        case "removed":
+          return ChangeType.Delete;
+        default:
+          throw new Error(`Unsupported status for push operation: ${staus}`);
+      }
+    }
+
+    const localFileChanges = sync.getLocalChangedFiles(syncDb);
+
+    const fileChanges: BulkFileChangeItem[] = localFileChanges.map((file) => {
+      const localFile = fs.readFile(fsDb, file.path);
+      return {
+        path: file.path,
+        content: localFile?.content || "",
+        changeType: syncStatusToPushChangeType(file.status),
+      };
+    });
+
+    if (!fileChanges.length) {
+      console.log("Nothing to push");
+      return;
+    }
+
+    // push changes to github
+    const pushResult = await updateContentBulk(connection, fileChanges);
+
+    // update all remote file hashes
+    await Promise.all(
+      fileChanges.map((file) =>
+        trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Delete ? null : file.content)
+      )
+    );
+
+    // update head ref
+    sync.setGithubRef(syncDb, pushResult.commitSha);
+
+    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+  },
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     await fs.writeFile(await fsInit(), path, "text/plain", content);

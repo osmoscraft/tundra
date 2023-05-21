@@ -24,10 +24,9 @@ export interface PushResult {
 export async function updateContentBulk(
   connection: GithubConnection,
   fileChanges: BulkFileChangeItem[]
-): Promise<PushResult | null> {
+): Promise<PushResult> {
   if (!fileChanges.length) {
-    console.log(`[push] nothing to push`);
-    return null;
+    throw new Error("No changes to push");
   }
 
   const updateItems = fileChanges.filter((draft) => [ChangeType.Create, ChangeType.Update].includes(draft.changeType));
