@@ -1,1 +1,1 @@
-SELECT path, source, status FROM FileChange WHERE status != 'unchanged' AND source = 'local'
+SELECT path, source, status FROM FileChange WHERE status != 0 AND source = 1

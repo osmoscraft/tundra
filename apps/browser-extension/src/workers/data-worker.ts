@@ -30,7 +30,20 @@ const routes = {
     sync.checkHealth
   ),
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
+  fetchGithub: async () => {
+    const fsDb = await fsInit();
+    const syncDb = await syncInit();
+    const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
+    const onCompareResultFile = async (file: CompareResultFile) =>
+      sync.trackRemoteChange(syncDb, file.filename, await getGitHubChangedFileContent(connection, fsDb, file));
+
+    await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
+      Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
+    );
+
+    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+  },
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
@@ -47,22 +60,6 @@ const routes = {
     exhaustIterator
   ),
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
-  rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
-  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
-  fetchGithub: async () => {
-    const fsDb = await fsInit();
-    const syncDb = await syncInit();
-    const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
-
-    const onCompareResultFile = async (file: CompareResultFile) =>
-      sync.trackRemoteChange(syncDb, file.filename, await getGitHubChangedFileContent(connection, fsDb, file));
-
-    await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
-      Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
-    );
-
-    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
-  },
   pullGitHub: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
@@ -99,10 +96,14 @@ const routes = {
     sync.setGithubRef(syncDb, pushResult.commitSha);
     await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
+  rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
+  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
+    const syncDb = await syncInit();
     await fs.writeFile(await fsInit(), path, "text/markdown", content);
     await sync.trackLocalChange(await syncInit(), path, content);
+    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
   },
 };
 

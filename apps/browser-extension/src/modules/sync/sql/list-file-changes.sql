@@ -1,1 +1,1 @@
-SELECT path, source, status FROM FileChange WHERE status != 'unchanged'
+SELECT path, source, status FROM FileChange WHERE status != 0
