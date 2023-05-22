@@ -13,7 +13,7 @@ export async function mergeChangedFile(fsDb: Sqlite3.DB, path: string, content: 
     fsDb.exec(UPSERT_FILE, {
       bind: {
         ":path": path,
-        ":type": "text/plain",
+        ":type": "text/markdown",
         ":content": content,
       },
     });
