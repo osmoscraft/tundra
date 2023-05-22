@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { getChangedFiles, trackLocalChange, trackRemoteChange } from ".";
+import { getFileChanges, trackLocalChange, trackRemoteChange } from ".";
 import type { TestDataEntry } from "./load-test-data";
 import { DbFileChangeSource, DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -70,7 +70,7 @@ export async function checkHealth() {
     }
 
     log("test changed files");
-    const changeEntries = await getChangedFiles(db);
+    const changeEntries = await getFileChanges(db);
     testEntries
       .filter((entry) => entry.expected.status !== DbFileChangeStatus.Unchanged)
       .forEach((entry) => {

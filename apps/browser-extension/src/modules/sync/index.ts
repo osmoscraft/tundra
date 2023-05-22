@@ -12,6 +12,7 @@ import type { DbFileChange, DbGithubRef } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
+import SELECT_LOCAL_FILE_CHANGE from "./sql/select-local-file-change.sql";
 import UPSERT_LOCAL_FILE_CHANGE from "./sql/upsert-local-file-change.sql";
 import UPSERT_REMOTE_FILE_CHANGE from "./sql/upsert-remote-file-change.sql";
 
@@ -45,11 +46,15 @@ export function getGithubRef(db: Sqlite3.DB) {
   return db.selectObject<DbGithubRef>(SELECT_GITHUB_REF) ?? null;
 }
 
-export function getChangedFiles(db: Sqlite3.DB): DbFileChange[] {
+export function getFileChanges(db: Sqlite3.DB): DbFileChange[] {
   return db.selectObjects<DbFileChange>(LIST_FILE_CHANGES);
 }
 
-export function getLocalChangedFiles(db: Sqlite3.DB): DbFileChange[] {
+export function getLocalFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
+  return db.selectObject<DbFileChange>(SELECT_LOCAL_FILE_CHANGE, { ":path": path });
+}
+
+export function getLocalFileChanges(db: Sqlite3.DB): DbFileChange[] {
   return db.selectObjects<DbFileChange>(LIST_LOCAL_FILE_CHANGES);
 }
 

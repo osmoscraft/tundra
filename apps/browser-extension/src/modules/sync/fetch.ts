@@ -1,7 +1,6 @@
 import { applyPatch, parsePatch } from "diff";
 import { getConnection, getGithubRef } from ".";
-import type { DbFile } from "../file-system";
-import SELECT_FILE from "../file-system/sql/select-file.sql";
+import { readFile } from "../file-system";
 import type { GithubConnection } from "./github";
 import { b64DecodeUnicode } from "./github/base64";
 import { compare, type CompareResultFile } from "./github/operations/compare";
@@ -44,22 +43,16 @@ export async function getGitHubChangedFiles(
 export async function getGitHubChangedFileContent(
   connection: GithubConnection,
   fsDb: Sqlite3.DB,
-  file: CompareResultFile
+  file: CompareResultFile,
+  isLocalClean: boolean
 ) {
   if (file.status === "removed") return null;
 
-  // TODO patch won't work if local file has been modified
-  // Filter out any files with changes in them
-  const localContent =
-    fsDb.selectObject<DbFile>(SELECT_FILE, {
-      ":path": file.filename,
-    })?.content ?? "";
-
-  const parsedPatches = file.patch ? parsePatch(file.patch) : null;
-
-  const latestContent = parsedPatches
-    ? applyPatch(localContent, parsedPatches[0])
-    : b64DecodeUnicode((await getBlob(connection!, { sha: file.sha })).content);
-
-  return latestContent;
+  // patch won't work if local file has been modified
+  if (file.patch && isLocalClean) {
+    const localContent = readFile(fsDb, file.filename)?.content ?? "";
+    return applyPatch(localContent, parsePatch(file.patch)[0]);
+  } else {
+    return b64DecodeUnicode((await getBlob(connection!, { sha: file.sha })).content);
+  }
 }

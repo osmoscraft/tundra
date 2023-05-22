@@ -35,14 +35,20 @@ const routes = {
     const syncDb = await syncInit();
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
-    const onCompareResultFile = async (file: CompareResultFile) =>
-      sync.trackRemoteChange(syncDb, file.filename, await getGitHubChangedFileContent(connection, fsDb, file));
+    const onCompareResultFile = async (file: CompareResultFile) => {
+      const isLocalClean = !sync.getLocalFileChange(syncDb, file.filename);
+      sync.trackRemoteChange(
+        syncDb,
+        file.filename,
+        await getGitHubChangedFileContent(connection, fsDb, file, isLocalClean)
+      );
+    };
 
     await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
       Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
     );
 
-    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
@@ -66,10 +72,13 @@ const routes = {
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
     const onCompareResultFile = async (file: CompareResultFile) => {
-      const latestContent = await getGitHubChangedFileContent(connection, fsDb, file);
+      const isLocalClean = !sync.getLocalFileChange(syncDb, file.filename);
+      const latestContent = await getGitHubChangedFileContent(connection, fsDb, file, isLocalClean);
       await sync.trackRemoteChange(syncDb, file.filename, latestContent);
-      await mergeChangedFile(fsDb, file.filename, latestContent);
-      await sync.trackLocalChange(syncDb, file.filename, latestContent);
+      if (isLocalClean) {
+        await mergeChangedFile(fsDb, file.filename, latestContent);
+        await sync.trackLocalChange(syncDb, file.filename, latestContent);
+      }
     };
 
     await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
@@ -77,13 +86,13 @@ const routes = {
     );
 
     sync.setGithubRef(syncDb, remoteHeadRefId);
-    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   pushGitHub: async () => {
     const syncDb = await syncInit();
     const fsDb = await fsInit();
     const { connection } = ensurePushParameters(syncDb);
-    const localFileChanges = sync.getLocalChangedFiles(syncDb);
+    const localFileChanges = sync.getLocalFileChanges(syncDb);
     const fileChanges = localFileChanges.map(fileChangeToBulkFileChangeItem.bind(null, fsDb));
     const pushResult = await updateContentBulk(connection, fileChanges);
 
@@ -94,7 +103,7 @@ const routes = {
     );
 
     sync.setGithubRef(syncDb, pushResult.commitSha);
-    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
@@ -103,7 +112,7 @@ const routes = {
     const syncDb = await syncInit();
     await fs.writeFile(await fsInit(), path, "text/markdown", content);
     await sync.trackLocalChange(await syncInit(), path, content);
-    await proxy.setStatus(formatStatus(sync.getChangedFiles(syncDb)));
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
 };
 
@@ -112,4 +121,4 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
 console.log("[data worker] online");
 
 // on start, report change status
-syncInit().then((db) => proxy.setStatus(formatStatus(sync.getChangedFiles(db))));
+syncInit().then((db) => proxy.setStatus(formatStatus(sync.getFileChanges(db))));
