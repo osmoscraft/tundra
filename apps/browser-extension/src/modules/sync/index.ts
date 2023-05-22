@@ -8,7 +8,7 @@ import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
 import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
 import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
-import type { DbFileChange } from "./sql/schema";
+import type { DbFileChange, DbGithubRef } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
@@ -42,7 +42,7 @@ export function clearHistory(db: Sqlite3.DB) {
 }
 
 export function getGithubRef(db: Sqlite3.DB) {
-  return db.selectObject<{ id: string }>(SELECT_GITHUB_REF) ?? null;
+  return db.selectObject<DbGithubRef>(SELECT_GITHUB_REF) ?? null;
 }
 
 export function getChangedFiles(db: Sqlite3.DB): DbFileChange[] {
