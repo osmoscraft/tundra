@@ -12,8 +12,8 @@ import type { DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
-import UPSERT_LOCAL_CHANGE from "./sql/upsert-local-change.sql";
-import UPSERT_REMOTE_CHANGE from "./sql/upsert-remote-change.sql";
+import UPSERT_LOCAL_FILE_CHANGE from "./sql/upsert-local-file-change.sql";
+import UPSERT_REMOTE_FILE_CHANGE from "./sql/upsert-remote-file-change.sql";
 
 export * from "./check-health";
 export * from "./fetch";
@@ -75,7 +75,7 @@ export async function testConnection(db: Sqlite3.DB) {
 }
 
 export async function trackLocalChange(db: Sqlite3.DB, path: string, content: string | null) {
-  db.exec(UPSERT_LOCAL_CHANGE, {
+  db.exec(UPSERT_LOCAL_FILE_CHANGE, {
     bind: {
       ":path": path,
       ":localHash": content ? await sha1(content) : null,
@@ -84,7 +84,7 @@ export async function trackLocalChange(db: Sqlite3.DB, path: string, content: st
 }
 
 export async function trackRemoteChange(db: Sqlite3.DB, path: string, content: string | null) {
-  db.exec(UPSERT_REMOTE_CHANGE, {
+  db.exec(UPSERT_REMOTE_FILE_CHANGE, {
     bind: {
       ":path": path,
       ":remoteHash": content ? await sha1(content) : null,
