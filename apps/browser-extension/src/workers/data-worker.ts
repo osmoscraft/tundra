@@ -5,6 +5,7 @@ import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
+import { getArchive } from "../modules/sync/github";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { mergeChangedFile } from "../modules/sync/merge";
@@ -54,17 +55,22 @@ const routes = {
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
-  importGitHubRepo: asyncPipe(
-    // TODO refactor to expose ref update logic
-    async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
-    async () => sync.importGithubItems(await syncInit()),
-    async (generator: AsyncGenerator<sync.GitHubItem>) =>
-      mapIteratorAsync(async (item) => {
-        await fs.writeFile(await fsInit(), item.path, "text/markdown", item.content);
-        await sync.trackLocalChange(await syncInit(), item.path, item.content);
-      }, generator),
-    exhaustIterator
-  ),
+  importGitHubRepo: async () => {
+    const fsDb = await fsInit();
+    const syncDb = await syncInit();
+    const { connection } = await sync.ensureImportParameters(syncDb);
+    await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
+    const archive = await getArchive(connection);
+    const generator = sync.importGithubArchive(archive.zipballUrl);
+    const mappedGenerator = mapIteratorAsync(async (item) => {
+      await sync.trackRemoteChange(syncDb, item.path, item.content);
+      await fs.writeFile(fsDb, item.path, "text/markdown", item.content);
+      await sync.trackLocalChange(await syncInit(), item.path, item.content);
+    }, generator);
+
+    await exhaustIterator(mappedGenerator);
+    sync.setGithubRef(syncDb, archive.oid);
+  },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
     const fsDb = await fsInit();
