@@ -1,6 +1,8 @@
-export function listFilesByPathsGraphql(pathCount: number) {
+export function listDeletedFilesByPathsGraphql(pathCount: number) {
   return `
-query ListFiles($owner: String!, $repo: String!, $path0: String!) {
+query ListFiles($owner: String!, $repo: String!, ${[...Array(pathCount)]
+    .map((_, i) => `$path${i}: String!`)
+    .join(", ")}) {
   repository(owner: $owner, name: $repo) {
     defaultBranchRef {
       target {
@@ -8,17 +10,10 @@ query ListFiles($owner: String!, $repo: String!, $path0: String!) {
           oid
 ${[...Array(pathCount)]
   .map(
-    (path, i) => `
+    (_, i) => `
           file${i}: history(first: 1, path: $path${i}) {
             nodes {
               committedDate
-              file(path: $path${i}) {
-          			object {
-                  ... on Blob {
-                    text
-                  }
-                }
-              }
             }
           }
 `
