@@ -8,6 +8,7 @@ import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFil
 import { getArchive } from "../modules/sync/github";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
+import { listFilesByPaths } from "../modules/sync/github/proxy/list-files-by-paths";
 import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
 import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
@@ -35,6 +36,8 @@ const routes = {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
+
+    console.log(await listFilesByPaths(connection, ["notes/00001.md", "notes/00003.md"]));
 
     const onCompareResultFile = async (file: CompareResultFile) => {
       const isLocalClean = !sync.getLocalFileChange(syncDb, file.filename);
