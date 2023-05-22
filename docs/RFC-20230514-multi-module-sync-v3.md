@@ -26,6 +26,14 @@
 - Each file has a change semantics based on hash and timestamp
   - e.g. when local time > remote time and local hash differs from remote hash => user intends to pusn file changes from local to remote
 
+# Progressive timestamp
+
+- Conflict resolution when merging
+  - By default, last remote committime can represent all remote changes
+  - Conflict resolution needed only if local file is also changed
+  - Need to query git commit log to determine the precise remote timestamp
+  - Use the more recent timestamp as source of truth
+
 # Between Graph module and FS module
 
 - Graph module uses private storage independent of FS module
