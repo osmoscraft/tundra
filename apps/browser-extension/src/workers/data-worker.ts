@@ -79,7 +79,6 @@ const routes = {
     const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      debugger;
       // TODO convert iterator to promise array for parallel processing
       // TODO track remote changes with approperiate timestamp
       const isLocalClean = !sync.getLocalFileChange(syncDb, item.path);
