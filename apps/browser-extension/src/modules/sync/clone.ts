@@ -35,5 +35,5 @@ export async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<
       readText: () => item.readAsText(),
     };
   }
-  console.log("[perf] clone", performance.measure("import duration", "import-start").duration);
+  console.log("[perf] clone", performance.measure("import duration", "clone-start").duration);
 }

@@ -32,6 +32,17 @@ export async function* mapIteratorAsync<T, K>(
   }
 }
 
+export async function* filterIteratorAsync<T>(
+  predicate: (input: T) => boolean | Promise<boolean>,
+  iterator: AsyncGenerator<T>
+): AsyncGenerator<T> {
+  for await (const value of iterator) {
+    if (await predicate(value)) {
+      yield value;
+    }
+  }
+}
+
 export async function exhaustIterator<T>(iterator: AsyncGenerator<T>) {
   for await (const _value of iterator) {
     // noop
