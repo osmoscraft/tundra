@@ -58,15 +58,16 @@ const routes = {
   importGitHubRepo: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
-    const { connection } = await sync.ensureImportParameters(syncDb);
+    const { connection } = await sync.ensureCloneParameters(syncDb);
     await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
     const archive = await getArchive(connection);
-    const generator = sync.importGithubArchive(archive.zipballUrl);
+    const generator = sync.iterateGitHubArchive(archive.zipballUrl);
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      await sync.trackRemoteChange(syncDb, item.path, item.content);
-      // todo: consolicate with mergeChangedFile()
-      await fs.writeFile(fsDb, item.path, "text/markdown", item.content);
-      await sync.trackLocalChange(await syncInit(), item.path, item.content);
+      // todo: consolidate with mergeChangedFile()
+      const content = await item.readText();
+      await sync.trackRemoteChange(syncDb, item.path, content);
+      await fs.writeFile(fsDb, item.path, "text/markdown", content!);
+      await sync.trackLocalChange(await syncInit(), item.path, content);
     }, generator);
 
     await exhaustIterator(mappedGenerator);

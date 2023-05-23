@@ -1,13 +1,12 @@
-import { mapIteratorAsync } from "@tinykb/fp-utils";
-import { getConnection, trackLocalChange } from ".";
-import { writeFile } from "../file-system";
+import { getConnection } from ".";
 import * as github from "./github";
 import { githubPathToLocalPath, zipPathToGitHubFilePath } from "./path";
+import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export interface ImportParameters {
+export interface CloneParameters {
   connection: github.GithubConnection;
 }
-export async function ensureImportParameters(syncDb: Sqlite3.DB): Promise<ImportParameters> {
+export async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameters> {
   const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 
@@ -16,16 +15,19 @@ export async function ensureImportParameters(syncDb: Sqlite3.DB): Promise<Import
   };
 }
 
-export function writeEachItemToFile(fsDb: Sqlite3.DB, syncDb: Sqlite3.DB, generator: AsyncGenerator<GitHubItem>) {
-  return mapIteratorAsync(async (item) => {
-    await writeFile(fsDb, item.path, "text/markdown", item.content);
-    await trackLocalChange(syncDb, item.path, item.content);
-  }, generator);
-}
-
 export interface GitHubItem {
   path: string;
   content: string;
+}
+
+export async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteChangeRecord> {
+  const itemsGenerator = github.downloadZip(zipballUrl);
+  const now = new Date().toISOString();
+
+  for await (const item of itemsGenerator) {
+    const githubPath = zipPathToGitHubFilePath(item.path);
+    yield { path: githubPath, timestamp: now, status: RemoteChangeStatus.Added, readText: () => item.readAsText() };
+  }
 }
 
 export async function* importGithubArchive(zipballUrl: string): AsyncGenerator<GitHubItem> {

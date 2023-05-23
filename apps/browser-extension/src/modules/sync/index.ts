@@ -17,9 +17,9 @@ import UPSERT_LOCAL_FILE_CHANGE from "./sql/upsert-local-file-change.sql";
 import UPSERT_REMOTE_FILE_CHANGE from "./sql/upsert-remote-file-change.sql";
 
 export * from "./check-health";
+export * from "./clone";
 export * from "./fetch";
 export type { GithubConnection } from "./github";
-export * from "./import";
 export * from "./push";
 export * from "./sql/schema";
 
