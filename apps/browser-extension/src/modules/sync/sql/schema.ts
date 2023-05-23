@@ -24,10 +24,10 @@ export enum DbFileChangeStatus {
 
 export interface DbFileChange {
   path: string;
-  localHash: string;
-  localHashTime: string;
-  remoteHash: string;
-  remoteHashTime: string;
+  localHash: string | null;
+  localHashTime: string | null;
+  remoteHash: string | null;
+  remoteHashTime: string | null;
   source: DbFileChangeSource;
   status: DbFileChangeStatus;
 }
