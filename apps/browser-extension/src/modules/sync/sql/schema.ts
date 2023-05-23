@@ -26,6 +26,7 @@ export interface DbFileChange {
   path: string;
   localHash: string | null;
   localHashTime: string | null;
+  remoteContent: string | null;
   remoteHash: string | null;
   remoteHashTime: string | null;
   source: DbFileChangeSource;
