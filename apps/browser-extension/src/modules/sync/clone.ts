@@ -28,7 +28,12 @@ export async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<
   for await (const item of itemsGenerator) {
     const githubPath = zipPathToGitHubFilePath(item.path);
     console.log(`[clone] path ${githubPath}`);
-    yield { path: githubPath, timestamp: now, status: RemoteChangeStatus.Added, readText: () => item.readAsText() };
+    yield {
+      path: githubPath,
+      readTimestamp: () => now,
+      status: RemoteChangeStatus.Added,
+      readText: () => item.readAsText(),
+    };
   }
   console.log("[perf] clone", performance.measure("import duration", "import-start").duration);
 }

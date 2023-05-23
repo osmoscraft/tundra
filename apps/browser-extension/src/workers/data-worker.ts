@@ -75,6 +75,7 @@ const routes = {
     const mappedGenerator = mapIteratorAsync(async (item) => {
       // todo: consolidate with mergeChangedFile()
       const content = await item.readText();
+      // todo support remote timestamp
       await sync.trackRemoteChange(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChange(await syncInit(), item.path, content);

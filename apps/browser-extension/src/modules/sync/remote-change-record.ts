@@ -1,8 +1,8 @@
 export interface RemoteChangeRecord {
   path: string;
-  timestamp: string;
   status: RemoteChangeStatus;
-  readText: () => Promise<string | null>;
+  readText: () => string | null | Promise<string | null>;
+  readTimestamp: () => string | Promise<string>;
 }
 
 export enum RemoteChangeStatus {
