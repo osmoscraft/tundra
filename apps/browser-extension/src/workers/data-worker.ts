@@ -8,6 +8,8 @@ import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFil
 import { getArchive } from "../modules/sync/github";
 import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
+import { listDeletedFilesByPaths } from "../modules/sync/github/proxy/list-deleted-files-by-paths";
+import { listFilesByPaths } from "../modules/sync/github/proxy/list-files-by-paths";
 import { mergeChangedFile } from "../modules/sync/merge";
 import { githubPathToLocalPath } from "../modules/sync/path";
 import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
@@ -44,6 +46,14 @@ const routes = {
         await getGitHubChangedFileContent(connection, fsDb, file, isLocalClean)
       );
     };
+
+    // TODO add pagination to comparison API (limit 100 files per page)
+    // TODO track remote changes with approperiate timestamp
+    const allChanges = await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId);
+    const changedPaths = allChanges.filter((file) => file.status !== "removed").map((file) => file.filename);
+    const deletedPaths = allChanges.filter((file) => file.status === "removed").map((file) => file.filename);
+    console.log(await listFilesByPaths(connection, changedPaths));
+    console.log(await listDeletedFilesByPaths(connection, deletedPaths));
 
     await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
       Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
