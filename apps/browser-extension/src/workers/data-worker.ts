@@ -4,14 +4,10 @@ import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { ensureFetchParameters, getGitHubChangedFileContent, getGitHubChangedFiles } from "../modules/sync/fetch";
+import { ensureFetchParameters } from "../modules/sync/fetch";
 import { getArchive } from "../modules/sync/github";
-import { type CompareResultFile } from "../modules/sync/github/operations/compare";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
-import { listDeletedFilesByPaths } from "../modules/sync/github/proxy/list-deleted-files-by-paths";
-import { listFilesByPaths } from "../modules/sync/github/proxy/list-files-by-paths";
 import { mergeChangedFile } from "../modules/sync/merge";
-import { githubPathToLocalPath } from "../modules/sync/path";
 import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
@@ -34,30 +30,16 @@ const routes = {
   ),
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
   fetchGithub: async () => {
-    const fsDb = await fsInit();
     const syncDb = await syncInit();
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
-    const onCompareResultFile = async (file: CompareResultFile) => {
-      const isLocalClean = !sync.getLocalFileChange(syncDb, file.filename);
-      sync.trackRemoteChange(
-        syncDb,
-        file.filename,
-        await getGitHubChangedFileContent(connection, fsDb, file, isLocalClean)
-      );
-    };
-
-    // TODO add pagination to comparison API (limit 100 files per page)
-    // TODO track remote changes with approperiate timestamp
-    const allChanges = await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId);
-    const changedPaths = allChanges.filter((file) => file.status !== "removed").map((file) => file.filename);
-    const deletedPaths = allChanges.filter((file) => file.status === "removed").map((file) => file.filename);
-    console.log(await listFilesByPaths(connection, changedPaths));
-    console.log(await listDeletedFilesByPaths(connection, deletedPaths));
-
-    await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
-      Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
-    );
+    const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
+    // TODO convert iterator to promise array for parallel processing
+    const mappedGenerator = mapIteratorAsync(async (item) => {
+      // TODO track remote changes with approperiate timestamp
+      sync.trackRemoteChange(syncDb, item.path, await item.readText());
+    }, generator);
+    await exhaustIterator(mappedGenerator);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
@@ -73,9 +55,10 @@ const routes = {
     const archive = await getArchive(connection);
     const generator = sync.iterateGitHubArchive(archive.zipballUrl);
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      // todo: consolidate with mergeChangedFile()
+      // TODO convert iterator to promise array for parallel processing
+      // TODO: consolidate with mergeChangedFile()
       const content = await item.readText();
-      // todo support remote timestamp
+      // TODO support remote timestamp
       await sync.trackRemoteChange(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChange(await syncInit(), item.path, content);
@@ -90,19 +73,20 @@ const routes = {
     const syncDb = await syncInit();
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
-    const onCompareResultFile = async (file: CompareResultFile) => {
-      const isLocalClean = !sync.getLocalFileChange(syncDb, file.filename);
-      const latestContent = await getGitHubChangedFileContent(connection, fsDb, file, isLocalClean);
-      await sync.trackRemoteChange(syncDb, file.filename, latestContent);
+    const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
+    const mappedGenerator = mapIteratorAsync(async (item) => {
+      // TODO convert iterator to promise array for parallel processing
+      // TODO track remote changes with approperiate timestamp
+      const isLocalClean = !sync.getLocalFileChange(syncDb, item.path);
+      sync.trackRemoteChange(syncDb, item.path, await item.readText());
       if (isLocalClean) {
-        await mergeChangedFile(fsDb, file.filename, latestContent);
-        await sync.trackLocalChange(syncDb, file.filename, latestContent);
+        await mergeChangedFile(fsDb, item.path, await item.readText());
+        await sync.trackLocalChange(syncDb, item.path, await item.readText());
       }
-    };
+    }, generator);
+    await exhaustIterator(mappedGenerator);
 
-    await getGitHubChangedFiles(connection, localHeadRefId, remoteHeadRefId).then((files) =>
-      Promise.all(files.filter((file) => githubPathToLocalPath(file.filename)).map(onCompareResultFile))
-    );
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 
     sync.setGithubRef(syncDb, remoteHeadRefId);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));

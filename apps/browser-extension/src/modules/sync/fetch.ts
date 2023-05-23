@@ -1,10 +1,6 @@
-import { applyPatch, parsePatch } from "diff";
 import { getConnection, getGithubRef } from ".";
-import { readFile } from "../file-system";
 import type { GithubConnection } from "./github";
-import { b64DecodeUnicode } from "./github/base64";
 import { compare, type CompareResultFile, type GitDiffStatus } from "./github/operations/compare";
-import { getBlob } from "./github/operations/get-blob";
 import { getRemoteHeadRef } from "./github/operations/get-remote-head-ref";
 import { listDeletedFilesByPaths } from "./github/proxy/list-deleted-files-by-paths";
 import { listFilesByPaths } from "./github/proxy/list-files-by-paths";
@@ -97,21 +93,4 @@ export async function getGitHubChangedFiles(
   }
 
   return compare(connection, { base: localHeadRefId, head: remoteHeadRefId }).then((results) => results.files);
-}
-
-export async function getGitHubChangedFileContent(
-  connection: GithubConnection,
-  fsDb: Sqlite3.DB,
-  file: CompareResultFile,
-  isLocalClean: boolean
-) {
-  if (file.status === "removed") return null;
-
-  // patch won't work if local file has been modified
-  if (file.patch && isLocalClean) {
-    const localContent = readFile(fsDb, file.filename)?.content ?? "";
-    return applyPatch(localContent, parsePatch(file.patch)[0]);
-  } else {
-    return b64DecodeUnicode((await getBlob(connection!, { sha: file.sha })).content);
-  }
 }
