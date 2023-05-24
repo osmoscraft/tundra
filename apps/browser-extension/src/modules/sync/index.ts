@@ -13,7 +13,9 @@ import SCHEMA from "./sql/schema.sql";
 import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
 import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
 import SELECT_LOCAL_FILE_CHANGE from "./sql/select-local-file-change.sql";
+import SELECT_REMOTE_FILE_CHANGE from "./sql/select-remote-file-change.sql";
 import UPSERT_LOCAL_FILE_CHANGE from "./sql/upsert-local-file-change.sql";
+import UPSERT_REMOTE_FILE_CHANGE_HISTORY from "./sql/upsert-remote-file-change-history.sql";
 import UPSERT_REMOTE_FILE_CHANGE from "./sql/upsert-remote-file-change.sql";
 
 export * from "./check-health";
@@ -42,12 +44,16 @@ export function clearHistory(db: Sqlite3.DB) {
   return db.exec(CLEAR_HISTORY);
 }
 
-export function getGithubRef(db: Sqlite3.DB) {
-  return db.selectObject<DbGithubRef>(SELECT_GITHUB_REF) ?? null;
+export function getRemoteFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
+  return db.selectObject<DbFileChange>(SELECT_REMOTE_FILE_CHANGE, { ":path": path });
 }
 
 export function getFileChanges(db: Sqlite3.DB): DbFileChange[] {
   return db.selectObjects<DbFileChange>(LIST_FILE_CHANGES);
+}
+
+export function getGithubRef(db: Sqlite3.DB) {
+  return db.selectObject<DbGithubRef>(SELECT_GITHUB_REF) ?? null;
 }
 
 export function getLocalFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
@@ -84,6 +90,21 @@ export async function trackLocalChange(db: Sqlite3.DB, path: string, content: st
     bind: {
       ":path": path,
       ":localHash": content ? await sha1(content) : null,
+    },
+  });
+}
+
+export async function trackRemoteChangeHistory(
+  db: Sqlite3.DB,
+  path: string,
+  content: string | null,
+  timestamp: string
+) {
+  db.exec(UPSERT_REMOTE_FILE_CHANGE_HISTORY, {
+    bind: {
+      ":path": path,
+      ":remoteHashTime": timestamp,
+      ":remoteHash": content ? await sha1(content) : null,
     },
   });
 }

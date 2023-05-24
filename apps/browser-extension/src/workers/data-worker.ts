@@ -37,8 +37,7 @@ const routes = {
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     // TODO convert iterator to promise array for parallel processing
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      // TODO track remote changes with approperiate timestamp
-      await sync.trackRemoteChange(syncDb, item.path, await item.readText());
+      await sync.trackRemoteChangeHistory(syncDb, item.path, await item.readText(), await item.readTimestamp());
     }, mdGenerator);
     await exhaustIterator(mappedGenerator);
 
@@ -57,13 +56,10 @@ const routes = {
     const generator = sync.iterateGitHubArchive(archive.zipballUrl);
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      // TODO convert iterator to promise array for parallel processing
-      // TODO: consolidate with mergeChangedFile()
       const content = await item.readText();
-      // TODO support remote timestamp
       await sync.trackRemoteChange(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
-      await sync.trackLocalChange(await syncInit(), item.path, content);
+      await sync.trackLocalChange(syncDb, item.path, content);
     }, mdGenerator);
 
     await exhaustIterator(mappedGenerator);
@@ -79,13 +75,12 @@ const routes = {
     const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      // TODO convert iterator to promise array for parallel processing
-      // TODO track remote changes with approperiate timestamp
-      const isLocalClean = !sync.getLocalFileChange(syncDb, item.path);
-      await sync.trackRemoteChange(syncDb, item.path, await item.readText());
-      if (isLocalClean) {
-        await mergeChangedFile(fsDb, item.path, await item.readText());
-        await sync.trackLocalChange(syncDb, item.path, await item.readText());
+      const newContent = await item.readText();
+      await sync.trackRemoteChangeHistory(syncDb, item.path, newContent, await item.readTimestamp());
+      const fileChange = sync.getRemoteFileChange(syncDb, item.path);
+      if (fileChange) {
+        await mergeChangedFile(fsDb, item.path, newContent);
+        await sync.trackLocalChange(syncDb, item.path, newContent);
       }
     }, mdGenerator);
     await exhaustIterator(mappedGenerator);
