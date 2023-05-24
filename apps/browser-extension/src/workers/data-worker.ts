@@ -1,4 +1,4 @@
-import { asyncPipe, exhaustIterator, filterIteratorAsync, mapIteratorAsync, tap } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustGenerator, filterGeneratorAsync, mapAsyncGenerator, tap } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
@@ -33,12 +33,12 @@ const routes = {
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
     const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
-    const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
+    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
     // TODO convert iterator to promise array for parallel processing
-    const mappedGenerator = mapIteratorAsync(async (item) => {
+    const mappedGenerator = mapAsyncGenerator(async (item) => {
       await sync.trackRemoteChange(syncDb, item.path, await item.readText(), await item.readTimestamp());
     }, mdGenerator);
-    await exhaustIterator(mappedGenerator);
+    await exhaustGenerator(mappedGenerator);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
@@ -53,15 +53,15 @@ const routes = {
     await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
     const archive = await getArchive(connection);
     const generator = sync.iterateGitHubArchive(archive.zipballUrl);
-    const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
-    const mappedGenerator = mapIteratorAsync(async (item) => {
+    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
+    const mappedGenerator = mapAsyncGenerator(async (item) => {
       const content = await item.readText();
       await sync.trackRemoteChangeNow(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChangeNow(syncDb, item.path, content);
     }, mdGenerator);
 
-    await exhaustIterator(mappedGenerator);
+    await exhaustGenerator(mappedGenerator);
     sync.setGithubRef(syncDb, archive.oid);
   },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
@@ -72,8 +72,8 @@ const routes = {
     const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
     const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
-    const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
-    const mappedGenerator = mapIteratorAsync(async (item) => {
+    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
+    const mappedGenerator = mapAsyncGenerator(async (item) => {
       const newContent = await item.readText();
       await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
@@ -82,7 +82,7 @@ const routes = {
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
     }, mdGenerator);
-    await exhaustIterator(mappedGenerator);
+    await exhaustGenerator(mappedGenerator);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 

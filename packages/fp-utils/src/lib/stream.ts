@@ -1,15 +1,15 @@
 import { identity } from "./identity";
 
 // async generator to readable stream
-export function iteratorToStream<T>(iterator: AsyncGenerator<T>): ReadableStream<T> {
-  return mapIteratorToStream(identity, iterator);
+export function generatorToStream<T>(generator: AsyncGenerator<T>): ReadableStream<T> {
+  return mapGeneratorToStream(identity, generator);
 }
 
-export function mapIteratorToStream<T, K>(mapper: (input: T) => K | Promise<K>, iterator: AsyncGenerator<T>) {
+export function mapGeneratorToStream<T, K>(mapper: (input: T) => K | Promise<K>, generator: AsyncGenerator<T>) {
   return new ReadableStream({
     async pull(controller) {
       try {
-        const { value, done } = await iterator.next();
+        const { value, done } = await generator.next();
 
         if (done) {
           controller.close();
@@ -23,16 +23,28 @@ export function mapIteratorToStream<T, K>(mapper: (input: T) => K | Promise<K>, 
   });
 }
 
-export async function* mapIteratorAsync<T, K>(
+export async function* mapAsyncGenerator<T, K>(
   mapper: (input: T) => K | Promise<K>,
-  iterator: AsyncGenerator<T>
+  generator: AsyncGenerator<T>
 ): AsyncGenerator<K> {
-  for await (const value of iterator) {
+  for await (const value of generator) {
     yield await mapper(value);
   }
 }
 
-export async function* filterIteratorAsync<T>(
+export async function mapAsyncGeneratorParallel<T, K>(
+  mapper: (input: T) => K | Promise<K>,
+  generator: AsyncGenerator<T>
+): Promise<K[]> {
+  const result: (K | Promise<K>)[] = [];
+  for await (const value of generator) {
+    result.push(mapper(value));
+  }
+
+  return Promise.all(result);
+}
+
+export async function* filterGeneratorAsync<T>(
   predicate: (input: T) => boolean | Promise<boolean>,
   iterator: AsyncGenerator<T>
 ): AsyncGenerator<T> {
@@ -43,8 +55,8 @@ export async function* filterIteratorAsync<T>(
   }
 }
 
-export async function exhaustIterator<T>(iterator: AsyncGenerator<T>) {
-  for await (const _value of iterator) {
+export async function exhaustGenerator<T>(generator: AsyncGenerator<T>) {
+  for await (const _value of generator) {
     // noop
   }
 }
