@@ -10,3 +10,7 @@ export enum RemoteChangeStatus {
   Modified = 2,
   Removed = 3,
 }
+
+export function isMarkdownFile(record: RemoteChangeRecord) {
+  return record.path.endsWith(".md");
+}

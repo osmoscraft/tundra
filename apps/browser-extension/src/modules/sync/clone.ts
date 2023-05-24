@@ -1,12 +1,30 @@
+import { filterGeneratorAsync } from "@tinykb/fp-utils";
 import { getConnection } from ".";
 import * as github from "./github";
 import { zipPathToGitHubFilePath } from "./path";
-import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
+import { RemoteChangeStatus, isMarkdownFile, type RemoteChangeRecord } from "./remote-change-record";
 
-export interface CloneParameters {
+export interface GitHubRemote {
+  generator: AsyncGenerator<RemoteChangeRecord>;
+  oid: string;
+}
+export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote> {
+  const { connection } = await ensureCloneParameters(syncDb);
+  const archive = await github.getArchive(connection);
+
+  const zipballItemsGenerator = iterateGitHubArchive(archive.zipballUrl);
+  const generator = filterGeneratorAsync(isMarkdownFile, zipballItemsGenerator);
+
+  return {
+    generator,
+    oid: archive.oid,
+  };
+}
+
+interface CloneParameters {
   connection: github.GithubConnection;
 }
-export async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameters> {
+async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameters> {
   const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 
@@ -15,12 +33,7 @@ export async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<ClonePa
   };
 }
 
-export interface GitHubItem {
-  path: string;
-  content: string;
-}
-
-export async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteChangeRecord> {
+async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteChangeRecord> {
   const itemsGenerator = github.downloadZip(zipballUrl);
   const now = new Date().toISOString();
 

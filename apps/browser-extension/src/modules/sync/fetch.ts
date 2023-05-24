@@ -1,17 +1,33 @@
+import { filterGeneratorAsync } from "@tinykb/fp-utils";
 import { getConnection, getGithubRef } from ".";
 import type { GithubConnection } from "./github";
 import { compare, type CompareResultFile, type GitDiffStatus } from "./github/operations/compare";
 import { getRemoteHeadRef } from "./github/operations/get-remote-head-ref";
 import { listDeletedFilesByPaths } from "./github/proxy/list-deleted-files-by-paths";
 import { listFilesByPaths } from "./github/proxy/list-files-by-paths";
-import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
+import { RemoteChangeStatus, isMarkdownFile, type RemoteChangeRecord } from "./remote-change-record";
 
-export interface FetchParameters {
+export interface GitHubRemote {
+  generator: AsyncGenerator<RemoteChangeRecord>;
+  remoteHeadRefId: string;
+}
+export async function getGitHubRemoteChanges(syncDb: Sqlite3.DB): Promise<GitHubRemote> {
+  const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
+
+  const generator = filterGeneratorAsync(
+    isMarkdownFile,
+    iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId)
+  );
+
+  return { generator, remoteHeadRefId };
+}
+
+interface FetchParameters {
   connection: GithubConnection;
   localHeadRefId: string;
   remoteHeadRefId: string;
 }
-export async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchParameters> {
+async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchParameters> {
   const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 
@@ -27,7 +43,7 @@ export async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchPa
   };
 }
 
-export async function* iterateGitHubDiffs(
+async function* iterateGitHubDiffs(
   connection: GithubConnection,
   localHeadRefId: string,
   remoteHeadRefId: string

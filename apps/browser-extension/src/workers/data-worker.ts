@@ -1,11 +1,9 @@
-import { asyncPipe, exhaustGenerator, filterGeneratorAsync, mapAsyncGenerator, tap } from "@tinykb/fp-utils";
+import { asyncPipe, mapAsyncGeneratorParallel, tap } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { ensureFetchParameters } from "../modules/sync/fetch";
-import { getArchive } from "../modules/sync/github";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
 import { formatStatus } from "../modules/sync/status";
@@ -30,15 +28,11 @@ const routes = {
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
   fetchGithub: async () => {
     const syncDb = await syncInit();
-    const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
-
-    const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
-    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
-    // TODO convert iterator to promise array for parallel processing
-    const mappedGenerator = mapAsyncGenerator(async (item) => {
-      await sync.trackRemoteChange(syncDb, item.path, await item.readText(), await item.readTimestamp());
-    }, mdGenerator);
-    await exhaustGenerator(mappedGenerator);
+    const { generator } = await sync.getGitHubRemoteChanges(syncDb);
+    await mapAsyncGeneratorParallel(
+      async (item) => sync.trackRemoteChange(syncDb, item.path, await item.readText(), await item.readTimestamp()),
+      generator
+    );
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
@@ -49,31 +43,26 @@ const routes = {
   importGitHubRepo: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
-    const { connection } = await sync.ensureCloneParameters(syncDb);
     await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
-    const archive = await getArchive(connection);
-    const generator = sync.iterateGitHubArchive(archive.zipballUrl);
-    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
-    const mappedGenerator = mapAsyncGenerator(async (item) => {
+
+    const { generator, oid } = await sync.getGitHubRemote(syncDb);
+
+    await mapAsyncGeneratorParallel(async (item) => {
       const content = await item.readText();
       await sync.trackRemoteChangeNow(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChangeNow(syncDb, item.path, content);
-    }, mdGenerator);
+    }, generator);
 
-    await exhaustGenerator(mappedGenerator);
-    sync.setGithubRef(syncDb, archive.oid);
+    sync.setGithubRef(syncDb, oid);
   },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
-    // TODO split merge from pull
     const fsDb = await fsInit();
     const syncDb = await syncInit();
-    const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
+    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(syncDb);
 
-    const generator = sync.iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
-    const mdGenerator = filterGeneratorAsync((item) => item.path.endsWith(".md"), generator);
-    const mappedGenerator = mapAsyncGenerator(async (item) => {
+    await mapAsyncGeneratorParallel(async (item) => {
       const newContent = await item.readText();
       await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
@@ -81,8 +70,7 @@ const routes = {
         await fs.writeOrDeleteFile(fsDb, item.path, newContent);
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
-    }, mdGenerator);
-    await exhaustGenerator(mappedGenerator);
+    }, generator);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 
