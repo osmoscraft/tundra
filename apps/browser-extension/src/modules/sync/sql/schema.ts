@@ -11,7 +11,6 @@ export interface DbGithubRef {
 export enum DbFileChangeSource {
   Local = 1,
   Remote = 2,
-  Both = 3,
 }
 
 export enum DbFileChangeStatus {
@@ -19,7 +18,6 @@ export enum DbFileChangeStatus {
   Added = 1,
   Modified = 2,
   Removed = 3,
-  Conflict = 4,
 }
 
 export interface DbFileChange {

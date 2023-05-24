@@ -18,13 +18,11 @@ CREATE TABLE IF NOT EXISTS FileChange (
   /*
    1: Local
    2: Remote
-   3: Both
    */
   source         INT GENERATED ALWAYS AS (
     CASE
-      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 1
+      WHEN localHashTime >= ifnull(remoteHashTime, 0) THEN 1
       WHEN ifnull(localHashTime, 0) < remoteHashTime THEN 2
-      ELSE 3
     END
   ),
   /*
@@ -32,11 +30,10 @@ CREATE TABLE IF NOT EXISTS FileChange (
    1: Added
    2: Modified
    3: Removed
-   4: Conflict
    */
   status         INT GENERATED ALWAYS AS (
     CASE
-      WHEN localHashTime > ifnull(remoteHashTime, 0) THEN 
+      WHEN localHashTime >= ifnull(remoteHashTime, 0) THEN 
         CASE
           WHEN localHash IS NULL AND remoteHash IS NOT NULL THEN 3
           WHEN localHash IS NOT NULL AND remoteHash IS NULL THEN 1
@@ -51,13 +48,6 @@ CREATE TABLE IF NOT EXISTS FileChange (
           WHEN localHash IS remoteHash THEN 0
           WHEN localHash IS NOT remoteHash THEN 2
         END
-      
-      ELSE 
-        CASE
-          WHEN localHash IS remoteHash THEN 0
-          WHEN localHash IS NOT remoteHash THEN 4
-        END
-      
     END
   ) VIRTUAL
 );

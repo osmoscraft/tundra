@@ -133,36 +133,41 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
       },
       expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Modified },
     },
-
     {
-      file: { path: "file-mixed-1" },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
+      file: {
+        path: "file-mixed-1",
+        localHashTime: "1990-01-01T00:00:00",
+        remoteHashTime: "1990-01-01T00:00:00",
+      },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
         path: "file-mixed-2",
         localHashTime: "1990-01-01T00:00:00",
+        localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
     },
     {
       file: {
         path: "file-mixed-3",
         localHashTime: "1990-01-01T00:00:00",
-        localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
+        remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Removed },
     },
     {
       file: {
         path: "file-mixed-4",
         localHashTime: "1990-01-01T00:00:00",
+        localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged },
     },
     {
       file: {
@@ -170,19 +175,9 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:00",
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
-        remoteHash: "hash",
-      },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Unchanged },
-    },
-    {
-      file: {
-        path: "file-mixed-6",
-        localHashTime: "1990-01-01T00:00:00",
-        localHash: "hash",
-        remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash2",
       },
-      expected: { source: DbFileChangeSource.Both, status: DbFileChangeStatus.Conflict },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified },
     },
   ];
 }
