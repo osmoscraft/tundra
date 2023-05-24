@@ -37,7 +37,7 @@ const routes = {
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     // TODO convert iterator to promise array for parallel processing
     const mappedGenerator = mapIteratorAsync(async (item) => {
-      await sync.trackRemoteChangeHistory(syncDb, item.path, await item.readText(), await item.readTimestamp());
+      await sync.trackRemoteChange(syncDb, item.path, await item.readText(), await item.readTimestamp());
     }, mdGenerator);
     await exhaustIterator(mappedGenerator);
 
@@ -57,9 +57,9 @@ const routes = {
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     const mappedGenerator = mapIteratorAsync(async (item) => {
       const content = await item.readText();
-      await sync.trackRemoteChange(syncDb, item.path, content);
+      await sync.trackRemoteChangeNow(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
-      await sync.trackLocalChange(syncDb, item.path, content);
+      await sync.trackLocalChangeNow(syncDb, item.path, content);
     }, mdGenerator);
 
     await exhaustIterator(mappedGenerator);
@@ -76,11 +76,11 @@ const routes = {
     const mdGenerator = filterIteratorAsync((item) => item.path.endsWith(".md"), generator);
     const mappedGenerator = mapIteratorAsync(async (item) => {
       const newContent = await item.readText();
-      await sync.trackRemoteChangeHistory(syncDb, item.path, newContent, await item.readTimestamp());
+      await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
       if (fileChange) {
         await mergeChangedFile(fsDb, item.path, newContent);
-        await sync.trackLocalChange(syncDb, item.path, newContent);
+        await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
     }, mdGenerator);
     await exhaustIterator(mappedGenerator);
@@ -100,7 +100,7 @@ const routes = {
 
     await Promise.all(
       fileChanges.map((file) =>
-        sync.trackRemoteChange(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
+        sync.trackRemoteChangeNow(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
       )
     );
 
@@ -113,7 +113,7 @@ const routes = {
   writeFile: async (path: string, content: string) => {
     const syncDb = await syncInit();
     await fs.writeFile(await fsInit(), path, "text/markdown", content);
-    await sync.trackLocalChange(await syncInit(), path, content);
+    await sync.trackLocalChangeNow(await syncInit(), path, content);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
 };

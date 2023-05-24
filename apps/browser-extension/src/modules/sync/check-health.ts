@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { getFileChanges, trackLocalChange, trackRemoteChange } from ".";
+import { getFileChanges, trackLocalChangeNow, trackRemoteChangeNow } from ".";
 import type { TestDataEntry } from "./load-test-data";
 import { DbFileChangeSource, DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -91,7 +91,7 @@ export async function checkHealth() {
     log(`test change files ok: ${changeEntries.length} files`);
 
     log(`lifecycle: local added > push > local modified > local removed`);
-    await trackLocalChange(db, "/test/new-local-file", "test");
+    await trackLocalChangeNow(db, "/test/new-local-file", "test");
     assertChange(
       `local added`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -100,7 +100,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added }
     );
 
-    await trackRemoteChange(db, "/test/new-local-file", "test");
+    await trackRemoteChangeNow(db, "/test/new-local-file", "test");
     assertChange(
       `local added > push`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -109,7 +109,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Unchanged }
     );
 
-    await trackLocalChange(db, "/test/new-local-file", "test modified");
+    await trackLocalChangeNow(db, "/test/new-local-file", "test modified");
     assertChange(
       `local added > push > local modified`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -118,7 +118,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified }
     );
 
-    await trackLocalChange(db, "/test/new-local-file", null);
+    await trackLocalChangeNow(db, "/test/new-local-file", null);
     assertChange(
       `local added > push > local modified > local removed`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -128,7 +128,7 @@ export async function checkHealth() {
     );
 
     log(`lifecycle: remote added > pull > remote modified > remote removed`);
-    await trackRemoteChange(db, "/test/new-remote-file", "test");
+    await trackRemoteChangeNow(db, "/test/new-remote-file", "test");
     assertChange(
       `remote added`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -137,7 +137,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added }
     );
 
-    await trackLocalChange(db, "/test/new-remote-file", "test");
+    await trackLocalChangeNow(db, "/test/new-remote-file", "test");
     assertChange(
       `remote added > pull`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -146,7 +146,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Unchanged }
     );
 
-    await trackRemoteChange(db, "/test/new-remote-file", "test modified");
+    await trackRemoteChangeNow(db, "/test/new-remote-file", "test modified");
     assertChange(
       `remote added > pull > remote modified`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
@@ -155,7 +155,7 @@ export async function checkHealth() {
       { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Modified }
     );
 
-    await trackRemoteChange(db, "/test/new-remote-file", null);
+    await trackRemoteChangeNow(db, "/test/new-remote-file", null);
     assertChange(
       `remote added > pull > remote modified > remote removed`,
       db.selectObject<DbFileChange>(SELECT_FILE_CHANGE, {
