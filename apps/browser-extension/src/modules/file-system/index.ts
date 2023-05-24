@@ -1,6 +1,7 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
 import CLEAR_FILES from "./sql/clear-files.sql";
+import DELETE_FILE from "./sql/delete-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
 import type { DbFile } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -28,6 +29,27 @@ export function writeFile(db: Sqlite3.DB, path: string, type: string, content: s
       ":content": content,
     },
   });
+}
+
+/**
+ * Set content to `null` for deletion
+ */
+export function writeOrDeleteFile(db: Sqlite3.DB, path: string, content: string | null) {
+  if (content === null) {
+    db.exec(DELETE_FILE, {
+      bind: {
+        ":path": path,
+      },
+    });
+  } else {
+    db.exec(UPSERT_FILE, {
+      bind: {
+        ":path": path,
+        ":type": "text/markdown",
+        ":content": content,
+      },
+    });
+  }
 }
 
 export function readFile(db: Sqlite3.DB, path: string) {

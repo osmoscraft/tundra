@@ -7,7 +7,6 @@ import * as sync from "../modules/sync";
 import { ensureFetchParameters } from "../modules/sync/fetch";
 import { getArchive } from "../modules/sync/github";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
-import { mergeChangedFile } from "../modules/sync/merge";
 import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
@@ -79,7 +78,7 @@ const routes = {
       await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
       if (fileChange) {
-        await mergeChangedFile(fsDb, item.path, newContent);
+        await fs.writeOrDeleteFile(fsDb, item.path, newContent);
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
     }, mdGenerator);
