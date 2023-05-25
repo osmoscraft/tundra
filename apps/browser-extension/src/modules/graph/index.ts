@@ -15,7 +15,7 @@ export const init = callOnce(
   })
 );
 
-export function clearNodes(db: Sqlite3.DB) {
+export function clear(db: Sqlite3.DB) {
   db.exec(CLEAR_NODES);
 }
 
@@ -28,7 +28,7 @@ export function upsertNode(db: Sqlite3.DB, node: DbNode) {
   db.exec(INSERT_NODE, {
     bind: {
       ":path": node.path,
-      ":title": node.title,
+      ":data": JSON.stringify({ title: node.title }),
     },
   });
 }

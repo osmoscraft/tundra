@@ -30,6 +30,11 @@ export class DevtoolElement extends HTMLElement {
           downloadFile(file);
           break;
         }
+        case "download-graph-db": {
+          const file = await this.proxy.getGraphDbFile();
+          downloadFile(file);
+          break;
+        }
         case "download-sync-db": {
           const file = await this.proxy.getSyncDbFile();
           downloadFile(file);

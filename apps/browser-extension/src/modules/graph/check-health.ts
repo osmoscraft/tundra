@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { clearNodes, getNode, upsertNode } from ".";
+import { clear, getNode, upsertNode } from ".";
 import { assertEqual } from "../live-test";
 import SCHEMA from "./sql/schema.sql";
 
@@ -47,7 +47,7 @@ export async function checkHealth() {
     assertEqual(nodeUpdated?.title, "title1 updated");
 
     log("delete");
-    clearNodes(db);
+    clear(db);
     const nodeDeleted = getNode(db, "/test/upsert.md");
     assertEqual(nodeDeleted, undefined);
   }

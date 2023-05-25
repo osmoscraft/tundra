@@ -14,8 +14,10 @@ export type DataWorkerRoutes = typeof routes;
 
 const FS_DB_PATH = "/tinykb-fs.sqlite3";
 const SYNC_DB_PATH = "/tinykb-sync.sqlite3";
+const GRAPH_DB_PATH = "/tinykb-graph.sqlite3";
 const fsInit = fs.init.bind(null, FS_DB_PATH);
 const syncInit = sync.init.bind(null, SYNC_DB_PATH);
+const graphInit = graph.init.bind(null, GRAPH_DB_PATH);
 
 const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
@@ -28,7 +30,8 @@ const routes = {
     tap(() => console.log("check graph")),
     graph.checkHealth
   ),
-  clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
+  clearFiles: async () =>
+    Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit()), graph.clear(await graphInit())]),
   fetchGithub: async () => {
     const syncDb = await syncInit();
     const { generator } = await sync.getGitHubRemoteChanges(syncDb);
@@ -42,6 +45,7 @@ const routes = {
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(syncInit, sync.getConnection),
+  getGraphDbFile: getOpfsFileByPath.bind(null, GRAPH_DB_PATH),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   importGitHubRepo: async () => {
     const fsDb = await fsInit();
@@ -97,7 +101,8 @@ const routes = {
     sync.setGithubRef(syncDb, pushResult.commitSha);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
-  rebuild: () => Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH)]),
+  rebuild: () =>
+    Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH), destoryOpfsByPath(GRAPH_DB_PATH)]),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {

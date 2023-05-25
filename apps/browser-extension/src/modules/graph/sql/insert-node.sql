@@ -1,2 +1,2 @@
-INSERT INTO Node(path, title) VALUES (:path, :title);
+INSERT INTO Node(path, data) VALUES (:path, :data);
 

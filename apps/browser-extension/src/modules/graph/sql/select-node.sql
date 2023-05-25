@@ -1,2 +1,2 @@
-SELECT * FROM Node WHERE path = :path;
+SELECT path, title FROM Node WHERE path = :path;
 
