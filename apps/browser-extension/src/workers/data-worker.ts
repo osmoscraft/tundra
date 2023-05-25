@@ -67,7 +67,7 @@ const routes = {
       await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
       if (fileChange) {
-        await fs.writeOrDeleteFile(fsDb, item.path, newContent);
+        await fs.writeOrDeleteFile(fsDb, item.path, "text/markdown", newContent);
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
     }, generator);

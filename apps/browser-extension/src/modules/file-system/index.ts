@@ -34,7 +34,7 @@ export function writeFile(db: Sqlite3.DB, path: string, type: string, content: s
 /**
  * Set content to `null` for deletion
  */
-export function writeOrDeleteFile(db: Sqlite3.DB, path: string, content: string | null) {
+export function writeOrDeleteFile(db: Sqlite3.DB, path: string, type: string, content: string | null) {
   if (content === null) {
     db.exec(DELETE_FILE, {
       bind: {
@@ -45,7 +45,7 @@ export function writeOrDeleteFile(db: Sqlite3.DB, path: string, content: string 
     db.exec(UPSERT_FILE, {
       bind: {
         ":path": path,
-        ":type": "text/markdown",
+        ":type": type,
         ":content": content,
       },
     });
