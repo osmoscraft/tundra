@@ -1,0 +1,1 @@
+DELETE FROM Node WHERE path = :path;

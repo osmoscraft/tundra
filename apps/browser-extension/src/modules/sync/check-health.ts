@@ -1,5 +1,6 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import { getFileChanges, trackLocalChangeNow, trackRemoteChangeNow } from ".";
+import { assertDefined, assertEqual } from "../live-test";
 import type { TestDataEntry } from "./load-test-data";
 import { DbFileChangeSource, DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -30,20 +31,8 @@ export async function checkHealth() {
     actual?: { source: DbFileChangeSource; status: DbFileChangeStatus },
     expected?: { source: DbFileChangeSource; status: DbFileChangeStatus }
   ) {
-    assertStrictEqual(actual?.source, expected?.source, message);
-    assertStrictEqual(actual?.status, expected?.status, message);
-  }
-
-  function assertStrictEqual(actual: any, expected: any, message: string) {
-    if (actual !== expected) {
-      throw new Error(`Assert strict equal failed: ${message}\nExpeced: ${expected}\nActual: ${actual}`);
-    }
-  }
-
-  function assertDefined(actual: any, message: string) {
-    if (typeof actual === "undefined") {
-      throw new Error(`Assert defined failed: ${message}`);
-    }
+    assertEqual(actual?.source, expected?.source, message);
+    assertEqual(actual?.status, expected?.status, message);
   }
 
   function log(message: any) {
@@ -76,12 +65,12 @@ export async function checkHealth() {
       .forEach((entry) => {
         const matchedChangeEntry = changeEntries.find((change) => change.path === entry.file.path);
         assertDefined(matchedChangeEntry, `change entry not found: ${entry.file.path}`);
-        assertStrictEqual(
+        assertEqual(
           matchedChangeEntry?.source,
           entry.expected.source,
           `change entry source not matched: ${entry.file.path}`
         );
-        assertStrictEqual(
+        assertEqual(
           matchedChangeEntry?.status,
           entry.expected.status,
           `change entry status not matched: ${entry.file.path}`
@@ -166,7 +155,10 @@ export async function checkHealth() {
   }
 
   return test()
-    .then(() => true)
+    .then(() => {
+      log("OK");
+      return true;
+    })
     .catch((e) => {
       console.error(e);
       return false;

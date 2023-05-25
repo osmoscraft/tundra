@@ -2,6 +2,7 @@ import { asyncPipe, mapAsyncGeneratorParallel, tap } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
+import * as graph from "../modules/graph";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -23,7 +24,9 @@ const routes = {
     tap(() => console.log("check fs")),
     fs.checkHealth,
     tap(() => console.log("check sync")),
-    sync.checkHealth
+    sync.checkHealth,
+    tap(() => console.log("check graph")),
+    graph.checkHealth
   ),
   clearFiles: async () => Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit())]),
   fetchGithub: async () => {

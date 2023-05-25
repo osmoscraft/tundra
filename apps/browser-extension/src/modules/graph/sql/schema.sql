@@ -1,6 +1,4 @@
-CREATE TABLE IF NOT EXISTS Node (
-  id         TEXT PRIMARY KEY,
-  data       TEXT
+CREATE VIRTUAL TABLE IF NOT EXISTS Node USING fts5(
+  path,
+  title
 );
-
-/* TODO add FTS and JSON extension views */

@@ -1,22 +1,38 @@
-import { tap } from "@tinykb/fp-utils";
-import { initWithSchema, logInitResult } from "@tinykb/sqlite-utils";
+import { asyncPipe, callOnce } from "@tinykb/fp-utils";
+import { sqlite3Opfs } from "@tinykb/sqlite-utils";
+import CLEAR_NODES from "./sql/clear-nodes.sql";
+import DELETE_NODE from "./sql/delete-node.sql";
+import INSERT_NODE from "./sql/insert-node.sql";
+import type { DbNode } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
+import SELECT_NODE from "./sql/select-node.sql";
+export * from "./check-health";
 
-export class GraphService {
-  private db: Promise<Sqlite3.DB>;
+export const init = callOnce(
+  asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {
+    db.exec(SCHEMA);
+    return db;
+  })
+);
 
-  constructor(private opfsPath: string) {
-    this.db = initWithSchema(opfsPath, SCHEMA)
-      .then(tap(logInitResult.bind(null, opfsPath)))
-      .then((result) => result.db);
-  }
-
-  upsertNode(node: GraphNode) {}
+export function clearNodes(db: Sqlite3.DB) {
+  db.exec(CLEAR_NODES);
 }
 
-export type IGraphService = Pick<GraphService, keyof GraphService>;
+export function upsertNode(db: Sqlite3.DB, node: DbNode) {
+  db.exec(DELETE_NODE, {
+    bind: {
+      ":path": node.path,
+    },
+  });
+  db.exec(INSERT_NODE, {
+    bind: {
+      ":path": node.path,
+      ":title": node.title,
+    },
+  });
+}
 
-export interface GraphNode {
-  id: string;
-  data: any;
+export function getNode(db: Sqlite3.DB, path: string) {
+  return db.selectObject<DbNode>(SELECT_NODE, { ":path": path });
 }
