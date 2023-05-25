@@ -7,11 +7,11 @@ import { listDeletedFilesByPaths } from "./github/proxy/list-deleted-files-by-pa
 import { listFilesByPaths } from "./github/proxy/list-files-by-paths";
 import { RemoteChangeStatus, isMarkdownFile, type RemoteChangeRecord } from "./remote-change-record";
 
-export interface GitHubRemote {
+export interface GitHubRemoteChanges {
   generator: AsyncGenerator<RemoteChangeRecord>;
   remoteHeadRefId: string;
 }
-export async function getGitHubRemoteChanges(syncDb: Sqlite3.DB): Promise<GitHubRemote> {
+export async function getGitHubRemoteChanges(syncDb: Sqlite3.DB): Promise<GitHubRemoteChanges> {
   const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
 
   const generator = filterGeneratorAsync(
