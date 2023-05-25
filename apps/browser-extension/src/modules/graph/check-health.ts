@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { clear, getNode, upsertNode } from ".";
+import { clear, getNode, searchNode, upsertNode } from ".";
 import { assertEqual } from "../live-test";
 import SCHEMA from "./sql/schema.sql";
 
@@ -25,6 +25,7 @@ export async function checkHealth() {
 
   async function runTests(db: Sqlite3.DB) {
     await testCRUD(db);
+    await testFTS(db);
   }
 
   async function testCRUD(db: Sqlite3.DB) {
@@ -50,6 +51,37 @@ export async function checkHealth() {
     clear(db);
     const nodeDeleted = getNode(db, "/test/upsert.md");
     assertEqual(nodeDeleted, undefined);
+  }
+
+  async function testFTS(db: Sqlite3.DB) {
+    log("insert search targets");
+    upsertNode(db, {
+      path: "/test/search-1.md",
+      title: "hello world",
+    });
+    upsertNode(db, {
+      path: "/test/search-2.md",
+      title: "OK Computer",
+    });
+    upsertNode(db, {
+      path: "/test/search-3.md",
+      title: "random stuff",
+    });
+
+    log("empty");
+    const emptyResults = searchNode(db, "nothing should show up");
+    assertEqual(emptyResults.length, 0, "No result");
+
+    log("simple search");
+    const simpleResults = searchNode(db, "hello");
+    assertEqual(simpleResults.length, 1, "Exactly one result");
+    assertEqual(simpleResults[0].path, "/test/search-1.md", "Path matches");
+    assertEqual(simpleResults[0].title, "hello world", "Title matches");
+
+    log("case insensitive");
+    const caseInsensitiveResult = searchNode(db, "oK comPUtEr");
+    assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
+    assertEqual(caseInsensitiveResult[0].title, "OK Computer", "Title matches");
   }
 
   return runHarness()

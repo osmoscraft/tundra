@@ -32,6 +32,7 @@ export function writeFile(db: Sqlite3.DB, path: string, type: string, content: s
 }
 
 /**
+ * TODO swith to tombstone pattern for fault tolerant delete propagation to other modules
  * Set content to `null` for deletion
  */
 export function writeOrDeleteFile(db: Sqlite3.DB, path: string, type: string, content: string | null) {

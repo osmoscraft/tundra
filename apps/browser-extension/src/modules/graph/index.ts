@@ -5,6 +5,7 @@ import DELETE_NODE from "./sql/delete-node.sql";
 import INSERT_NODE from "./sql/insert-node.sql";
 import type { DbNode } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
+import SEARCH_NODE from "./sql/search-node.sql";
 import SELECT_NODE from "./sql/select-node.sql";
 export * from "./check-health";
 
@@ -17,6 +18,12 @@ export const init = callOnce(
 
 export function clear(db: Sqlite3.DB) {
   db.exec(CLEAR_NODES);
+}
+
+export function searchNode(db: Sqlite3.DB, query: string) {
+  return db.selectObjects<DbNode>(SEARCH_NODE, {
+    ":query": query,
+  });
 }
 
 export function upsertNode(db: Sqlite3.DB, node: DbNode) {
