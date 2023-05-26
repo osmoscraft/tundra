@@ -2,6 +2,7 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
 import CLEAR_FILES from "./sql/clear-files.sql";
 import DELETE_FILE from "./sql/delete-file.sql";
+import LIST_FILES_NEWER_THAN from "./sql/list-files-newer-than.sql";
 import LIST_FILES from "./sql/list-files.sql";
 import type { DbFile } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -63,5 +64,11 @@ export function listFiles(db: Sqlite3.DB, limit: number, offset: number) {
   return db.selectObjects<DbFile>(LIST_FILES, {
     ":limit": limit,
     ":offset": offset,
+  });
+}
+
+export function listFilesNewerThan(db: Sqlite3.DB, minUpdatedTime: string) {
+  return db.selectObjects<DbFile>(LIST_FILES_NEWER_THAN, {
+    ":minUpdatedTime": minUpdatedTime,
   });
 }
