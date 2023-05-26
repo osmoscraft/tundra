@@ -2,7 +2,6 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
 import CLEAR_FILES from "./sql/clear-files.sql";
 import DELETE_FILE from "./sql/delete-file.sql";
-import LIST_FILES_NEWER_THAN from "./sql/list-files-newer-than.sql";
 import LIST_FILES from "./sql/list-files.sql";
 import type { DbFile } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
@@ -67,8 +66,32 @@ export function listFiles(db: Sqlite3.DB, limit: number, offset: number) {
   });
 }
 
-export function listFilesNewerThan(db: Sqlite3.DB, minUpdatedTime: string) {
-  return db.selectObjects<DbFile>(LIST_FILES_NEWER_THAN, {
-    ":minUpdatedTime": minUpdatedTime,
-  });
+export interface QueryConfig {
+  minUpdatedTime?: string;
+  limit?: number;
+  offset?: number;
+}
+export function queryFiles(db: Sqlite3.DB, config: QueryConfig) {
+  const appendClause: string[] = [];
+  const appendDict: Record<string, string> = {};
+  if (Object.keys(config).length > 0) {
+    appendClause.push(" WHERE");
+  }
+
+  if (config.minUpdatedTime) {
+    appendClause.push("updatedTime > :minUpdatedTime");
+    appendDict[":minUpdatedTime"] = config.minUpdatedTime;
+  }
+
+  if (config.limit) {
+    appendClause.push("LIMIT :limit");
+    appendDict[":limit"] = config.limit.toString();
+  }
+
+  if (config.offset) {
+    appendClause.push("OFFSET :offset");
+    appendDict[":offset"] = config.offset.toString();
+  }
+
+  return db.selectObjects<DbFile>(`SELECT * FROM File ${appendClause.join(" ")}`, { ...appendDict });
 }
