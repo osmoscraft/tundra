@@ -44,7 +44,7 @@ async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteC
     yield {
       path: githubPath,
       readTimestamp: () => now,
-      status: RemoteChangeStatus.Added,
+      status: RemoteChangeStatus.Created,
       readText: () => item.readAsText(),
     };
   }

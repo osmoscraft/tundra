@@ -6,9 +6,9 @@ export interface RemoteChangeRecord {
 }
 
 export enum RemoteChangeStatus {
-  Added = 1,
-  Modified = 2,
-  Removed = 3,
+  Created = 1,
+  Updated = 2,
+  Deleted = 3,
 }
 
 export function isMarkdownFile(record: RemoteChangeRecord) {

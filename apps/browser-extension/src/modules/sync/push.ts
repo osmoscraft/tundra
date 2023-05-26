@@ -20,11 +20,11 @@ export function syncStatusToPushChangeType(staus: DbFileChangeStatus): ChangeTyp
   switch (staus) {
     case DbFileChangeStatus.Unchanged:
       return ChangeType.Clean;
-    case DbFileChangeStatus.Added:
+    case DbFileChangeStatus.Created:
       return ChangeType.Add;
-    case DbFileChangeStatus.Modified:
+    case DbFileChangeStatus.Updated:
       return ChangeType.Modify;
-    case DbFileChangeStatus.Removed:
+    case DbFileChangeStatus.Deleted:
       return ChangeType.Remove;
     default:
       throw new Error(`Unsupported status for push operation: ${staus}`);

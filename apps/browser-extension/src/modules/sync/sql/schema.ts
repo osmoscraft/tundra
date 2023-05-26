@@ -15,9 +15,9 @@ export enum DbFileChangeSource {
 
 export enum DbFileChangeStatus {
   Unchanged = 0,
-  Added = 1,
-  Modified = 2,
-  Removed = 3,
+  Created = 1,
+  Updated = 2,
+  Deleted = 3,
 }
 
 export interface DbFileChange {

@@ -21,7 +21,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHashTime: "1990-01-01T00:00:00",
         localHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Created },
     },
     {
       file: {
@@ -39,7 +39,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Created },
     },
     {
       file: {
@@ -49,7 +49,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Removed },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Deleted },
     },
     {
       file: {
@@ -69,7 +69,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash2",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Updated },
     },
 
     {
@@ -85,7 +85,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Created },
     },
     {
       file: {
@@ -102,7 +102,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:01",
       },
-      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Removed },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Deleted },
     },
     {
       file: {
@@ -111,7 +111,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:01",
         remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Added },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Created },
     },
     {
       file: {
@@ -131,7 +131,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:01",
         remoteHash: "hash2",
       },
-      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Modified },
+      expected: { source: DbFileChangeSource.Remote, status: DbFileChangeStatus.Updated },
     },
     {
       file: {
@@ -148,7 +148,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         localHash: "hash",
         remoteHashTime: "1990-01-01T00:00:00",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Added },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Created },
     },
     {
       file: {
@@ -157,7 +157,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Removed },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Deleted },
     },
     {
       file: {
@@ -177,7 +177,7 @@ export function getSingleFileTestEntries(): TestDataEntry[] {
         remoteHashTime: "1990-01-01T00:00:00",
         remoteHash: "hash2",
       },
-      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Modified },
+      expected: { source: DbFileChangeSource.Local, status: DbFileChangeStatus.Updated },
     },
   ];
 }
