@@ -50,6 +50,7 @@ const routes = {
   importGitHubRepo: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
+    const graphDb = await graphInit();
     await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
 
     const { generator, oid } = await sync.getGitHubRemote(syncDb);
@@ -61,12 +62,16 @@ const routes = {
       await sync.trackLocalChangeNow(syncDb, item.path, content);
     }, generator);
 
+    // TODO amortize with generator
+    await graph.updateIndex(graphDb, fsDb);
+
     sync.setGithubRef(syncDb, oid);
   },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
     const fsDb = await fsInit();
     const syncDb = await syncInit();
+    const graphDb = await graphInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(syncDb);
 
     await mapAsyncGeneratorParallel(async (item) => {
@@ -78,6 +83,8 @@ const routes = {
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
       }
     }, generator);
+
+    await graph.updateIndex(graphDb, fsDb);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 
@@ -111,9 +118,14 @@ const routes = {
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const syncDb = await syncInit();
+    const fsDb = await fsInit();
+    const graphDb = await graphInit();
+
     await fs.writeFile(await fsInit(), path, "text/markdown", content);
     await sync.trackLocalChangeNow(await syncInit(), path, content);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+
+    await graph.updateIndex(graphDb, fsDb);
   },
 };
 

@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { clear, getLastUpdatedTime, getNode, searchNode, upsertNode } from ".";
+import { clear, getLastUpdatedTime, getNode, searchNode, updateNode } from ".";
 import { assertEqual } from "../live-test";
 import SCHEMA from "./sql/schema.sql";
 
@@ -25,7 +25,7 @@ export async function checkHealth() {
 
   async function testCRUD(db: Sqlite3.DB) {
     log("create");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/upsert.md",
       title: "title1",
       createdTime: "2021-01-01T00:00:00.000Z",
@@ -36,7 +36,7 @@ export async function checkHealth() {
     assertEqual(node?.title, "title1");
 
     log("update");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/upsert.md",
       title: "title1 updated",
       createdTime: "2021-01-01T00:00:00.000Z",
@@ -54,19 +54,19 @@ export async function checkHealth() {
 
   async function testFTS(db: Sqlite3.DB) {
     log("insert search targets");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/search-1.md",
       title: "hello world",
       createdTime: "2021-01-01T00:00:00.000Z",
       updatedTime: "2021-01-01T00:00:00.000Z",
     });
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/search-2.md",
       title: "OK Computer",
       createdTime: "2021-01-01T00:00:00.000Z",
       updatedTime: "2021-01-01T00:00:00.000Z",
     });
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/search-3.md",
       title: "random stuff",
       createdTime: "2021-01-01T00:00:00.000Z",
@@ -96,7 +96,7 @@ export async function checkHealth() {
     assertEqual(lastUpdatedTime, null, "No timestamp");
 
     log("single item timestamp");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/timestamp.md",
       title: "hello world",
       createdTime: "2021-01-01T00:00:00.000Z",
@@ -106,7 +106,7 @@ export async function checkHealth() {
     assertEqual(lastUpdatedTimeSingle, "2021-01-01T00:00:00.000Z", "single item timestamp matches");
 
     log("update timestamp");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/timestamp.md",
       title: "hello world",
       createdTime: "2021-01-01T00:00:00.000Z",
@@ -116,19 +116,19 @@ export async function checkHealth() {
     assertEqual(lastUpdatedTimeSingleUpdated, "2021-01-01T00:00:10.000Z", "single item timestamp matches");
 
     log("multi item timestamp");
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/timestamp-1.md",
       title: "hello world",
       createdTime: "2021-01-02T00:00:00.000Z",
       updatedTime: "2021-01-02T00:00:10.000Z",
     });
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/timestamp-2.md",
       title: "hello world",
       createdTime: "2021-01-02T00:00:00.000Z",
       updatedTime: "2021-01-02T00:00:15.000Z",
     });
-    upsertNode(db, {
+    updateNode(db, {
       path: "/test/timestamp-3.md",
       title: "hello world",
       createdTime: "2021-01-02T00:00:00.000Z",

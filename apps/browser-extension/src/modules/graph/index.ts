@@ -9,6 +9,7 @@ import SEARCH_NODE from "./sql/search-node.sql";
 import SELECT_LAST_UPDATED_TIME from "./sql/select-last-updated-time.sql";
 import SELECT_NODE from "./sql/select-node.sql";
 export * from "./check-health";
+export * from "./update-index";
 
 export const init = callOnce(
   asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {
@@ -31,7 +32,7 @@ export function getLastUpdatedTime(db: Sqlite3.DB) {
   return db.selectObject<DbLastUpdatedTime>(SELECT_LAST_UPDATED_TIME)?.lastUpdatedTime ?? null;
 }
 
-export function upsertNode(db: Sqlite3.DB, node: DbNode) {
+export function updateNode(db: Sqlite3.DB, node: DbNode) {
   // TODO make atomic transcation
   db.exec(DELETE_NODE, {
     bind: {

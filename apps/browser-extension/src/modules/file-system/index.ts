@@ -71,7 +71,7 @@ export interface QueryConfig {
   limit?: number;
   offset?: number;
 }
-export function queryFiles(db: Sqlite3.DB, config: QueryConfig) {
+export function queryFiles(db: Sqlite3.DB, config: QueryConfig = {}) {
   const appendClause: string[] = [];
   const appendDict: Record<string, string> = {};
   if (Object.keys(config).length > 0) {
