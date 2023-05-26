@@ -3,9 +3,10 @@ import { sqlite3Opfs } from "@tinykb/sqlite-utils";
 import CLEAR_NODES from "./sql/clear-nodes.sql";
 import DELETE_NODE from "./sql/delete-node.sql";
 import INSERT_NODE from "./sql/insert-node.sql";
-import type { DbNode } from "./sql/schema";
+import type { DbLastUpdatedTime, DbNode } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SEARCH_NODE from "./sql/search-node.sql";
+import SELECT_LAST_UPDATED_TIME from "./sql/select-last-updated-time.sql";
 import SELECT_NODE from "./sql/select-node.sql";
 export * from "./check-health";
 
@@ -24,6 +25,10 @@ export function searchNode(db: Sqlite3.DB, query: string) {
   return db.selectObjects<DbNode>(SEARCH_NODE, {
     ":query": query,
   });
+}
+
+export function getLastUpdatedTime(db: Sqlite3.DB) {
+  return db.selectObject<DbLastUpdatedTime>(SELECT_LAST_UPDATED_TIME)?.lastUpdatedTime ?? null;
 }
 
 export function upsertNode(db: Sqlite3.DB, node: DbNode) {

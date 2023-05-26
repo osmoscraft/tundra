@@ -1,5 +1,5 @@
 import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { clear, getNode, searchNode, upsertNode } from ".";
+import { clear, getLastUpdatedTime, getNode, searchNode, upsertNode } from ".";
 import { assertEqual } from "../live-test";
 import SCHEMA from "./sql/schema.sql";
 
@@ -21,11 +21,6 @@ export async function checkHealth() {
     db.exec(SCHEMA);
 
     await runTests(db);
-  }
-
-  async function runTests(db: Sqlite3.DB) {
-    await testCRUD(db);
-    await testFTS(db);
   }
 
   async function testCRUD(db: Sqlite3.DB) {
@@ -92,6 +87,61 @@ export async function checkHealth() {
     const caseInsensitiveResult = searchNode(db, "oK comPUtEr");
     assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
     assertEqual(caseInsensitiveResult[0].title, "OK Computer", "Title matches");
+  }
+
+  async function testTimestamp(db: Sqlite3.DB) {
+    log("empty timestamp");
+    clear(db);
+    const lastUpdatedTime = getLastUpdatedTime(db);
+    assertEqual(lastUpdatedTime, null, "No timestamp");
+
+    log("single item timestamp");
+    upsertNode(db, {
+      path: "/test/timestamp.md",
+      title: "hello world",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:00.000Z",
+    });
+    const lastUpdatedTimeSingle = getLastUpdatedTime(db);
+    assertEqual(lastUpdatedTimeSingle, "2021-01-01T00:00:00.000Z", "single item timestamp matches");
+
+    log("update timestamp");
+    upsertNode(db, {
+      path: "/test/timestamp.md",
+      title: "hello world",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:10.000Z",
+    });
+    const lastUpdatedTimeSingleUpdated = getLastUpdatedTime(db);
+    assertEqual(lastUpdatedTimeSingleUpdated, "2021-01-01T00:00:10.000Z", "single item timestamp matches");
+
+    log("multi item timestamp");
+    upsertNode(db, {
+      path: "/test/timestamp-1.md",
+      title: "hello world",
+      createdTime: "2021-01-02T00:00:00.000Z",
+      updatedTime: "2021-01-02T00:00:10.000Z",
+    });
+    upsertNode(db, {
+      path: "/test/timestamp-2.md",
+      title: "hello world",
+      createdTime: "2021-01-02T00:00:00.000Z",
+      updatedTime: "2021-01-02T00:00:15.000Z",
+    });
+    upsertNode(db, {
+      path: "/test/timestamp-3.md",
+      title: "hello world",
+      createdTime: "2021-01-02T00:00:00.000Z",
+      updatedTime: "2021-01-02T00:00:05.000Z",
+    });
+    const lastUpdatedTimeMulti = getLastUpdatedTime(db);
+    assertEqual(lastUpdatedTimeMulti, "2021-01-02T00:00:15.000Z", "multi item timestamp matches");
+  }
+
+  async function runTests(db: Sqlite3.DB) {
+    await testCRUD(db);
+    await testFTS(db);
+    await testTimestamp(db);
   }
 
   return runHarness()

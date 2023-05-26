@@ -4,3 +4,7 @@ export interface DbNode {
   createdTime: string;
   updatedTime: string;
 }
+
+export interface DbLastUpdatedTime {
+  lastUpdatedTime: string;
+}
