@@ -36,7 +36,7 @@ export function upsertNode(db: Sqlite3.DB, node: DbNode) {
   db.exec(INSERT_NODE, {
     bind: {
       ":path": node.path,
-      ":data": JSON.stringify({ title: node.title }),
+      ":data": JSON.stringify({ title: node.title, createdTime: node.createdTime, updatedTime: node.updatedTime }),
     },
   });
 }

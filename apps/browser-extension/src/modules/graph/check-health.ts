@@ -33,6 +33,8 @@ export async function checkHealth() {
     upsertNode(db, {
       path: "/test/upsert.md",
       title: "title1",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:00.000Z",
     });
 
     const node = getNode(db, "/test/upsert.md");
@@ -42,6 +44,8 @@ export async function checkHealth() {
     upsertNode(db, {
       path: "/test/upsert.md",
       title: "title1 updated",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-02T00:00:00.000Z",
     });
 
     const nodeUpdated = getNode(db, "/test/upsert.md");
@@ -58,14 +62,20 @@ export async function checkHealth() {
     upsertNode(db, {
       path: "/test/search-1.md",
       title: "hello world",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:00.000Z",
     });
     upsertNode(db, {
       path: "/test/search-2.md",
       title: "OK Computer",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:00.000Z",
     });
     upsertNode(db, {
       path: "/test/search-3.md",
       title: "random stuff",
+      createdTime: "2021-01-01T00:00:00.000Z",
+      updatedTime: "2021-01-01T00:00:00.000Z",
     });
 
     log("empty");
