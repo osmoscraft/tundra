@@ -1,7 +1,7 @@
 import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
 import { getDefaultKeymap, loadNoteFromUrl } from "../modules/editor/editor";
 import { EditorElement } from "../modules/editor/editor-element";
-import { FileTreeElement } from "../modules/editor/file-tree-element";
+import { OmniboxElement } from "../modules/omnibox/omnibox-element";
 import { DialogElement } from "../modules/shell/dialog-element";
 import { ShellElement } from "../modules/shell/shell-element";
 import { StatusBarElement } from "../modules/status/status-bar-element";
@@ -19,9 +19,9 @@ export type NotebookRoutes = typeof routes;
 
 customElements.define("shell-element", ShellElement);
 customElements.define("dialog-element", DialogElement);
-customElements.define("file-tree-element", FileTreeElement);
 customElements.define("editor-element", EditorElement);
 customElements.define("status-bar-element", StatusBarElement);
+customElements.define("omnibox-element", OmniboxElement);
 
 const dialog = document.querySelector<DialogElement>("dialog-element")!;
 const editor = document.querySelector<EditorElement>("editor-element")!;

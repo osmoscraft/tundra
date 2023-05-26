@@ -103,6 +103,10 @@ const routes = {
   },
   rebuild: () =>
     Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH), destoryOpfsByPath(GRAPH_DB_PATH)]),
+  searchNodes: async (query: string) => {
+    const graphDb = await graphInit();
+    return graph.searchNode(graphDb, query);
+  },
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
   testGithubConnection: asyncPipe(syncInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {

@@ -1,9 +1,9 @@
 import type { Fn } from "@tinykb/fp-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
+import type { OmniboxElement } from "../omnibox/omnibox-element";
 import type { DialogElement } from "../shell/dialog-element";
 import type { EditorElement } from "./editor-element";
-import type { FileTreeElement } from "./file-tree-element";
 
 export async function loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>, haikuEditor: EditorElement) {
   const path = new URLSearchParams(location.search).get("path");
@@ -39,10 +39,19 @@ export function getDefaultKeymap(
 }
 
 async function openCommandPalette(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRoutes>) {
-  const fileTree = document.createElement("file-tree-element") as FileTreeElement;
-  const files = await proxy.listFiles();
-  fileTree.setFiles(files.map((file) => ({ path: file.path, displayName: file.path })) ?? []);
-  dialog.setContentElement(fileTree);
+  const omnibox = document.createElement("omnibox-element") as OmniboxElement;
+
+  omnibox.addEventListener("omnibox-load-default", async () => {
+    const files = await proxy.listFiles();
+    omnibox.setSuggestions(files.map((file) => ({ path: file.path, title: file.path })));
+  });
+
+  omnibox.addEventListener("omnibox-input", async (e) => {
+    const searchResults = await proxy.searchNodes(e.detail);
+    omnibox.setSuggestions(searchResults.map((node) => ({ path: node.path, title: node.title })));
+  });
+
+  dialog.setContentElement(omnibox);
 }
 
 async function save(editor: EditorElement, proxy: AsyncProxy<DataWorkerRoutes>) {

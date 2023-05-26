@@ -8,7 +8,13 @@ export interface OmniboxSuggestion {
 
 export type QueryEventDetail = string;
 
-export type OpenEventDetail = string;
+declare global {
+  interface HTMLElementEventMap {
+    "omnibox-input": CustomEvent<QueryEventDetail>;
+    "omnibox-open": CustomEvent<QueryEventDetail>;
+    "omnibox-load-default": Event;
+  }
+}
 
 export class OmniboxElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
@@ -18,28 +24,33 @@ export class OmniboxElement extends HTMLElement {
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => e.preventDefault());
-    this.form.addEventListener("input", (e) => {
-      if (this.input.value) {
+    this.input.addEventListener("input", (e) => {
+      if ((e.target as HTMLInputElement).value.trim()) {
         this.dispatchEvent(
-          new CustomEvent<QueryEventDetail>("search", {
-            detail: this.input.value,
+          new CustomEvent<QueryEventDetail>("omnibox-input", {
+            detail: this.input.value.trim(),
           })
         );
       } else {
-        this.dispatchEvent(new Event("load-default"));
+        this.dispatchEvent(new Event("omnibox-load-default"));
       }
     });
 
     this.nodeList.addEventListener("click", (e) => {
       const path = (e.target as HTMLButtonElement).closest("[data-path]")?.getAttribute("data-path");
       if (!path) return;
-      this.dispatchEvent(new CustomEvent("open", { detail: path }));
+      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox-open", { detail: path }));
     });
+
+    // initial load
+    this.dispatchEvent(new Event("omnibox-load-default"));
   }
 
   setSuggestions(items: OmniboxSuggestion[]) {
-    this.nodeList.innerHTML = items
-      .map((item) => `<li><button data-path="${item.path}">${item.title}</button></li>`)
-      .join("");
+    this.nodeList.innerHTML = [
+      `<li><a href="./options.html">Options</a></li>`,
+      `<li><a href="?draft">new</li>`,
+      ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
+    ].join("");
   }
 }
