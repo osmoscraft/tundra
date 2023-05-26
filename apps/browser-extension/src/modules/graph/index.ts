@@ -27,6 +27,7 @@ export function searchNode(db: Sqlite3.DB, query: string) {
 }
 
 export function upsertNode(db: Sqlite3.DB, node: DbNode) {
+  // TODO make atomic transcation
   db.exec(DELETE_NODE, {
     bind: {
       ":path": node.path,
