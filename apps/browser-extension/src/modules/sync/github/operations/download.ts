@@ -10,6 +10,7 @@ export function downloadZip(url: string): AsyncGenerator<ZipItem> {
     const entriesGen = zipReader.getEntriesGenerator();
 
     // TODO entry.getData has performance issue
+    // TODO compare with tarball extraction performance
     for await (const entry of entriesGen) {
       const text = await entry.getData!(new TextWriter());
       yield { path: entry.filename, readAsText: () => text };
