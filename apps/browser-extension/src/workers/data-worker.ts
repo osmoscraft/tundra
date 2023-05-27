@@ -56,7 +56,7 @@ const routes = {
     const { generator, oid } = await sync.getGitHubRemote(syncDb);
 
     await mapAsyncGeneratorParallel(async (item) => {
-      const content = item.readText() as string;
+      const content = await item.readText();
       await sync.trackRemoteChangeNow(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChangeNow(syncDb, item.path, content);

@@ -12,7 +12,7 @@ export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote>
   const { connection } = await ensureCloneParameters(syncDb);
   const archive = await github.getArchive(connection);
 
-  const zipballItemsGenerator = iterateGitHubArchive(archive.zipballUrl);
+  const zipballItemsGenerator = iterateGitHubArchive(archive.tarballUrl);
   const generator = filterGeneratorAsync(isMarkdownFile, zipballItemsGenerator);
 
   return {
@@ -34,7 +34,7 @@ async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameter
 }
 
 async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteChangeRecord> {
-  const itemsGenerator = github.downloadZip(zipballUrl);
+  const itemsGenerator = github.downloadTarball(zipballUrl);
   const now = new Date().toISOString();
 
   performance.mark("clone-start");

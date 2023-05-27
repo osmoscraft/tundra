@@ -1,3 +1,7 @@
+- Externalize timestamp from all SQL statements
+- Debug graph indexing issue
+- Resolve tarball filename length issue
+- Clean up zip vs tarball code
 - graph service index files with fts on fs change event
 - load a file into editor
 - save a file
