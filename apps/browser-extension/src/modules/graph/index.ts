@@ -9,7 +9,7 @@ import SEARCH_NODE from "./sql/search-node.sql";
 import SELECT_LAST_UPDATED_TIME from "./sql/select-last-updated-time.sql";
 import SELECT_NODE from "./sql/select-node.sql";
 export * from "./check-health";
-export * from "./update-index";
+export * from "./update-graph";
 
 export const init = callOnce(
   asyncPipe(sqlite3Opfs.bind(null, "./sqlite3/jswasm/"), (db: Sqlite3.DB) => {

@@ -56,14 +56,12 @@ const routes = {
     const { generator, oid } = await sync.getGitHubRemote(syncDb);
 
     await mapAsyncGeneratorParallel(async (item) => {
-      const content = await item.readText();
+      const content = item.readText() as string;
       await sync.trackRemoteChangeNow(syncDb, item.path, content);
       await fs.writeFile(fsDb, item.path, "text/markdown", content!);
       await sync.trackLocalChangeNow(syncDb, item.path, content);
+      await graph.updateNodeByPath(graphDb, fsDb, item.path);
     }, generator);
-
-    // TODO amortize with generator
-    await graph.updateIndex(graphDb, fsDb);
 
     sync.setGithubRef(syncDb, oid);
   },
@@ -81,10 +79,9 @@ const routes = {
       if (fileChange) {
         await fs.writeOrDeleteFile(fsDb, item.path, "text/markdown", newContent);
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
+        await graph.updateNodeByPath(graphDb, fsDb, item.path);
       }
     }, generator);
-
-    await graph.updateIndex(graphDb, fsDb);
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 
@@ -123,15 +120,24 @@ const routes = {
 
     await fs.writeFile(await fsInit(), path, "text/markdown", content);
     await sync.trackLocalChangeNow(await syncInit(), path, content);
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+    await graph.updateNodeByPath(graphDb, fsDb, path);
 
-    await graph.updateIndex(graphDb, fsDb);
+    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
-console.log("[data worker] online");
+(async function init() {
+  const syncDb = await syncInit();
+  const fsDb = await fsInit();
+  const graphDb = await graphInit();
 
-// on start, report change status
-syncInit().then((db) => proxy.setStatus(formatStatus(sync.getFileChanges(db))));
+  // on start, index graph
+  graph.updateAllNodes(graphDb, fsDb);
+
+  // on start, report change status
+  proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+
+  console.log("[data worker] initialized");
+})();
