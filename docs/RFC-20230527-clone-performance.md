@@ -25,3 +25,4 @@
 - Need to benchmark sqlite wasm performance
 - Need to bulk insert sqlite
 - Unzip is still the secondary bottleneck with no solution yet
+- Consolidate all sqlite databases into a single one
