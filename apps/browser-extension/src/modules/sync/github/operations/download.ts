@@ -27,6 +27,9 @@ export interface TarballItem {
   path: string;
   readAsText: () => string | Promise<string>;
 }
+/**
+ * CAUTION: Tarball filenames are truncated to 100 characters.
+ */
 export function downloadTarball(url: string): AsyncGenerator<TarballItem> {
   async function* itemGenerator() {
     const blob = await fetch(url)

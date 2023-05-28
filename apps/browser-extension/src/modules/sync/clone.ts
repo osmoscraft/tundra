@@ -1,7 +1,7 @@
 import { filterGeneratorAsync } from "@tinykb/fp-utils";
 import { getConnection } from ".";
 import * as github from "./github";
-import { zipPathToGitHubFilePath } from "./path";
+import { tarballPathGitHubPath } from "./path";
 import { RemoteChangeStatus, isMarkdownFile, type RemoteChangeRecord } from "./remote-change-record";
 
 export interface GitHubRemote {
@@ -39,7 +39,7 @@ async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteC
 
   performance.mark("clone-start");
   for await (const item of itemsGenerator) {
-    const githubPath = zipPathToGitHubFilePath(item.path);
+    const githubPath = tarballPathGitHubPath(item.path);
     console.log(`[clone] path ${githubPath}`);
     yield {
       path: githubPath,

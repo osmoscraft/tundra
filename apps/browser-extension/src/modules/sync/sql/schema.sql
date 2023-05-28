@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS FileChange (
   path           TEXT PRIMARY KEY,
   localHash      TEXT,
   localHashTime  TEXT,
-  remoteContent  TEXT,
   remoteHash     TEXT,
   remoteHashTime TEXT,
   /*
