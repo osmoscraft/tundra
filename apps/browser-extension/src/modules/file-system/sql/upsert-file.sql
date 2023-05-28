@@ -1,4 +1,4 @@
 /* upsert */
-INSERT INTO File(path, type, content) VALUES (:path, :type, :content)
-ON CONFLICT(path) DO UPDATE SET content = :content, type = :type
+INSERT INTO File(path, content) VALUES (:path, :content)
+ON CONFLICT(path) DO UPDATE SET content = :content
 

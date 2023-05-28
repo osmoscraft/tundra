@@ -21,11 +21,10 @@ export function clear(db: Sqlite3.DB) {
   return db.exec(CLEAR_FILES);
 }
 
-export function writeFile(db: Sqlite3.DB, path: string, type: string, content: string) {
+export function writeFile(db: Sqlite3.DB, path: string, content: string) {
   return db.exec(UPSERT_FILE, {
     bind: {
       ":path": path,
-      ":type": type,
       ":content": content,
     },
   });
@@ -35,7 +34,7 @@ export function writeFile(db: Sqlite3.DB, path: string, type: string, content: s
  * TODO swith to tombstone pattern for fault tolerant delete propagation to other modules
  * Set content to `null` for deletion
  */
-export function writeOrDeleteFile(db: Sqlite3.DB, path: string, type: string, content: string | null) {
+export function writeOrDeleteFile(db: Sqlite3.DB, path: string, content: string | null) {
   if (content === null) {
     db.exec(DELETE_FILE, {
       bind: {
@@ -46,7 +45,6 @@ export function writeOrDeleteFile(db: Sqlite3.DB, path: string, type: string, co
     db.exec(UPSERT_FILE, {
       bind: {
         ":path": path,
-        ":type": type,
         ":content": content,
       },
     });

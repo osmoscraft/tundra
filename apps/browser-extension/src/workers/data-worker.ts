@@ -58,7 +58,7 @@ const routes = {
     await mapAsyncGeneratorParallel(async (item) => {
       const content = await item.readText();
       await sync.trackRemoteChangeNow(syncDb, item.path, content);
-      await fs.writeFile(fsDb, item.path, "text/markdown", content!);
+      await fs.writeFile(fsDb, item.path, content!);
       await sync.trackLocalChangeNow(syncDb, item.path, content);
       await graph.updateNodeByPath(graphDb, fsDb, item.path);
     }, generator);
@@ -77,7 +77,7 @@ const routes = {
       await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
       const fileChange = sync.getRemoteFileChange(syncDb, item.path);
       if (fileChange) {
-        await fs.writeOrDeleteFile(fsDb, item.path, "text/markdown", newContent);
+        await fs.writeOrDeleteFile(fsDb, item.path, newContent);
         await sync.trackLocalChangeNow(syncDb, item.path, newContent);
         await graph.updateNodeByPath(graphDb, fsDb, item.path);
       }
@@ -118,7 +118,7 @@ const routes = {
     const fsDb = await fsInit();
     const graphDb = await graphInit();
 
-    await fs.writeFile(await fsInit(), path, "text/markdown", content);
+    await fs.writeFile(await fsInit(), path, content);
     await sync.trackLocalChangeNow(await syncInit(), path, content);
     await graph.updateNodeByPath(graphDb, fsDb, path);
 

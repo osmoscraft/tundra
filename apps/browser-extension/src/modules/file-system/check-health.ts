@@ -25,7 +25,7 @@ export async function checkHealth() {
 
   async function testRW(db: Sqlite3.DB) {
     log("write file");
-    writeFile(db, "/test.md", "text/markdown", "hello world");
+    writeFile(db, "/test.md", "hello world");
     log("file written");
 
     log("read file");
@@ -39,11 +39,11 @@ export async function checkHealth() {
 
   async function testTimestamp(db: Sqlite3.DB) {
     log("write timestamp files");
-    writeFile(db, "/test-1.md", "text/markdown", "hello world");
+    writeFile(db, "/test-1.md", "hello world");
     await new Promise((resolve) => setTimeout(resolve, 2));
-    writeFile(db, "/test-2.md", "text/markdown", "hello world");
+    writeFile(db, "/test-2.md", "hello world");
     await new Promise((resolve) => setTimeout(resolve, 2));
-    writeFile(db, "/test-3.md", "text/markdown", "hello world");
+    writeFile(db, "/test-3.md", "hello world");
 
     const test2 = readFile(db, "/test-2.md");
     const newerFiles = queryFiles(db, { minUpdatedTime: test2!.updatedTime }).map((file) => file.path);
