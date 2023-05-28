@@ -14,6 +14,10 @@
   - Fast download
   - Slow decode
     - 500 in 30 seconds
+- Further delay in sqlite write operation
+  - 100ms per file
+  - This is the bottleneck
+  - The slowness seems abnormal
 
 # Insight
 
