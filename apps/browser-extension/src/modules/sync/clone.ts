@@ -12,6 +12,8 @@ export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote>
   const { connection } = await ensureCloneParameters(syncDb);
   const archive = await github.getArchive(connection);
 
+  // TODO use graphql instead: https://gist.github.com/MichaelCurrin/6777b91e6374cdb5662b64b8249070ea
+
   const zipballItemsGenerator = iterateGitHubArchive(archive.zipballUrl);
   const generator = filterGeneratorAsync(isMarkdownFile, zipballItemsGenerator);
 

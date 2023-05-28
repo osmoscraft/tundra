@@ -134,6 +134,7 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
   const graphDb = await graphInit();
 
   // on start, index graph
+  // TODO fix performance issue
   graph.updateAllNodes(graphDb, fsDb);
 
   // on start, report change status
