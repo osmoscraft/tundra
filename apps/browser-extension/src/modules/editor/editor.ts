@@ -3,7 +3,7 @@ import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "../omnibox/omnibox-element";
 import type { DialogElement } from "../shell/dialog-element";
-import { timestampToLocalPath } from "../sync/path";
+import { timestampToNotePath } from "../sync/path";
 import type { EditorElement } from "./editor-element";
 
 export async function loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>, haikuEditor: EditorElement) {
@@ -59,7 +59,7 @@ async function save(editor: EditorElement, proxy: AsyncProxy<DataWorkerRoutes>) 
   const path = new URLSearchParams(location.search).get("path");
   if (!path) {
     // save new draft
-    const path = timestampToLocalPath(new Date());
+    const path = timestampToNotePath(new Date());
 
     await proxy.writeFile(path, editor.getMarkdown());
     const mutableUrl = new URL(location.href);

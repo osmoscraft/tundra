@@ -3,18 +3,16 @@ import { TarReader } from "../../../compression/tar";
 
 export interface ZipItem {
   path: string;
-  readAsText: () => string | Promise<string>;
+  text: string;
 }
 export function downloadZip(url: string): AsyncGenerator<ZipItem> {
   async function* itemGenerator() {
     const zipReader = new ZipReader(new HttpReader(url));
     const entriesGen = zipReader.getEntriesGenerator();
 
-    // TODO entry.getData has performance issue
-    // TODO compare with tarball extraction performance
+    // WARNING entry.getData has performance issue
     for await (const entry of entriesGen) {
-      const text = await entry.getData!(new TextWriter());
-      yield { path: entry.filename, readAsText: () => text };
+      yield { path: entry.filename, text: await entry.getData!(new TextWriter()) };
     }
 
     await zipReader.close();
@@ -24,12 +22,11 @@ export function downloadZip(url: string): AsyncGenerator<ZipItem> {
 }
 
 export interface TarballItem {
+  /** WARNING: Tarball filenames are truncated to 100 characters. */
+  /** BUG: the suffix of the path can be truncated too, leaving no guarantee to the extension */
   path: string;
-  readAsText: () => string | Promise<string>;
+  text: string;
 }
-/**
- * CAUTION: Tarball filenames are truncated to 100 characters.
- */
 export function downloadTarball(url: string): AsyncGenerator<TarballItem> {
   async function* itemGenerator() {
     const blob = await fetch(url)
@@ -43,7 +40,7 @@ export function downloadTarball(url: string): AsyncGenerator<TarballItem> {
       const text = tarReader.getTextFile(fileInfo.name);
       if (!text) continue;
 
-      yield { path: fileInfo.name, readAsText: () => text };
+      yield { path: fileInfo.name, text };
     }
   }
 

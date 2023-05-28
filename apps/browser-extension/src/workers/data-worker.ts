@@ -1,4 +1,4 @@
-import { asyncPipe, mapAsyncGeneratorParallel, tap } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustGenerator, mapAsyncGenerator, mapAsyncGeneratorParallel, tap } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as fs from "../modules/file-system";
@@ -36,7 +36,7 @@ const routes = {
     const syncDb = await syncInit();
     const { generator } = await sync.getGitHubRemoteChanges(syncDb);
     await mapAsyncGeneratorParallel(
-      async (item) => sync.trackRemoteChange(syncDb, item.path, await item.readText(), await item.readTimestamp()),
+      async (item) => sync.trackRemoteChange(syncDb, item.path, item.text, item.timestamp),
       generator
     );
 
@@ -55,13 +55,15 @@ const routes = {
 
     const { generator, oid } = await sync.getGitHubRemote(syncDb);
 
-    await mapAsyncGeneratorParallel(async (item) => {
-      const content = await item.readText();
-      await sync.trackRemoteChangeNow(syncDb, item.path, content);
-      await fs.writeFile(fsDb, item.path, content!);
-      await sync.trackLocalChangeNow(syncDb, item.path, content);
-      await graph.updateNodeByPath(graphDb, fsDb, item.path);
-    }, generator);
+    await exhaustGenerator(
+      mapAsyncGenerator(async (item) => {
+        const content = item.text;
+        await sync.trackRemoteChangeNow(syncDb, item.path, content);
+        await fs.writeFile(fsDb, item.path, content!);
+        await sync.trackLocalChangeNow(syncDb, item.path, content);
+        await graph.updateNodeByPath(graphDb, fsDb, item.path);
+      }, generator)
+    );
 
     sync.setGithubRef(syncDb, oid);
   },
@@ -72,16 +74,18 @@ const routes = {
     const graphDb = await graphInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(syncDb);
 
-    await mapAsyncGeneratorParallel(async (item) => {
-      const newContent = await item.readText();
-      await sync.trackRemoteChange(syncDb, item.path, newContent, await item.readTimestamp());
-      const fileChange = sync.getRemoteFileChange(syncDb, item.path);
-      if (fileChange) {
-        await fs.writeOrDeleteFile(fsDb, item.path, newContent);
-        await sync.trackLocalChangeNow(syncDb, item.path, newContent);
-        await graph.updateNodeByPath(graphDb, fsDb, item.path);
-      }
-    }, generator);
+    await exhaustGenerator(
+      mapAsyncGenerator(async (item) => {
+        const newContent = item.text;
+        await sync.trackRemoteChange(syncDb, item.path, newContent, item.timestamp);
+        const fileChange = sync.getRemoteFileChange(syncDb, item.path);
+        if (fileChange) {
+          await fs.writeOrDeleteFile(fsDb, item.path, newContent);
+          await sync.trackLocalChangeNow(syncDb, item.path, newContent);
+          await graph.updateNodeByPath(graphDb, fsDb, item.path);
+        }
+      }, generator)
+    );
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 

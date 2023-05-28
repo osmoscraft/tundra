@@ -1,8 +1,7 @@
-import { filterGeneratorAsync } from "@tinykb/fp-utils";
 import { getConnection } from ".";
 import * as github from "./github";
-import { tarballPathGitHubPath } from "./path";
-import { RemoteChangeStatus, isMarkdownFile, type RemoteChangeRecord } from "./remote-change-record";
+import { githubPathToNotePath, zipPathToGitHubFilePath } from "./path";
+import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
 export interface GitHubRemote {
   generator: AsyncGenerator<RemoteChangeRecord>;
@@ -12,13 +11,10 @@ export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote>
   const { connection } = await ensureCloneParameters(syncDb);
   const archive = await github.getArchive(connection);
 
-  // TODO use graphql instead: https://gist.github.com/MichaelCurrin/6777b91e6374cdb5662b64b8249070ea
-
   const zipballItemsGenerator = iterateGitHubArchive(archive.zipballUrl);
-  const generator = filterGeneratorAsync(isMarkdownFile, zipballItemsGenerator);
 
   return {
-    generator,
+    generator: zipballItemsGenerator,
     oid: archive.oid,
   };
 }
@@ -41,13 +37,18 @@ async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteC
 
   performance.mark("clone-start");
   for await (const item of itemsGenerator) {
-    const githubPath = tarballPathGitHubPath(item.path);
-    console.log(`[clone] path ${githubPath}`);
+    const notePath = githubPathToNotePath(zipPathToGitHubFilePath(item.path));
+    if (!notePath) {
+      console.log(`[clone] skip path ${item.path}`);
+      continue;
+    }
+
+    console.log(`[clone] path ${notePath}`);
     yield {
-      path: githubPath,
-      readTimestamp: () => now,
+      path: notePath,
+      timestamp: now,
       status: RemoteChangeStatus.Created,
-      readText: () => item.readAsText(),
+      text: item.text,
     };
   }
   console.log("[perf] clone", performance.measure("import duration", "clone-start").duration);
