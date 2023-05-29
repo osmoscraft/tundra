@@ -10,6 +10,7 @@ declare namespace Sqlite3 {
   }
 
   export interface OO1 {
+    DB: DB;
     OpfsDb: DB;
   }
 

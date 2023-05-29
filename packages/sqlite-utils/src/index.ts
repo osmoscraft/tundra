@@ -1,5 +1,9 @@
 /// <reference path="./typings.d.ts" />
 
+export function sqlite3Mem(sqlite3WasmPath: string) {
+  return loadApiIndex(sqlite3WasmPath).then((api) => new api.oo1.DB(":memory:"));
+}
+
 export function sqlite3Opfs(sqliteWasmPath: string, dbPath: string) {
   return loadApiIndex(sqliteWasmPath).then(openOpfsDb.bind(null, dbPath));
 }
