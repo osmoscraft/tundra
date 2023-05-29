@@ -3,3 +3,4 @@
   - use Github instead of GitHub
   - Externalize timestamp from all SQL statements
 - Consolidate all SQLite databases into one
+- Test all db services in Node
