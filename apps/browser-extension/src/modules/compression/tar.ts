@@ -42,6 +42,8 @@ export class TarReader {
     let file_type = null;
     while (offset < this.buffer.byteLength - 512) {
       file_name = this._readFileName(offset); // file name
+      // UStar header: https://en.wikipedia.org/wiki/Tar_(computing)
+      const file_name_prefix = this._readString(offset + 345, 155);
       if (file_name.length == 0) {
         break;
       }
@@ -49,7 +51,7 @@ export class TarReader {
       file_size = this._readFileSize(offset);
 
       this.fileInfo.push({
-        name: file_name,
+        name: [file_name_prefix, file_name].filter(Boolean).join("/"),
         type: file_type,
         size: file_size,
         header_offset: offset,

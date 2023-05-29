@@ -1,6 +1,6 @@
 import { getConnection } from ".";
 import * as github from "./github";
-import { githubPathToNotePath, zipPathToGitHubFilePath } from "./path";
+import { archivePathToGitHubFilePath, githubPathToNotePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
 export interface GitHubRemote {
@@ -11,10 +11,10 @@ export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote>
   const { connection } = await ensureCloneParameters(syncDb);
   const archive = await github.getArchive(connection);
 
-  const zipballItemsGenerator = iterateGitHubArchive(archive.zipballUrl);
+  const generator = iterateGitHubArchive(archive.tarballUrl);
 
   return {
-    generator: zipballItemsGenerator,
+    generator,
     oid: archive.oid,
   };
 }
@@ -31,13 +31,13 @@ async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameter
   };
 }
 
-async function* iterateGitHubArchive(zipballUrl: string): AsyncGenerator<RemoteChangeRecord> {
-  const itemsGenerator = github.downloadZip(zipballUrl);
+async function* iterateGitHubArchive(tarballUrl: string): AsyncGenerator<RemoteChangeRecord> {
+  const itemsGenerator = github.downloadTarball(tarballUrl);
   const now = new Date().toISOString();
 
   performance.mark("clone-start");
   for await (const item of itemsGenerator) {
-    const notePath = githubPathToNotePath(zipPathToGitHubFilePath(item.path));
+    const notePath = githubPathToNotePath(archivePathToGitHubFilePath(item.path));
     if (!notePath) {
       console.log(`[clone] skip path ${item.path}`);
       continue;
