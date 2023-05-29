@@ -1,12 +1,5 @@
-- Externalize timestamp from all SQL statements
-- Debug graph indexing issue
-- Resolve tarball filename length issue
-- Clean up zip vs tarball code
-- graph service index files with fts on fs change event
-- load a file into editor
-- save a file
-- pull changes
-- Idea: tree-sitter with markdown parser
-- Idea: use filesystem for version management, ala real editor
-  - e.g. Once a file is tracking a remote, editing it creates a backup copy
-  - 'file.md' -edit-> 'file.md (edited)' + 'file.md~' -commit-> 'file.md'
+- vNext wishlist
+  - Numeric timestamp
+  - use Github instead of GitHub
+  - Externalize timestamp from all SQL statements
+- Consolidate all SQLite databases into one
