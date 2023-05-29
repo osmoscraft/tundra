@@ -42,6 +42,11 @@ export class DevtoolElement extends HTMLElement {
         }
         case "rebuild": {
           this.proxy.rebuild();
+          break;
+        }
+        case "run-benchmark": {
+          this.proxy.runBenchmark();
+          break;
         }
       }
     });

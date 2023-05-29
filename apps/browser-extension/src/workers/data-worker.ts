@@ -111,6 +111,9 @@ const routes = {
   },
   rebuild: () =>
     Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH), destoryOpfsByPath(GRAPH_DB_PATH)]),
+  runBenchmark: async () => {
+    await fs.runBenchmark();
+  },
   searchNodes: async (query: string) => {
     const graphDb = await graphInit();
     return graph.searchNode(graphDb, query);

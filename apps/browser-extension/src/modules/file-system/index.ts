@@ -7,6 +7,7 @@ import type { DbFile } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_FILE from "./sql/select-file.sql";
 import UPSERT_FILE from "./sql/upsert-file.sql";
+export * from "./benchmark";
 export * from "./check-health";
 export * from "./sql/schema";
 
@@ -28,6 +29,25 @@ export function writeFile(db: Sqlite3.DB, path: string, content: string) {
       ":content": content,
     },
   });
+}
+
+export function writeFiles(db: Sqlite3.DB, files: { path: string; content: string }[]) {
+  return db.exec(
+    `
+INSERT INTO File(path, content) VALUES
+  ${files.map((_, i) => `(:path${i}, :content${i})`).join(",")}
+ON CONFLICT(path) DO UPDATE SET content = :content
+  `.trim(),
+    {
+      bind: {
+        ...files.reduce((acc, { path, content }, i) => {
+          acc[`:path${i}`] = path;
+          acc[`:content${i}`] = content;
+          return acc;
+        }, {} as Record<string, string>),
+      },
+    }
+  );
 }
 
 /**
