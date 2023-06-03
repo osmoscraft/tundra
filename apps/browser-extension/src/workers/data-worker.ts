@@ -1,6 +1,7 @@
-import { asyncPipe, exhaustGenerator, mapAsyncGenerator, mapAsyncGeneratorParallel, tap } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustGenerator, mapAsyncGenerator, mapAsyncGeneratorParallel } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
+import * as db from "../modules/database";
 import * as fs from "../modules/file-system";
 import * as graph from "../modules/graph";
 import type { GithubConnection } from "../modules/sync";
@@ -23,12 +24,13 @@ const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as Ded
 
 const routes = {
   checkHealth: asyncPipe(
-    tap(() => console.log("check fs")),
-    fs.checkHealth,
-    tap(() => console.log("check sync")),
-    sync.checkHealth,
-    tap(() => console.log("check graph")),
-    graph.checkHealth
+    db.checkHealth
+    // tap(() => console.log("check fs")),
+    // fs.checkHealth,
+    // tap(() => console.log("check sync")),
+    // sync.checkHealth,
+    // tap(() => console.log("check graph")),
+    // graph.checkHealth
   ),
   clearFiles: async () =>
     Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit()), graph.clear(await graphInit())]),
