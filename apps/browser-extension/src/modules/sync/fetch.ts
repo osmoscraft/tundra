@@ -1,4 +1,4 @@
-import { getConnection, getGithubRef } from ".";
+import { getConnection, getGithubRemoteHeadCommit } from ".";
 import type { GithubConnection } from "./github";
 import { compare, type CompareResultFile, type GitDiffStatus } from "./github/operations/compare";
 import { getRemoteHeadRef } from "./github/operations/get-remote-head-ref";
@@ -27,7 +27,7 @@ async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchParameter
   const connection = getConnection(syncDb);
   if (!connection) throw new Error("Missing connection");
 
-  const localHeadRefId = getGithubRef(syncDb)?.id;
+  const localHeadRefId = getGithubRemoteHeadCommit(syncDb)?.id;
   if (!localHeadRefId) throw new Error("Local repo uninitialized");
 
   const remoteHeadRefId = await getRemoteHeadRef(connection);

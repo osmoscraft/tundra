@@ -1,17 +1,14 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
+import { getObject, setObject } from "../database";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
 import CLEAR_CONFIG from "./sql/clear-config.sql";
 import CLEAR_HISTORY from "./sql/clear-history.sql";
 import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
-import REPLACE_GITHUB_CONNECTION from "./sql/replace-github-connection.sql";
-import REPLACE_GITHUB_REF from "./sql/replace-github-ref.sql";
 import type { DbFileChange, DbGithubRef } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
-import SELECT_GITHUB_CONNECTION from "./sql/select-github-connection.sql";
-import SELECT_GITHUB_REF from "./sql/select-github-ref.sql";
 import SELECT_LOCAL_FILE_CHANGE from "./sql/select-local-file-change.sql";
 import SELECT_REMOTE_FILE_CHANGE from "./sql/select-remote-file-change.sql";
 import UPSERT_LOCAL_FILE_CHANGE_NOW from "./sql/upsert-local-file-change-now.sql";
@@ -33,7 +30,7 @@ export const init = callOnce(
 );
 
 export function getConnection(db: Sqlite3.DB) {
-  return db.selectObject<GithubConnection>(SELECT_GITHUB_CONNECTION) ?? null;
+  return getObject<GithubConnection>(db, "sync.github.connection");
 }
 
 export function clearConfig(db: Sqlite3.DB) {
@@ -52,8 +49,8 @@ export function getFileChanges(db: Sqlite3.DB): DbFileChange[] {
   return db.selectObjects<DbFileChange>(LIST_FILE_CHANGES);
 }
 
-export function getGithubRef(db: Sqlite3.DB) {
-  return db.selectObject<DbGithubRef>(SELECT_GITHUB_REF) ?? null;
+export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {
+  return getObject<DbGithubRef>(db, "sync.github.remoteHeadCommit");
 }
 
 export function getLocalFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
@@ -65,19 +62,11 @@ export function getLocalFileChanges(db: Sqlite3.DB): DbFileChange[] {
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {
-  return db.exec(REPLACE_GITHUB_CONNECTION, {
-    bind: {
-      ":owner": connection.owner,
-      ":repo": connection.repo,
-      ":token": connection.token,
-    },
-  });
+  setObject(db, "sync.github.connection", connection);
 }
 
-export function setGithubRef(db: Sqlite3.DB, id: string) {
-  return db.exec(REPLACE_GITHUB_REF, {
-    bind: { ":id": id },
-  });
+export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string) {
+  setObject(db, "sync.github.remoteHeadCommit", commit);
 }
 
 export async function testConnection(db: Sqlite3.DB) {

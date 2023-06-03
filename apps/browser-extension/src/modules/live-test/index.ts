@@ -1,12 +1,18 @@
-export function assertEqual(actual?: any, expected?: any, message?: string) {
+export function assertEqual<T = any>(actual?: T, expected?: T, message?: string) {
   if (expected !== actual) {
     throw new Error(`Assert equal filed: ${message ?? ""}\nExpeced: ${expected}\nActual: ${actual}`);
   }
 }
 
-export function assertDeepEqual(actual?: any, expected?: any, message?: string) {
+export function assertDeepEqual<T = any>(actual?: T, expected?: T, message?: string) {
   if (JSON.stringify(expected) !== JSON.stringify(actual)) {
-    throw new Error(`Assert deep equal filed: ${message ?? ""}\nExpeced: ${expected}\nActual: ${actual}`);
+    throw new Error(
+      `Assert deep equal filed: ${message ?? ""}\nExpeced: ${JSON.stringify(
+        expected,
+        null,
+        2
+      )}\nActual: ${JSON.stringify(actual, null, 2)}`
+    );
   }
 }
 

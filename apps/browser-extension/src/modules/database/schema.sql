@@ -4,6 +4,10 @@ CREATE TABLE IF NOT EXISTS File (
   updatedTime INTEGER NOT NULL,
   localHash   TEXT,
   remoteHash  TEXT,
-  /* 0: clean, 1: dirty */
   isDirty INTEGER GENERATED ALWAYS AS (localHash IS NOT remoteHash)
+);
+
+CREATE TABLE IF NOT EXISTS Object (
+  path TEXT PRIMARY KEY,
+  data TEXT
 );

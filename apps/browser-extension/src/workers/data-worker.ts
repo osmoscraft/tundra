@@ -13,9 +13,12 @@ import type { NotebookRoutes } from "../pages/notebook";
 
 export type DataWorkerRoutes = typeof routes;
 
+const DB_PATH = "/tinykb-db.sqlite3";
 const FS_DB_PATH = "/tinykb-fs.sqlite3";
 const SYNC_DB_PATH = "/tinykb-sync.sqlite3";
 const GRAPH_DB_PATH = "/tinykb-graph.sqlite3";
+
+const dbInit = db.init.bind(null, DB_PATH);
 const fsInit = fs.init.bind(null, FS_DB_PATH);
 const syncInit = sync.init.bind(null, SYNC_DB_PATH);
 const graphInit = graph.init.bind(null, GRAPH_DB_PATH);
@@ -46,7 +49,7 @@ const routes = {
   },
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
-  getGithubConnection: asyncPipe(syncInit, sync.getConnection),
+  getGithubConnection: asyncPipe(dbInit, sync.getConnection),
   getGraphDbFile: getOpfsFileByPath.bind(null, GRAPH_DB_PATH),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   importGitHubRepo: async () => {
@@ -67,7 +70,7 @@ const routes = {
       }, generator)
     );
 
-    sync.setGithubRef(syncDb, oid);
+    sync.setGithubRemoteHeadCommit(syncDb, oid);
   },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
@@ -91,7 +94,7 @@ const routes = {
 
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
 
-    sync.setGithubRef(syncDb, remoteHeadRefId);
+    sync.setGithubRemoteHeadCommit(syncDb, remoteHeadRefId);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   pushGitHub: async () => {
@@ -108,7 +111,7 @@ const routes = {
       )
     );
 
-    sync.setGithubRef(syncDb, pushResult.commitSha);
+    sync.setGithubRemoteHeadCommit(syncDb, pushResult.commitSha);
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   rebuild: () =>
@@ -120,8 +123,8 @@ const routes = {
     const graphDb = await graphInit();
     return graph.searchNode(graphDb, query);
   },
-  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await syncInit(), connection),
-  testGithubConnection: asyncPipe(syncInit, sync.testConnection),
+  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
+  testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const syncDb = await syncInit();
     const fsDb = await fsInit();

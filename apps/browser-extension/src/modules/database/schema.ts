@@ -4,5 +4,10 @@ export interface DbFile {
   updatedTime: number;
   localHash: string | null;
   remoteHash: string | null;
-  isDirty: boolean;
+  isDirty: 0 | 1;
+}
+
+export interface DbObject<T = any> {
+  path: string;
+  data: T;
 }
