@@ -1,58 +1,29 @@
-import { asyncPipe, exhaustGenerator, mapAsyncGenerator, mapAsyncGeneratorParallel } from "@tinykb/fp-utils";
+import { asyncPipe, exhaustGenerator, mapAsyncGenerator } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
 import * as fs from "../modules/file-system";
-import * as graph from "../modules/graph";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
-import { ChangeType, updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
-import { ensurePushParameters, fileChangeToBulkFileChangeItem } from "../modules/sync/push";
+import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
+import { ensurePushParameters } from "../modules/sync/push";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
 export type DataWorkerRoutes = typeof routes;
 
 const DB_PATH = "/tinykb-db.sqlite3";
-const FS_DB_PATH = "/tinykb-fs.sqlite3";
-const SYNC_DB_PATH = "/tinykb-sync.sqlite3";
-const GRAPH_DB_PATH = "/tinykb-graph.sqlite3";
 
 const dbInit = dbApi.init.bind(null, DB_PATH);
-const fsInit = fs.init.bind(null, FS_DB_PATH);
-const syncInit = sync.init.bind(null, SYNC_DB_PATH);
-const graphInit = graph.init.bind(null, GRAPH_DB_PATH);
 
 const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 const routes = {
-  checkHealth: asyncPipe(
-    dbApi.checkHealth
-    // tap(() => console.log("check fs")),
-    // fs.checkHealth,
-    // tap(() => console.log("check sync")),
-    // sync.checkHealth,
-    // tap(() => console.log("check graph")),
-    // graph.checkHealth
-  ),
-  clearFiles: async () =>
-    Promise.all([fs.clear(await dbInit()), sync.clearHistory(await syncInit()), graph.clear(await graphInit())]),
-  fetchGithub: async () => {
-    const syncDb = await syncInit();
-    const { generator } = await sync.getGitHubRemoteChanges(syncDb);
-    await mapAsyncGeneratorParallel(
-      async (item) => sync.trackRemoteChange(syncDb, item.path, item.text, item.timestamp),
-      generator
-    );
-
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
-  },
-  getFile: async (path: string) => fs.readFile(await fsInit(), path),
+  checkHealth: asyncPipe(dbApi.checkHealth),
+  clearFiles: async () => Promise.all([fs.clear(await dbInit()), sync.clearHistory(await dbInit())]),
+  getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile: getOpfsFileByPath.bind(null, DB_PATH),
-  getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(dbInit, sync.getConnection),
-  getGraphDbFile: getOpfsFileByPath.bind(null, GRAPH_DB_PATH),
-  getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   importGitHubRepo: async () => {
     const db = await dbInit();
     await Promise.all([fs.clear(db), sync.clearHistory(db)]);
@@ -72,10 +43,9 @@ const routes = {
 
     sync.setGithubRemoteHeadCommit(db, oid);
   },
-  listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
+  listFiles: async () => dbApi.listFiles(await dbInit(), 10, 0),
   pullGitHub: async () => {
     const db = await dbInit();
-    const syncDb = await syncInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
     await exhaustGenerator(
@@ -89,70 +59,51 @@ const routes = {
       }, generator)
     );
 
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
-
-    sync.setGithubRemoteHeadCommit(syncDb, remoteHeadRefId);
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+    sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
   pushGitHub: async () => {
-    const syncDb = await syncInit();
-    const fsDb = await fsInit();
-    const { connection } = ensurePushParameters(syncDb);
-    const localFileChanges = sync.getLocalFileChanges(syncDb);
-    const fileChanges = localFileChanges.map(fileChangeToBulkFileChangeItem.bind(null, fsDb));
+    const db = await dbInit();
+    const { connection } = ensurePushParameters(db);
+    const dirtyFiles = dbApi.getDirtyFiles(db);
+    const fileChanges = dirtyFiles.map(sync.dirtyFileToBulkFileChangeItem);
     const pushResult = await updateContentBulk(connection, fileChanges);
 
-    await Promise.all(
-      fileChanges.map((file) =>
-        sync.trackRemoteChangeNow(syncDb, file.path, file.changeType === ChangeType.Remove ? null : file.content)
-      )
-    );
+    dirtyFiles
+      .map((dbFile) => ({
+        path: dbFile.path,
+        content: dbFile.content,
+        updatedTime: new Date().toISOString(), // TODO use push commit timestamp
+      }))
+      .map((file) => dbApi.setSyncedFile(db, file));
+    sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
-    sync.setGithubRemoteHeadCommit(syncDb, pushResult.commitSha);
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
-  rebuild: () =>
-    Promise.all([
-      destoryOpfsByPath(FS_DB_PATH),
-      destoryOpfsByPath(SYNC_DB_PATH),
-      destoryOpfsByPath(GRAPH_DB_PATH),
-      destoryOpfsByPath(DB_PATH),
-    ]),
+  rebuild: () => destoryOpfsByPath(DB_PATH),
   runBenchmark: async () => {
     await fs.runBenchmark();
   },
   searchNodes: async (query: string) => {
-    const graphDb = await graphInit();
-    return graph.searchNode(graphDb, query);
+    // TODO implement search indexer and ranker
+    return [];
   },
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
-    const syncDb = await syncInit();
-    const fsDb = await fsInit();
-    const graphDb = await graphInit();
-
-    await fs.writeFile(await fsInit(), path, content);
-    await sync.trackLocalChangeNow(await syncInit(), path, content);
-    await graph.updateNodeByPath(graphDb, fsDb, path);
-
-    await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+    const db = await dbInit();
+    dbApi.setLocalFile(db, { path, content });
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 (async function init() {
-  const syncDb = await syncInit();
-  const fsDb = await fsInit();
-  const graphDb = await graphInit();
-
-  // on start, index graph
-  // TODO fix performance issue
-  graph.updateAllNodes(graphDb, fsDb);
+  const db = await dbInit();
 
   // on start, report change status
-  proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
+  await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
 
   console.log("[data worker] initialized");
 })();

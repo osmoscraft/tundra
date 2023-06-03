@@ -1,14 +1,13 @@
 import { getConnection } from ".";
-import { readFile } from "../file-system";
+import type { DbFile } from "../database/schema";
 import type { GithubConnection } from "./github";
 import { ChangeType, type BulkFileChangeItem } from "./github/operations/update-content-bulk";
-import { DbFileChangeStatus, type DbFileChange } from "./sql/schema";
 
 export interface PushParameters {
   connection: GithubConnection;
 }
-export function ensurePushParameters(syncDb: Sqlite3.DB): PushParameters {
-  const connection = getConnection(syncDb);
+export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
+  const connection = getConnection(db);
   if (!connection) throw new Error("Missing connection");
 
   return {
@@ -16,25 +15,24 @@ export function ensurePushParameters(syncDb: Sqlite3.DB): PushParameters {
   };
 }
 
-export function syncStatusToPushChangeType(staus: DbFileChangeStatus): ChangeType {
-  switch (staus) {
-    case DbFileChangeStatus.Unchanged:
-      return ChangeType.Clean;
-    case DbFileChangeStatus.Created:
-      return ChangeType.Add;
-    case DbFileChangeStatus.Updated:
-      return ChangeType.Modify;
-    case DbFileChangeStatus.Deleted:
-      return ChangeType.Remove;
-    default:
-      throw new Error(`Unsupported status for push operation: ${staus}`);
+// WIP
+export function dbFileToPushChangeType(file: DbFile): ChangeType {
+  if (!file.isDirty) return ChangeType.Clean;
+
+  if (file.remoteUpdatedTime === null) {
+    // FIXME local could be deleted too
+    return ChangeType.Add;
   }
+
+  if (file.isDeleted) return ChangeType.Remove;
+
+  return ChangeType.Modify;
 }
 
-export function fileChangeToBulkFileChangeItem(fsDb: Sqlite3.DB, fileChange: DbFileChange): BulkFileChangeItem {
+export function dirtyFileToBulkFileChangeItem(file: DbFile): BulkFileChangeItem {
   return {
-    path: fileChange.path,
-    content: readFile(fsDb, fileChange.path)?.content ?? null,
-    changeType: syncStatusToPushChangeType(fileChange.status),
+    path: file.path,
+    content: file.content,
+    changeType: dbFileToPushChangeType(file),
   };
 }

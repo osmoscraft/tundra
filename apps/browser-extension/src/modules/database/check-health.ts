@@ -1,6 +1,14 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../live-test";
-import { deleteAllFiles, deleteFile, getFile, setLocalFile, setSyncedFile, setSyncedFiles } from "./file";
+import {
+  deleteAllFiles,
+  deleteFile,
+  getDirtyFiles,
+  getFile,
+  setLocalFile,
+  setSyncedFile,
+  setSyncedFiles,
+} from "./file";
 import { deleteAllObjects, deleteObject, getObject, setObject } from "./object";
 import SCHEMA from "./schema.sql";
 
@@ -117,6 +125,25 @@ async function testFileStatusTracking() {
 
   setSyncedFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:04", content: null });
   assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 0, "test-1 is clean");
+
+  setSyncedFiles(db, [
+    { path: "/file-1.md", updatedTime: "2000-01-01T00:00:10", content: "" },
+    { path: "/file-2.md", updatedTime: "2000-01-01T00:00:10", content: "" },
+  ]);
+
+  assertEqual(getDirtyFiles(db).length, 0, "no dirty files after setSyncedFiles");
+
+  setLocalFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:11", content: "" });
+  setLocalFile(db, { path: "/file-2.md", updatedTime: "2000-01-01T00:00:11", content: "" });
+
+  assertDeepEqual(
+    getDirtyFiles(db).map((f) => [f.path, f.isDirty]),
+    [
+      ["/file-1.md", 1],
+      ["/file-2.md", 1],
+    ],
+    "dirty files after setLocalFile"
+  );
 }
 
 async function testObjectCRUD() {

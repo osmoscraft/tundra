@@ -70,6 +70,29 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
   return db.selectObject<DbFile>(sql, bind) ?? undefined;
 }
 
+export function listFiles(db: Sqlite3.DB, limit: number, offset?: number) {
+  const appendClause: string[] = [];
+  const appendDict: Record<string, string> = {};
+
+  if (limit) {
+    appendClause.push("LIMIT :limit");
+    appendDict[":limit"] = limit.toString();
+  }
+
+  if (offset) {
+    appendClause.push("OFFSET :offset");
+    appendDict[":offset"] = offset.toString();
+  }
+
+  return db.selectObjects<DbFile>(`SELECT * FROM File ${appendClause.join(" ")}`, { ...appendDict });
+}
+
+export function getDirtyFiles(db: Sqlite3.DB): DbFile[] {
+  const sql = `SELECT * FROM File WHERE isDirty = 1`;
+
+  return db.selectObjects<DbFile>(sql);
+}
+
 export function deleteFile(db: Sqlite3.DB, path: string) {
   const sql = `DELETE FROM File WHERE path = :path`;
   const bind = paramsToBindings(sql, { path });

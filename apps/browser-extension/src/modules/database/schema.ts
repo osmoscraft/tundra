@@ -2,7 +2,7 @@ export interface DbFile {
   path: string;
   content: string | null;
   updatedTime: number;
-  syncedTime: number | null;
+  remoteUpdatedTime: number | null;
   isDirty: 0 | 1;
   isDeleted: 0 | 1;
 }

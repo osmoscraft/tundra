@@ -1,10 +1,6 @@
-import { DbFileChangeSource, type DbFileChange } from ".";
+import type { DbFile } from "../database/schema";
 
-export function formatStatus(changedFiles: DbFileChange[]) {
-  if (!changedFiles.length) return "Up to date";
-  const localChangeCount = changedFiles.filter((file) => file.source === DbFileChangeSource.Local).length;
-  const remoteChangeCount = changedFiles.filter((file) => file.source === DbFileChangeSource.Remote).length;
-  const sharedCount = changedFiles.filter((file) => file.source === DbFileChangeSource.Both).length;
-
-  return `↑ ${localChangeCount + sharedCount} | ↓ ${remoteChangeCount + sharedCount}`;
+export function formatStatus(dirtyFile: DbFile[]) {
+  if (!dirtyFile.length) return "Up to date";
+  return `↑ ${dirtyFile.length}`;
 }
