@@ -75,21 +75,17 @@ const routes = {
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
     const db = await dbInit();
-    const fsDb = await fsInit();
     const syncDb = await syncInit();
-    const graphDb = await graphInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {
-        const newContent = item.text;
-        await sync.trackRemoteChange(syncDb, item.path, newContent, item.timestamp);
-        const fileChange = sync.getRemoteFileChange(syncDb, item.path);
-        if (fileChange) {
-          await fs.writeOrDeleteFile(fsDb, item.path, newContent);
-          await sync.trackLocalChangeNow(syncDb, item.path, newContent);
-          await graph.updateNodeByPath(graphDb, fsDb, item.path);
-        }
+        // skip write if local is ahead
+        dbApi.setSyncedFile(db, {
+          path: item.path,
+          content: item.text,
+          updatedTime: item.timestamp,
+        });
       }, generator)
     );
 
@@ -116,7 +112,12 @@ const routes = {
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   rebuild: () =>
-    Promise.all([destoryOpfsByPath(FS_DB_PATH), destoryOpfsByPath(SYNC_DB_PATH), destoryOpfsByPath(GRAPH_DB_PATH)]),
+    Promise.all([
+      destoryOpfsByPath(FS_DB_PATH),
+      destoryOpfsByPath(SYNC_DB_PATH),
+      destoryOpfsByPath(GRAPH_DB_PATH),
+      destoryOpfsByPath(DB_PATH),
+    ]),
   runBenchmark: async () => {
     await fs.runBenchmark();
   },
