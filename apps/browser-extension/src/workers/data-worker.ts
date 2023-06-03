@@ -62,10 +62,10 @@ const routes = {
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {
         // TODO convert to chunked bulk insert
-        dbApi.setFile(db, {
+        dbApi.setSyncedFile(db, {
           path: item.path,
           content: item.text,
-          updatedTime: new Date(item.timestamp).getTime(),
+          updatedTime: item.timestamp,
         });
       }, generator)
     );

@@ -1,4 +1,4 @@
-export function bindParams(sql: string, params: any) {
+export function paramsToBindings(sql: string, params: any) {
   const bindKeys = sql.matchAll(/:([a-zA-Z0-9]+)/g);
   const bindObject = Object.fromEntries([...bindKeys].map(([key, variableName]) => [key, params[variableName]]));
 

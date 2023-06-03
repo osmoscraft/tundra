@@ -1,46 +1,78 @@
 import type { DbFile } from "./schema";
-import { arrayToParams, bindParams } from "./utils";
+import { arrayToParams, paramsToBindings } from "./utils";
 
 export interface SetFileInput {
   path: string;
-  updatedTime: number;
   content: string | null;
-  localHash?: string | null; // null means deleted, undefined means not changed
-  remoteHash?: string | null;
+  updatedTime?: string;
 }
 
-export function setFile(db: Sqlite3.DB, file: SetFileInput) {
+export function setLocalFile(db: Sqlite3.DB, file: SetFileInput) {
   const sql = `
-INSERT INTO File (path, content, updatedTime, localHash, remoteHash) VALUES (:path, :content, :updatedTime, :localHash, :remoteHash)
-ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime, localHash = excluded.localHash, remoteHash = excluded.remoteHash
-  `;
-  const bind = bindParams(sql, file);
+INSERT INTO File (path, content, updatedTime) VALUES (:path, :content, :updatedTime)
+ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime
+`;
 
-  return db.exec(sql, { bind });
+  const bindings = paramsToBindings(sql, {
+    path: file.path,
+    content: file.content,
+    updatedTime: file.updatedTime ?? new Date().toISOString(),
+  });
+
+  return db.exec(sql, { bind: bindings });
 }
 
-export function setFiles(db: Sqlite3.DB, files: SetFileInput[]) {
+export function setSyncedFile(db: Sqlite3.DB, file: SetFileInput) {
   const sql = `
-INSERT INTO File (path, content, updatedTime, localHash, remoteHash) VALUES
-${files.map((_, i) => `(:path${i}, :content${i}, :updatedTime${i}, :localHash${i}, :remoteHash${i})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime, localHash = excluded.localHash, remoteHash = excluded.remoteHash
+INSERT INTO File (path, content, updatedTime, remoteUpdatedTime) VALUES (:path, :content, :updatedTime, :remoteUpdatedTime)
+ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime, remoteUpdatedTime = excluded.remoteUpdatedTime
+`;
+
+  const timestamp = file.updatedTime ?? new Date().toISOString();
+
+  const bindings = paramsToBindings(sql, {
+    path: file.path,
+    content: file.content,
+    updatedTime: timestamp,
+    remoteUpdatedTime: timestamp,
+  });
+
+  return db.exec(sql, { bind: bindings });
+}
+
+export function setSyncedFiles(db: Sqlite3.DB, files: SetFileInput[]) {
+  const sql = `
+INSERT INTO File (path, content, updatedTime, remoteUpdatedTime) VALUES
+${files.map((_, i) => `(:path${i}, :content${i}, :updatedTime${i}, :remoteUpdatedTime${i})`).join(",")}
+ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime, remoteUpdatedTime = excluded.remoteUpdatedTime
   `;
 
-  const bind = bindParams(sql, arrayToParams(files));
+  const timedFiles = files.map((file) => {
+    const timestamp = file.updatedTime ?? new Date().toISOString();
+
+    return {
+      path: file.path,
+      content: file.content,
+      updatedTime: timestamp,
+      remoteUpdatedTime: timestamp,
+    };
+  });
+
+  const bind = paramsToBindings(sql, arrayToParams(timedFiles));
 
   return db.exec(sql, { bind });
 }
 
 export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
   const sql = `SELECT * FROM File WHERE path = :path`;
-  const bind = bindParams(sql, { path });
+  const bind = paramsToBindings(sql, { path });
 
   return db.selectObject<DbFile>(sql, bind) ?? undefined;
 }
 
 export function deleteFile(db: Sqlite3.DB, path: string) {
   const sql = `DELETE FROM File WHERE path = :path`;
-  const bind = bindParams(sql, { path });
+  const bind = paramsToBindings(sql, { path });
 
   return db.exec(sql, { bind });
 }

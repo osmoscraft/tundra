@@ -1,6 +1,6 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../live-test";
-import { deleteAllFiles, deleteFile, getFile, setFile, setFiles } from "./file";
+import { deleteAllFiles, deleteFile, getFile, setLocalFile, setSyncedFile, setSyncedFiles } from "./file";
 import { deleteAllObjects, deleteObject, getObject, setObject } from "./object";
 import SCHEMA from "./schema.sql";
 
@@ -18,7 +18,7 @@ export async function checkHealth() {
     log("started");
     await runSpec("Schema", testSchema);
     await runSpec("File CRUD", testFileCRUD);
-    await runSpec("File dirty flag", testFileDirtyFlag);
+    await runSpec("File status tracking", testFileStatusTracking);
     await runSpec("File soft delete", testFileSoftDelete);
     await runSpec("Object CRUD", testObjectCRUD);
     log("success");
@@ -41,26 +41,24 @@ async function testSchema() {
 async function testFileCRUD() {
   const db = await createDbWithSchema();
 
-  setFile(db, {
+  setSyncedFile(db, {
     path: "/test.md",
-    updatedTime: 0,
     content: "",
   });
 
   const file = getFile(db, "/test.md");
 
   assertEqual(file?.path, "/test.md", "path after write and read");
-  assertEqual(file?.updatedTime, 0, "timestamp after write and read");
+  assertEqual(file?.content, "", "content after write and read");
 
-  setFile(db, {
+  setSyncedFile(db, {
     path: "/test.md",
-    updatedTime: 1,
-    content: "",
+    content: "updated",
   });
 
   const file2 = getFile(db, "/test.md");
 
-  assertEqual(file2?.updatedTime, 1, "timestamp after update");
+  assertEqual(file2?.content, "updated", "timestamp after update");
 
   deleteFile(db, "/test.md");
 
@@ -68,9 +66,9 @@ async function testFileCRUD() {
 
   assertEqual(file3, undefined, "file after delete");
 
-  setFiles(db, [
-    { path: "/test-1.md", updatedTime: 0, content: "" },
-    { path: "/test-2.md", updatedTime: 0, content: "" },
+  setSyncedFiles(db, [
+    { path: "/test-1.md", content: "" },
+    { path: "/test-2.md", content: "" },
   ]);
 
   assertDefined(getFile(db, "/test-1.md"), "test-1 after setFiles");
@@ -85,41 +83,40 @@ async function testFileCRUD() {
 async function testFileSoftDelete() {
   const db = await createDbWithSchema();
 
-  setFile(db, {
+  setSyncedFile(db, {
     path: "/test.md",
-    updatedTime: 0,
+    updatedTime: new Date().toISOString(),
     content: "",
   });
 
   assertEqual(getFile(db, "/test.md")?.isDeleted, 0, "test.md isDeleted before delete");
 
-  setFile(db, {
+  setSyncedFile(db, {
     path: "/test.md",
-    updatedTime: 1,
+    updatedTime: new Date().toISOString(),
     content: null,
   });
 
   assertEqual(getFile(db, "/test.md")?.isDeleted, 1, "test.md isDeleted after delete");
 }
 
-async function testFileDirtyFlag() {
+async function testFileStatusTracking() {
   const db = await createDbWithSchema();
 
-  setFiles(db, [
-    { path: "/test-1.md", updatedTime: 0, content: null },
-    { path: "/test-2.md", updatedTime: 0, content: null, remoteHash: "test" },
-    { path: "/test-3.md", updatedTime: 0, content: "", localHash: "test" },
-    { path: "/test-4.md", updatedTime: 0, content: "", localHash: "test", remoteHash: "test" },
-    { path: "/test-5.md", updatedTime: 0, content: "", localHash: "test", remoteHash: "test different" },
-  ]);
+  setSyncedFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:00", content: "" });
+  assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 0, "test-1 is clean");
 
-  const [file1, file2, file3, file4, file5] = [1, 2, 3, 4, 5].map((i) => getFile(db, `/test-${i}.md`));
+  setLocalFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:01", content: "" });
+  assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 1, "test-1 is ahead");
 
-  assertEqual(file1?.isDirty, 0, "same null hash");
-  assertEqual(file2?.isDirty, 1, "local null");
-  assertEqual(file3?.isDirty, 1, "remote null");
-  assertEqual(file4?.isDirty, 0, "same hash");
-  assertEqual(file5?.isDirty, 1, "different hash");
+  setSyncedFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:02", content: "" });
+  assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 0, "test-1 is clean");
+
+  setLocalFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:03", content: null });
+  assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 1, "test-1 is ahead");
+
+  setSyncedFile(db, { path: "/file-1.md", updatedTime: "2000-01-01T00:00:04", content: null });
+  assertEqual(getFile(db, `/file-${1}.md`)?.isDirty, 0, "test-1 is clean");
 }
 
 async function testObjectCRUD() {

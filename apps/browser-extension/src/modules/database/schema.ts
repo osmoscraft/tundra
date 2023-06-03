@@ -2,8 +2,7 @@ export interface DbFile {
   path: string;
   content: string | null;
   updatedTime: number;
-  localHash: string | null;
-  remoteHash: string | null;
+  syncedTime: number | null;
   isDirty: 0 | 1;
   isDeleted: 0 | 1;
 }
