@@ -1,25 +1,4 @@
-import { HttpReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { TarReader } from "../../../compression/tar";
-
-export interface ZipItem {
-  path: string;
-  text: string;
-}
-export function downloadZip(url: string): AsyncGenerator<ZipItem> {
-  async function* itemGenerator() {
-    const zipReader = new ZipReader(new HttpReader(url));
-    const entriesGen = zipReader.getEntriesGenerator();
-
-    // WARNING entry.getData has performance issue
-    for await (const entry of entriesGen) {
-      yield { path: entry.filename, text: await entry.getData!(new TextWriter()) };
-    }
-
-    await zipReader.close();
-  }
-
-  return itemGenerator();
-}
 
 export interface TarballItem {
   /** WARNING: Tarball filenames are truncated to 100 characters. */
