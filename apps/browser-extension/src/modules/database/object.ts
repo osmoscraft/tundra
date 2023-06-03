@@ -25,3 +25,9 @@ export function deleteObject(db: Sqlite3.DB, path: string) {
 
   return db.exec(sql, { bind });
 }
+
+export function deleteAllObjects(db: Sqlite3.DB) {
+  const sql = `DELETE FROM Object`;
+
+  return db.exec(sql);
+}

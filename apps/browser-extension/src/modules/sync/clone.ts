@@ -7,8 +7,8 @@ export interface GitHubRemote {
   generator: AsyncGenerator<RemoteChangeRecord>;
   oid: string;
 }
-export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote> {
-  const { connection } = await ensureCloneParameters(syncDb);
+export async function getGitHubRemote(db: Sqlite3.DB): Promise<GitHubRemote> {
+  const { connection } = await ensureCloneParameters(db);
   const archive = await github.getArchive(connection);
 
   const generator = iterateGitHubArchive(archive.tarballUrl);
@@ -22,8 +22,8 @@ export async function getGitHubRemote(syncDb: Sqlite3.DB): Promise<GitHubRemote>
 interface CloneParameters {
   connection: github.GithubConnection;
 }
-async function ensureCloneParameters(syncDb: Sqlite3.DB): Promise<CloneParameters> {
-  const connection = getConnection(syncDb);
+async function ensureCloneParameters(db: Sqlite3.DB): Promise<CloneParameters> {
+  const connection = getConnection(db);
   if (!connection) throw new Error("Missing connection");
 
   return {

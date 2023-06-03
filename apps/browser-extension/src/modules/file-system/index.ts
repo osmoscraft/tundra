@@ -1,6 +1,6 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
-import CLEAR_FILES from "./sql/clear-files.sql";
+import { deleteAllFiles } from "../database";
 import DELETE_FILE from "./sql/delete-file.sql";
 import LIST_FILES from "./sql/list-files.sql";
 import type { DbFile } from "./sql/schema";
@@ -19,10 +19,10 @@ export const init = callOnce(
 );
 
 export function clear(db: Sqlite3.DB) {
-  return db.exec(CLEAR_FILES);
+  deleteAllFiles(db);
 }
 
-export function writeFile(db: Sqlite3.DB, path: string, content: string) {
+export function writeFile(db: Sqlite3.DB, path: string, content: string | null) {
   return db.exec(UPSERT_FILE, {
     bind: {
       ":path": path,

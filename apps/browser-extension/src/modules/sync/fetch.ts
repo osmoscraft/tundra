@@ -10,8 +10,8 @@ export interface GitHubRemoteChanges {
   generator: AsyncGenerator<RemoteChangeRecord>;
   remoteHeadRefId: string;
 }
-export async function getGitHubRemoteChanges(syncDb: Sqlite3.DB): Promise<GitHubRemoteChanges> {
-  const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(syncDb);
+export async function getGitHubRemoteChanges(db: Sqlite3.DB): Promise<GitHubRemoteChanges> {
+  const { connection, localHeadRefId, remoteHeadRefId } = await ensureFetchParameters(db);
 
   const generator = iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
 
@@ -23,11 +23,11 @@ interface FetchParameters {
   localHeadRefId: string;
   remoteHeadRefId: string;
 }
-async function ensureFetchParameters(syncDb: Sqlite3.DB): Promise<FetchParameters> {
-  const connection = getConnection(syncDb);
+async function ensureFetchParameters(db: Sqlite3.DB): Promise<FetchParameters> {
+  const connection = getConnection(db);
   if (!connection) throw new Error("Missing connection");
 
-  const localHeadRefId = getGithubRemoteHeadCommit(syncDb)?.id;
+  const localHeadRefId = getGithubRemoteHeadCommit(db)?.id;
   if (!localHeadRefId) throw new Error("Local repo uninitialized");
 
   const remoteHeadRefId = await getRemoteHeadRef(connection);

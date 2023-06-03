@@ -1,7 +1,7 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
-import { assertDeepEqual, assertEqual } from "../live-test";
-import { deleteFile, getFile, setFile, setFiles } from "./file";
-import { deleteObject, getObject, setObject } from "./object";
+import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../live-test";
+import { deleteAllFiles, deleteFile, getFile, setFile, setFiles } from "./file";
+import { deleteAllObjects, deleteObject, getObject, setObject } from "./object";
 import SCHEMA from "./schema.sql";
 
 export async function checkHealth() {
@@ -16,10 +16,11 @@ export async function checkHealth() {
 
   async function runTests() {
     log("started");
-    runSpec("Schema", testSchema);
-    runSpec("File CRUD", testFileCRUD);
-    runSpec("File dirty flag", testDirtyFlag);
-    runSpec("Object CRUD", testObjectCRUD);
+    await runSpec("Schema", testSchema);
+    await runSpec("File CRUD", testFileCRUD);
+    await runSpec("File dirty flag", testFileDirtyFlag);
+    await runSpec("File soft delete", testFileSoftDelete);
+    await runSpec("Object CRUD", testObjectCRUD);
     log("success");
   }
 
@@ -43,6 +44,7 @@ async function testFileCRUD() {
   setFile(db, {
     path: "/test.md",
     updatedTime: 0,
+    content: "",
   });
 
   const file = getFile(db, "/test.md");
@@ -53,6 +55,7 @@ async function testFileCRUD() {
   setFile(db, {
     path: "/test.md",
     updatedTime: 1,
+    content: "",
   });
 
   const file2 = getFile(db, "/test.md");
@@ -64,17 +67,50 @@ async function testFileCRUD() {
   const file3 = getFile(db, "/test.md");
 
   assertEqual(file3, undefined, "file after delete");
+
+  setFiles(db, [
+    { path: "/test-1.md", updatedTime: 0, content: "" },
+    { path: "/test-2.md", updatedTime: 0, content: "" },
+  ]);
+
+  assertDefined(getFile(db, "/test-1.md"), "test-1 after setFiles");
+  assertDefined(getFile(db, "/test-2.md"), "test-2 after setFiles");
+
+  deleteAllFiles(db);
+
+  assertUndefined(getFile(db, "/test-1.md"), "test-1 after deleteAllFiles");
+  assertUndefined(getFile(db, "/test-2.md"), "test-2 after deleteAllFiles");
 }
 
-async function testDirtyFlag() {
+async function testFileSoftDelete() {
+  const db = await createDbWithSchema();
+
+  setFile(db, {
+    path: "/test.md",
+    updatedTime: 0,
+    content: "",
+  });
+
+  assertEqual(getFile(db, "/test.md")?.isDeleted, 0, "test.md isDeleted before delete");
+
+  setFile(db, {
+    path: "/test.md",
+    updatedTime: 1,
+    content: null,
+  });
+
+  assertEqual(getFile(db, "/test.md")?.isDeleted, 1, "test.md isDeleted after delete");
+}
+
+async function testFileDirtyFlag() {
   const db = await createDbWithSchema();
 
   setFiles(db, [
-    { path: "/test-1.md", updatedTime: 0 },
-    { path: "/test-2.md", updatedTime: 0, remoteHash: "test" },
-    { path: "/test-3.md", updatedTime: 0, localHash: "test" },
-    { path: "/test-4.md", updatedTime: 0, localHash: "test", remoteHash: "test" },
-    { path: "/test-5.md", updatedTime: 0, localHash: "test", remoteHash: "test different" },
+    { path: "/test-1.md", updatedTime: 0, content: null },
+    { path: "/test-2.md", updatedTime: 0, content: null, remoteHash: "test" },
+    { path: "/test-3.md", updatedTime: 0, content: "", localHash: "test" },
+    { path: "/test-4.md", updatedTime: 0, content: "", localHash: "test", remoteHash: "test" },
+    { path: "/test-5.md", updatedTime: 0, content: "", localHash: "test", remoteHash: "test different" },
   ]);
 
   const [file1, file2, file3, file4, file5] = [1, 2, 3, 4, 5].map((i) => getFile(db, `/test-${i}.md`));
@@ -103,7 +139,15 @@ async function testObjectCRUD() {
 
   deleteObject(db, "some-key");
   const result3 = getObject(db, "some-key");
-  assertEqual(result3, null, "object after delete");
+  assertEqual(result3, undefined, "object after delete");
+
+  setObject(db, "obj-1", { a: 1 });
+  setObject(db, "obj-2", { a: 1 });
+  assertDefined(getObject(db, "obj-1"), "obj-1 is defined");
+  assertDefined(getObject(db, "obj-2"), "obj-2 is defined");
+  deleteAllObjects(db);
+  assertUndefined(getObject(db, "obj-1"), "obj-1 is undefined after clear");
+  assertUndefined(getObject(db, "obj-2"), "obj-2 is undefined after clear");
 }
 
 async function createDbWithSchema() {

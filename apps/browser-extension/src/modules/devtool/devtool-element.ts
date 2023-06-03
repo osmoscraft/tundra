@@ -25,18 +25,8 @@ export class DevtoolElement extends HTMLElement {
           this.proxy.clearFiles();
           break;
         }
-        case "download-fs-db": {
-          const file = await this.proxy.getFsDbFile();
-          downloadFile(file);
-          break;
-        }
-        case "download-graph-db": {
-          const file = await this.proxy.getGraphDbFile();
-          downloadFile(file);
-          break;
-        }
-        case "download-sync-db": {
-          const file = await this.proxy.getSyncDbFile();
+        case "download-db-file": {
+          const file = await this.proxy.getDbFile();
           downloadFile(file);
           break;
         }

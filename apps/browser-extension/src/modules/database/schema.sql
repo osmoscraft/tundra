@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS File (
   updatedTime INTEGER NOT NULL,
   localHash   TEXT,
   remoteHash  TEXT,
+  isDeleted INTEGER GENERATED ALWAYS AS (content IS NULL),
   isDirty INTEGER GENERATED ALWAYS AS (localHash IS NOT remoteHash)
 );
 

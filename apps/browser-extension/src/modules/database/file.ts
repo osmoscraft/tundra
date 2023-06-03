@@ -1,15 +1,15 @@
 import type { DbFile } from "./schema";
 import { arrayToParams, bindParams } from "./utils";
 
-export interface UpsertFileInput {
+export interface SetFileInput {
   path: string;
   updatedTime: number;
-  content?: string;
-  localHash?: string;
-  remoteHash?: string;
+  content: string | null;
+  localHash?: string | null; // null means deleted, undefined means not changed
+  remoteHash?: string | null;
 }
 
-export function setFile(db: Sqlite3.DB, file: UpsertFileInput) {
+export function setFile(db: Sqlite3.DB, file: SetFileInput) {
   const sql = `
 INSERT INTO File (path, content, updatedTime, localHash, remoteHash) VALUES (:path, :content, :updatedTime, :localHash, :remoteHash)
 ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = excluded.updatedTime, localHash = excluded.localHash, remoteHash = excluded.remoteHash
@@ -19,7 +19,7 @@ ON CONFLICT(path) DO UPDATE SET content = excluded.content, updatedTime = exclud
   return db.exec(sql, { bind });
 }
 
-export function setFiles(db: Sqlite3.DB, files: UpsertFileInput[]) {
+export function setFiles(db: Sqlite3.DB, files: SetFileInput[]) {
   const sql = `
 INSERT INTO File (path, content, updatedTime, localHash, remoteHash) VALUES
 ${files.map((_, i) => `(:path${i}, :content${i}, :updatedTime${i}, :localHash${i}, :remoteHash${i})`).join(",")}
@@ -43,4 +43,10 @@ export function deleteFile(db: Sqlite3.DB, path: string) {
   const bind = bindParams(sql, { path });
 
   return db.exec(sql, { bind });
+}
+
+export function deleteAllFiles(db: Sqlite3.DB) {
+  const sql = `DELETE FROM File`;
+
+  return db.exec(sql);
 }

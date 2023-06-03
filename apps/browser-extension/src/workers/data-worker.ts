@@ -1,7 +1,7 @@
 import { asyncPipe, exhaustGenerator, mapAsyncGenerator, mapAsyncGeneratorParallel } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
-import * as db from "../modules/database";
+import * as dbApi from "../modules/database";
 import * as fs from "../modules/file-system";
 import * as graph from "../modules/graph";
 import type { GithubConnection } from "../modules/sync";
@@ -18,7 +18,7 @@ const FS_DB_PATH = "/tinykb-fs.sqlite3";
 const SYNC_DB_PATH = "/tinykb-sync.sqlite3";
 const GRAPH_DB_PATH = "/tinykb-graph.sqlite3";
 
-const dbInit = db.init.bind(null, DB_PATH);
+const dbInit = dbApi.init.bind(null, DB_PATH);
 const fsInit = fs.init.bind(null, FS_DB_PATH);
 const syncInit = sync.init.bind(null, SYNC_DB_PATH);
 const graphInit = graph.init.bind(null, GRAPH_DB_PATH);
@@ -27,7 +27,7 @@ const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as Ded
 
 const routes = {
   checkHealth: asyncPipe(
-    db.checkHealth
+    dbApi.checkHealth
     // tap(() => console.log("check fs")),
     // fs.checkHealth,
     // tap(() => console.log("check sync")),
@@ -36,7 +36,7 @@ const routes = {
     // graph.checkHealth
   ),
   clearFiles: async () =>
-    Promise.all([fs.clear(await fsInit()), sync.clearHistory(await syncInit()), graph.clear(await graphInit())]),
+    Promise.all([fs.clear(await dbInit()), sync.clearHistory(await syncInit()), graph.clear(await graphInit())]),
   fetchGithub: async () => {
     const syncDb = await syncInit();
     const { generator } = await sync.getGitHubRemoteChanges(syncDb);
@@ -48,36 +48,37 @@ const routes = {
     await proxy.setStatus(formatStatus(sync.getFileChanges(syncDb)));
   },
   getFile: async (path: string) => fs.readFile(await fsInit(), path),
+  getDbFile: getOpfsFileByPath.bind(null, DB_PATH),
   getFsDbFile: getOpfsFileByPath.bind(null, FS_DB_PATH),
   getGithubConnection: asyncPipe(dbInit, sync.getConnection),
   getGraphDbFile: getOpfsFileByPath.bind(null, GRAPH_DB_PATH),
   getSyncDbFile: getOpfsFileByPath.bind(null, SYNC_DB_PATH),
   importGitHubRepo: async () => {
-    const fsDb = await fsInit();
-    const syncDb = await syncInit();
-    const graphDb = await graphInit();
-    await Promise.all([fs.clear(fsDb), sync.clearHistory(syncDb)]);
+    const db = await dbInit();
+    await Promise.all([fs.clear(db), sync.clearHistory(db)]);
 
-    const { generator, oid } = await sync.getGitHubRemote(syncDb);
+    const { generator, oid } = await sync.getGitHubRemote(db);
 
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {
-        const content = item.text;
-        await sync.trackRemoteChangeNow(syncDb, item.path, content);
-        await fs.writeFile(fsDb, item.path, content!);
-        await sync.trackLocalChangeNow(syncDb, item.path, content);
-        await graph.updateNodeByPath(graphDb, fsDb, item.path);
+        // TODO convert to chunked bulk insert
+        dbApi.setFile(db, {
+          path: item.path,
+          content: item.text,
+          updatedTime: new Date(item.timestamp).getTime(),
+        });
       }, generator)
     );
 
-    sync.setGithubRemoteHeadCommit(syncDb, oid);
+    sync.setGithubRemoteHeadCommit(db, oid);
   },
   listFiles: async () => fs.listFiles(await fsInit(), 10, 0),
   pullGitHub: async () => {
+    const db = await dbInit();
     const fsDb = await fsInit();
     const syncDb = await syncInit();
     const graphDb = await graphInit();
-    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(syncDb);
+    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {

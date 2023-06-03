@@ -21,3 +21,9 @@ export function assertDefined(actual: any, message: string) {
     throw new Error(`Assert defined failed: ${message}`);
   }
 }
+
+export function assertUndefined(actual: any, message: string) {
+  if (typeof actual !== "undefined") {
+    throw new Error(`Assert undefined failed: ${message}`);
+  }
+}

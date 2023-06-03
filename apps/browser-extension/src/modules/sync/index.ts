@@ -1,10 +1,9 @@
 import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { sqlite3Opfs } from "@tinykb/sqlite-utils";
-import { getObject, setObject } from "../database";
+import { deleteObject, getObject, setObject } from "../database";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
-import CLEAR_CONFIG from "./sql/clear-config.sql";
-import CLEAR_HISTORY from "./sql/clear-history.sql";
+import { sha1 } from "./hash";
 import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
 import type { DbFileChange, DbGithubRef } from "./sql/schema";
@@ -33,12 +32,12 @@ export function getConnection(db: Sqlite3.DB) {
   return getObject<GithubConnection>(db, "sync.github.connection");
 }
 
-export function clearConfig(db: Sqlite3.DB) {
-  return db.exec(CLEAR_CONFIG);
+export function deleteConnection(db: Sqlite3.DB) {
+  return deleteObject(db, "sync.github.connection");
 }
 
 export function clearHistory(db: Sqlite3.DB) {
-  return db.exec(CLEAR_HISTORY);
+  return deleteObject(db, "sync.github.remoteHeadCommit");
 }
 
 export function getRemoteFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
@@ -100,12 +99,4 @@ export async function trackRemoteChangeNow(db: Sqlite3.DB, path: string, content
       ":remoteHash": content ? await sha1(content) : null,
     },
   });
-}
-
-async function sha1(input: string) {
-  const msgUint8 = new TextEncoder().encode(input);
-  const hashBuffer = await crypto.subtle.digest("SHA-1", msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); // convert bytes to hex string
-  return hashHex;
 }
