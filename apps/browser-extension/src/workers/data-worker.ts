@@ -1,4 +1,4 @@
-import { asyncPipe, drainGenerator, mapAsyncGenerator, reduceGenerator } from "@tinykb/fp-utils";
+import { asyncPipe, drainGenerator, getChunkReducer, mapAsyncGenerator, reduceGenerator } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -48,20 +48,9 @@ const routes = {
     await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
 
     const { generator, oid } = await sync.getGitHubRemote(db);
-
-    const getChunkReducer =
-      (chunkSize: number) =>
-      <T>(chunks: T[][], item: T) => {
-        if (chunks.at(-1)?.length === chunkSize) {
-          chunks.push([]);
-        }
-        chunks.at(-1)?.push(item);
-        return chunks;
-      };
-
     const chunkReducer = getChunkReducer(100);
 
-    const chunks = await reduceGenerator(chunkReducer, [[]] as RemoteChangeRecord[][], generator);
+    const chunks = await reduceGenerator(chunkReducer, [] as RemoteChangeRecord[][], generator);
     db.transaction(() => {
       for (const chunk of chunks) {
         dbApi.setRemoteFiles(
