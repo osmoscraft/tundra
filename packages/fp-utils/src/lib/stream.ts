@@ -56,7 +56,23 @@ export async function* filterGeneratorAsync<T>(
 }
 
 export async function drainGenerator<T>(generator: AsyncGenerator<T>) {
-  for await (const _value of generator) {
-    // noop
+  const results: T[] = [];
+  for await (const value of generator) {
+    results.push(value);
   }
+
+  return results;
+}
+
+export async function reduceGenerator<T, K>(
+  reducer: (prev: K, curr: T) => K,
+  initial: K,
+  generator: AsyncGenerator<T>
+) {
+  let result = initial;
+  for await (const value of generator) {
+    result = reducer(result, value);
+  }
+
+  return result;
 }

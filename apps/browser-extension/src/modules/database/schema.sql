@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS File (
   isDirty INTEGER GENERATED ALWAYS AS (content IS NOT remoteContent)
 );
 
+
+CREATE INDEX IF NOT EXISTS FileUpdatedTimeIdx ON File(updatedTime);
+
 CREATE TABLE IF NOT EXISTS Object (
   path TEXT PRIMARY KEY,
   data TEXT
