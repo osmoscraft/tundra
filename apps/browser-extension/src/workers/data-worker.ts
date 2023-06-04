@@ -19,7 +19,7 @@ const dbInit = dbApi.init.bind(null, DB_PATH);
 const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 const routes = {
-  checkHealth: asyncPipe(dbApi.checkHealth),
+  checkHealth: asyncPipe(dbApi.testDatabase),
   clearFiles: async () => Promise.all([fs.clear(await dbInit()), sync.clearHistory(await dbInit())]),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile: getOpfsFileByPath.bind(null, DB_PATH),
@@ -91,7 +91,7 @@ const routes = {
   },
   searchNodes: async (query: string) => {
     // TODO implement search indexer and ranker
-    return [];
+    return [] as any[];
   },
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),

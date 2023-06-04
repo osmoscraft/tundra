@@ -14,7 +14,7 @@ export async function loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>, haiku
   }
   const file = await proxy.getFile(path);
   if (!file) return;
-  haikuEditor.setMarkdown(file.localContent);
+  haikuEditor.setMarkdown(file.content ?? "");
 }
 
 export type Keymap = Record<string, Fn | undefined>;
@@ -34,7 +34,6 @@ export function getDefaultKeymap(
       save(editor, proxy)
         .then(() => proxy.pullGitHub())
         .then(() => proxy.pushGitHub()),
-    "ctrl+y": () => proxy.fetchGithub(),
     "ctrl+shift+y": () => proxy.pullGitHub(),
   };
 }

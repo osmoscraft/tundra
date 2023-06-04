@@ -29,7 +29,7 @@ export class FileSystemReadonlyExplorerElement extends HTMLElement {
       if (!path) return;
 
       const file = await this.proxy.getFile(path);
-      this.code.innerHTML = file?.localContent ?? "Error: File does not exist";
+      this.code.innerHTML = file?.content ?? "Error: File does not exist";
     });
   }
 }
