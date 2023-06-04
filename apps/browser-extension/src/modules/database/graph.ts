@@ -52,6 +52,10 @@ export function deleteNode(db: Sqlite3.DB, path: string) {
   });
 }
 
+export function deleteAllNodes(db: Sqlite3.DB) {
+  db.exec("DELETE FROM Node");
+}
+
 export interface SearchInput {
   query: string;
   limit: number;

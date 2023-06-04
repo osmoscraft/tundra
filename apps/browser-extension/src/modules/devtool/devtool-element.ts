@@ -30,8 +30,12 @@ export class DevtoolElement extends HTMLElement {
           downloadFile(file);
           break;
         }
-        case "rebuild": {
-          this.proxy.destoryDb();
+        case "destory-data": {
+          this.proxy.destoryData();
+          break;
+        }
+        case "destory-all": {
+          this.proxy.destoryAll();
           break;
         }
         case "run-benchmark": {

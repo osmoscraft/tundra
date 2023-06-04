@@ -18,12 +18,26 @@ const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as Ded
 
 const dbInit = () => dbApi.init(DB_PATH);
 const getDbFile = () => getOpfsFileByPath(DB_PATH);
-const destoryDb = () => destoryOpfsByPath(DB_PATH);
+const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
 const routes = {
   checkHealth: () => dbApi.testDatabase(),
-  clearFiles: async () => Promise.all([dbApi.deleteAllFiles(await dbInit()), sync.clearHistory(await dbInit())]),
-  destoryDb,
+  clearFiles: async () => {
+    const db = await dbInit();
+    Promise.all([dbApi.deleteAllFiles(db), dbApi.deleteAllNodes(db), sync.clearHistory(db)]);
+  },
+  destoryData: async () => {
+    const db = await dbInit();
+    const connection = sync.getConnection(db);
+
+    await destoryAll();
+
+    if (connection) {
+      const newDb = await dbApi.init(DB_PATH);
+      sync.setConnection(newDb, connection);
+    }
+  },
+  destoryAll,
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
@@ -41,6 +55,11 @@ const routes = {
           path: item.path,
           content: item.text,
           updatedTime: item.timestamp,
+        });
+
+        dbApi.setNode(db, {
+          path: item.path,
+          title: item.text?.slice(0, 100) ?? "Untitled", // mock
         });
       }, generator)
     );
@@ -63,6 +82,11 @@ const routes = {
           path: item.path,
           content: item.text,
           updatedTime: item.timestamp,
+        });
+
+        dbApi.setNode(db, {
+          path: item.path,
+          title: item.text?.slice(0, 100) ?? "Untitled", // mock
         });
       }, generator)
     );
@@ -89,15 +113,16 @@ const routes = {
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
   runBenchmark: fs.runBenchmark,
-  searchNodes: async (query: string) => {
-    // TODO implement search indexer and ranker
-    return [] as any[];
-  },
+  searchNodes: async (query: string) => dbApi.searchNodes(await dbInit(), { query, limit: 10 }),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
     dbApi.setLocalFile(db, { path, content });
+    dbApi.setNode(db, {
+      path,
+      title: content.slice(0, 100) ?? "Untitled", // mock
+    });
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
 };

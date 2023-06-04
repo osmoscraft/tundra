@@ -1,6 +1,6 @@
 import { searchNode } from "../../graph";
 import { assertEqual, assertUndefined } from "../../live-test";
-import { deleteNode, getNode, setNode, setNodes } from "../graph";
+import { deleteAllNodes, deleteNode, getNode, setNode, setNodes } from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -8,19 +8,37 @@ export async function testGraphCRUD() {
   console.log("[test] graphCRUD");
   const db = await createTestDb(SCHEMA);
 
+  // create
   setNode(db, { path: "/some/path", title: "hello world" });
 
   let node = getNode(db, "/some/path")!;
   assertEqual(node.title, "hello world", "title");
 
+  // update
   setNode(db, { path: "/some/path", title: "hello world 2" });
 
   node = getNode(db, "/some/path")!;
   assertEqual(node.title, "hello world 2", "updated title");
 
+  // delete
   deleteNode(db, "/some/path");
   const deleted = getNode(db, "/some/path");
   assertUndefined(deleted, "deleted");
+
+  // bulk insert
+  setNodes(db, [
+    { path: "/node-1", title: "node 1" },
+    { path: "/node-2", title: "node 2" },
+  ]);
+
+  assertEqual(getNode(db, "/node-1")!.title, "node 1", "node 1");
+  assertEqual(getNode(db, "/node-2")!.title, "node 2", "node 2");
+
+  // bulk delete
+  deleteAllNodes(db);
+
+  assertUndefined(getNode(db, "/node-1"), "node 1");
+  assertUndefined(getNode(db, "/node-2"), "node 2");
 }
 
 export async function testGraphSearch() {
