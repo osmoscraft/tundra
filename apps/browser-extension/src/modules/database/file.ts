@@ -38,6 +38,8 @@ export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
 }
 
 export function setLocalFiles(db: Sqlite3.DB, files: FileChange[]) {
+  if (!files.length) return;
+
   const sql = `
 INSERT INTO File (path, localContent, localUpdatedTime) VALUES
 ${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, :t${i})`).join(",")}
@@ -60,6 +62,8 @@ ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, localUpdat
 }
 
 export function setRemoteFiles(db: Sqlite3.DB, files: FileChange[]) {
+  if (!files.length) return;
+
   const sql = `
 INSERT INTO File (path, remoteContent, remoteUpdatedTime) VALUES
 ${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, :t${i})`).join(",")}

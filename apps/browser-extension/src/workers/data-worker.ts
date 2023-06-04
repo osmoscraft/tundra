@@ -62,7 +62,6 @@ const routes = {
     const chunkReducer = getChunkReducer(100);
 
     const chunks = await reduceGenerator(chunkReducer, [[]] as RemoteChangeRecord[][], generator);
-    performance.mark("insert start");
     db.transaction(() => {
       for (const chunk of chunks) {
         dbApi.setRemoteFiles(

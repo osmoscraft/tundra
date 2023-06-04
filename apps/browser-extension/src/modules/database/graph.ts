@@ -19,6 +19,8 @@ ON CONFLICT(path) DO UPDATE SET data = json(excluded.data)
 }
 
 export function setNodes(db: Sqlite3.DB, nodes: NodeChange[]) {
+  if (!nodes.length) return;
+
   const sql = `
 INSERT INTO Node (data) VALUES
 ${nodes.map((_, i) => /*reduce query size with shortname*/ `(json(:d${i}))`).join(",")}

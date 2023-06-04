@@ -298,3 +298,10 @@ export async function testGetDirtyFiles() {
   const dirtyFiles = getDirtyFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["/file-1.md", "/file-2.md", "/file-3.md"]);
 }
+
+export async function testBulkOperations() {
+  const db = await createTestDb(SCHEMA);
+
+  setLocalFiles(db, []); // empty
+  setRemoteFiles(db, []); // empty
+}

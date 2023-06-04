@@ -26,6 +26,8 @@ export async function testGraphCRUD() {
   assertUndefined(deleted, "deleted");
 
   // bulk insert
+  setNodes(db, []); // test empty input
+
   setNodes(db, [
     { path: "/node-1", title: "node 1" },
     { path: "/node-2", title: "node 2" },

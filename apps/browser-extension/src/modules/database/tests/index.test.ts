@@ -1,4 +1,5 @@
 import {
+  testBulkOperations,
   testConflictLocalWins,
   testConflictRemoteWins,
   testGetDirtyFiles,
@@ -23,6 +24,7 @@ export async function testDatabase() {
   await testConflictLocalWins();
   await testGetRecentFiles();
   await testGetDirtyFiles();
+  await testBulkOperations();
 
   // object
   await testObjectCRUD();
