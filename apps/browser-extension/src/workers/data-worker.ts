@@ -14,19 +14,23 @@ export type DataWorkerRoutes = typeof routes;
 
 const DB_PATH = "/tinykb-db.sqlite3";
 
-const dbInit = dbApi.init.bind(null, DB_PATH);
-
 const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
+const dbInit = () => dbApi.init(DB_PATH);
+const getDbFile = () => getOpfsFileByPath(DB_PATH);
+const destoryDb = () => destoryOpfsByPath(DB_PATH);
+
 const routes = {
-  checkHealth: asyncPipe(dbApi.testDatabase),
-  clearFiles: async () => Promise.all([fs.clear(await dbInit()), sync.clearHistory(await dbInit())]),
+  checkHealth: () => dbApi.testDatabase(),
+  clearFiles: async () => Promise.all([dbApi.deleteAllFiles(await dbInit()), sync.clearHistory(await dbInit())]),
+  destoryDb,
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
-  getDbFile: getOpfsFileByPath.bind(null, DB_PATH),
-  getGithubConnection: asyncPipe(dbInit, sync.getConnection),
-  importGitHubRepo: async () => {
+  getDbFile,
+  getGithubConnection: async () => sync.getConnection(await dbInit()),
+  getRecentFiles: async () => dbApi.getRecentFiles(await dbInit(), 10),
+  clone: async () => {
     const db = await dbInit();
-    await Promise.all([fs.clear(db), sync.clearHistory(db)]);
+    await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
 
     const { generator, oid } = await sync.getGitHubRemote(db);
 
@@ -43,8 +47,7 @@ const routes = {
 
     sync.setGithubRemoteHeadCommit(db, oid);
   },
-  listFiles: async () => dbApi.getRecentFiles(await dbInit(), 10),
-  pullGitHub: async () => {
+  pull: async () => {
     const db = await dbInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
@@ -67,7 +70,7 @@ const routes = {
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
-  pushGitHub: async () => {
+  push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
     const dirtyFiles = dbApi.getDirtyFiles(db);
@@ -77,7 +80,7 @@ const routes = {
     dirtyFiles
       .map((dbFile) => ({
         path: dbFile.path,
-        content: dbFile.localContent,
+        content: dbFile.content,
         updatedTime: new Date().toISOString(), // TODO use push commit timestamp
       }))
       .map((file) => dbApi.setRemoteFile(db, file));
@@ -85,10 +88,7 @@ const routes = {
 
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
-  rebuild: () => destoryOpfsByPath(DB_PATH),
-  runBenchmark: async () => {
-    await fs.runBenchmark();
-  },
+  runBenchmark: fs.runBenchmark,
   searchNodes: async (query: string) => {
     // TODO implement search indexer and ranker
     return [] as any[];

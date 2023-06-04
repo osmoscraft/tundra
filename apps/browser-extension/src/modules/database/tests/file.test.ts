@@ -12,17 +12,6 @@ import {
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
-export async function testFileOperations() {
-  console.log("[test] file operations");
-  await testLocalFileEditLifecycle();
-  await testLocalFirstSync();
-  await testRemoteFirstSync();
-  await testConflictRemoteWins();
-  await testConflictLocalWins();
-  await testGetRecentFiles();
-  await testGetDirtyFiles();
-}
-
 export async function testLocalFileEditLifecycle() {
   console.log("[test] localFileEditLifecycle");
   const db = await createTestDb(SCHEMA);

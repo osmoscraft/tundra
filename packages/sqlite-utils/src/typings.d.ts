@@ -22,8 +22,8 @@ declare namespace Sqlite3 {
     selectArrays: (sql: string, bind?: Bind) => any[][];
     selectObject: <T>(sql: string, bind?: Bind) => T | undefined;
     selectObjects: <T>(sql: string, bind?: Bind) => T[];
-    selectValue: (sql: string, bind?: Bind) => any | undefined;
-    selectValues: (sql: string, bind?: Bind) => any[];
+    selectValue: <T>(sql: string, bind?: Bind) => T | undefined;
+    selectValues: <T>(sql: string, bind?: Bind) => T[];
     transaction: (...args: [qualifier: string, callback: () => any] | [callback: () => any]) => void;
     close: () => void;
   }

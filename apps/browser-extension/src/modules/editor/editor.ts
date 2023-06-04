@@ -32,9 +32,9 @@ export function getDefaultKeymap(
     "ctrl+s": () => save(editor, proxy),
     "ctrl+shift+s": () =>
       save(editor, proxy)
-        .then(() => proxy.pullGitHub())
-        .then(() => proxy.pushGitHub()),
-    "ctrl+shift+y": () => proxy.pullGitHub(),
+        .then(() => proxy.pull())
+        .then(() => proxy.push()),
+    "ctrl+shift+y": () => proxy.pull(),
   };
 }
 
@@ -42,7 +42,7 @@ async function openCommandPalette(dialog: DialogElement, proxy: AsyncProxy<DataW
   const omnibox = document.createElement("omnibox-element") as OmniboxElement;
 
   omnibox.addEventListener("omnibox-load-default", async () => {
-    const files = await proxy.listFiles();
+    const files = await proxy.getRecentFiles();
     omnibox.setSuggestions(files.map((file) => ({ path: file.path, title: file.path })));
   });
 

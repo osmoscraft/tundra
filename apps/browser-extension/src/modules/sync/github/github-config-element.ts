@@ -32,7 +32,7 @@ export class GithubConfigElement extends HTMLElement {
         }
 
         case "import": {
-          this.proxy.importGitHubRepo();
+          this.proxy.clone();
           break;
         }
 

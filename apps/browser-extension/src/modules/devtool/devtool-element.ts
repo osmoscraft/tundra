@@ -31,7 +31,7 @@ export class DevtoolElement extends HTMLElement {
           break;
         }
         case "rebuild": {
-          this.proxy.rebuild();
+          this.proxy.destoryDb();
           break;
         }
         case "run-benchmark": {

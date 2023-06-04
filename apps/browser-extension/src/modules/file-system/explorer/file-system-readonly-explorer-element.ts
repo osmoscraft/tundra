@@ -14,7 +14,7 @@ export class FileSystemReadonlyExplorerElement extends HTMLElement {
   private proxy = FileSystemReadonlyExplorerElement.dependencies.proxy;
 
   connectedCallback() {
-    this.proxy.listFiles().then((fileList) => {
+    this.proxy.getRecentFiles().then((fileList) => {
       this.fileList.innerHTML = (fileList ?? [])
         .map((item) => `<li><button data-path="${item.path}">${item.path}</button></li>`)
         .join("");
