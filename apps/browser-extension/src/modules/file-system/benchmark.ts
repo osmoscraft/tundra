@@ -92,6 +92,7 @@ export async function runBenchmark() {
   }
 
   async function bulkWriteChunkStreamTx(db: Sqlite3.DB, fileCount: number, chunkSize: number) {
+    // pipelining file generation and db write
     log(`generating ${fileCount} files`);
     const generator = generateArticle(1000, fileCount);
     log(`bulk writing files chunk stream tx`);
@@ -131,7 +132,7 @@ export async function runBenchmark() {
     await clear(db);
     await bulkWriteChunkTx(db, 10000, 1000);
     await clear(db);
-    await bulkWriteChunkStreamTx(db, 10_000, 100); // 50k files
+    await bulkWriteChunkStreamTx(db, 5_000, 100);
     await clear(db);
   }
 

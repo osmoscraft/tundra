@@ -16,3 +16,10 @@ export function* generateArticle(averageLength: number, limit: number) {
     yield generateString(length);
   }
 }
+
+export async function* generateArticlesAsync(averageLength: number, limit: number) {
+  for (let i = 0; i < limit; i++) {
+    const length = Math.floor(averageLength * (1 + Math.random() * 0.5));
+    yield generateString(length);
+  }
+}
