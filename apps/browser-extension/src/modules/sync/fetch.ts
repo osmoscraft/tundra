@@ -27,7 +27,7 @@ async function ensureFetchParameters(db: Sqlite3.DB): Promise<FetchParameters> {
   const connection = getConnection(db);
   if (!connection) throw new Error("Missing connection");
 
-  const localHeadRefId = getGithubRemoteHeadCommit(db)?.id;
+  const localHeadRefId = getGithubRemoteHeadCommit(db);
   if (!localHeadRefId) throw new Error("Local repo uninitialized");
 
   const remoteHeadRefId = await getRemoteHeadRef(connection);

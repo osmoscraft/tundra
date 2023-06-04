@@ -6,7 +6,7 @@ import * as github from "./github";
 import { sha1 } from "./hash";
 import LIST_FILE_CHANGES from "./sql/list-file-changes.sql";
 import LIST_LOCAL_FILE_CHANGES from "./sql/list-local-file-changes.sql";
-import type { DbFileChange, DbGithubRef } from "./sql/schema";
+import type { DbFileChange } from "./sql/schema";
 import SCHEMA from "./sql/schema.sql";
 import SELECT_LOCAL_FILE_CHANGE from "./sql/select-local-file-change.sql";
 import SELECT_REMOTE_FILE_CHANGE from "./sql/select-remote-file-change.sql";
@@ -49,7 +49,7 @@ export function getFileChanges(db: Sqlite3.DB): DbFileChange[] {
 }
 
 export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {
-  return getObject<DbGithubRef>(db, "sync.github.remoteHeadCommit");
+  return getObject<string>(db, "sync.github.remoteHeadCommit");
 }
 
 export function getLocalFileChange(db: Sqlite3.DB, path: string): DbFileChange | undefined {
