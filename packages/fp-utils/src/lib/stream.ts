@@ -55,7 +55,7 @@ export async function* filterGeneratorAsync<T>(
   }
 }
 
-export async function exhaustGenerator<T>(generator: AsyncGenerator<T>) {
+export async function drainGenerator<T>(generator: AsyncGenerator<T>) {
   for await (const _value of generator) {
     // noop
   }

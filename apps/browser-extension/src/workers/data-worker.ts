@@ -1,4 +1,4 @@
-import { asyncPipe, exhaustGenerator, mapAsyncGenerator } from "@tinykb/fp-utils";
+import { asyncPipe, drainGenerator, mapAsyncGenerator } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -48,7 +48,7 @@ const routes = {
 
     const { generator, oid } = await sync.getGitHubRemote(db);
 
-    await exhaustGenerator(
+    await drainGenerator(
       mapAsyncGenerator(async (item) => {
         // TODO convert to chunked bulk insert
         dbApi.setRemoteFile(db, {
@@ -70,7 +70,7 @@ const routes = {
     const db = await dbInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
-    await exhaustGenerator(
+    await drainGenerator(
       mapAsyncGenerator(async (item) => {
         dbApi.setRemoteFile(db, {
           path: item.path,

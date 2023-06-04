@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { exhaustGenerator, generatorToStream, mapAsyncGenerator, mapAsyncGeneratorParallel } from "../lib/stream";
+import { drainGenerator, generatorToStream, mapAsyncGenerator, mapAsyncGeneratorParallel } from "../lib/stream";
 
 describe("generatorToStream", () => {
   it("empty generator", async () => {
@@ -147,10 +147,10 @@ describe("mapAsyncGeneratorParallel", () => {
   });
 });
 
-describe("exhaustGenerator", () => {
+describe("drainGenerator", () => {
   it("empty generator", async () => {
     const emptyGenerator = async function* () {};
-    assert.doesNotReject(async () => await exhaustGenerator(emptyGenerator()));
+    assert.doesNotReject(async () => await drainGenerator(emptyGenerator()));
   });
 
   it("single value generator", async () => {
@@ -159,7 +159,7 @@ describe("exhaustGenerator", () => {
       yield 1;
       results.push(1);
     };
-    await exhaustGenerator(singleValueGenerator());
+    await drainGenerator(singleValueGenerator());
 
     assert.deepStrictEqual(results, [1]);
   });
@@ -174,7 +174,7 @@ describe("exhaustGenerator", () => {
       yield 3;
       results.push(3);
     };
-    await exhaustGenerator(multiValueGenerator());
+    await drainGenerator(multiValueGenerator());
 
     assert.deepStrictEqual(results, [1, 2, 3]);
   });
