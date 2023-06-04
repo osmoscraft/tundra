@@ -33,7 +33,7 @@ const routes = {
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {
         // TODO convert to chunked bulk insert
-        dbApi.setSyncedFile(db, {
+        dbApi.setRemoteFile(db, {
           path: item.path,
           content: item.text,
           updatedTime: item.timestamp,
@@ -43,15 +43,20 @@ const routes = {
 
     sync.setGithubRemoteHeadCommit(db, oid);
   },
-  listFiles: async () => dbApi.listFiles(await dbInit(), 10, 0),
+  listFiles: async () => dbApi.getRecentFiles(await dbInit(), 10),
   pullGitHub: async () => {
     const db = await dbInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
 
     await exhaustGenerator(
       mapAsyncGenerator(async (item) => {
+        dbApi.setRemoteFile(db, {
+          path: item.path,
+          content: item.text,
+          updatedTime: item.timestamp,
+        });
         // skip write if local is ahead
-        dbApi.setSyncedFile(db, {
+        dbApi.setLocalFile(db, {
           path: item.path,
           content: item.text,
           updatedTime: item.timestamp,
@@ -72,10 +77,10 @@ const routes = {
     dirtyFiles
       .map((dbFile) => ({
         path: dbFile.path,
-        content: dbFile.content,
+        content: dbFile.localContent,
         updatedTime: new Date().toISOString(), // TODO use push commit timestamp
       }))
-      .map((file) => dbApi.setSyncedFile(db, file));
+      .map((file) => dbApi.setRemoteFile(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));

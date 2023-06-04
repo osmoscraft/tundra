@@ -14,7 +14,7 @@ export async function loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>, haiku
   }
   const file = await proxy.getFile(path);
   if (!file) return;
-  haikuEditor.setMarkdown(file.content);
+  haikuEditor.setMarkdown(file.localContent);
 }
 
 export type Keymap = Record<string, Fn | undefined>;
