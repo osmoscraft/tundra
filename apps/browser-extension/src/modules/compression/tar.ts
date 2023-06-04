@@ -10,6 +10,7 @@ export interface FileInfo {
 // Changes:
 // Converted javascript to typescript
 // Removed TarWriter
+// Added UStar longname extraction
 export class TarReader {
   private buffer!: ArrayBuffer;
   private fileInfo!: FileInfo[];
