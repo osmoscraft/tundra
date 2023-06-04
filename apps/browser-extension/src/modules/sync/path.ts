@@ -5,7 +5,7 @@ export function archivePathToGitHubFilePath(archivePath: string) {
 }
 
 export function githubPathToNotePath(githubPath: string) {
-  return githubPath.match(/^(notes\/.*\.md)/)?.[1];
+  return githubPath.match(/^(.*\.md)/)?.[1];
 }
 
 export function timestampToNotePath(timestamp: Date) {
@@ -13,5 +13,5 @@ export function timestampToNotePath(timestamp: Date) {
     .toISOString()
     .split(".")[0]
     .replaceAll(/(-|:|T)/g, "");
-  return `notes/${timestampString}.md`;
+  return `${timestampString}.md`;
 }
