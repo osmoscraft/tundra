@@ -1,4 +1,4 @@
-import { asyncPipe, drainGenerator, getChunkReducer, mapAsyncGenerator, reduceGenerator } from "@tinykb/fp-utils";
+import { asyncPipe, drainGenerator, mapAsyncGenerator } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -7,7 +7,6 @@ import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { ensurePushParameters } from "../modules/sync/push";
-import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
@@ -47,28 +46,23 @@ const routes = {
     const db = await dbInit();
     await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
 
-    const { generator, oid } = await sync.getGitHubRemote(db);
-    const chunkReducer = getChunkReducer(100);
-
-    const chunks = await reduceGenerator(chunkReducer, [] as RemoteChangeRecord[][], generator);
-    db.transaction(() => {
-      for (const chunk of chunks) {
-        dbApi.setRemoteFiles(
-          db,
-          chunk.map((item) => ({
-            path: item.path,
-            content: item.text,
-            updatedTime: item.timestamp,
-          }))
-        );
-        dbApi.setNodes(
-          db,
-          chunk.map((item) => ({
-            path: item.path,
-            title: item.text?.slice(0, 100) ?? "Untitled", // mock
-          }))
-        );
-      }
+    const { generator, oid } = await sync.getGithubRemote(db);
+    await sync.batchIterateGithubRemoteItems(db, generator, (db, chunk) => {
+      dbApi.setRemoteFiles(
+        db,
+        chunk.map((item) => ({
+          path: item.path,
+          content: item.text,
+          updatedTime: item.timestamp,
+        }))
+      );
+      dbApi.setNodes(
+        db,
+        chunk.map((item) => ({
+          path: item.path,
+          title: item.text?.slice(0, 100) ?? "Untitled", // mock
+        }))
+      );
     });
     sync.setGithubRemoteHeadCommit(db, oid);
   },

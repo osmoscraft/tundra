@@ -1,6 +1,6 @@
 // GitHub Archive path conventions:
 // <repo>-<hash>/<filepath>
-export function archivePathToGitHubFilePath(archivePath: string) {
+export function archivePathToGithubFilePath(archivePath: string) {
   return archivePath.slice(archivePath.indexOf("/") + 1);
 }
 
