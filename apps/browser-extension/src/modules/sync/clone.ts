@@ -1,15 +1,29 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
+import type { FileChange, NodeChange } from "../database";
 import * as github from "./github";
 import { archivePathToGithubFilePath, githubPathToNotePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export async function batchIterateGithubRemoteItems(
-  db: Sqlite3.DB,
-  generator: AsyncGenerator<RemoteChangeRecord>,
-  onChunk: (db: Sqlite3.DB, chunk: RemoteChangeRecord[]) => void
-) {
-  const chunkSize = 100;
+export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange {
+  return {
+    path: record.path,
+    content: record.text,
+    updatedTime: record.timestamp,
+  };
+}
+
+export function GithubChangeToNodeChange(record: RemoteChangeRecord): NodeChange {
+  return {
+    path: record.path,
+    title: record.text?.slice(0, 100) ?? "Untitled", // mock
+  };
+}
+
+export async function collectGithubRemoteToChunks(
+  chunkSize: number,
+  generator: AsyncGenerator<RemoteChangeRecord>
+): Promise<RemoteChangeRecord[][]> {
   const chunkReducer = getChunkReducer(chunkSize);
   performance.mark("iterator-start");
   const chunks = await reduceGenerator(chunkReducer, [] as RemoteChangeRecord[][], generator);
@@ -19,10 +33,7 @@ export async function batchIterateGithubRemoteItems(
     }ms`
   );
 
-  const onChunkWithDb = onChunk.bind(null, db);
-  performance.mark("chunk-processing-start");
-  db.transaction(() => chunks.forEach(onChunkWithDb));
-  console.log(`[perf] process files ${performance.measure("chunk-processing", "chunk-processing-start").duration}ms`);
+  return chunks;
 }
 
 export interface GithubRemote {

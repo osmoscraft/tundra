@@ -1,4 +1,4 @@
-import { asyncPipe, drainGenerator, mapAsyncGenerator } from "@tinykb/fp-utils";
+import { asyncPipe } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -7,6 +7,7 @@ import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { ensurePushParameters } from "../modules/sync/push";
+import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
 import type { NotebookRoutes } from "../pages/notebook";
 
@@ -45,52 +46,27 @@ const routes = {
   clone: async () => {
     const db = await dbInit();
     await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
-
     const { generator, oid } = await sync.getGithubRemote(db);
-    await sync.batchIterateGithubRemoteItems(db, generator, (db, chunk) => {
-      dbApi.setRemoteFiles(
-        db,
-        chunk.map((item) => ({
-          path: item.path,
-          content: item.text,
-          updatedTime: item.timestamp,
-        }))
-      );
-      dbApi.setNodes(
-        db,
-        chunk.map((item) => ({
-          path: item.path,
-          title: item.text?.slice(0, 100) ?? "Untitled", // mock
-        }))
-      );
-    });
+    const chunks = await sync.collectGithubRemoteToChunks(100, generator);
+    const processChunk = (chunk: RemoteChangeRecord[]) => {
+      dbApi.setRemoteFiles(db, chunk.map(sync.GithubChangeToFileChange));
+      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange));
+    };
+    db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, oid);
   },
   pull: async () => {
     const db = await dbInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
+    const chunks = await sync.collectGithubRemoteToChunks(100, generator);
+    const processChunk = (chunk: RemoteChangeRecord[]) => {
+      const fileChanges = chunk.map(sync.GithubChangeToFileChange);
+      dbApi.setRemoteFiles(db, fileChanges);
+      dbApi.setLocalFiles(db, fileChanges); // TODO: skip write if local timestamp is newer
+      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange));
+    };
 
-    await drainGenerator(
-      mapAsyncGenerator(async (item) => {
-        dbApi.setRemoteFile(db, {
-          path: item.path,
-          content: item.text,
-          updatedTime: item.timestamp,
-        });
-        // skip write if local is ahead
-        dbApi.setLocalFile(db, {
-          path: item.path,
-          content: item.text,
-          updatedTime: item.timestamp,
-        });
-
-        dbApi.setNode(db, {
-          path: item.path,
-          title: item.text?.slice(0, 100) ?? "Untitled", // mock
-        });
-      }, generator)
-    );
-
+    db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
