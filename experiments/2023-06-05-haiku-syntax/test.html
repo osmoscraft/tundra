@@ -16,7 +16,7 @@
   }
   [data-level]::before {
     content: "• ";
-    opacity: 0.25;
+    opacity: 0.35;
   }
   [data-level="0"]::before {
     content: "";
@@ -39,7 +39,7 @@
 
   a {
     color: var(--purple);
-    opacity: 0.25;
+    opacity: 0.35;
     text-decoration: none;
   }
   a:where(:hover, :focus) {
@@ -64,10 +64,27 @@
     --red: oklch(0.8 0.18 347.29);
     --purple: oklch(0.8 0.18 301.77);
   }
+
+  .frontmatter {
+    border: 1px solid ButtonFace;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .key {
+    opacity: 0.35;
+  }
+  .primary-value {
+    font-weight: bold;
+    color: var(--purple);
+  }
 </style>
 
 <label><input type="checkbox" id="toggle" />Dark mode</label>
 <div class="themed">
+  <div class="frontmatter">
+    <div><span class="key">Title:</span> <span class="primary-value">Graph Neural Network Lecture Series</span></div>
+    <div><span class="key">Tags:</span> <span class="value">Course/MachineLearning</span></div>
+  </div>
   <div data-level="1"><b>Lecture 17.4 Scaling up by Simplifying GNNs:</b></div>
   <div data-level="2"><b>Idea:</b> remove non-linear activation from GCN as a trade-off for scale</div>
   <div data-level="2">Removing ReLU to reduce learnable parameters (pre-processing on CPU)</div>
@@ -90,6 +107,11 @@
   <div data-level="4">Aggregate multiple groups (higher order)</div>
 
   <pre><code>
+---
+Title: Graph Neural Network Lecture Series
+Tags: Course/MachineLearning
+---
+
 # Lecture 17.4 Scaling up by Simplifying GNNs
 - Idea: remove non-linear activation from GCN as a trade-off for scale
 - Removing ReLU to reduce learnable parameters (pre-processing on CPU)
