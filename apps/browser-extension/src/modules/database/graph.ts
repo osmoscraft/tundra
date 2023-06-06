@@ -44,14 +44,13 @@ SELECT * FROM NodeFts WHERE path = :path LIMIT 1
 }
 
 export function deleteNode(db: Sqlite3.DB, path: string) {
-  // TODO switch to subquery once https://sqlite.org/forum/forumpost/8158967d96 is resolved
-  db.transaction(() => {
-    const rowids = db.selectValues<number>("SELECT rowid FROM NodeFts WHERE path = :path", {
-      ":path": path,
-    });
+  const sql = `
+  DELETE FROM Node WHERE rowid IN (
+    SELECT rowid FROM NodeFts WHERE path = :path
+  )`;
+  const bind = paramsToBindings(sql, { path });
 
-    db.exec(`DELETE FROM Node WHERE rowid IN (${rowids.join(",")})`);
-  });
+  return db.exec(sql, { bind });
 }
 
 export function deleteAllNodes(db: Sqlite3.DB) {

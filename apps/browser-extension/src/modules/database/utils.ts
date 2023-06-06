@@ -4,7 +4,7 @@ export function paramsToBindings(sql: string, params: any) {
     [...bindKeys].map(([key, variableName]) => [key, getOrThrow(params, variableName)])
   );
 
-  return bindObject;
+  return bindObject as Sqlite3.Bind;
 }
 
 function getOrThrow(object: any, key: string) {
