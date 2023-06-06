@@ -1,0 +1,112 @@
+<style>
+  [data-level] + [data-level] {
+    margin-top: 0.125rem;
+  }
+  [data-level="1"] {
+    margin-left: 1em;
+  }
+  [data-level="2"] {
+    margin-left: 2em;
+  }
+  [data-level="3"] {
+    margin-left: 3em;
+  }
+  [data-level="4"] {
+    margin-left: 4em;
+  }
+  [data-level]::before {
+    content: "• ";
+    opacity: 0.25;
+  }
+  [data-level="0"]::before {
+    content: "";
+  }
+  .ghost {
+    opacity: 0.25;
+  }
+
+  [data-level="1"] b {
+    color: var(--blue);
+  }
+  b {
+    color: var(--red);
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+      "Open Sans", "Helvetica Neue", sans-serif;
+  }
+
+  a {
+    color: var(--purple);
+    opacity: 0.25;
+    text-decoration: none;
+  }
+  a:where(:hover, :focus) {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  .link {
+    color: var(--purple);
+    font-weight: bold;
+  }
+
+  :root {
+    color-scheme: light;
+    --blue: oklch(0.54 0.16 236.12);
+    --red: oklch(0.54 0.16 347.29);
+    --purple: oklch(0.54 0.16 301.77);
+  }
+  :root:has(input:checked) {
+    color-scheme: dark;
+    --blue: oklch(0.8 0.18 236.12);
+    --red: oklch(0.8 0.18 347.29);
+    --purple: oklch(0.8 0.18 301.77);
+  }
+</style>
+
+<label><input type="checkbox" id="toggle" />Dark mode</label>
+<div class="themed">
+  <div data-level="1"><b>Lecture 17.4 Scaling up by Simplifying GNNs:</b></div>
+  <div data-level="2"><b>Idea:</b> remove non-linear activation from GCN as a trade-off for scale</div>
+  <div data-level="2">Removing ReLU to reduce learnable parameters (pre-processing on CPU)</div>
+  <div data-level="2">Why it works?</div>
+  <div data-level="3">
+    <span class="ghost">[</span><span class="link">Graph homophily</span><span class="ghost">](</span
+    ><a href="#">202306050135883</a><span class="ghost">)</span>
+  </div>
+  <div data-level="3">Nodes connected by edges tend to share the same target labels</div>
+  <div data-level="3">Preprocessing iteratively average a node's feature by from its neighbors</div>
+  <div data-level="0"><br /></div>
+  <div data-level="1"><b>Lecture 17.3 Cluster GCN: Scaling up GNNs:</b></div>
+  <div data-level="2"><b>Insight:</b> shared neighbors lead to high redundancy in computation</div>
+  <div data-level="2">Layer-wise embedding update to reuse values from previous layer (linear)</div>
+  <div data-level="3">However, batch memory size requirement increases</div>
+  <div data-level="2"><b>Solution:</b></div>
+  <div data-level="3">Sample subgraph and perform layer-wise embedding</div>
+  <div data-level="3">Use community detection technique to ensure subgraph represents a local community</div>
+  <div data-level="4">Gradient fluctuation among groups, difficult to converge</div>
+  <div data-level="4">Aggregate multiple groups (higher order)</div>
+
+  <pre><code>
+# Lecture 17.4 Scaling up by Simplifying GNNs
+- Idea: remove non-linear activation from GCN as a trade-off for scale
+- Removing ReLU to reduce learnable parameters (pre-processing on CPU)
+- Why it works?
+  - [Graph homophily](202306050135883)
+  - Nodes connected by edges tend to share the same target labels
+  - Preprocessing iteratively average a node's feature by from its neighbors
+
+# Lecture 17.3 Cluster GCN: Scaling up GNNs
+- Insight: shared neighbors lead to high redundancy in computation
+- Layer-wise embedding update to reuse values from previous layer (linear)
+  - However, batch memory size requirement increases
+- Solution:
+  - Sample subgraph and perform layer-wise embedding
+  - Use community detection technique to ensure subgraph represents a local community
+    - Gradient fluctuation among groups, difficult to converge
+    - Aggregate multiple groups (higher order)
+
+</code></pre>
+</div>
