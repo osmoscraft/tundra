@@ -35,3 +35,13 @@
   - Digest changes
   - A lot of unwanted events (e.g. number keys from IME)
   - Cannot detect composition
+
+# Edge cases
+
+- Drag and drop
+  - beforeinput (delete)
+  - input (delete)
+  - beforeinput (insert)
+  - input (insert)
+- IME composition
+- Alt-numpad composition
