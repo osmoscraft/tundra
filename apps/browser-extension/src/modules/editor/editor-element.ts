@@ -6,74 +6,79 @@ import "./editor-element.css";
 export type Keymap = Record<string, Fn | undefined>;
 
 export class EditorElement extends HTMLElement {
-  focus() {
-    this.querySelector<HTMLElement>("[contenteditable]")?.focus();
+  private editableRoot = document.createElement("div");
+  private keymap?: Keymap;
+
+  constructor() {
+    super();
+    this.editableRoot.contentEditable = "true";
+    this.appendChild(this.editableRoot);
+    this.handleEvents(this.editableRoot);
   }
 
-  setKeymap(keymap: Keymap) {
-    const wrappedHandler = (e: KeyboardEvent) => {
+  handleEvents(editableRoot: HTMLElement) {
+    editableRoot.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      console.log("==============");
+      console.log("[1] keydown", e);
       if (e.isComposing) return;
       const keyCombo = getCombo(e);
-      const matchedHandler = keymap[keyCombo];
+      const matchedHandler = this.keymap?.[keyCombo];
       if (matchedHandler) {
         e.preventDefault();
         matchedHandler();
       }
-    };
-
-    this.addEventListener("keydown", (e) => {
-      if (e.isComposing) return;
-      console.log("==============");
-      console.log("[1] keydown", e);
       // handle commands: move, link, undo/redo
     });
-    this.addEventListener("compositionstart", (e) => {
+    editableRoot.addEventListener("compositionstart", (e) => {
       console.log("[2] compositionstart", e);
       // noop
     });
-    this.addEventListener("copy", (e) => {
+    editableRoot.addEventListener("copy", (e) => {
       console.log("[3.a] copy", e);
       // handle pre-copy formatting
     });
-    this.addEventListener("paste", (e) => {
+    editableRoot.addEventListener("paste", (e) => {
       console.log("[3.b] paste", e);
       // mark dirty lines
       // format pasted content
     });
-    this.addEventListener("cut", (e) => {
+    editableRoot.addEventListener("cut", (e) => {
       console.log("[3.c] cut", e);
       // mark dirty lines
       // format pasted content
     });
-    this.addEventListener("beforeinput", (e) => {
+    editableRoot.addEventListener("beforeinput", (e) => {
       if (e.isComposing) return;
       console.log("[4] beforeinput", e);
       // mark dirty lines
     });
-    this.addEventListener("input", (e) => {
+    editableRoot.addEventListener("input", (e) => {
       if ((e as InputEvent).isComposing) return;
       console.log("[5] input", e);
       // noop
     });
-    this.addEventListener("compositionend", (e) => {
+    editableRoot.addEventListener("compositionend", (e) => {
       console.log("[6] compositionend", e);
       // noop
     });
-    this.addEventListener("keyup", (e) => {
+    editableRoot.addEventListener("keyup", (e) => {
       if (e.isComposing) return;
       console.log("[7] keyup", e);
-      wrappedHandler(e);
       // note: lots of noise events from IME and dialog manager
     });
+  }
 
-    // this.addEventListener("keydown", wrappedHandler);
+  focus() {
+    this.editableRoot.focus();
+  }
 
-    // TODO: find a way to actually remove the event listeners
-    return () => this.removeEventListener("keydown", wrappedHandler);
+  setKeymap(keymap: Keymap) {
+    this.keymap = keymap;
   }
 
   setMarkdown(markdown: string) {
-    this.innerHTML = /*html*/ `<div contenteditable="true">${markdownToHtml(markdown)}</div>`;
+    this.editableRoot.innerHTML = markdownToHtml(markdown);
   }
 
   getMarkdown() {
