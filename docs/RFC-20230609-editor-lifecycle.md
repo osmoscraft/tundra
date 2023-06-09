@@ -9,4 +9,5 @@
   - After change: digest all the dirty lines
     - Apply styles
 - Save:
+  - Format list indentation
   - html to markdown

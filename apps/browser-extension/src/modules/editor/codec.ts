@@ -1,4 +1,5 @@
 const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/g; // `[title](target)`
+const COLON_PREFIX_PATTERN = /^(.+?:)/; // `Keyword or phrase:`
 
 export function markdownToHtml(md: string) {
   return md
@@ -26,7 +27,7 @@ export function domToMarkdown(dom: Document) {
 }
 
 export function inlineMarkdownToHtml(md: string) {
-  return md.replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
+  return md.replace(COLON_PREFIX_PATTERN, `<b>$1</b>`).replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
 }
 
 export function inlineElementToMarkdown(dom: HTMLElement) {
