@@ -70,6 +70,7 @@ export class EditorElement extends HTMLElement {
       if (e.isComposing) return;
       console.log("[7] keyup", e);
       // note: lots of noise events from IME and dialog manager
+      // note: it feels much faster to restore caret during in the input event phase!
 
       const dirtyLines = editableRoot.querySelectorAll(`[data-dirty="true"]`);
       console.log(dirtyLines);
