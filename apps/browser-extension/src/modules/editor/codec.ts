@@ -1,5 +1,5 @@
 const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/g; // `[title](target)`
-const COLON_PREFIX_PATTERN = /^(.+?:)/; // `Keyword or phrase:`
+const COLON_PREFIX_PATTERN = /^(.+:)/; // `Keyword or phrase:`
 
 export function markdownToHtml(md: string) {
   return md

@@ -25,9 +25,12 @@
     opacity: 0.25;
   }
 
-  [data-level="1"] b {
-    color: var(--blue);
+  [data-level="1"] {
+    & b {
+      color: var(--blue);
+    }
   }
+
   b {
     color: var(--red);
   }
