@@ -30,7 +30,7 @@ export function inlineMarkdownToHtml(md: string) {
   return md.replace(COLON_PREFIX_PATTERN, `<b>$1</b>`).replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
 }
 
-export function inlineElementToMarkdown(dom: HTMLElement) {
+export function inlineElementToMarkdown(dom: HTMLElement): string {
   const md = [...dom.childNodes]
     .map((node) => {
       switch (node.nodeType) {
@@ -39,6 +39,9 @@ export function inlineElementToMarkdown(dom: HTMLElement) {
             case "A":
               const aElement = node as HTMLAnchorElement;
               return `[${aElement.textContent}](${aElement.href})`;
+            case "B":
+              // bold element can nest any other inline elements
+              return inlineElementToMarkdown(node as HTMLElement);
             default:
               return "";
           }

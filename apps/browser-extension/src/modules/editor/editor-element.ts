@@ -75,8 +75,10 @@ export class EditorElement extends HTMLElement {
       console.log(dirtyLines);
       // MVP, only fix inline issues
       dirtyLines.forEach((line) => {
-        const newDom = template(markdownToHtml(htmlToMarkdown(line.outerHTML))).content;
-        // track cursor position change
+        const markdown = htmlToMarkdown(line.outerHTML);
+        const newDom = template(markdownToHtml(markdown)).content;
+
+        // as long as the content is the same, caret restore should work
         const selection = window.getSelection();
         const cachedCaret = selection ? getCaretFromSelection(selection) : null;
         const cachedCaretLineOffset = cachedCaret
@@ -87,10 +89,8 @@ export class EditorElement extends HTMLElement {
         markLineAsClean(line as HTMLElement);
 
         if (cachedCaretLineOffset === null) return;
-
         const restoreAnchor = seek({ source: line, offset: cachedCaretLineOffset });
         if (!restoreAnchor) return;
-
         setCaret(restoreAnchor.node, restoreAnchor.offset);
       });
     });
