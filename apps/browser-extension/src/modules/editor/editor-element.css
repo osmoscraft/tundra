@@ -1,3 +1,13 @@
+:root {
+  --blue: oklch(0.8 0.18 236);
+  --pink: oklch(0.8 0.18 347);
+  --yellow: oklch(0.8 0.18 100);
+
+  --heading-color: var(--pink);
+  --prefixer-color: var(--yellow);
+  --link-color: var(--blue);
+}
+
 editor-element {
   [contenteditable] {
     height: 100%;
@@ -44,5 +54,27 @@ editor-element {
   }
   [data-depth="9"] {
     padding-left: 21ch;
+  }
+}
+
+editor-element {
+  [data-depth="0"] b {
+    color: var(--heading-color);
+  }
+
+  & b {
+    color: var(--prefixer-color);
+  }
+
+  & a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+
+    &:where(:hover, :focus) {
+      /* opacity: 1; */
+      text-decoration: underline;
+    }
   }
 }
