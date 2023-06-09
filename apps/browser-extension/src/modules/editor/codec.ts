@@ -20,13 +20,13 @@ export function domToMarkdown(dom: Document) {
       (lineElement) =>
         `${" ".repeat(parseInt(lineElement.dataset.depth as string) * 2)}- ${inlineElementToMarkdown(lineElement)}`
     )
-    .join("\n")
-    .concat("\n");
+    .join("\n");
 
   return md;
 }
 
 export function inlineMarkdownToHtml(md: string) {
+  if (!md.length) return `<br/>`;
   return md.replace(COLON_PREFIX_PATTERN, `<b>$1</b>`).replace(TITLED_LINK_PATTERN, `<a href="$2">$1</a>`);
 }
 

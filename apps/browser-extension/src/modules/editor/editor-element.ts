@@ -1,7 +1,10 @@
-import { getCombo } from "@tinykb/dom-utils";
+import { getCombo, template } from "@tinykb/dom-utils";
 import type { Fn } from "@tinykb/fp-utils";
+import { getCaretFromSelection, setCaret } from "./caret";
 import { htmlToMarkdown, markdownToHtml } from "./codec";
+import { firstInnerLeafNode, flattenToLeafNodes, isTextNode } from "./dom";
 import "./editor-element.css";
+import { seek } from "./seek";
 
 export type Keymap = Record<string, Fn | undefined>;
 
@@ -42,6 +45,7 @@ export class EditorElement extends HTMLElement {
       console.log("[3.b] paste", e);
       // mark dirty lines
       // format pasted content
+      // pasted content should be marked as dirty too
     });
     editableRoot.addEventListener("cut", (e) => {
       console.log("[3.c] cut", e);
@@ -51,7 +55,7 @@ export class EditorElement extends HTMLElement {
     editableRoot.addEventListener("beforeinput", (e) => {
       if (e.isComposing) return;
       console.log("[4] beforeinput", e);
-      // mark dirty lines
+      getLines(getBracket(window.getSelection())).map(markLineAsDirty);
     });
     editableRoot.addEventListener("input", (e) => {
       if ((e as InputEvent).isComposing) return;
@@ -66,6 +70,29 @@ export class EditorElement extends HTMLElement {
       if (e.isComposing) return;
       console.log("[7] keyup", e);
       // note: lots of noise events from IME and dialog manager
+
+      const dirtyLines = editableRoot.querySelectorAll(`[data-dirty="true"]`);
+      console.log(dirtyLines);
+      // MVP, only fix inline issues
+      dirtyLines.forEach((line) => {
+        const newDom = template(markdownToHtml(htmlToMarkdown(line.outerHTML))).content;
+        // track cursor position change
+        const selection = window.getSelection();
+        const cachedCaret = selection ? getCaretFromSelection(selection) : null;
+        const cachedCaretLineOffset = cachedCaret
+          ? getNodeLineOffset(line as HTMLElement, cachedCaret.anchor.node)! + cachedCaret.anchor.offset
+          : null;
+
+        line.innerHTML = (newDom.childNodes[0] as HTMLElement).innerHTML;
+        markLineAsClean(line as HTMLElement);
+
+        if (cachedCaretLineOffset === null) return;
+
+        const restoreAnchor = seek({ source: line, offset: cachedCaretLineOffset });
+        if (!restoreAnchor) return;
+
+        setCaret(restoreAnchor.node, restoreAnchor.offset);
+      });
     });
   }
 
@@ -158,6 +185,13 @@ export function swapTo(pos: InsertPosition, self: HTMLElement | null, other: HTM
   self.insertAdjacentElement(pos, other);
 }
 
+export function markLineAsDirty(line: HTMLElement) {
+  line.dataset.dirty = "true";
+}
+export function markLineAsClean(line: HTMLElement) {
+  delete line.dataset.dirty;
+}
+
 export function isSelectionBackward(
   anchorNode: Node,
   anchorOffset: number,
@@ -168,4 +202,22 @@ export function isSelectionBackward(
   const isBackward = (!position && anchorOffset > focusOffset) || position === Node.DOCUMENT_POSITION_PRECEDING;
 
   return isBackward;
+}
+
+export function getLine(node: Node): HTMLElement | null {
+  return node.parentElement!.closest("[data-depth]");
+}
+
+export function getNodeLineOffset(line: HTMLElement, node: Node): number | null {
+  const leafNodes = flattenToLeafNodes(line);
+  const measureToNode = firstInnerLeafNode(node)!;
+  const measureToIndex = leafNodes.indexOf(measureToNode);
+
+  if (measureToIndex < 0) return null;
+
+  const inlineOffset = leafNodes
+    .slice(0, measureToIndex)
+    .reduce((length, node) => length + (isTextNode(node) ? node.length : 0), 0);
+
+  return inlineOffset;
 }
