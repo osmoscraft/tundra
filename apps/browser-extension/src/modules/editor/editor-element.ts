@@ -21,8 +21,54 @@ export class EditorElement extends HTMLElement {
       }
     };
 
-    this.addEventListener("keydown", wrappedHandler);
+    this.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      console.log("==============");
+      console.log("[1] keydown", e);
+      // handle commands: move, link, undo/redo
+    });
+    this.addEventListener("compositionstart", (e) => {
+      console.log("[2] compositionstart", e);
+      // noop
+    });
+    this.addEventListener("copy", (e) => {
+      console.log("[3.a] copy", e);
+      // handle pre-copy formatting
+    });
+    this.addEventListener("paste", (e) => {
+      console.log("[3.b] paste", e);
+      // mark dirty lines
+      // format pasted content
+    });
+    this.addEventListener("cut", (e) => {
+      console.log("[3.c] cut", e);
+      // mark dirty lines
+      // format pasted content
+    });
+    this.addEventListener("beforeinput", (e) => {
+      if (e.isComposing) return;
+      console.log("[4] beforeinput", e);
+      // mark dirty lines
+    });
+    this.addEventListener("input", (e) => {
+      if ((e as InputEvent).isComposing) return;
+      console.log("[5] input", e);
+      // noop
+    });
+    this.addEventListener("compositionend", (e) => {
+      console.log("[6] compositionend", e);
+      // noop
+    });
+    this.addEventListener("keyup", (e) => {
+      if (e.isComposing) return;
+      console.log("[7] keyup", e);
+      wrappedHandler(e);
+      // note: lots of noise events from IME and dialog manager
+    });
 
+    // this.addEventListener("keydown", wrappedHandler);
+
+    // TODO: find a way to actually remove the event listeners
     return () => this.removeEventListener("keydown", wrappedHandler);
   }
 
