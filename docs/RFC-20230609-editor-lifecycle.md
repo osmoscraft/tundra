@@ -37,12 +37,28 @@
   - A lot of unwanted events (e.g. number keys from IME)
   - Cannot detect composition
 
-# Edge cases
+# Case by case analysis
 
-- Drag and drop
-  - beforeinput (delete)
-  - input (delete)
-  - beforeinput (insert)
-  - input (insert)
-- IME composition
-- Alt-numpad composition
+- Modes:
+  - Cursor collapsed vs with selection
+  - IME vs non-IME
+- Actions:
+  - Type a character no IME
+    - Events:
+      - (keydown, beforeinput, input) one or more times
+      - keyup
+  - Type a character IME
+  - Enter
+  - Backspace/Delete
+    - Same as type a character
+  - Paste
+  - Cut
+  - Drag and drop internal content
+    - Events
+      - beforeinput (delete)
+      - input (delete)
+      - beforeinput (insert)
+      - input (insert)
+  - Drop external content
+  - Numpad escaped sequence alt code
+  - Accent character input

@@ -33,6 +33,7 @@ export class EditorElement extends HTMLElement {
       }
       // handle commands: move, link, undo/redo
     });
+
     editableRoot.addEventListener("compositionstart", (e) => {
       console.log("[2] compositionstart", e);
       // noop
