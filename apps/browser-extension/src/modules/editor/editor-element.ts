@@ -46,7 +46,6 @@ export class EditorElement extends HTMLElement {
       console.log("[3.b] paste", e);
       // mark dirty lines (this is delegated to beforeinput)
       // format pasted content
-      let paste = e.clipboardData!.getData("text");
       e.preventDefault();
       // TODO prevent default and manually insert
       // pasted content should be marked as dirty too
@@ -54,7 +53,7 @@ export class EditorElement extends HTMLElement {
     editableRoot.addEventListener("cut", (e) => {
       console.log("[3.c] cut", e);
       // mark dirty lines
-      // format pasted content
+      // format cutting content
     });
     editableRoot.addEventListener("beforeinput", (e) => {
       if (e.isComposing) return;
