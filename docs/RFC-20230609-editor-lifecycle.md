@@ -30,9 +30,10 @@
   - Mark dirty lines
   - Must ignore composition
 - input
+  - Digest changes (round 1)
 - compositionend
+  - Digest changes (round 2)
 - keyup
-  - Digest changes
   - A lot of unwanted events (e.g. number keys from IME)
   - Cannot detect composition
 
