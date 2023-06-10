@@ -61,40 +61,17 @@ export class EditorElement extends HTMLElement {
     editableRoot.addEventListener("input", (e) => {
       if ((e as InputEvent).isComposing) return;
       console.log("[5] input", e);
-      // noop
+      // MVP, only fix inline issues
+      digest(editableRoot);
     });
     editableRoot.addEventListener("compositionend", (e) => {
       console.log("[6] compositionend", e);
-      // noop
+      digest(editableRoot);
     });
     editableRoot.addEventListener("keyup", (e) => {
       if (e.isComposing) return;
       console.log("[7] keyup", e);
       // note: lots of noise events from IME and dialog manager
-      // note: it feels much faster to restore caret during in the input event phase!
-
-      const dirtyLines = editableRoot.querySelectorAll(`[data-dirty="true"]`);
-      console.log(dirtyLines);
-      // MVP, only fix inline issues
-      dirtyLines.forEach((line) => {
-        const markdown = htmlToMarkdown(line.outerHTML);
-        const newDom = template(markdownToHtml(markdown)).content;
-
-        // as long as the content is the same, caret restore should work
-        const selection = window.getSelection();
-        const cachedCaret = selection ? getCaretFromSelection(selection) : null;
-        const cachedCaretLineOffset = cachedCaret
-          ? getNodeLineOffset(line as HTMLElement, cachedCaret.anchor.node)! + cachedCaret.anchor.offset
-          : null;
-
-        line.innerHTML = (newDom.childNodes[0] as HTMLElement).innerHTML;
-        markLineAsClean(line as HTMLElement);
-
-        if (cachedCaretLineOffset === null) return;
-        const restoreAnchor = seek({ source: line, offset: cachedCaretLineOffset });
-        if (!restoreAnchor) return;
-        setCaret(restoreAnchor.node, restoreAnchor.offset);
-      });
     });
   }
 
@@ -143,6 +120,30 @@ export class EditorElement extends HTMLElement {
   formatAll() {
     // run all the rules
   }
+}
+
+function digest(root: HTMLElement) {
+  // MVP, only fix inline issues
+  const dirtyLines = root.querySelectorAll(`[data-dirty="true"]`);
+  dirtyLines.forEach((line) => {
+    const markdown = htmlToMarkdown(line.outerHTML);
+    const newDom = template(markdownToHtml(markdown)).content;
+
+    // as long as the content is the same, caret restore should work
+    const selection = window.getSelection();
+    const cachedCaret = selection ? getCaretFromSelection(selection) : null;
+    const cachedCaretLineOffset = cachedCaret
+      ? getNodeLineOffset(line as HTMLElement, cachedCaret.anchor.node)! + cachedCaret.anchor.offset
+      : null;
+
+    line.innerHTML = (newDom.childNodes[0] as HTMLElement).innerHTML;
+    markLineAsClean(line as HTMLElement);
+
+    if (cachedCaretLineOffset === null) return;
+    const restoreAnchor = seek({ source: line, offset: cachedCaretLineOffset });
+    if (!restoreAnchor) return;
+    setCaret(restoreAnchor.node, restoreAnchor.offset);
+  });
 }
 
 export function getLines(bracket: HTMLElement[]): HTMLElement[] {
