@@ -52,7 +52,17 @@
   - Backspace/Delete
     - Same as type a character
   - Paste
+    - Events:
+      - keydown (ctrl/cmd)
+      - (keydown (v), paste, beforeinput, input) one or more times
+      - keyup (v)
+      - keyup (ctrl/cmd)
   - Cut
+    - Event:
+      - keydown (ctrl/cmd)
+      - (keydown (x), cut, beforeinput, input) one or more times
+      - keyup (x)
+      - keyup (ctrl/cmd)
   - Drag and drop internal content
     - Events
       - beforeinput (delete)
