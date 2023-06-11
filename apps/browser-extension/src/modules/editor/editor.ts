@@ -9,12 +9,12 @@ import type { EditorElement } from "./editor-element";
 export async function loadNoteFromUrl(proxy: AsyncProxy<DataWorkerRoutes>, haikuEditor: EditorElement) {
   const path = new URLSearchParams(location.search).get("path");
   if (!path) {
-    haikuEditor.setMarkdown("- New item");
+    haikuEditor.setHaiku("- New item");
     return;
   }
   const file = await proxy.getFile(path);
   if (!file) return;
-  haikuEditor.setMarkdown(file.content ?? "");
+  haikuEditor.setHaiku(file.content ?? "");
 }
 
 export type Keymap = Record<string, Fn | undefined>;
@@ -60,12 +60,12 @@ async function save(editor: EditorElement, proxy: AsyncProxy<DataWorkerRoutes>) 
     // save new draft
     const path = timestampToNotePath(new Date());
 
-    await proxy.writeFile(path, editor.getMarkdown());
+    await proxy.writeFile(path, editor.getHaiku());
     const mutableUrl = new URL(location.href);
     mutableUrl.searchParams.set("path", path);
     history.replaceState(null, "", mutableUrl.toString());
   } else {
     // update existing file
-    await proxy.writeFile(path, editor.getMarkdown());
+    await proxy.writeFile(path, editor.getHaiku());
   }
 }

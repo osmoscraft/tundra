@@ -1,10 +1,10 @@
 import { getCombo, template } from "@tinykb/dom-utils";
 import type { Fn } from "@tinykb/fp-utils";
 import { getCaret, setCaret } from "./caret";
-import { htmlToMarkdown, markdownToHtml } from "./codec";
 import { firstInnerLeafNode, flattenToLeafNodes, isTextNode } from "./dom";
 import "./editor-element.css";
 import { seek } from "./seek";
+import { domLineToHaikuLine, domToHaiku, haikuToHtml } from "./utils/haiku";
 
 export type Keymap = Record<string, Fn | undefined>;
 
@@ -85,12 +85,12 @@ export class EditorElement extends HTMLElement {
     this.keymap = keymap;
   }
 
-  setMarkdown(markdown: string) {
-    this.editableRoot.innerHTML = markdownToHtml(markdown);
+  setHaiku(haiku: string) {
+    this.editableRoot.innerHTML = haikuToHtml(haiku);
   }
 
-  getMarkdown() {
-    return htmlToMarkdown(this.children[0].innerHTML);
+  getHaiku() {
+    return domToHaiku(this.children[0] as HTMLElement);
   }
 
   indentRelative = (levels: number) =>
@@ -128,8 +128,8 @@ function digest(root: HTMLElement) {
   // MVP, only fix inline issues
   const dirtyLines = root.querySelectorAll(`[data-dirty="true"]`);
   dirtyLines.forEach((line) => {
-    const markdown = htmlToMarkdown(line.outerHTML);
-    const newDom = template(markdownToHtml(markdown)).content;
+    const haiku = domLineToHaikuLine(line as HTMLElement);
+    const newDom = template(haikuToHtml(haiku)).content;
 
     // as long as the content is the same, caret restore should work
     const selection = window.getSelection();
