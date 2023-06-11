@@ -1,6 +1,6 @@
 import { getCombo, template } from "@tinykb/dom-utils";
 import type { Fn } from "@tinykb/fp-utils";
-import { getCaretFromSelection, setCaret } from "./caret";
+import { getCaret, setCaret } from "./caret";
 import { htmlToMarkdown, markdownToHtml } from "./codec";
 import { firstInnerLeafNode, flattenToLeafNodes, isTextNode } from "./dom";
 import "./editor-element.css";
@@ -133,7 +133,7 @@ function digest(root: HTMLElement) {
 
     // as long as the content is the same, caret restore should work
     const selection = window.getSelection();
-    const cachedCaret = selection ? getCaretFromSelection(selection) : null;
+    const cachedCaret = selection ? getCaret(selection) : null;
     const cachedCaretLineOffset = cachedCaret
       ? getNodeLineOffset(line as HTMLElement, cachedCaret.anchor.node)! + cachedCaret.anchor.offset
       : null;

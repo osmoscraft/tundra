@@ -11,7 +11,7 @@ export interface CaretPosition {
   offset: number;
 }
 
-export function getCaretFromSelection(selection: Selection): Caret | null {
+export function getCaret(selection: Selection): Caret | null {
   const { anchorNode, anchorOffset, focusNode, focusOffset } = selection;
   if (!anchorNode || !focusNode) return null;
 

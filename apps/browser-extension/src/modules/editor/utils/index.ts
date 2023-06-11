@@ -1,35 +1,26 @@
-// load/save
+// document level
 export function markdownToHtml(markdown: string) {}
 export function htmlToMarkdown(html: string) {}
 
-// basic typing
-export function formatInline(line: HTMLElement) {}
+export function pushHistory() {}
+export function popHistory() {}
 
-// insert
+// fragment level (multi-line)
 export function insertMarkdownFragment(markdown: string) {}
-
-// copy
 export function selectionToMarkdownFragment(selection: Selection) {}
-export function selectionToHtml(selection: Selection) {}
-
-// paste
+export function markdownFragmentToHtml(selection: Selection) {}
 export function htmlToMarkdownFragment(html: string) {}
+export function selectionToLines(selection: Selection) {}
 
-// cut = copy + delete
-
-// undo/redo
-export function push() {}
-export function pop() {}
-
-export function runAtomic(fn: () => any) {}
+// caret
 export function saveCaret(selection: Selection) {}
 export function restoreCaret() {}
 
-// line movement
-export function selectionToLines(selection: Selection) {}
-export function swapLines(lines: HTMLElement[], offset: number) {}
+// editing
+export function runAtomic(fn: () => any) {}
+export function formatInline(line: HTMLElement) {}
 
-// link: same as insertMarkdownFragment
-
-// dirty tracking
 export function markSelectionDirty(selection: Selection) {}
+
+export function swapLines(lines: HTMLElement[], offset: number) {}
+export function indent(lines: HTMLElement[], offset: number) {}
