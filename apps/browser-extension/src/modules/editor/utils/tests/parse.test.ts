@@ -11,14 +11,7 @@ describe("parse", () => {
   it("empty", () => {
     assertParseResult("", {
       type: "fragment",
-      children: [
-        {
-          type: "line",
-          isHeadOpen: true,
-          isTailOpen: true,
-          children: [{ type: "text", text: "" }],
-        },
-      ],
+      children: [],
     });
   });
 
@@ -45,12 +38,6 @@ describe("parse", () => {
           isHeadOpen: true,
           children: [{ type: "text", text: "" }],
         },
-        {
-          type: "line",
-          isHeadOpen: true,
-          isTailOpen: true,
-          children: [{ type: "text", text: "" }],
-        },
       ],
     });
   });
@@ -63,12 +50,6 @@ describe("parse", () => {
           type: "line",
           isHeadOpen: true,
           children: [{ type: "text", text: "hello" }],
-        },
-        {
-          type: "line",
-          isHeadOpen: true,
-          isTailOpen: true,
-          children: [{ type: "text", text: "" }],
         },
       ],
     });

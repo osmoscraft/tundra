@@ -1,11 +1,19 @@
 import type { HaikuFragment, HaikuInline, HaikuLine } from "./syntax";
 
+/**
+ * `""`:- $1 `undefined`, $2 `""` \
+ * `"text"`: $1 `"text"`, $2 `""` \
+ * `"\n"`: $1 `undefined`, $2 `"\n"` \
+ * `"text\n"`: $1 `"text"`, $2 `"\n"`
+ */
 const LINE = /^(.*)?(\n|$)/gm;
 
 export function parse(haiku: string): HaikuFragment {
   // naive parser
   const lines = haiku.matchAll(LINE);
-  const children = [...lines].map((lineMatch) => parseLine(lineMatch[1], lineMatch[2]));
+  const children = [...lines]
+    .filter((lineMatch) => lineMatch[1] || lineMatch[2])
+    .map((lineMatch) => parseLine(lineMatch[1], lineMatch[2]));
 
   return {
     type: "fragment",
