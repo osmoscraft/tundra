@@ -5,11 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "debug rpc-utils",
+      "name": "debug rpc-utils test",
       "request": "launch",
       "runtimeArgs": ["run-script", "test"],
       "runtimeExecutable": "npm",
       "cwd": "${workspaceFolder}/packages/rpc-utils",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    },
+    {
+      "name": "debug browser-extension test",
+      "request": "launch",
+      "runtimeArgs": ["run-script", "test"],
+      "runtimeExecutable": "npm",
+      "cwd": "${workspaceFolder}/apps/browser-extension",
       "skipFiles": ["<node_internals>/**"],
       "type": "node"
     }
