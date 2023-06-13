@@ -9,11 +9,11 @@
     <link rel="stylesheet" href="./notebook.css" />
   </head>
   <body>
-    <shell-element>
-      <editor-element slot="main"></editor-element>
-      <status-bar-element slot="bar"></status-bar-element>
-      <dialog-element slot="dialog"></dialog-element>
-    </shell-element>
+    <div class="c-shell">
+      <div id="editor-root" class="c-shell__main"></div>
+      <status-bar-element class="c-shell__bar"></status-bar-element>
+    </div>
+    <dialog-element></dialog-element>
     <script type="module" src="./notebook.js"></script>
   </body>
 </html>

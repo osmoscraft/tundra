@@ -2,3 +2,25 @@ html,
 body {
   height: 100%;
 }
+
+.c-shell {
+  height: 100%;
+  display: grid;
+  grid-template:
+    "main aside" 1fr
+    "bar bar" auto / 1fr auto;
+}
+
+.c-shell__main {
+  grid-area: main;
+}
+.c-shell__aside {
+  grid-area: aside;
+}
+.c-shell__bar {
+  grid-area: bar;
+}
+
+.cm-editor {
+  height: 100%;
+}

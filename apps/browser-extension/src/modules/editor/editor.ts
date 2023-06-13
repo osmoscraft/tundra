@@ -29,16 +29,16 @@ export function getDefaultKeymap(
     "alt+k": () => editor.moveUp(),
     "alt+j": () => editor.moveDown(),
     "ctrl+space": () => openCommandPalette(dialog, proxy),
-    "ctrl+s": () => save(editor, proxy),
-    "ctrl+shift+s": () =>
-      save(editor, proxy)
-        .then(() => proxy.pull())
-        .then(() => proxy.push()),
+    // "ctrl+s": () => save(editor, proxy),
+    // "ctrl+shift+s": () =>
+    //   save(editor, proxy)
+    //     .then(() => proxy.pull())
+    //     .then(() => proxy.push()),
     "ctrl+shift+y": () => proxy.pull(),
   };
 }
 
-async function openCommandPalette(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRoutes>) {
+export async function openCommandPalette(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRoutes>) {
   const omnibox = document.createElement("omnibox-element") as OmniboxElement;
 
   omnibox.addEventListener("omnibox-load-default", async () => {
@@ -54,18 +54,18 @@ async function openCommandPalette(dialog: DialogElement, proxy: AsyncProxy<DataW
   dialog.setContentElement(omnibox);
 }
 
-async function save(editor: EditorElement, proxy: AsyncProxy<DataWorkerRoutes>) {
+export async function save(getContent: () => string, proxy: AsyncProxy<DataWorkerRoutes>) {
   const path = new URLSearchParams(location.search).get("path");
   if (!path) {
     // save new draft
     const path = timestampToNotePath(new Date());
 
-    await proxy.writeFile(path, editor.getHaiku());
+    await proxy.writeFile(path, getContent());
     const mutableUrl = new URL(location.href);
     mutableUrl.searchParams.set("path", path);
     history.replaceState(null, "", mutableUrl.toString());
   } else {
     // update existing file
-    await proxy.writeFile(path, editor.getHaiku());
+    await proxy.writeFile(path, getContent());
   }
 }
