@@ -13,6 +13,8 @@ import { keymap } from "@codemirror/view";
 import { getCombo } from "@tinykb/dom-utils";
 import { gruvboxDark } from "cm6-theme-gruvbox-dark";
 import { EditorView, basicSetup } from "codemirror";
+import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
+import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
@@ -81,7 +83,12 @@ async function initEditor(dialog: DialogElement) {
 
   const view = new EditorView({
     doc: "",
-    extensions: [basicSetup, markdown(), gruvboxDark, omnibox()],
+    extensions: [
+      basicSetup,
+      markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
+      gruvboxDark,
+      omnibox(),
+    ],
     parent: document.getElementById("editor-root")!,
   });
 
@@ -90,7 +97,12 @@ async function initEditor(dialog: DialogElement) {
     view.dispatch({
       changes: {
         from: 0,
-        insert: "- New item",
+        insert: `---
+title: New note
+created: ${new Date().toISOString()}
+---
+
+- New item`,
       },
     });
     return;

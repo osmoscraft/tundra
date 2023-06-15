@@ -25,8 +25,10 @@
   "dependencies": {
     "@codemirror/commands": "^6.2.4",
     "@codemirror/lang-markdown": "^6.1.1",
+    "@codemirror/legacy-modes": "^6.3.2",
     "@codemirror/state": "^6.2.1",
     "@codemirror/view": "^6.13.1",
+    "@lezer/markdown": "^1.0.2",
     "@replit/codemirror-vim": "^6.0.14",
     "cm6-theme-basic-light": "^0.2.0",
     "cm6-theme-gruvbox-dark": "^0.2.0",
