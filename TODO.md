@@ -14,3 +14,7 @@
   - Clickable URLs links
 - Editor
   - Autosave load edits
+- Omnibox
+  - Leader key base commanding chain
+- Command
+  - Autocomplete link insertion

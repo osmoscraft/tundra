@@ -4,6 +4,7 @@ import {
   getDirtyFiles,
   getFile,
   getRecentFiles,
+  searchFiles,
   setLocalFile,
   setLocalFiles,
   setRemoteFile,
@@ -304,4 +305,35 @@ export async function testBulkOperations() {
 
   setLocalFiles(db, []); // empty
   setRemoteFiles(db, []); // empty
+}
+
+export async function testSearchFiles() {
+  console.log("[test] searchFiles");
+  const db = await createTestDb(SCHEMA);
+
+  setLocalFiles(db, [
+    { path: "/file-1.md", content: "hello world", updatedTime: "2000-01-01T00:00:00Z" },
+    { path: "/file-3.md", content: "OK Computer", updatedTime: "2000-01-01T00:00:00Z" },
+  ]);
+  setRemoteFiles(db, [{ path: "/file-2.md", content: "random stuff", updatedTime: "2000-01-01T00:00:00Z" }]);
+  setRemoteFiles(db, [{ path: "/file-4.md", content: "fancy content", updatedTime: "2000-01-01T00:00:00Z" }]);
+
+  console.log("[test] fileSearch/empty");
+  const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });
+  assertEqual(emptyResults.length, 0, "No result");
+
+  console.log("[test] fileSearch/simple");
+  const simpleResults = searchFiles(db, { query: "hello", limit: 10 });
+  assertEqual(simpleResults.length, 1, "Exactly one result");
+  assertEqual(simpleResults[0].path, "/file-1.md", "Path matches");
+  assertEqual(simpleResults[0].content, "hello world", "Title matches");
+
+  console.log("[test] fileSearch/caseInsensitive");
+  const caseInsensitiveResult = searchFiles(db, { query: "oK comPUtEr", limit: 10 });
+  assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
+  assertEqual(caseInsensitiveResult[0].content, "OK Computer", "Title matches");
+
+  console.log("[test] fileSearch/additionalFields");
+  const additionalFieldsResult = searchFiles(db, { query: "fancy", limit: 10 });
+  assertEqual(additionalFieldsResult[0].updatedTime, "2000-01-01T00:00:00Z", "Updated time matches");
 }

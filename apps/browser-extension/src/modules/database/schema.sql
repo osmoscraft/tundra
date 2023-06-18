@@ -1,3 +1,4 @@
+-- FILE
 CREATE TABLE IF NOT EXISTS File (
   path TEXT PRIMARY KEY,
   localContent TEXT,
@@ -22,14 +23,34 @@ CREATE TABLE IF NOT EXISTS File (
   isDirty INTEGER GENERATED ALWAYS AS (content IS NOT remoteContent)
 );
 
-
 CREATE INDEX IF NOT EXISTS FileUpdatedTimeIdx ON File(updatedTime);
 
+CREATE VIRTUAL TABLE IF NOT EXISTS FileFts USING fts5(path, content, content=File);
+
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterInsertTrigger AFTER INSERT ON File BEGIN
+    INSERT INTO FileFts(rowid, path, content)
+    VALUES (new.rowid, new.path, new.content);
+END;
+
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterDeleteTrigger AFTER DELETE ON File BEGIN
+  INSERT INTO FileFts(FileFts, rowid, path, content)
+  VALUES('delete', old.rowid, old.path, old.content);
+END;
+
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterUpdateTrigger AFTER UPDATE ON File BEGIN
+  INSERT INTO FileFts( FileFts, rowid, path, content)
+  VALUES('delete', old.rowid, old.path, old.content);
+  INSERT INTO FileFts(rowid, path, content)
+  VALUES (new.rowid, new.path, new.content);
+END;
+
+-- Object
 CREATE TABLE IF NOT EXISTS Object (
   path TEXT PRIMARY KEY,
   data TEXT
 );
 
+-- Graph
 CREATE TABLE IF NOT EXISTS Node (
   data  TEXT,
   -- virtual columns from JSON extractions

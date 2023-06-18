@@ -1,4 +1,4 @@
-import type { DbFile, DbNode } from "./schema";
+import type { DbNode } from "./schema";
 import { arrayToParams, paramsToBindings } from "./utils";
 
 export interface NodeChange {
@@ -57,11 +57,11 @@ export function deleteAllNodes(db: Sqlite3.DB) {
   db.exec("DELETE FROM Node");
 }
 
-export interface SearchInput {
+export interface SearchNodesInput {
   query: string;
   limit: number;
 }
-export function searchNodes(db: Sqlite3.DB, input: SearchInput) {
+export function searchNodes(db: Sqlite3.DB, input: SearchNodesInput) {
   const sql = `
 SELECT * FROM NodeFts WHERE title MATCH :query ORDER BY rank LIMIT :limit
 `;
@@ -72,22 +72,4 @@ SELECT * FROM NodeFts WHERE title MATCH :query ORDER BY rank LIMIT :limit
   });
 
   return db.selectObjects<DbNode>(sql, bind);
-}
-
-/**
- * @private for testing only
- */
-export function searchFiles(db: Sqlite3.DB, input: SearchInput) {
-  const sql = `
-SELECT * FROM File WHERE path IN (
-  SELECT path FROM NodeFts WHERE title MATCH :query ORDER BY rank LIMIT :limit
-)
-`;
-
-  const bind = paramsToBindings(sql, {
-    query: input.query,
-    limit: input.limit,
-  });
-
-  return db.selectObjects<DbFile>(sql, bind);
 }

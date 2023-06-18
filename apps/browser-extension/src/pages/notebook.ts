@@ -35,28 +35,28 @@ statusBar.setText("Loading...");
 
 async function initEditor(dialog: DialogElement) {
   function omnibox() {
+    // TODO basicSetup uses ctrl space for autocompletion
     return keymap.of([
       {
-        key: "Ctrl-Space",
+        key: "Mod-k",
+        preventDefault: true,
         run() {
           openCommandPalette(dialog, proxy);
           return true;
         },
       },
       {
-        key: "Ctrl-s",
+        key: "Mod-s",
         preventDefault: true,
         run() {
-          debugger;
           save(() => view.state.doc.toString(), proxy);
           return true;
         },
       },
       {
-        key: "Ctrl-S",
+        key: "Mod-S",
         preventDefault: true,
         run() {
-          debugger;
           save(() => view.state.doc.toString(), proxy)
             .then(() => proxy.pull())
             .then(() => proxy.push());
@@ -100,6 +100,8 @@ title: "New note"
       insert: file.content ?? "",
     },
   });
+
+  view.focus();
 }
 
 initEditor(dialog);

@@ -107,3 +107,22 @@ export function getDirtyFiles(db: Sqlite3.DB): DbFile[] {
 export function deleteAllFiles(db: Sqlite3.DB) {
   return db.exec(`DELETE FROM File`);
 }
+
+export interface SearchFilesInput {
+  query: string;
+  limit: number;
+}
+export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
+  const sql = `
+SELECT * FROM File WHERE path IN (
+  SELECT path FROM FileFts WHERE content MATCH :query ORDER BY rank LIMIT :limit
+)
+`;
+
+  const bind = paramsToBindings(sql, {
+    query: input.query,
+    limit: input.limit,
+  });
+
+  return db.selectObjects<DbFile>(sql, bind);
+}

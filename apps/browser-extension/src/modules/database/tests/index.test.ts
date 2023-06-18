@@ -7,14 +7,15 @@ import {
   testLocalFileEditLifecycle,
   testLocalFirstSync,
   testRemoteFirstSync,
+  testSearchFiles,
 } from "./file.test";
-import { testGraphCRUD, testGraphSearch } from "./graph.test";
+import { testGraphCRUD, testSearchNodes } from "./graph.test";
 import { testObjectCRUD } from "./object.test";
 
 export async function testDatabase() {
   // graph
   await testGraphCRUD();
-  await testGraphSearch();
+  await testSearchNodes();
 
   // file
   await testLocalFileEditLifecycle();
@@ -25,6 +26,7 @@ export async function testDatabase() {
   await testGetRecentFiles();
   await testGetDirtyFiles();
   await testBulkOperations();
+  await testSearchFiles();
 
   // object
   await testObjectCRUD();
