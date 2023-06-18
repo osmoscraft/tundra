@@ -1,7 +1,0 @@
-- Digest selection
-  - DOM selection -> Lines
-  - Lines -> Haiku
-  - Haiku + DOM selection offset -> Trimmed Haiku
-  - Trimmed Haiku -> AST
-  - AST -> Updated lines
-  - Updated lines -> Updated DOM

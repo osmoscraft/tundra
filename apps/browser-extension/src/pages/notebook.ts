@@ -1,6 +1,5 @@
 import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
-import { getDefaultKeymap, openCommandPalette, save } from "../modules/editor/editor";
-import { EditorElement } from "../modules/editor/editor-element";
+import { openCommandPalette, save } from "../modules/editor/editor";
 import { OmniboxElement } from "../modules/omnibox/omnibox-element";
 import { DialogElement } from "../modules/shell/dialog-element";
 import { ShellElement } from "../modules/shell/shell-element";
@@ -10,7 +9,6 @@ import "./notebook.css";
 
 import { markdown } from "@codemirror/lang-markdown";
 import { keymap } from "@codemirror/view";
-import { getCombo } from "@tinykb/dom-utils";
 import { gruvboxDark } from "cm6-theme-gruvbox-dark";
 import { EditorView, basicSetup } from "codemirror";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
@@ -27,24 +25,11 @@ export type NotebookRoutes = typeof routes;
 
 customElements.define("shell-element", ShellElement);
 customElements.define("dialog-element", DialogElement);
-// customElements.define("editor-element", EditorV2);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 
 const dialog = document.querySelector<DialogElement>("dialog-element")!;
-const editor = document.querySelector<EditorElement>("editor-element")!;
 const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
-
-const appKeymap = getDefaultKeymap(editor, dialog, proxy);
-window.addEventListener("keydown", (e) => {
-  if (e.isComposing) return;
-  const keyCombo = getCombo(e);
-  const matchedHandler = appKeymap?.[keyCombo];
-  if (matchedHandler) {
-    e.preventDefault();
-    matchedHandler();
-  }
-});
 
 statusBar.setText("Loading...");
 
@@ -98,8 +83,7 @@ async function initEditor(dialog: DialogElement) {
       changes: {
         from: 0,
         insert: `---
-title: New note
-created: ${new Date().toISOString()}
+title: "New note"
 ---
 
 - New item`,
