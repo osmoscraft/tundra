@@ -12,3 +12,5 @@
   - Clickable internal links
   - Auto detect URL as links
   - Clickable URLs links
+- Editor
+  - Autosave load edits
