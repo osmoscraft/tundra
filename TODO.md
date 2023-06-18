@@ -1,6 +1,12 @@
-- vNext wishlist
-  - Numeric timestamp
-  - use Github instead of GitHub
-  - Externalize timestamp from all SQL statements
-- Consolidate all SQLite databases into one
-- Test all db services in Node
+- Search
+  - Index all title fields
+  - Index full text
+  - Prefix search
+- Frontmatter
+  - Clickable URLs
+  - Remove the created field (timestamp id is enough)
+  - Remove empty tag array
+- Body
+  - Clickable internal links
+  - Auto detect URL as links
+  - Clickable URLs links
