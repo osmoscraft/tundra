@@ -1,20 +1,19 @@
+import { history, historyKeymap } from "@codemirror/commands";
+import { markdown } from "@codemirror/lang-markdown";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
+import { blockMovementKeymap } from "../modules/editor/code-mirror-ext/block-movement-keymap";
+import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
+import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
+import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
+import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/omnibox/omnibox-element";
 import { DialogElement } from "../modules/shell/dialog-element";
 import { ShellElement } from "../modules/shell/shell-element";
 import { StatusBarElement } from "../modules/status/status-bar-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
-
-import { history, historyKeymap } from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap } from "@codemirror/view";
-import { blockMovementKeymap } from "../modules/editor/code-mirror-ext/block-movement-keymap";
-import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
-import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
-import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
-import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
