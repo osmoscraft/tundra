@@ -1,1 +1,0 @@
-SELECT * FROM NodeFts WHERE title MATCH :query ORDER BY rank LIMIT 10;
