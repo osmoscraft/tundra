@@ -1,5 +1,5 @@
-import { assertEqual, assertUndefined } from "../../live-test";
-import { deleteAllNodes, deleteNode, getNode, searchNodes, setNode, setNodes } from "../graph";
+import { assertDeepEqual, assertEqual, assertUndefined } from "../../live-test";
+import { deleteAllNodes, deleteNode, getNode, getNodes, searchNodes, setNode, setNodes } from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -34,6 +34,19 @@ export async function testGraphCRUD() {
 
   assertEqual(getNode(db, "/node-1")!.title, "node 1", "node 1");
   assertEqual(getNode(db, "/node-2")!.title, "node 2", "node 2");
+
+  // bulk get
+  assertDeepEqual(
+    getNodes(db, ["/node-1", "/node-2"]).map((node) => node?.title),
+    ["node 1", "node 2"],
+    "bulk get"
+  );
+  assertDeepEqual(
+    getNodes(db, ["/node-2", "/node-1"]).map((node) => node?.title),
+    ["node 2", "node 1"],
+    "bulk get reverse order"
+  );
+  assertDeepEqual(getNodes(db, ["/non-exist"]), [undefined], "bulk get non-exist");
 
   // bulk delete
   deleteAllNodes(db);

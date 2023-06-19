@@ -43,6 +43,20 @@ SELECT * FROM NodeFts WHERE path = :path LIMIT 1
   return db.selectObject<DbNode>(sql, bind);
 }
 
+export function getNodes(db: Sqlite3.DB, paths: string[]) {
+  if (!paths.length) return [];
+
+  const results: (DbNode | undefined)[] = [];
+  db.transaction(() => {
+    paths.forEach((path) => {
+      const node = getNode(db, path);
+      results.push(node);
+    });
+  });
+
+  return results;
+}
+
 export function deleteNode(db: Sqlite3.DB, path: string) {
   const sql = `
   DELETE FROM Node WHERE rowid IN (
