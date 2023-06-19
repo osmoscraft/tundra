@@ -1,3 +1,5 @@
+- Migration
+  - Add a web hook that pushes haiku into markdown repo
 - Search
   - Debounce
   - Add tests
@@ -14,6 +16,7 @@
   - Clickable URLs links
 - Editor
   - Autosave load edits
+  - Need to handle invalid frontmatter state
 - Omnibox
   - Leader key base commanding chain
 - Command
