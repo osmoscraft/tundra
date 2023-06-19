@@ -1,5 +1,4 @@
-import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
-import { openCommandPalette, save } from "../modules/editor/editor";
+import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
 import { OmniboxElement } from "../modules/omnibox/omnibox-element";
 import { DialogElement } from "../modules/shell/dialog-element";
 import { ShellElement } from "../modules/shell/shell-element";
@@ -7,12 +6,14 @@ import { StatusBarElement } from "../modules/status/status-bar-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+import { history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
-import { keymap } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { gruvboxDark } from "cm6-theme-gruvbox-dark";
-import { EditorView, basicSetup } from "codemirror";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
+import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
+import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
@@ -33,74 +34,21 @@ const statusBar = document.querySelector<StatusBarElement>("status-bar-element")
 
 statusBar.setText("Loading...");
 
-async function initEditor(dialog: DialogElement) {
-  function omnibox() {
-    // TODO basicSetup uses ctrl space for autocompletion
-    return keymap.of([
-      {
-        key: "Mod-k",
-        preventDefault: true,
-        run() {
-          openCommandPalette(dialog, proxy);
-          return true;
-        },
-      },
-      {
-        key: "Mod-s",
-        preventDefault: true,
-        run() {
-          save(() => view.state.doc.toString(), proxy);
-          return true;
-        },
-      },
-      {
-        key: "Mod-S",
-        preventDefault: true,
-        run() {
-          save(() => view.state.doc.toString(), proxy)
-            .then(() => proxy.pull())
-            .then(() => proxy.push());
-          return true;
-        },
-      },
-    ]);
-  }
-
+async function initEditor(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRoutes>) {
   const view = new EditorView({
     doc: "",
     extensions: [
-      basicSetup,
+      history(),
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
       gruvboxDark,
-      omnibox(),
+      keymap.of([...historyKeymap, ...omniboxKeymap(dialog, proxy)]),
     ],
     parent: document.getElementById("editor-root")!,
   });
+
   view.focus();
 
-  const path = new URLSearchParams(location.search).get("path");
-  if (!path) {
-    view.dispatch({
-      changes: {
-        from: 0,
-        insert: `---
-title: "New note"
----
-
-- New item`,
-      },
-    });
-    return;
-  }
-  const file = await proxy.getFile(path);
-  if (!file) return;
-
-  view.dispatch({
-    changes: {
-      from: 0,
-      insert: file.content ?? "",
-    },
-  });
+  await loadInitialDoc(view, proxy);
 }
 
-initEditor(dialog);
+initEditor(dialog, proxy);
