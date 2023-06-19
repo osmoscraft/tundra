@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS Node (
   -- virtual columns from JSON extractions
   path  TEXT GENERATED ALWAYS AS (json_extract(data, '$.path')) NOT NULL UNIQUE,
   title TEXT GENERATED ALWAYS AS (json_extract(data, '$.title')) NOT NULL
+  -- future columns
+  -- links
+  -- tags
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS NodeFts USING fts5(path, title, content=Node);

@@ -2,6 +2,7 @@
   - Index all title fields
   - Index full text
   - Prefix search
+  - Debounce
 - Frontmatter
   - Quote all strings, just to be safe
     - Handle quote within quote

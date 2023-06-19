@@ -13,8 +13,10 @@ export async function openCommandPalette(dialog: DialogElement, proxy: AsyncProx
   });
 
   omnibox.addEventListener("omnibox-input", async (e) => {
-    const searchResults = await proxy.searchNodes(e.detail);
-    omnibox.setSuggestions(searchResults.map((node) => ({ path: node.path, title: node.title })));
+    performance.mark("search-start");
+    const searchResults = await proxy.search({ query: e.detail, limit: 10 });
+    omnibox.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
+    console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
   });
 
   dialog.setContentElement(omnibox);

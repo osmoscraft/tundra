@@ -3,6 +3,7 @@ import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
 import * as fs from "../modules/file-system";
+import { search, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -89,7 +90,7 @@ const routes = {
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
   runBenchmark: fs.runBenchmark,
-  searchNodes: async (query: string) => dbApi.searchNodes(await dbInit(), { query, limit: 10 }),
+  search: async (input: SearchInput) => search(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
