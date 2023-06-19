@@ -1,6 +1,4 @@
 - Search
-  - Index all title fields
-  - Index full text
   - Prefix search
   - Debounce
 - Frontmatter
