@@ -38,10 +38,6 @@ export class DevtoolElement extends HTMLElement {
           this.proxy.destoryAll();
           break;
         }
-        case "run-benchmark": {
-          this.proxy.runBenchmark();
-          break;
-        }
       }
     });
   }

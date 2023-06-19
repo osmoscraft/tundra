@@ -1,6 +1,6 @@
-import { destoryOpfsByPath, sqlite3Opfs } from "@tinykb/sqlite-utils";
 import { clear, writeFile, writeFiles } from ".";
 import { generateArticle } from "../devtool/generate-sample-content";
+import { destoryOpfsByPath, sqlite3Opfs } from "../sqlite-utils/src";
 import SCHEMA from "./sql/schema.sql";
 
 export async function runBenchmark() {

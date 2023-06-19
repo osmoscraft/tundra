@@ -1,6 +1,6 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
-import type { DataWorkerRoutes } from "../../../workers/data-worker";
+import type { DataWorkerRoutes } from "../../workers/data-worker";
 import template from "./file-system-readonly-explorer-element.html";
 
 export class FileSystemReadonlyExplorerElement extends HTMLElement {
