@@ -7,6 +7,12 @@ body {
   min-width: 0; /* allow text-editor to horizontally collapse and scroll */
 }
 
+.c-codemirror-container {
+  .cm-content {
+    caret-color: auto !important;
+  }
+}
+
 .c-shell {
   height: 100%;
   display: grid;

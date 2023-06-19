@@ -9,7 +9,7 @@ export const omniboxKeymap: (dialog: DialogElement, proxy: AsyncProxy<DataWorker
   proxy
 ) => [
   {
-    key: "Mod-k",
+    key: "Mod-Space",
     preventDefault: true,
     run() {
       openCommandPalette(dialog, proxy);

@@ -25,11 +25,12 @@
   "dependencies": {
     "@codemirror/commands": "^6.2.4",
     "@codemirror/lang-markdown": "^6.1.1",
+    "@codemirror/language": "^6.8.0",
     "@codemirror/legacy-modes": "^6.3.2",
     "@codemirror/state": "^6.2.1",
+    "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.13.1",
     "@lezer/markdown": "^1.0.2",
-    "cm6-theme-gruvbox-dark": "^0.2.0",
     "codemirror": "^6.0.1"
   }
 }

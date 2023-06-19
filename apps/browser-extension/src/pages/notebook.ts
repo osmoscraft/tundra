@@ -8,8 +8,9 @@ import "./notebook.css";
 
 import { history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
-import { EditorView, keymap } from "@codemirror/view";
-import { gruvboxDark } from "cm6-theme-gruvbox-dark";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap } from "@codemirror/view";
+import { blockMovementKeymap } from "../modules/editor/code-mirror-ext/block-movement-keymap";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
@@ -39,9 +40,12 @@ async function initEditor(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRou
     doc: "",
     extensions: [
       history(),
+      highlightActiveLine(),
+      drawSelection(),
+      dropCursor(),
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
-      gruvboxDark,
-      keymap.of([...historyKeymap, ...omniboxKeymap(dialog, proxy)]),
+      oneDark,
+      keymap.of([...blockMovementKeymap, ...historyKeymap, ...omniboxKeymap(dialog, proxy)]),
     ],
     parent: document.getElementById("editor-root")!,
   });
