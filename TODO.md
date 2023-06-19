@@ -1,6 +1,7 @@
 - Search
-  - Prefix search
   - Debounce
+  - Add tests
+  - Boost title match
 - Frontmatter
   - Quote all strings, just to be safe
     - Handle quote within quote

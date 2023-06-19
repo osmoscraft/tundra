@@ -1,5 +1,6 @@
 import * as dbApi from "../database";
 import type { DbFile, DbNode } from "../database/schema";
+import { consecutiveWordPrefixQuery } from "./get-query";
 
 export interface SearchInput {
   query: string;
@@ -12,7 +13,9 @@ export interface SearchResult {
 }
 
 export function search(db: Sqlite3.DB, input: SearchInput): SearchResult[] {
-  const files = dbApi.searchFiles(db, { query: input.query, limit: input.limit });
+  const query = consecutiveWordPrefixQuery(input.query);
+  console.log(`[search] internal query ${query}`);
+  const files = dbApi.searchFiles(db, { query, limit: input.limit });
 
   const results = files
     .map((file) => ({
