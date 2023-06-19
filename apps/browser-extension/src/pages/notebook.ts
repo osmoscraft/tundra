@@ -76,6 +76,7 @@ async function initEditor(dialog: DialogElement) {
     ],
     parent: document.getElementById("editor-root")!,
   });
+  view.focus();
 
   const path = new URLSearchParams(location.search).get("path");
   if (!path) {
@@ -100,8 +101,6 @@ title: "New note"
       insert: file.content ?? "",
     },
   });
-
-  view.focus();
 }
 
 initEditor(dialog);
