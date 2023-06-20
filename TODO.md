@@ -7,7 +7,6 @@
 - Frontmatter
   - Auto quote strings that has special control charaters
     - Handle quote within quote
-  - Clickable URLs
   - Remove the created field (timestamp id is enough)
   - Remove empty tag array
 - Body

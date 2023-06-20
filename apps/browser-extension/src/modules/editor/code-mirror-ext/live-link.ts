@@ -10,6 +10,7 @@ import {
   type PluginValue,
 } from "@codemirror/view";
 import { EditorView } from "codemirror";
+import "./live-link.css";
 
 const linkDecorator = new MatchDecorator({
   regexp: /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi,
@@ -20,7 +21,7 @@ const linkDecorator = new MatchDecorator({
       attributes: {
         href: url,
         rel: "nofollow",
-        class: "cm-link",
+        class: "cm-live-link",
       },
     });
   },
