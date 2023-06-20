@@ -12,7 +12,7 @@ import {
 import { EditorView } from "codemirror";
 import "./live-link.css";
 
-const linkDecorator = new MatchDecorator({
+const urlTextDecorator = new MatchDecorator({
   regexp: /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi,
   decoration: (match, view) => {
     const url = match[0];
@@ -32,7 +32,7 @@ class URLView implements PluginValue {
   decorator: MatchDecorator;
 
   constructor(view: EditorView) {
-    this.decorator = linkDecorator;
+    this.decorator = urlTextDecorator;
     this.decorations = this.decorator.createDeco(view);
   }
   update(update: ViewUpdate) {
