@@ -20,3 +20,6 @@
   - Leader key base commanding chain
 - Command
   - Autocomplete link insertion
+- Link
+  - Hot swap internal navigation
+  - Colorize

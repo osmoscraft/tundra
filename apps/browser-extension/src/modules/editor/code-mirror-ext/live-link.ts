@@ -12,50 +12,15 @@ import {
 import { EditorView } from "codemirror";
 import "./live-link.css";
 
-const urlTextDecorator = new MatchDecorator({
-  regexp: /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi,
-  decoration: (match, view) => {
-    const url = match[0];
-    return Decoration.mark({
-      tagName: "a",
-      attributes: {
-        href: url,
-        rel: "nofollow",
-        class: "cm-live-link",
-      },
-    });
-  },
-});
+const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
+const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
+const INTENRAL_LINK_PATTERN = /\d+/;
 
-class URLView implements PluginValue {
-  decorations: RangeSet<Decoration>;
-  decorator: MatchDecorator;
+// Prec.high is needed to override "Enter" behavior
+// markdown link should be registered after url link to exclude the trailing ")" from the parsed url
 
-  constructor(view: EditorView) {
-    this.decorator = urlTextDecorator;
-    this.decorations = this.decorator.createDeco(view);
-  }
-  update(update: ViewUpdate) {
-    if (update.docChanged || update.viewportChanged) {
-      this.decorations = this.decorator.updateDeco(update, this.decorations);
-    }
-  }
-}
-
-const urlPlugin = ViewPlugin.fromClass(URLView, {
-  decorations: (v) => v.decorations,
-  eventHandlers: {
-    click: handleUrlClick,
-  },
-});
-
-function handleUrlClick(this: URLView, e: MouseEvent, view: EditorView) {
-  if (e.ctrlKey) {
-    return openSelectedUrlInNewTab(view);
-  } else {
-    return openSelectedUrlInCurrentTab(view);
-  }
-}
+export const liveLink: () => Extension = () =>
+  Prec.high([markdownLinkPlugin, urlPlugin, keymap.of([...openLinkAtCursor])]);
 
 export const openSelectedUrl: Command = (view: EditorView) => {
   const anchor = getAnchorFromView(view);
@@ -96,6 +61,86 @@ export const openLinkAtCursor: KeyBinding[] = [
   },
 ];
 
-// Prec.high is needed to override "Enter" behavior
+class MarkdownLinkView implements PluginValue {
+  decorations: RangeSet<Decoration>;
+  decorator: MatchDecorator;
 
-export const liveLink: () => Extension = () => Prec.high([urlPlugin, keymap.of([...openLinkAtCursor])]);
+  constructor(view: EditorView) {
+    this.decorator = new MatchDecorator({
+      regexp: TITLED_LINK_PATTERN,
+      decoration: (match, view) => {
+        // TODO handle non-id links
+        const url = match[2];
+        const isInternal = isInternalUrl(url);
+        return Decoration.mark({
+          tagName: "a",
+          attributes: {
+            href: isInternal ? `?path=${url}.md` : url,
+            rel: "nofollow",
+            class: "cm-live-link",
+          },
+        });
+      },
+    });
+    this.decorations = this.decorator.createDeco(view);
+  }
+  update(update: ViewUpdate) {
+    if (update.docChanged || update.viewportChanged) {
+      this.decorations = this.decorator.updateDeco(update, this.decorations);
+    }
+  }
+}
+
+function isInternalUrl(url: string) {
+  return !!INTENRAL_LINK_PATTERN.exec(url);
+}
+
+const markdownLinkPlugin = ViewPlugin.fromClass(MarkdownLinkView, {
+  decorations: (v) => v.decorations,
+  eventHandlers: {
+    click: handleUrlClick,
+  },
+});
+
+class URLView implements PluginValue {
+  decorations: RangeSet<Decoration>;
+  decorator: MatchDecorator;
+
+  constructor(view: EditorView) {
+    this.decorator = new MatchDecorator({
+      regexp: ABSOLUTE_URL_PATTERN,
+      decoration: (match, view) => {
+        const url = match[0];
+        return Decoration.mark({
+          tagName: "a",
+          attributes: {
+            href: url,
+            rel: "nofollow",
+            class: "cm-live-link",
+          },
+        });
+      },
+    });
+    this.decorations = this.decorator.createDeco(view);
+  }
+  update(update: ViewUpdate) {
+    if (update.docChanged || update.viewportChanged) {
+      this.decorations = this.decorator.updateDeco(update, this.decorations);
+    }
+  }
+}
+
+const urlPlugin = ViewPlugin.fromClass(URLView, {
+  decorations: (v) => v.decorations,
+  eventHandlers: {
+    click: handleUrlClick,
+  },
+});
+
+function handleUrlClick(this: URLView, e: MouseEvent, view: EditorView) {
+  if (e.ctrlKey) {
+    return openSelectedUrlInNewTab(view);
+  } else {
+    return openSelectedUrlInCurrentTab(view);
+  }
+}
