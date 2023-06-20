@@ -19,3 +19,5 @@
 - Link
   - Hot swap internal navigation
   - Colorize
+- Theme
+  - Improved dark theme
