@@ -18,6 +18,8 @@
   - Autocomplete link insertion
 - Link
   - Hot swap internal navigation
+    - Pass onOpenUrl handler to the extension config
   - Colorize
-- Theme
+- Presentation
   - Improved dark theme
+  - CSS based text wrap
