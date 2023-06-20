@@ -6,6 +6,7 @@ import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinyk
 import { blockMovementKeymap } from "../modules/editor/code-mirror-ext/block-movement-keymap";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
+import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
 import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/omnibox/omnibox-element";
@@ -38,6 +39,7 @@ async function initEditor(dialog: DialogElement, proxy: AsyncProxy<DataWorkerRou
   const view = new EditorView({
     doc: "",
     extensions: [
+      liveLink(),
       history(),
       highlightActiveLine(),
       drawSelection(),
