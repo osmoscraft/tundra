@@ -23,3 +23,5 @@
 - Presentation
   - Improved dark theme
   - CSS based text wrap
+- Highlight
+  - Replace markdown AST based highlight with regex decoration highlight
