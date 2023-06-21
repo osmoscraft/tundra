@@ -4,6 +4,7 @@ body {
 }
 
 .c-codemirror-container {
+  height: 100%;
   min-width: 0; /* allow text-editor to horizontally collapse and scroll */
 }
 

@@ -1,18 +1,18 @@
 import type { KeyBinding } from "@codemirror/view";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
-import type { DialogElement } from "../../shell/dialog-element";
-import { openCommandPalette, save } from "../editor";
+import type { OmniboxElement } from "../../omnibox/omnibox-element";
+import { save } from "../editor";
 
-export const omniboxKeymap: (dialog: DialogElement, proxy: AsyncProxy<DataWorkerRoutes>) => KeyBinding[] = (
-  dialog,
+export const omniboxKeymap: (omnibox: OmniboxElement, proxy: AsyncProxy<DataWorkerRoutes>) => KeyBinding[] = (
+  omnibox,
   proxy
 ) => [
   {
     key: "Mod-Space",
     preventDefault: true,
     run() {
-      openCommandPalette(dialog, proxy);
+      omnibox.focus();
       return true;
     },
   },

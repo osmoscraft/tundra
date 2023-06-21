@@ -13,6 +13,7 @@ declare global {
     "omnibox-input": CustomEvent<QueryEventDetail>;
     "omnibox-open": CustomEvent<QueryEventDetail>;
     "omnibox-load-default": Event;
+    "omnibox-exit": Event;
   }
 }
 
@@ -36,14 +37,20 @@ export class OmniboxElement extends HTMLElement {
       }
     });
 
+    this.input.addEventListener("focus", (e) => this.dispatchEvent(new Event("omnibox-load-default")));
+
+    this.input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.nodeList.innerHTML = "";
+        this.dispatchEvent(new Event("omnibox-exit"));
+      }
+    });
+
     this.nodeList.addEventListener("click", (e) => {
       const path = (e.target as HTMLButtonElement).closest("[data-path]")?.getAttribute("data-path");
       if (!path) return;
       this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox-open", { detail: path }));
     });
-
-    // initial load
-    this.dispatchEvent(new Event("omnibox-load-default"));
   }
 
   setSuggestions(items: OmniboxSuggestion[]) {
@@ -52,5 +59,9 @@ export class OmniboxElement extends HTMLElement {
       `<li><a href="?draft">new</li>`,
       ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
     ].join("");
+  }
+
+  focus() {
+    this.input.focus();
   }
 }
