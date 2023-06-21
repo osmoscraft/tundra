@@ -10,8 +10,8 @@ import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
 import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
 import { systemBar } from "../modules/editor/code-mirror-ext/system-bar";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
-import { OmniboxElement } from "../modules/omnibox/omnibox-element";
-import { StatusBarElement } from "../modules/status/status-bar-element";
+import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
+import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
