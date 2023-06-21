@@ -1,0 +1,24 @@
+<div class="c-systembar">
+  <slot name="prompt"></slot>
+  <slot name="menu"></slot>
+  <slot name="status"></slot>
+</div>
+<link rel="stylesheet" href="./styles/reset.css" />
+<style>
+  .c-systembar {
+    display: grid;
+    grid-template:
+      "menu menu" 1fr
+      "prompt status" auto / 1fr auto;
+  }
+
+  ::slotted([slot="menu"]) {
+    grid-area: menu;
+  }
+  ::slotted([slot="prompt"]) {
+    grid-area: prompt;
+  }
+  ::slotted([slot="status"]) {
+    grid-area: status;
+  }
+</style>

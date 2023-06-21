@@ -1,20 +1,17 @@
 import { type Extension } from "@codemirror/state";
 import { EditorView, showPanel, type Panel } from "@codemirror/view";
 
-function systemBarPanel(props: SystemBarProps, view: EditorView): Panel {
-  const container = document.createElement("div");
-  container.appendChild(props.prompt);
-  container.appendChild(props.status);
-
+function systemBarPanel(dom: HTMLElement, view: EditorView): Panel {
   return {
-    dom: container,
+    dom,
   };
 }
 
 export interface SystemBarProps {
+  menu: HTMLElement;
   prompt: HTMLElement;
-  status: HTMLElement;
+  statusBar: HTMLElement;
 }
-export function systemBar(props: SystemBarProps): Extension {
-  return showPanel.of(systemBarPanel.bind(null, props));
+export function systemBar(dom: HTMLElement): Extension {
+  return showPanel.of(systemBarPanel.bind(null, dom));
 }
