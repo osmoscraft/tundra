@@ -17,7 +17,17 @@ import { SystemBarElement } from "../modules/system-bar/system-bar-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+customElements.define("status-bar-element", StatusBarElement);
+customElements.define("omnibox-element", OmniboxElement);
+customElements.define("omnimenu-element", OmnimenuElement);
+customElements.define("system-bar-element", SystemBarElement);
+
 const worker = new Worker("./data-worker.js", { type: "module" });
+
+const systemBarElement = document.querySelector<SystemBarElement>("system-bar-element")!;
+const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
+const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
+const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
 
 const routes = {
   setStatus: (text: string) => statusBar.setText(text),
@@ -26,25 +36,34 @@ server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 export type NotebookRoutes = typeof routes;
 
-customElements.define("status-bar-element", StatusBarElement);
-customElements.define("omnibox-element", OmniboxElement);
-customElements.define("omnimenu-element", OmnimenuElement);
-customElements.define("system-bar-element", SystemBarElement);
+function main() {
+  const editoView = initEditor(proxy);
+  initSystemBar(proxy, editoView, menu);
+  initContent(proxy, editoView);
+}
 
-const systemBarElement = document.createElement("system-bar-element") as SystemBarElement;
-systemBarElement.innerHTML = `
-<omnibox-element slot="prompt"></omnibox-element>
-<omnimenu-element slot="menu"></omnimenu-element>
-<status-bar-element slot="status"></status-bar-element>
-`;
+main();
 
-const statusBar = systemBarElement.querySelector<StatusBarElement>("status-bar-element")!;
-const omnibox = systemBarElement.querySelector<OmniboxElement>("omnibox-element")!;
-const menu = systemBarElement.querySelector<OmnimenuElement>("omnimenu-element")!;
+function initSystemBar(proxy: AsyncProxy<DataWorkerRoutes>, view: EditorView, menu: OmnimenuElement) {
+  omnibox.addEventListener("omnibox-load-default", async () => {
+    const files = await proxy.getRecentFiles();
+    menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.path })));
+  });
 
-statusBar.setText("Loading...");
+  omnibox.addEventListener("omnibox-input", async (e) => {
+    performance.mark("search-start");
+    const searchResults = await proxy.search({ query: e.detail, limit: 10 });
+    menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
+    console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
+  });
 
-async function initEditor(proxy: AsyncProxy<DataWorkerRoutes>) {
+  omnibox.addEventListener("omnibox-exit", () => {
+    menu.clear();
+    view.focus();
+  });
+}
+
+function initEditor(proxy: AsyncProxy<DataWorkerRoutes>) {
   const view = new EditorView({
     doc: "",
     extensions: [
@@ -63,25 +82,9 @@ async function initEditor(proxy: AsyncProxy<DataWorkerRoutes>) {
   });
 
   view.focus();
-
-  omnibox.addEventListener("omnibox-load-default", async () => {
-    const files = await proxy.getRecentFiles();
-    menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.path })));
-  });
-
-  omnibox.addEventListener("omnibox-input", async (e) => {
-    performance.mark("search-start");
-    const searchResults = await proxy.search({ query: e.detail, limit: 10 });
-    menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
-    console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
-  });
-
-  omnibox.addEventListener("omnibox-exit", () => {
-    menu.clear();
-    view.focus();
-  });
-
-  await loadInitialDoc(view, proxy);
+  return view;
 }
 
-initEditor(proxy);
+function initContent(proxy: AsyncProxy<DataWorkerRoutes>, view: EditorView) {
+  return loadInitialDoc(view, proxy);
+}
