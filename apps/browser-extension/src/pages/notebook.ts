@@ -24,30 +24,41 @@ customElements.define("system-bar-element", SystemBarElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
-const systemBarElement = document.querySelector<SystemBarElement>("system-bar-element")!;
-const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
-const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
-const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
+const statusEvents = new EventTarget();
 
+export type NotebookRoutes = typeof routes;
 const routes = {
-  setStatus: (text: string) => statusBar.setText(text),
+  setStatus: (text: string) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: text })),
 };
+
 server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
-export type NotebookRoutes = typeof routes;
 
 function main() {
-  const editoView = initEditor(proxy);
-  initSystemBar(proxy, editoView, menu);
+  const systemBarElement = document.querySelector<SystemBarElement>("system-bar-element")!;
+  const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
+  const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
+  const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
+
+  const editoView = initEditor(proxy, systemBarElement, omnibox);
+  initSystemBar(proxy, editoView, omnibox, menu, statusBar);
   initContent(proxy, editoView);
 }
 
 main();
 
-function initSystemBar(proxy: AsyncProxy<DataWorkerRoutes>, view: EditorView, menu: OmnimenuElement) {
+function initSystemBar(
+  proxy: AsyncProxy<DataWorkerRoutes>,
+  view: EditorView,
+  omnibox: OmniboxElement,
+  menu: OmnimenuElement,
+  statusBar: StatusBarElement
+) {
+  statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
+
   omnibox.addEventListener("omnibox-load-default", async () => {
-    const files = await proxy.getRecentFiles();
-    menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.path })));
+    const searchResults = await proxy.getRecentFiles();
+    menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
   });
 
   omnibox.addEventListener("omnibox-input", async (e) => {
@@ -63,7 +74,7 @@ function initSystemBar(proxy: AsyncProxy<DataWorkerRoutes>, view: EditorView, me
   });
 }
 
-function initEditor(proxy: AsyncProxy<DataWorkerRoutes>) {
+function initEditor(proxy: AsyncProxy<DataWorkerRoutes>, systemBarElement: SystemBarElement, omnibox: OmniboxElement) {
   const view = new EditorView({
     doc: "",
     extensions: [

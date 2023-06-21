@@ -27,6 +27,19 @@ export function search(db: Sqlite3.DB, input: SearchInput): SearchResult[] {
   return results;
 }
 
+export function searchRecentFiles(db: Sqlite3.DB, limit: number): SearchResult[] {
+  const files = dbApi.getRecentFiles(db, limit);
+
+  const results = files
+    .map((file) => ({
+      file,
+      node: dbApi.getNode(db, file.path),
+    }))
+    .filter(hasNode);
+
+  return results;
+}
+
 function hasNode(
   maybeResult: Omit<SearchResult, "node"> & Pick<Partial<SearchResult>, "node">
 ): maybeResult is SearchResult {

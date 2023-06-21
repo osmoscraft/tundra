@@ -2,7 +2,7 @@ import { asyncPipe } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
-import { search, type SearchInput } from "../modules/search/search";
+import { search, searchRecentFiles, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -42,7 +42,7 @@ const routes = {
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
-  getRecentFiles: async () => dbApi.getRecentFiles(await dbInit(), 10),
+  getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
   clone: async () => {
     const db = await dbInit();
     await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
