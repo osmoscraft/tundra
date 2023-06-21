@@ -40,6 +40,7 @@ async function initEditor(proxy: AsyncProxy<DataWorkerRoutes>) {
       highlightActiveLine(),
       drawSelection(),
       dropCursor(),
+      EditorView.lineWrapping,
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
       systemBar({
         prompt: omnibox,
