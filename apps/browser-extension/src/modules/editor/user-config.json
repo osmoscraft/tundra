@@ -1,0 +1,48 @@
+{
+  "keyBindings": [
+    {
+      "name": "Move line up",
+      "run": "editor.moveLineUp",
+      "key": "Alt-k"
+    },
+    {
+      "name": "Move line down",
+      "run": "editor.moveLineDown",
+      "key": "Alt-j"
+    },
+    {
+      "name": "Copy line up",
+      "run": "editor.copyLineUp",
+      "key": "Alt-K"
+    },
+    {
+      "name": "Copy line down",
+      "run": "editor.copyLineDown",
+      "key": "Alt-J"
+    },
+    {
+      "name": "Indent less",
+      "run": "editor.indentLess",
+      "key": "Alt-h"
+    },
+    {
+      "name": "Indent more",
+      "run": "editor.indentMore",
+      "key": "Alt-l"
+    },
+    {
+      "name": "Open Omnibox",
+      "run": "omnibox.open",
+      "key": "Mod-Space"
+    },
+    {
+      "name": "Save",
+      "run": "file.save",
+      "key": "Mod-s"
+    },
+    {
+      "name": "Sync",
+      "run": "file.syncAll"
+    }
+  ]
+}

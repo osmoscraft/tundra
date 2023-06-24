@@ -1,8 +1,8 @@
 import type { KeyBinding } from "@codemirror/view";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
-import { save } from "../editor";
 import type { OmniboxElement } from "../omnibox/omnibox-element";
+import { save } from "../save";
 
 export const omniboxKeymap: (omnibox: OmniboxElement, proxy: AsyncProxy<DataWorkerRoutes>) => KeyBinding[] = (
   omnibox,
