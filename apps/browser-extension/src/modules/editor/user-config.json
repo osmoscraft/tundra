@@ -41,9 +41,14 @@
       "key": "Mod-Z"
     },
     {
-      "name": "Open Omnibox",
-      "run": "omnibox.open",
+      "name": "Omnibox search",
+      "run": "shell.openSearch",
       "key": "Mod-Space"
+    },
+    {
+      "name": "Omnibox command",
+      "run": "shell.openCommand",
+      "key": "Mod-p"
     },
     {
       "name": "Save",

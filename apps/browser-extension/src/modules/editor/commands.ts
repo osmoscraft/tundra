@@ -23,11 +23,7 @@ export interface CommandKeyBinding {
   // when?: string;
 }
 
-export interface KeyBindingResults {
-  keyBindings: KeyBinding[];
-}
-
-export function getKeyBindings(bindings: CommandKeyBinding[], library: CommandLibrary): KeyBindingResults {
+export function getEditorBindings(bindings: CommandKeyBinding[], library: CommandLibrary): KeyBinding[] {
   const keyBindings: KeyBinding[] = [];
 
   bindings.forEach((binding) => {
@@ -42,9 +38,7 @@ export function getKeyBindings(bindings: CommandKeyBinding[], library: CommandLi
     }
   });
 
-  return {
-    keyBindings,
-  };
+  return keyBindings;
 }
 
 export interface CommandLibrary {
@@ -72,9 +66,13 @@ export function editorCommands(): CommandLibrary {
 
 export function extendedCommands(proxy: AsyncProxy<DataWorkerRoutes>, omnibox: OmniboxElement): CommandLibrary {
   return {
-    omnibox: {
-      open: () => {
-        omnibox.focus();
+    shell: {
+      openSearch: () => {
+        omnibox.open();
+        return true;
+      },
+      openCommand: () => {
+        omnibox.open(">");
         return true;
       },
     },

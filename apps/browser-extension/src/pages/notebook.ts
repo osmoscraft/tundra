@@ -1,7 +1,7 @@
 import { history } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap } from "@codemirror/view";
+import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
@@ -9,7 +9,7 @@ import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
 import { systemBar } from "../modules/editor/code-mirror-ext/system-bar";
 import {
   extendedCommands,
-  getKeyBindings,
+  getEditorBindings as getEditorKeyBindings,
   editorCommands as nativeCommands,
   type CommandKeyBinding,
 } from "../modules/editor/commands";
@@ -40,13 +40,19 @@ server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 
 function main() {
-  const systemBarElement = document.querySelector<SystemBarElement>("system-bar-element")!;
-  const statusBar = document.querySelector<StatusBarElement>("status-bar-element")!;
-  const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
-  const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const systemBarElement = document
+    .querySelector<HTMLTemplateElement>("#system-bar-template")!
+    .content.querySelector<SystemBarElement>("system-bar-element")!;
+  const statusBar = systemBarElement.querySelector<StatusBarElement>("status-bar-element")!;
+  const omnibox = systemBarElement.querySelector<OmniboxElement>("omnibox-element")!;
+  const menu = systemBarElement.querySelector<OmnimenuElement>("omnimenu-element")!;
 
-  const editoView = initEditor(proxy, systemBarElement, omnibox);
-  initSystemBar(proxy, editoView, omnibox, menu, statusBar);
+  const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
+  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox) };
+  const bindings = getEditorKeyBindings(configKeyBindings, library);
+
+  const editoView = initEditor(systemBarElement, bindings);
+  initSystemBar(proxy, editoView, omnibox, menu, statusBar, configKeyBindings);
   initContent(proxy, editoView);
 }
 
@@ -57,20 +63,37 @@ function initSystemBar(
   view: EditorView,
   omnibox: OmniboxElement,
   menu: OmnimenuElement,
-  statusBar: StatusBarElement
+  statusBar: StatusBarElement,
+  bindings: CommandKeyBinding[]
 ) {
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
-  omnibox.addEventListener("omnibox-load-default", async () => {
-    const searchResults = await proxy.getRecentFiles();
-    menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
-  });
-
   omnibox.addEventListener("omnibox-input", async (e) => {
-    performance.mark("search-start");
-    const searchResults = await proxy.search({ query: e.detail, limit: 10 });
-    menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
-    console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
+    const q = e.detail;
+    if (q.startsWith(">")) {
+      const command = q.slice(1).trim();
+      const matchedCommands = bindings.filter((cmd) =>
+        cmd.name.toLocaleLowerCase().startsWith(command.toLocaleLowerCase())
+      );
+      menu.setSuggestions(
+        matchedCommands.map((command) => ({
+          path: "TBD",
+          title: command.name,
+        }))
+      );
+    } else if (q.length) {
+      performance.mark("search-start");
+      const searchResults = await proxy.search({ query: e.detail, limit: 10 });
+      menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
+      console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
+    } else {
+      performance.mark("load-recent-start");
+      const searchResults = await proxy.getRecentFiles();
+      menu.setSuggestions(searchResults.map((result) => ({ path: result.node.path, title: result.node.title })));
+      console.log(
+        `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
+      );
+    }
   });
 
   omnibox.addEventListener("omnibox-exit", () => {
@@ -79,11 +102,7 @@ function initSystemBar(
   });
 }
 
-function initEditor(proxy: AsyncProxy<DataWorkerRoutes>, systemBarElement: SystemBarElement, omnibox: OmniboxElement) {
-  const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
-  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox) };
-  const bindings = getKeyBindings(configKeyBindings, library);
-
+function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[]) {
   const view = new EditorView({
     doc: "",
     extensions: [
@@ -96,7 +115,7 @@ function initEditor(proxy: AsyncProxy<DataWorkerRoutes>, systemBarElement: Syste
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
       systemBar(systemBarElement),
       oneDark,
-      keymap.of(bindings.keyBindings),
+      keymap.of(keyBindings),
     ],
     parent: document.getElementById("editor-root")!,
   });

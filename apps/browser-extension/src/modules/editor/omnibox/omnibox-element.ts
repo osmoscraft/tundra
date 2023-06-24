@@ -11,7 +11,6 @@ export type QueryEventDetail = string;
 declare global {
   interface HTMLElementEventMap {
     "omnibox-input": CustomEvent<QueryEventDetail>;
-    "omnibox-load-default": Event;
     "omnibox-exit": Event;
   }
 }
@@ -24,18 +23,16 @@ export class OmniboxElement extends HTMLElement {
   connectedCallback() {
     this.form.addEventListener("submit", (e) => e.preventDefault());
     this.input.addEventListener("input", (e) => {
-      if ((e.target as HTMLInputElement).value.trim()) {
-        this.dispatchEvent(
-          new CustomEvent<QueryEventDetail>("omnibox-input", {
-            detail: this.input.value.trim(),
-          })
-        );
-      } else {
-        this.dispatchEvent(new Event("omnibox-load-default"));
-      }
+      this.dispatchEvent(
+        new CustomEvent<QueryEventDetail>("omnibox-input", {
+          detail: this.input.value.trim(),
+        })
+      );
     });
 
-    this.input.addEventListener("focus", (e) => this.dispatchEvent(new Event("omnibox-load-default")));
+    this.input.addEventListener("focus", (e) => {
+      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox-input", { detail: this.input.value.trim() }));
+    });
 
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
@@ -44,7 +41,8 @@ export class OmniboxElement extends HTMLElement {
     });
   }
 
-  focus() {
+  open(initialValue?: string) {
+    if (initialValue !== undefined) this.input.value = initialValue;
     this.input.focus();
   }
 }

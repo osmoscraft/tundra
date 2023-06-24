@@ -1,7 +1,7 @@
 import { type Extension } from "@codemirror/state";
 import { EditorView, showPanel, type Panel } from "@codemirror/view";
 
-function systemBarPanel(dom: HTMLElement, view: EditorView): Panel {
+function systemBarPanel(dom: HTMLElement, _view: EditorView): Panel {
   return {
     dom,
   };
