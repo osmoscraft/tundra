@@ -3,32 +3,42 @@
     {
       "name": "Move line up",
       "run": "editor.moveLineUp",
-      "key": "Alt-k"
+      "key": "Alt-ArrowUp"
     },
     {
       "name": "Move line down",
       "run": "editor.moveLineDown",
-      "key": "Alt-j"
+      "key": "Alt-ArrowDown"
     },
     {
       "name": "Copy line up",
       "run": "editor.copyLineUp",
-      "key": "Alt-K"
+      "key": "Alt-Shift-ArrowUp"
     },
     {
       "name": "Copy line down",
       "run": "editor.copyLineDown",
-      "key": "Alt-J"
+      "key": "Alt-Shift-ArrowDown"
     },
     {
       "name": "Indent less",
       "run": "editor.indentLess",
-      "key": "Alt-h"
+      "key": "Alt-ArrowLeft"
     },
     {
       "name": "Indent more",
       "run": "editor.indentMore",
-      "key": "Alt-l"
+      "key": "Alt-ArrowRight"
+    },
+    {
+      "name": "Undo",
+      "run": "editor.undo",
+      "key": "Mod-z"
+    },
+    {
+      "name": "Redo",
+      "run": "editor.redo",
+      "key": "Mod-Z"
     },
     {
       "name": "Open Omnibox",

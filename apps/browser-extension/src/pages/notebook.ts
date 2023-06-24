@@ -1,18 +1,23 @@
-import { history, historyKeymap } from "@codemirror/commands";
+import { history } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
-import { blockMovementKeymap } from "../modules/editor/code-mirror-ext/block-movement-keymap";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
-import { omniboxKeymap } from "../modules/editor/code-mirror-ext/omnibox-keymap";
 import { systemBar } from "../modules/editor/code-mirror-ext/system-bar";
+import {
+  extendedCommands,
+  getKeyBindings,
+  editorCommands as nativeCommands,
+  type CommandKeyBinding,
+} from "../modules/editor/commands";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { OmnimenuElement } from "../modules/editor/suggestion-list/omnimenu-element";
+import userConfig from "../modules/editor/user-config.json";
 import { SystemBarElement } from "../modules/system-bar/system-bar-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
@@ -75,6 +80,10 @@ function initSystemBar(
 }
 
 function initEditor(proxy: AsyncProxy<DataWorkerRoutes>, systemBarElement: SystemBarElement, omnibox: OmniboxElement) {
+  const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
+  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox) };
+  const bindings = getKeyBindings(configKeyBindings, library);
+
   const view = new EditorView({
     doc: "",
     extensions: [
@@ -87,7 +96,7 @@ function initEditor(proxy: AsyncProxy<DataWorkerRoutes>, systemBarElement: Syste
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
       systemBar(systemBarElement),
       oneDark,
-      keymap.of([...blockMovementKeymap, ...historyKeymap, ...omniboxKeymap(omnibox, proxy)]),
+      keymap.of(bindings.keyBindings),
     ],
     parent: document.getElementById("editor-root")!,
   });
