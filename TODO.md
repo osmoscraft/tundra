@@ -1,9 +1,7 @@
 - Migration
   - Add a web hook that pushes haiku into markdown repo
 - Search
-  - Debounce
   - Add tests
-  - Boost title match
 - Frontmatter
   - Auto quote strings that has special control charaters
     - Handle quote within quote
@@ -25,3 +23,6 @@
   - CSS based text wrap
 - Highlight
   - Replace markdown AST based highlight with regex decoration highlight
+- Content
+  - Consolidate object store with file meta store
+  - Use .gitignore to protect github connection

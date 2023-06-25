@@ -128,10 +128,9 @@ export interface SearchFilesInput {
   limit: number;
 }
 export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFile[] {
+  // weights map to fts columns: path, content, meta,
   const sql = `
-SELECT * FROM File WHERE path IN (
-  SELECT path FROM FileFts WHERE FileFts MATCH :query ORDER BY rank LIMIT :limit
-)
+SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH :query ORDER BY bm25(FileFts, 0.1, 1, 100) LIMIT :limit
 `;
 
   const bind = paramsToBindings(sql, {
