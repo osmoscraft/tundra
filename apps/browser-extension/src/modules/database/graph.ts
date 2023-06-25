@@ -75,7 +75,7 @@ export interface SearchNodesInput {
   query: string;
   limit: number;
 }
-export function searchNodes(db: Sqlite3.DB, input: SearchNodesInput) {
+export function searchNodesByTitle(db: Sqlite3.DB, input: SearchNodesInput) {
   const sql = `
 SELECT * FROM NodeFts WHERE title MATCH :query ORDER BY rank LIMIT :limit
 `;

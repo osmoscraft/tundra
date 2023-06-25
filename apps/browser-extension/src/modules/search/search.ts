@@ -15,29 +15,35 @@ export interface SearchResult {
 export function search(db: Sqlite3.DB, input: SearchInput): SearchResult[] {
   const query = consecutiveWordPrefixQuery(input.query);
   console.log(`[search] internal query ${query}`);
-  const files = dbApi.searchFiles(db, { query, limit: input.limit });
+  return db.transaction(() => {
+    const files = dbApi.searchFiles(db, { query, limit: input.limit });
 
-  const results = files
-    .map((file) => ({
-      file,
-      node: dbApi.getNode(db, file.path),
-    }))
-    .filter(hasNode);
+    const results = files
+      .map((file) => ({
+        file,
+        node: dbApi.getNode(db, file.path),
+      }))
+      .filter(hasNode);
 
-  return results;
+    return results;
+  });
 }
 
 export function searchRecentFiles(db: Sqlite3.DB, limit: number): SearchResult[] {
-  const files = dbApi.getRecentFiles(db, limit);
+  return db.transaction(() => {
+    performance.mark("searchRecentFiles");
+    const files = dbApi.getRecentFiles(db, limit);
 
-  const results = files
-    .map((file) => ({
-      file,
-      node: dbApi.getNode(db, file.path),
-    }))
-    .filter(hasNode);
+    const results = files
+      .map((file) => ({
+        file,
+        node: dbApi.getNode(db, file.path),
+      }))
+      .filter(hasNode);
 
-  return results;
+    console.log(performance.measure("d", "searchRecentFiles").duration);
+    return results;
+  });
 }
 
 function hasNode(

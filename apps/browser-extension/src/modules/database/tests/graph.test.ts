@@ -1,5 +1,5 @@
 import { assertDeepEqual, assertEqual, assertUndefined } from "../../live-test";
-import { deleteAllNodes, deleteNode, getNode, getNodes, searchNodes, setNode, setNodes } from "../graph";
+import { deleteAllNodes, deleteNode, getNode, getNodes, searchNodesByTitle, setNode, setNodes } from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -66,17 +66,17 @@ export async function testSearchNodes() {
   ]);
 
   console.log("[test] graphSearch/empty");
-  const emptyResults = searchNodes(db, { query: "nothing should show up", limit: 10 });
+  const emptyResults = searchNodesByTitle(db, { query: "nothing should show up", limit: 10 });
   assertEqual(emptyResults.length, 0, "No result");
 
   console.log("[test] graphSearch/simple");
-  const simpleResults = searchNodes(db, { query: "hello", limit: 10 });
+  const simpleResults = searchNodesByTitle(db, { query: "hello", limit: 10 });
   assertEqual(simpleResults.length, 1, "Exactly one result");
   assertEqual(simpleResults[0].path, "/node-1", "Path matches");
   assertEqual(simpleResults[0].title, "hello world", "Title matches");
 
   console.log("[test] graphSearch/caseInsensitive");
-  const caseInsensitiveResult = searchNodes(db, { query: "oK comPUtEr", limit: 10 });
+  const caseInsensitiveResult = searchNodesByTitle(db, { query: "oK comPUtEr", limit: 10 });
   assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
   assertEqual(caseInsensitiveResult[0].title, "OK Computer", "Title matches");
 }
