@@ -1,5 +1,6 @@
 export interface DbFile {
   path: string;
+  title: string | null;
   content: string | null;
   updatedTime: string | null;
   isDirty: 0 | 1;
@@ -7,6 +8,7 @@ export interface DbFile {
 }
 
 export interface DbFileInternal extends DbFile {
+  meta: any;
   localContent: string | null;
   localUpdatedTime: string;
   remoteContent: string | null;
