@@ -41,7 +41,6 @@ export function searchRecentFiles(db: Sqlite3.DB, limit: number): SearchResult[]
       }))
       .filter(hasNode);
 
-    console.log(performance.measure("d", "searchRecentFiles").duration);
     return results;
   });
 }
