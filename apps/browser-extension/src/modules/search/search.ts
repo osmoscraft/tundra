@@ -31,7 +31,6 @@ export function search(db: Sqlite3.DB, input: SearchInput): SearchResult[] {
 
 export function searchRecentFiles(db: Sqlite3.DB, limit: number): SearchResult[] {
   return db.transaction(() => {
-    performance.mark("searchRecentFiles");
     const files = dbApi.getRecentFiles(db, limit);
 
     const results = files
