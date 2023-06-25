@@ -1,1 +1,0 @@
-SELECT * FROM FileChange WHERE path = :path;

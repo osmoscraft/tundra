@@ -1,1 +1,0 @@
-SELECT * FROM FileChange WHERE path = :path AND source = 1 AND status != 0;

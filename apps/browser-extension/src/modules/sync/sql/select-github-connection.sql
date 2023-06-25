@@ -1,1 +1,0 @@
-SELECT * FROM GithubConnection LIMIT 1;
