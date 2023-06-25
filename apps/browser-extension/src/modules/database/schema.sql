@@ -14,7 +14,11 @@ CREATE TABLE IF NOT EXISTS File (
       ELSE remoteContent
     END
   ),
-  title TEXT GENERATED ALWAYS AS (json_extract(meta, '$.title')),
+  -- TODO future columns
+  -- title TEXT GENERATED ALWAYS AS (json_extract(meta, '$.title')),
+  -- feedURL...
+  -- targetLinks...
+  -- tags...
   isDeleted INTEGER GENERATED ALWAYS AS (content IS NULL),
   isDirty INTEGER GENERATED ALWAYS AS (content IS NOT remoteContent),
   updatedTime TEXT GENERATED ALWAYS AS (
