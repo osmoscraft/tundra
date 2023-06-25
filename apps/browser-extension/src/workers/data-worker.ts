@@ -1,4 +1,4 @@
-import { asyncPipe } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -17,7 +17,7 @@ const DB_PATH = "/tinykb-db.sqlite3";
 
 const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
-const dbInit = () => dbApi.init(DB_PATH);
+const dbInit = callOnce(() => dbApi.init(DB_PATH));
 const getDbFile = () => getOpfsFileByPath(DB_PATH);
 const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
