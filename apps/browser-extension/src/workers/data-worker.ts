@@ -2,6 +2,7 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
+import { parseDocument } from "../modules/search/indexer";
 import { search, searchRecentFiles, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
@@ -48,10 +49,8 @@ const routes = {
     await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
     const { generator, oid } = await sync.getGithubRemote(db);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
-    const processChunk = (chunk: RemoteChangeRecord[]) => {
+    const processChunk = (chunk: RemoteChangeRecord[]) =>
       dbApi.setRemoteFiles(db, chunk.map(sync.GithubChangeToFileChange));
-      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange));
-    };
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, oid);
   },
@@ -63,7 +62,6 @@ const routes = {
       const fileChanges = chunk.map(sync.GithubChangeToFileChange);
       dbApi.setRemoteFiles(db, fileChanges);
       dbApi.setLocalFiles(db, fileChanges); // TODO: skip write if local timestamp is newer
-      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange)); // TODO: skip write if local timestamp is newer
     };
 
     db.transaction(() => chunks.forEach(processChunk));
@@ -93,11 +91,9 @@ const routes = {
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
-    dbApi.setLocalFile(db, { path, content });
-    dbApi.setNode(db, {
-      path,
-      title: content.slice(0, 100) ?? "Untitled", // mock
-    });
+    // TODO encapsulate
+    const document = parseDocument(content ?? "");
+    dbApi.setLocalFile(db, { path, content, meta: { title: document.frontmatter.title } });
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
 };

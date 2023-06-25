@@ -1,21 +1,28 @@
-import type { DbFile } from "./schema";
+import type { DbFile, DbFileInternal } from "./schema";
 import { arrayToParams, paramsToBindings } from "./utils";
 
 export interface FileChange {
   path: string;
   content: string | null;
+  meta?: MetaChange;
   updatedTime?: string;
+}
+
+export interface MetaChange {
+  title?: string;
+  [key: string]: any;
 }
 
 export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
   const sql = `
-  INSERT INTO File (path, localContent, localUpdatedTime) VALUES (:path, :content, :updatedTime)
-  ON CONFLICT(path) DO UPDATE SET localContent = excluded.content, localUpdatedTime = excluded.updatedTime
+  INSERT INTO File (path, localContent, meta, localUpdatedTime) VALUES (:path, :content, json(:meta), :updatedTime)
+  ON CONFLICT(path) DO UPDATE SET localContent = excluded.content, meta = json(excluded.meta), localUpdatedTime = excluded.updatedTime
   `;
 
   const bindings = paramsToBindings(sql, {
     path: file.path,
     content: file.content,
+    meta: JSON.stringify(file.meta),
     updatedTime: file.updatedTime ?? new Date().toISOString(),
   });
 
@@ -41,9 +48,9 @@ export function setLocalFiles(db: Sqlite3.DB, files: FileChange[]) {
   if (!files.length) return;
 
   const sql = `
-INSERT INTO File (path, localContent, localUpdatedTime) VALUES
-${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, :t${i})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, localUpdatedTime = excluded.localUpdatedTime
+INSERT INTO File (path, localContent, meta, localUpdatedTime) VALUES
+${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, json(:m${i}), :t${i})`).join(",")}
+ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, meta = json(excluded.meta), localUpdatedTime = excluded.localUpdatedTime
   `;
 
   const timedFiles = files.map((file) => {
@@ -52,6 +59,7 @@ ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, localUpdat
     return {
       p: file.path,
       c: file.content,
+      m: JSON.stringify(file.meta),
       t: timestamp,
     };
   });
@@ -65,9 +73,9 @@ export function setRemoteFiles(db: Sqlite3.DB, files: FileChange[]) {
   if (!files.length) return;
 
   const sql = `
-INSERT INTO File (path, remoteContent, remoteUpdatedTime) VALUES
-${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, :t${i})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, remoteUpdatedTime = excluded.remoteUpdatedTime
+INSERT INTO File (path, remoteContent, meta, remoteUpdatedTime) VALUES
+${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, json(:m${i}), :t${i})`).join(",")}
+ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = json(excluded.meta), remoteUpdatedTime = excluded.remoteUpdatedTime
   `;
 
   const timedFiles = files.map((file) => {
@@ -76,6 +84,7 @@ ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, remoteUp
     return {
       p: file.path,
       c: file.content,
+      m: JSON.stringify(file.meta),
       t: timestamp,
     };
   });
@@ -89,19 +98,25 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
   const sql = `SELECT * FROM File WHERE path = :path`;
   const bind = paramsToBindings(sql, { path });
 
-  return db.selectObject<DbFile>(sql, bind) ?? undefined;
+  const raw = db.selectObject<DbFileInternal>(sql, bind);
+  if (!raw) return undefined;
+
+  return {
+    ...raw,
+    meta: JSON.parse(raw.meta),
+  };
 }
 
 export function getRecentFiles(db: Sqlite3.DB, limit: number): DbFile[] {
   const sql = `SELECT * FROM File ORDER BY updatedTime DESC LIMIT :limit`;
   const bind = paramsToBindings(sql, { limit });
 
-  return db.selectObjects<DbFile>(sql, bind);
+  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
 }
 
 export function getDirtyFiles(db: Sqlite3.DB): DbFile[] {
   const sql = `SELECT * FROM File WHERE isDirty = 1`;
-  return db.selectObjects<DbFile>(sql);
+  return db.selectObjects<DbFileInternal>(sql).map(parseMeta);
 }
 
 export function deleteAllFiles(db: Sqlite3.DB) {
@@ -112,10 +127,10 @@ export interface SearchFilesInput {
   query: string;
   limit: number;
 }
-export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
+export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFile[] {
   const sql = `
 SELECT * FROM File WHERE path IN (
-  SELECT path FROM FileFts WHERE content MATCH :query ORDER BY rank LIMIT :limit
+  SELECT path FROM FileFts WHERE FileFts MATCH :query ORDER BY rank LIMIT :limit
 )
 `;
 
@@ -124,5 +139,12 @@ SELECT * FROM File WHERE path IN (
     limit: input.limit,
   });
 
-  return db.selectObjects<DbFile>(sql, bind);
+  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
+}
+
+function parseMeta(dbFile: DbFileInternal) {
+  return {
+    ...dbFile,
+    meta: JSON.parse(dbFile.meta),
+  };
 }

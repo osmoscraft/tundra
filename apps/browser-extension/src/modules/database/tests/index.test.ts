@@ -6,8 +6,10 @@ import {
   testGetRecentFiles,
   testLocalFileEditLifecycle,
   testLocalFirstSync,
+  testMetaCRUD,
   testRemoteFirstSync,
-  testSearchFiles,
+  testSearchFileContent,
+  testSearchMeta,
 } from "./file.test";
 import { testGraphCRUD, testSearchNodes } from "./graph.test";
 import { testObjectCRUD } from "./object.test";
@@ -26,7 +28,9 @@ export async function testDatabase() {
   await testGetRecentFiles();
   await testGetDirtyFiles();
   await testBulkOperations();
-  await testSearchFiles();
+  await testMetaCRUD();
+  await testSearchMeta();
+  await testSearchFileContent();
 
   // object
   await testObjectCRUD();

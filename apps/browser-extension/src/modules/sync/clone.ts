@@ -7,10 +7,14 @@ import { archivePathToGithubFilePath, githubPathToNotePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
 export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange {
+  const document = parseDocument(record.text ?? "");
   return {
     path: record.path,
     content: record.text,
     updatedTime: record.timestamp,
+    meta: {
+      title: document.frontmatter.title,
+    },
   };
 }
 

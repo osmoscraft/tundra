@@ -307,7 +307,67 @@ export async function testBulkOperations() {
   setRemoteFiles(db, []); // empty
 }
 
-export async function testSearchFiles() {
+export async function testMetaCRUD() {
+  console.log("[text] metaCRUD");
+  const db = await createTestDb(SCHEMA);
+
+  setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedTime: "2000-01-01T00:00:00Z" });
+  assertEqual(getFile(db, "/meta-undefined.md")!.meta, null, "undefined meta");
+
+  setLocalFile(db, { path: "/meta-empty.md", content: "", meta: {}, updatedTime: "2000-01-01T00:00:00Z" });
+  assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");
+
+  setLocalFile(db, {
+    path: "/meta-extended.md",
+    content: "",
+    meta: { hello: 42, world: true },
+    updatedTime: "2000-01-01T00:00:00Z",
+  });
+  assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, { hello: 42, world: true }, "extended meta");
+
+  setLocalFiles(db, [
+    { path: "/file-2.md", content: "", meta: { title: "title 2" }, updatedTime: "2000-01-01T00:00:00Z" },
+  ]);
+
+  setRemoteFiles(db, [
+    { path: "/file-3.md", content: "", meta: { title: "title 3" }, updatedTime: "2000-01-01T00:00:00Z" },
+  ]);
+
+  const recentFiles = getRecentFiles(db, 10);
+  assertEqual(recentFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
+  assertEqual(recentFiles.find((f) => f.path === "/file-3.md")!.meta.title, "title 3", "title 3");
+
+  const dirtyFiles = getDirtyFiles(db);
+  assertEqual(dirtyFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
+}
+
+export async function testSearchMeta() {
+  console.log("[test] searchMeta");
+  const db = await createTestDb(SCHEMA);
+
+  setLocalFiles(db, [
+    { path: "/node-1", content: "", meta: { title: "hello world" }, updatedTime: "2000-01-01T00:00:00Z" },
+    { path: "/node-2", content: "", meta: { title: "OK Computer" }, updatedTime: "2000-01-01T00:00:00Z" },
+    { path: "/node-3", content: "", meta: { title: "random stuff" }, updatedTime: "2000-01-01T00:00:00Z" },
+  ]);
+
+  console.log("[test] searchMeta/empty");
+  const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });
+  assertEqual(emptyResults.length, 0, "No result");
+
+  console.log("[test] searchMeta/simple");
+  const simpleResults = searchFiles(db, { query: "hello", limit: 10 });
+  assertEqual(simpleResults.length, 1, "Exactly one result");
+  assertEqual(simpleResults[0].path, "/node-1", "Path matches");
+  assertEqual(simpleResults[0].meta.title, "hello world", "Title matches");
+
+  console.log("[test] searchMeta/caseInsensitive");
+  const caseInsensitiveResult = searchFiles(db, { query: "oK comPUtEr", limit: 10 });
+  assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
+  assertEqual(caseInsensitiveResult[0].meta.title, "OK Computer", "Title matches");
+}
+
+export async function testSearchFileContent() {
   console.log("[test] searchFiles");
   const db = await createTestDb(SCHEMA);
 
