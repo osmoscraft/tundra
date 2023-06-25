@@ -11,14 +11,9 @@ import {
   testSearchFileContent,
   testSearchMeta,
 } from "./file.test";
-import { testGraphCRUD, testSearchNodes } from "./graph.test";
 import { testObjectCRUD } from "./object.test";
 
 export async function testDatabase() {
-  // graph
-  await testGraphCRUD();
-  await testSearchNodes();
-
   // file
   await testLocalFileEditLifecycle();
   await testLocalFirstSync();

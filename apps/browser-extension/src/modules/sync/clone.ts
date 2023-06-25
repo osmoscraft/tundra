@@ -1,6 +1,6 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
-import type { FileChange, NodeChange } from "../database";
+import type { FileChange } from "../database";
 import { parseDocument } from "../search/indexer";
 import * as github from "./github";
 import { archivePathToGithubFilePath, githubPathToNotePath } from "./path";
@@ -15,14 +15,6 @@ export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange
     meta: {
       title: document.frontmatter.title,
     },
-  };
-}
-
-export function GithubChangeToNodeChange(record: RemoteChangeRecord): NodeChange {
-  const document = parseDocument(record.text ?? "");
-  return {
-    path: record.path,
-    title: document.frontmatter.title,
   };
 }
 

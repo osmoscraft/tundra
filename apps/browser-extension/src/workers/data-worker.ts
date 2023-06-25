@@ -26,7 +26,7 @@ const routes = {
   checkHealth: () => dbApi.testDatabase(),
   clearFiles: async () => {
     const db = await dbInit();
-    Promise.all([dbApi.deleteAllFiles(db), dbApi.deleteAllNodes(db), sync.clearHistory(db)]);
+    Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
   },
   destoryData: async () => {
     const db = await dbInit();
