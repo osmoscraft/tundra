@@ -30,3 +30,5 @@
   - Backlink display
   - Link insertion via autocomplete
   - Open file by search
+- Import
+  - Handle files with no frontmatter
