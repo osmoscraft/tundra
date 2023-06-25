@@ -67,6 +67,10 @@ export function editorCommands(): CommandLibrary {
 export function extendedCommands(proxy: AsyncProxy<DataWorkerRoutes>, omnibox: OmniboxElement): CommandLibrary {
   return {
     shell: {
+      openOptions: () => {
+        location.assign("./options.html");
+        return true;
+      },
       openSearch: () => {
         omnibox.open();
         return true;
@@ -77,6 +81,10 @@ export function extendedCommands(proxy: AsyncProxy<DataWorkerRoutes>, omnibox: O
       },
     },
     file: {
+      new: (view) => {
+        location.assign("?draft");
+        return true;
+      },
       save: (view) => {
         save(() => view.state.doc.toString(), proxy);
         return true;

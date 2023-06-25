@@ -32,8 +32,6 @@ export class OmnimenuElement extends HTMLElement {
 
   setSuggestions(items: OmnimenuSuggestion[]) {
     this.nodeList.innerHTML = [
-      `<li><a href="./options.html">Options</a></li>`,
-      `<li><a href="?draft">new</li>`,
       ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
     ].join("");
   }

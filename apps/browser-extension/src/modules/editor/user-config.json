@@ -41,6 +41,10 @@
       "key": "Mod-Z"
     },
     {
+      "name": "Options",
+      "run": "shell.openOptions"
+    },
+    {
       "name": "Omnibox search",
       "run": "shell.openSearch",
       "key": "Mod-Space"
@@ -54,6 +58,10 @@
       "name": "Save",
       "run": "file.save",
       "key": "Mod-s"
+    },
+    {
+      "name": "New",
+      "run": "file.new"
     },
     {
       "name": "Sync",

@@ -118,6 +118,7 @@ function initSystemBar(
       const [namespace, commandName] = matchedCommand.run.split(".");
       const command = library[namespace]?.[commandName] as Command | undefined;
 
+      omnibox.clear();
       menu.clear();
       view.focus();
       command?.(view);
@@ -125,6 +126,7 @@ function initSystemBar(
   });
 
   omnibox.addEventListener("omnibox-exit", () => {
+    omnibox.clear();
     menu.clear();
     view.focus();
   });

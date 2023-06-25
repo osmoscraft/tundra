@@ -39,9 +39,14 @@ export class OmniboxElement extends HTMLElement {
 
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         this.dispatchEvent(new Event("omnibox-exit"));
       }
     });
+  }
+
+  clear() {
+    this.input.value = "";
   }
 
   open(initialValue?: string) {
