@@ -1,7 +1,15 @@
 import { history } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
+import {
+  EditorView,
+  drawSelection,
+  dropCursor,
+  highlightActiveLine,
+  keymap,
+  type Command,
+  type KeyBinding,
+} from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
@@ -12,6 +20,7 @@ import {
   getEditorBindings as getEditorKeyBindings,
   editorCommands as nativeCommands,
   type CommandKeyBinding,
+  type CommandLibrary,
 } from "../modules/editor/commands";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
@@ -52,7 +61,7 @@ function main() {
   const bindings = getEditorKeyBindings(configKeyBindings, library);
 
   const editoView = initEditor(systemBarElement, bindings);
-  initSystemBar(proxy, editoView, omnibox, menu, statusBar, configKeyBindings);
+  initSystemBar(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
   initContent(proxy, editoView);
 }
 
@@ -64,7 +73,8 @@ function initSystemBar(
   omnibox: OmniboxElement,
   menu: OmnimenuElement,
   statusBar: StatusBarElement,
-  bindings: CommandKeyBinding[]
+  bindings: CommandKeyBinding[],
+  library: CommandLibrary
 ) {
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
@@ -93,6 +103,24 @@ function initSystemBar(
       console.log(
         `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
       );
+    }
+  });
+
+  omnibox.addEventListener("omnibox-submit", (e) => {
+    // TODO delegate execution using active selection from suggestion list
+    const q = e.detail;
+    if (q.startsWith(">")) {
+      const commandQ = q.slice(1).trim();
+      const matchedCommand = bindings.filter((cmd) =>
+        cmd.name.toLocaleLowerCase().startsWith(commandQ.toLocaleLowerCase())
+      )[0];
+
+      const [namespace, commandName] = matchedCommand.run.split(".");
+      const command = library[namespace]?.[commandName] as Command | undefined;
+
+      menu.clear();
+      view.focus();
+      command?.(view);
     }
   });
 
