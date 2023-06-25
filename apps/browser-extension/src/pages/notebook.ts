@@ -88,7 +88,7 @@ function initSystemBar(
       menu.setSuggestions(
         matchedCommands.map((command) => ({
           path: "TBD",
-          title: command.name,
+          title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
         }))
       );
     } else if (q.length) {
