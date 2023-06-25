@@ -12,16 +12,24 @@ export function sqlite3Opfs(sqliteWasmPath: string, dbPath: string) {
  * Load SQLite API index
  *
  * The lib dir must contain all of the following
- * - `sqlite3-bundler-friendly.mjs`
+ * - `sqlite3.mjs` (for browser)
+ * - `sqlite3-node.mjs` (for node)
  * - `sqlite3-opfs-async-proxy.js`
  * - `sqlite3-wasm`
  *
  * The dir must end with `/`
  */
 export function loadApiIndex(publicDir: string) {
-  return import(publicDir + "sqlite3-bundler-friendly.mjs").then((result) =>
-    result.default()
-  ) as Promise<Sqlite3.ApiIndex>;
+  const runtimeBinary = isNodeRuntime() ? "sqlite3-node.mjs" : "sqlite3.mjs";
+  return import(pathJoin(publicDir, runtimeBinary)).then((result) => result.default()) as Promise<Sqlite3.ApiIndex>;
+}
+
+function pathJoin(...paths: string[]) {
+  return paths.join("/").replace(/\/+/g, "/");
+}
+
+function isNodeRuntime() {
+  return typeof (globalThis as any).process !== "undefined";
 }
 
 export function getLibversion(sqlite3: Sqlite3.ApiIndex) {

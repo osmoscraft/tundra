@@ -4,6 +4,7 @@
   "description": "Loader for SQLite jswasm",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "type": "module",
   "keywords": [],
   "author": "osmoscraft",
   "license": "MIT"

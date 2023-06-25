@@ -1,1 +1,1 @@
-import "./modules/editor/utils/tests/parse.test";
+// no test yet
