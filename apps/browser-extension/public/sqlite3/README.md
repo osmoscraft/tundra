@@ -1,2 +1,2 @@
 Ref: https://sqlite.org/download.html
-Version: 3410200
+Version: 3420000

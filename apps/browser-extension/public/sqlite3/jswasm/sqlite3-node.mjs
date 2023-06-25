@@ -30,6 +30,9 @@
 ** Using the Emscripten SDK version 3.1.30.
 */
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 var sqlite3InitModule = (() => {
   var _scriptDir = import.meta.url;
   
@@ -73,10 +76,6 @@ const sqlite3InitModuleState = globalThis.sqlite3InitModuleState
 delete globalThis.sqlite3InitModuleState;
 sqlite3InitModuleState.debugModule('globalThis.location =',globalThis.location);
 
-
-Module['locateFile'] = function(path, prefix) {
-  return new URL(path, import.meta.url).href;
-}.bind(sqlite3InitModuleState);
 
 
 const xNameOfInstantiateWasm = false
@@ -128,13 +127,10 @@ var quit_ = (status, toThrow) => {
 
 
 
-
-var ENVIRONMENT_IS_WEB = typeof window == 'object';
-var ENVIRONMENT_IS_WORKER = typeof importScripts == 'function';
-
-
-var ENVIRONMENT_IS_NODE = typeof process == 'object' && typeof process.versions == 'object' && typeof process.versions.node == 'string';
-var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+var ENVIRONMENT_IS_WEB = false;
+var ENVIRONMENT_IS_WORKER = false;
+var ENVIRONMENT_IS_NODE = true;
+var ENVIRONMENT_IS_SHELL = false;
 
 
 var scriptDirectory = '';
@@ -154,72 +150,101 @@ var read_,
 
 
 
-if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
-  if (ENVIRONMENT_IS_WORKER) { 
-    scriptDirectory = self.location.href;
-  } else if (typeof document != 'undefined' && document.currentScript) { 
-    scriptDirectory = document.currentScript.src;
-  }
-  
-  
-  if (_scriptDir) {
-    scriptDirectory = _scriptDir;
-  }
-  
-  
-  
-  
-  
-  
-  if (scriptDirectory.indexOf('blob:') !== 0) {
-    scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf('/')+1);
-  } else {
-    scriptDirectory = '';
-  }
-
-  
-  
-  {
 
 
 
-  read_ = (url) => {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, false);
-      xhr.send(null);
-      return xhr.responseText;
-  }
+
+function logExceptionOnExit(e) {
+  if (e instanceof ExitStatus) return;
+  let toLog = e;
+  err('exiting due to exception: ' + toLog);
+}
+
+if (ENVIRONMENT_IS_NODE) {
+  
+  
+  
+  
+  
+  
+  var fs = require('fs');
+  var nodePath = require('path');
 
   if (ENVIRONMENT_IS_WORKER) {
-    readBinary = (url) => {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false);
-        xhr.responseType = 'arraybuffer';
-        xhr.send(null);
-        return new Uint8Array((xhr.response));
-    };
-  }
-
-  readAsync = (url, onload, onerror) => {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = () => {
-      if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) { 
-        onload(xhr.response);
-        return;
-      }
-      onerror();
-    };
-    xhr.onerror = onerror;
-    xhr.send(null);
+    scriptDirectory = nodePath.dirname(scriptDirectory) + '/';
+  } else {
+    
+    
+    
+    scriptDirectory = require('url').fileURLToPath(new URL('./', import.meta.url)); 
   }
 
 
+
+
+read_ = (filename, binary) => {
+  
+  
+  filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
+  return fs.readFileSync(filename, binary ? undefined : 'utf8');
+};
+
+readBinary = (filename) => {
+  var ret = read_(filename, true);
+  if (!ret.buffer) {
+    ret = new Uint8Array(ret);
+  }
+  return ret;
+};
+
+readAsync = (filename, onload, onerror) => {
+  
+  filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
+  fs.readFile(filename, function(err, data) {
+    if (err) onerror(err);
+    else onload(data.buffer);
+  });
+};
+
+
+  if (process['argv'].length > 1) {
+    thisProgram = process['argv'][1].replace(/\\/g, '/');
   }
 
-  setWindowTitle = (title) => document.title = title;
+  arguments_ = process['argv'].slice(2);
+
+  
+
+  process['on']('uncaughtException', function(ex) {
+    
+    if (!(ex instanceof ExitStatus)) {
+      throw ex;
+    }
+  });
+
+  
+  
+  
+  
+  
+  process['on']('unhandledRejection', function(reason) { throw reason; });
+
+  quit_ = (status, toThrow) => {
+    if (keepRuntimeAlive()) {
+      process['exitCode'] = status;
+      throw toThrow;
+    }
+    logExceptionOnExit(toThrow);
+    process['exit'](status);
+  };
+
+  Module['inspect'] = function () { return '[Emscripten Module object]'; };
+
 } else
+
+
+
+
 {
 }
 
@@ -826,6 +851,13 @@ function createWasm() {
     if (!wasmBinary &&
         typeof WebAssembly.instantiateStreaming == 'function' &&
         !isDataURI(wasmBinaryFile) &&
+        
+        
+        
+        
+        
+        
+        !ENVIRONMENT_IS_NODE &&
         typeof fetch == 'function') {
       return fetch(wasmBinaryFile, { credentials: 'same-origin' }).then(function(response) {
         
@@ -1004,6 +1036,16 @@ var ASM_CONSTS = {
         var randomBuffer = new Uint8Array(1);
         return () => { crypto.getRandomValues(randomBuffer); return randomBuffer[0]; };
       } else
+      if (ENVIRONMENT_IS_NODE) {
+        
+        try {
+          var crypto_module = require('crypto');
+          
+          return () => crypto_module['randomBytes'](1)[0];
+        } catch (e) {
+          
+        }
+      }
       
       return () => abort("randomDevice");
     }
@@ -1145,6 +1187,27 @@ var ASM_CONSTS = {
         }},default_tty_ops:{get_char:function(tty) {
           if (!tty.input.length) {
             var result = null;
+            if (ENVIRONMENT_IS_NODE) {
+              
+              var BUFSIZE = 256;
+              var buf = Buffer.alloc(BUFSIZE);
+              var bytesRead = 0;
+  
+              try {
+                bytesRead = fs.readSync(process.stdin.fd, buf, 0, BUFSIZE, -1);
+              } catch(e) {
+                
+                
+                if (e.toString().includes('EOF')) bytesRead = 0;
+                else throw e;
+              }
+  
+              if (bytesRead > 0) {
+                result = buf.slice(0, bytesRead).toString('utf-8');
+              } else {
+                result = null;
+              }
+            } else
             if (typeof window != 'undefined' &&
               typeof window.prompt == 'function') {
               
@@ -3591,7 +3654,12 @@ var ASM_CONSTS = {
       return Date.now();
     }
 
-  var _emscripten_get_now;_emscripten_get_now = () => performance.now();
+  var _emscripten_get_now;if (ENVIRONMENT_IS_NODE) {
+    _emscripten_get_now = () => {
+      var t = process['hrtime']();
+      return t[0] * 1e3 + t[1] / 1e6;
+    };
+  } else _emscripten_get_now = () => performance.now();
   ;
 
   function getHeapMax() {
@@ -10858,7 +10926,7 @@ const installOpfsVfs = function callee(options){
       return promiseResolve_(value);
     };
     const W =
-    new Worker(new URL(options.proxyUri, import.meta.url));
+    new Worker(new URL("sqlite3-opfs-async-proxy.js", import.meta.url));
     setTimeout(()=>{
       
       if(undefined===promiseWasRejected){
