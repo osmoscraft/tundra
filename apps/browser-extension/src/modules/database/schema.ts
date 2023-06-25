@@ -30,12 +30,3 @@ export interface DbObject<T = any> {
   path: string;
   data: T;
 }
-
-export interface DbNode {
-  path: string;
-  title: string;
-}
-
-export interface DbNodeInternal extends DbNode {
-  data: any;
-}
