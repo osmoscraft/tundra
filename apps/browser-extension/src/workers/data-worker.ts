@@ -63,7 +63,7 @@ const routes = {
       const fileChanges = chunk.map(sync.GithubChangeToFileChange);
       dbApi.setRemoteFiles(db, fileChanges);
       dbApi.setLocalFiles(db, fileChanges); // TODO: skip write if local timestamp is newer
-      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange));
+      dbApi.setNodes(db, chunk.map(sync.GithubChangeToNodeChange)); // TODO: skip write if local timestamp is newer
     };
 
     db.transaction(() => chunks.forEach(processChunk));
