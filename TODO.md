@@ -26,3 +26,7 @@
 - Content
   - Consolidate object store with file meta store
   - Use .gitignore to protect github connection
+- Graph
+  - Backlink display
+  - Link insertion via autocomplete
+  - Open file by search
