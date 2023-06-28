@@ -1,18 +1,19 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
 import type { FileChange } from "../database";
-import { parseMarkdownNote } from "../format/markdown-note";
+import { getMetaParser } from "../meta/meta-parser";
 import * as github from "./github";
-import { archivePathToGithubFilePath, githubPathToNotePath } from "./path";
+import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
 export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange {
-  const document = parseMarkdownNote(record.text ?? "");
+  const meta = record.text === null ? undefined : getMetaParser(record.path)(record.text);
+
   return {
     path: record.path,
     content: record.text,
     updatedTime: record.timestamp,
-    meta: document.frontmatter,
+    meta,
   };
 }
 
@@ -66,8 +67,8 @@ async function* iterateGithubArchive(tarballUrl: string): AsyncGenerator<RemoteC
 
   performance.mark("clone-start");
   for await (const item of itemsGenerator) {
-    const notePath = githubPathToNotePath(archivePathToGithubFilePath(item.path));
-    if (!notePath) {
+    const notePath = archivePathToGithubFilePath(item.path);
+    if (notePath === "pax_global_header") {
       console.log(`[clone] skip path ${item.path}`);
       continue;
     }

@@ -1,1 +1,1 @@
-import "./modules/format/tests/markdown-note.test";
+import "./modules/meta/tests/meta-parser";

@@ -2,7 +2,7 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
-import { parseMarkdownNote } from "../modules/format/markdown-note";
+import { parseMarkdownMeta } from "../modules/meta/meta-parser";
 import { search, searchRecentFiles, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
@@ -92,8 +92,8 @@ const routes = {
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
     // TODO encapsulate
-    const document = parseMarkdownNote(content ?? "");
-    dbApi.setLocalFile(db, { path, content, meta: { title: document.frontmatter?.title } });
+    const meta = parseMarkdownMeta(content ?? "");
+    dbApi.setLocalFile(db, { path, content, meta: { title: meta?.title } });
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
   },
 };
