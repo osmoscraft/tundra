@@ -1,1 +1,1 @@
-// no test yet
+import "./modules/format/tests/markdown-note.test";
