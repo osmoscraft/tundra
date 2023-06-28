@@ -9,5 +9,9 @@ export function timestampToNotePath(timestamp: Date) {
     .toISOString()
     .split(".")[0]
     .replaceAll(/(-|:|T)/g, "");
-  return `${timestampString}.md`;
+  return noteIdToPath(timestampString);
+}
+
+export function noteIdToPath(id: string) {
+  return `data/notes/${id}.md`;
 }

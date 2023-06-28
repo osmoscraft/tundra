@@ -10,6 +10,7 @@ import {
   type PluginValue,
 } from "@codemirror/view";
 import { EditorView } from "codemirror";
+import { noteIdToPath } from "../../sync/path";
 import "./live-link.css";
 
 const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
@@ -75,7 +76,7 @@ class MarkdownLinkView implements PluginValue {
         return Decoration.mark({
           tagName: "a",
           attributes: {
-            href: isInternal ? `?path=${url}.md` : url,
+            href: isInternal ? `?path=${encodeURIComponent(noteIdToPath(url))}` : url,
             rel: "nofollow",
             class: "cm-live-link",
           },

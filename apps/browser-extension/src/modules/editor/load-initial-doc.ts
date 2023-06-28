@@ -4,12 +4,14 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 
 export async function loadInitialDoc(view: EditorView, proxy: AsyncProxy<DataWorkerRoutes>) {
   const path = new URLSearchParams(location.search).get("path");
-  if (!path) {
+  if (!path) throw new Error("No path specified");
+
+  if (path?.endsWith("draft.md")) {
     view.dispatch({
       changes: {
         from: 0,
         insert: `---
-title: "New note"
+title: New note
 ---
 
 - New item`,

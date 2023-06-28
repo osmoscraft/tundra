@@ -4,7 +4,9 @@ import { timestampToNotePath } from "../sync/path";
 
 export async function save(getContent: () => string, proxy: AsyncProxy<DataWorkerRoutes>) {
   const path = new URLSearchParams(location.search).get("path");
-  if (!path) {
+  if (!path) throw new Error("No path specified");
+
+  if (path.endsWith("draft.md")) {
     // save new draft
     const path = timestampToNotePath(new Date());
 

@@ -19,3 +19,4 @@
 - Line item text wrap
 - Heading level based indentation
 - Heading level based colorization
+- Hierarchical note directory path support

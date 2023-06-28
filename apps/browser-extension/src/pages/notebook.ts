@@ -1,5 +1,7 @@
 import { history } from "@codemirror/commands";
+import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
+import type { Extension } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import {
   EditorView,
@@ -59,6 +61,11 @@ function main() {
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox) };
   const bindings = getEditorKeyBindings(configKeyBindings, library);
+
+  // ensure url
+  if (!new URLSearchParams(location.search).get("path")) {
+    window.history.replaceState(null, "", `${location.pathname}?path=${encodeURIComponent(`data/notes/draft.md`)}`);
+  }
 
   const editoView = initEditor(systemBarElement, bindings);
   initSystemBar(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
@@ -133,9 +140,13 @@ function initSystemBar(
 }
 
 function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[]) {
-  const view = new EditorView({
-    doc: "",
-    extensions: [
+  const path = new URLSearchParams(location.search).get("path");
+  const dotPos = path?.lastIndexOf(".");
+  const ext = dotPos ? path?.slice(dotPos) : undefined;
+  const extensions: Extension[] = [];
+
+  if (ext === ".md") {
+    extensions.push([
       liveLink(),
       history(),
       highlightActiveLine(),
@@ -146,7 +157,24 @@ function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[
       systemBar(systemBarElement),
       oneDark,
       keymap.of(keyBindings),
-    ],
+    ]);
+  } else if (ext === ".json") {
+    extensions.push([
+      history(),
+      highlightActiveLine(),
+      drawSelection(),
+      dropCursor(),
+      EditorView.lineWrapping,
+      json(),
+      systemBar(systemBarElement),
+      oneDark,
+      keymap.of(keyBindings),
+    ]);
+  }
+
+  const view = new EditorView({
+    doc: "",
+    extensions,
     parent: document.getElementById("editor-root")!,
   });
 
