@@ -12,6 +12,7 @@
 
 # Future
 
+- Load keybinding from synced storage
 - Link insertion via autocomplete
 - Add search unit tests
 - Add a web hook that pushes haiku into markdown repo
