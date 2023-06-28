@@ -1,34 +1,23 @@
-- Migration
-  - Add a web hook that pushes haiku into markdown repo
-- Search
-  - Add tests
-- Frontmatter
-  - Auto quote strings that has special control charaters
-    - Handle quote within quote
-  - Remove the created field (timestamp id is enough)
-  - Remove empty tag array
-- Editor
-  - Autosave load edits
-  - Need to handle invalid frontmatter state
-- Omnibox
-  - Leader key base commanding chain
-- Command
-  - Autocomplete link insertion
-- Link
-  - Hot swap internal navigation
-    - Pass onOpenUrl handler to the extension config
-  - Colorize
-- Presentation
-  - Improved dark theme
-  - CSS based text wrap
-- Highlight
-  - Replace markdown AST based highlight with regex decoration highlight
-- Content
-  - Consolidate object store with file meta store
-  - Use .gitignore to protect github connection
-- Graph
-  - Backlink display
-  - Link insertion via autocomplete
-  - Open file by search
-- Import
-  - Handle files with no frontmatter
+# Alpha must have
+
+- Consolidate object store with file meta store
+- Consolidate git config with file meta store
+- Use .gitignore to protect github connection
+- Backlink display
+- Auto quote strings that have special control charaters
+- Handle quotes in the title
+- Remove empty tag array
+- Link insertion via omnibox
+- Hot swap internal navigation
+- Autosave edits
+- Need to handle invalid frontmatter state during auto save
+
+# Future
+
+- Link insertion via autocomplete
+- Add search unit tests
+- Add a web hook that pushes haiku into markdown repo
+- Improve color theme
+- Line item text wrap
+- Heading level based indentation
+- Heading level based colorization
