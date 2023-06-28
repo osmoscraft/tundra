@@ -4,7 +4,7 @@
 - Migrate options page into a text editor
 - Consolidate object store with file meta store
 - Consolidate git config with file meta store
-- Backlink display
+- Backlink display in bottom panel suggestion bar (when omnibox not open)
 - Link insertion via omnibox
 - Hot swap internal navigation
 - Autosave edits
