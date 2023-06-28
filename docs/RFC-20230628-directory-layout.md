@@ -10,7 +10,7 @@
 └── config
     ├── editor
     │   ├── theme.yml
-    │   └── keymap.yml
+    │   └── keyboard.yml
     ├── feed
     │   └── feed.yml
     └── sync
