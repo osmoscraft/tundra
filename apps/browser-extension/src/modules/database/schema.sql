@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS File (
   )
 );
 
+CREATE INDEX IF NOT EXISTS FileIsDirtyIdx ON File(isDirty);
 CREATE INDEX IF NOT EXISTS FileUpdatedTimeIdx ON File(updatedTime);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS FileFts USING fts5(path, content, meta, content=File);
