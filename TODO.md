@@ -1,12 +1,10 @@
 # Alpha must have
 
+- Migrate options page into a text editor
 - Consolidate object store with file meta store
 - Consolidate git config with file meta store
 - Use .gitignore to protect github connection
 - Backlink display
-- Auto quote strings that have special control charaters
-- Handle quotes in the title
-- Remove empty tag array
 - Link insertion via omnibox
 - Hot swap internal navigation
 - Autosave edits
