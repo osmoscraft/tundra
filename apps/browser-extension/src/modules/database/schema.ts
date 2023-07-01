@@ -4,7 +4,7 @@ export interface DbFile {
   updatedTime: string | null;
   isDirty: 0 | 1;
   isDeleted: 0 | 1;
-  meta?: {
+  meta: {
     title?: string;
     [key: string]: any;
   };
@@ -16,7 +16,7 @@ export interface DbFileInternal {
   localUpdatedTime: string;
   remoteContent: string | null;
   remoteUpdatedTime: string | null;
-  meta?: string;
+  meta: string | null;
 
   /* Derived */
   content: string | null;

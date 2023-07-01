@@ -312,7 +312,7 @@ export async function testMetaCRUD() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedTime: "2000-01-01T00:00:00Z" });
-  assertEqual(getFile(db, "/meta-undefined.md")!.meta, null, "undefined meta");
+  assertDeepEqual(getFile(db, "/meta-undefined.md")!.meta, {}, "undefined meta");
 
   setLocalFile(db, { path: "/meta-empty.md", content: "", meta: {}, updatedTime: "2000-01-01T00:00:00Z" });
   assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");

@@ -103,7 +103,7 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
 
   return {
     ...raw,
-    meta: raw.meta ? JSON.parse(raw.meta) : undefined,
+    meta: raw.meta !== null ? JSON.parse(raw.meta) : {},
   };
 }
 
@@ -114,7 +114,7 @@ export function getRecentFiles(db: Sqlite3.DB, limit: number): DbFile[] {
   return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB): DbFile[] {
+export function getDirtyFiles(db: Sqlite3.DB, ignoreList: string[] = []): DbFile[] {
   const sql = `SELECT * FROM File WHERE isDirty = 1`;
   return db.selectObjects<DbFileInternal>(sql).map(parseMeta);
 }
@@ -144,6 +144,6 @@ SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH 
 function parseMeta(dbFile: DbFileInternal) {
   return {
     ...dbFile,
-    meta: dbFile.meta ? JSON.parse(dbFile.meta) : undefined,
+    meta: dbFile.meta !== null ? JSON.parse(dbFile.meta) : {},
   };
 }
