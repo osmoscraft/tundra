@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Use .gitignore to prevent syncing of certain files
 - Migrate options page into a text editor
 - Consolidate object store with file meta store
 - Consolidate git config with file meta store

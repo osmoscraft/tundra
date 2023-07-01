@@ -60,22 +60,24 @@ const routes = {
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) => {
       const fileChanges = chunk.map(sync.GithubChangeToFileChange);
+      // TODO encapsulate all dbApi calls into version control module
       dbApi.setRemoteFiles(db, fileChanges);
       dbApi.setLocalFiles(db, fileChanges); // TODO: skip write if local timestamp is newer
     };
 
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
+    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const dirtyFiles = dbApi.getDirtyFiles(db);
-    const fileChanges = dirtyFiles.map(sync.dirtyFileToBulkFileChangeItem);
+    const files = sync.scanLocalChangedFiles(db);
+    const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushResult = await updateContentBulk(connection, fileChanges);
 
-    dirtyFiles
+    // TODO encapsulate
+    files
       .map((dbFile) => ({
         path: dbFile.path,
         content: dbFile.content,
@@ -84,7 +86,7 @@ const routes = {
       .map((file) => dbApi.setRemoteFile(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
+    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
   },
   search: async (input: SearchInput) => search(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
@@ -94,20 +96,13 @@ const routes = {
     // TODO encapsulate
     const meta = parseMarkdownMeta(content ?? "");
     dbApi.setLocalFile(db, { path, content, meta: { title: meta?.title } });
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
+    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
   },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 (async function init() {
-  const db = await dbInit();
-
-  // on start, report change status
-  // TODO load ignore list from .gitignore file inside the DB
-  // Consider encapsulating this logic inside the sync module
-  // TODO investigate SQLite built-in GLOB and REGEXP functions
-  await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
-
+  await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(await dbInit())));
   console.log("[data worker] initialized");
 })();

@@ -6,6 +6,7 @@ export * from "./clone";
 export * from "./fetch";
 export type { GithubConnection } from "./github";
 export * from "./push";
+export * from "./scan";
 
 export function getConnection(db: Sqlite3.DB) {
   const gh = getFile(db, "config/sync/github.json");

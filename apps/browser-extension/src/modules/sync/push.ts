@@ -29,10 +29,10 @@ export function dbFileToPushChangeType(file: DbFile): ChangeType {
   return ChangeType.Modify;
 }
 
-export function dirtyFileToBulkFileChangeItem(file: DbFile): BulkFileChangeItem {
+export function localChangedFileToBulkFileChangeItem(file: DbFile): BulkFileChangeItem {
   return {
     path: file.path,
-    content: file.localContent,
+    content: file.content,
     changeType: dbFileToPushChangeType(file),
   };
 }
