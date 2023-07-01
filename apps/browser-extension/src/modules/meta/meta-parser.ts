@@ -14,7 +14,7 @@ export function getMetaParser(path: string): MetaParser {
 const DOC_PATTERN = /^---\n([\s\S]*?)\n---/;
 const TITLE_PATTERN = /^title: (.*)$/m;
 
-function parseMarkdownMeta(rawFile: string): NoteMeta | undefined {
+export function parseMarkdownMeta(rawFile: string): NoteMeta | undefined {
   const [_, frontmatterText] = DOC_PATTERN.exec(rawFile) ?? [];
   const frontmatter = frontmatterText ? parseFrontmatter(frontmatterText) : undefined;
 

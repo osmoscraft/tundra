@@ -75,7 +75,7 @@ const routes = {
       .map((dbFile) => ({
         path: dbFile.path,
         content: dbFile.content,
-        updatedTime: new Date().toISOString(), // TODO use push commit timestamp
+        updatedAt: new Date().toISOString(), // TODO use push commit timestamp
       }))
       .map((file) => dbApi.setRemoteFile(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);

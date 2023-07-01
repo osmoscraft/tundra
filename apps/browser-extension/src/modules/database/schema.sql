@@ -1,36 +1,30 @@
--- FILE
 CREATE TABLE IF NOT EXISTS File (
   path TEXT PRIMARY KEY,
   localContent TEXT,
-  localUpdatedTime TEXT,
+  localUpdatedAt TEXT,
   remoteContent TEXT,
-  remoteUpdatedTime TEXT,
+  remoteUpdatedAt TEXT,
   meta TEXT,
 
   /* Drived columns */
   content TEXT GENERATED ALWAYS AS (
     CASE
-      WHEN ifnull(localUpdatedTime, 0) > ifnull(remoteUpdatedTime, 0) THEN localContent
+      WHEN ifnull(localUpdatedAt, 0) > ifnull(remoteUpdatedAt, 0) THEN localContent
       ELSE remoteContent
     END
   ),
-  -- TODO future columns
-  -- title TEXT GENERATED ALWAYS AS (json_extract(meta, '$.title')),
-  -- feedURL...
-  -- targetLinks...
-  -- tags...
   isDeleted INTEGER GENERATED ALWAYS AS (content IS NULL),
   isDirty INTEGER GENERATED ALWAYS AS (content IS NOT remoteContent),
-  updatedTime TEXT GENERATED ALWAYS AS (
+  updatedAt TEXT GENERATED ALWAYS AS (
     CASE
-      WHEN ifnull(localUpdatedTime, 0) > ifnull(remoteUpdatedTime, 0) THEN localUpdatedTime
-      ELSE remoteUpdatedTime
+      WHEN ifnull(localUpdatedAt, 0) > ifnull(remoteUpdatedAt, 0) THEN localUpdatedAt
+      ELSE remoteUpdatedAt
     END
   )
 );
 
-CREATE INDEX IF NOT EXISTS FileIsDirtyIdx ON File(isDirty);
-CREATE INDEX IF NOT EXISTS FileUpdatedTimeIdx ON File(updatedTime);
+CREATE INDEX IF NOT EXISTS IsDirtyIdx ON File(isDirty);
+CREATE INDEX IF NOT EXISTS UpdatedAtIdx ON File(updatedAt);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS FileFts USING fts5(path, content, meta, content=File);
 

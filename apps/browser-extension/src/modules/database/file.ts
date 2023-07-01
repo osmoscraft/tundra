@@ -5,20 +5,20 @@ export interface FileChange {
   path: string;
   content: string | null;
   meta?: any;
-  updatedTime?: string;
+  updatedAt?: string;
 }
 
 export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
   const sql = `
-  INSERT INTO File (path, localContent, meta, localUpdatedTime) VALUES (:path, :content, json(:meta), :updatedTime)
-  ON CONFLICT(path) DO UPDATE SET localContent = excluded.content, meta = json(excluded.meta), localUpdatedTime = excluded.updatedTime
+  INSERT INTO File (path, localContent, meta, localUpdatedAt) VALUES (:path, :content, json(:meta), :updatedAt)
+  ON CONFLICT(path) DO UPDATE SET localContent = excluded.content, meta = json(excluded.meta), localUpdatedAt = excluded.updatedAt
   `;
 
   const bindings = paramsToBindings(sql, {
     path: file.path,
     content: file.content,
     meta: JSON.stringify(file.meta),
-    updatedTime: file.updatedTime ?? new Date().toISOString(),
+    updatedAt: file.updatedAt ?? new Date().toISOString(),
   });
 
   return db.exec(sql, { bind: bindings });
@@ -26,14 +26,14 @@ export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
 
 export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
   const sql = `
-  INSERT INTO File (path, remoteContent, remoteUpdatedTime) VALUES (:path, :content, :updatedTime)
-  ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.content, remoteUpdatedTime = excluded.updatedTime
+  INSERT INTO File (path, remoteContent, remoteUpdatedAt) VALUES (:path, :content, :updatedAt)
+  ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.content, remoteUpdatedAt = excluded.updatedAt
   `;
 
   const bindings = paramsToBindings(sql, {
     path: file.path,
     content: file.content,
-    updatedTime: file.updatedTime ?? new Date().toISOString(),
+    updatedAt: file.updatedAt ?? new Date().toISOString(),
   });
 
   return db.exec(sql, { bind: bindings });
@@ -43,13 +43,13 @@ export function setLocalFiles(db: Sqlite3.DB, files: FileChange[]) {
   if (!files.length) return;
 
   const sql = `
-INSERT INTO File (path, localContent, meta, localUpdatedTime) VALUES
+INSERT INTO File (path, localContent, meta, localUpdatedAt) VALUES
 ${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, json(:m${i}), :t${i})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, meta = json(excluded.meta), localUpdatedTime = excluded.localUpdatedTime
+ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, meta = json(excluded.meta), localUpdatedAt = excluded.localUpdatedAt
   `;
 
   const timedFiles = files.map((file) => {
-    const timestamp = file.updatedTime ?? new Date().toISOString();
+    const timestamp = file.updatedAt ?? new Date().toISOString();
 
     return {
       p: file.path,
@@ -68,13 +68,13 @@ export function setRemoteFiles(db: Sqlite3.DB, files: FileChange[]) {
   if (!files.length) return;
 
   const sql = `
-INSERT INTO File (path, remoteContent, meta, remoteUpdatedTime) VALUES
+INSERT INTO File (path, remoteContent, meta, remoteUpdatedAt) VALUES
 ${files.map((_, i) => /*reduce query size with shortname*/ `(:p${i}, :c${i}, json(:m${i}), :t${i})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = json(excluded.meta), remoteUpdatedTime = excluded.remoteUpdatedTime
+ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = json(excluded.meta), remoteUpdatedAt = excluded.remoteUpdatedAt
   `;
 
   const timedFiles = files.map((file) => {
-    const timestamp = file.updatedTime ?? new Date().toISOString();
+    const timestamp = file.updatedAt ?? new Date().toISOString();
 
     return {
       p: file.path,
@@ -125,7 +125,7 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
 }
 
 export function getRecentFiles(db: Sqlite3.DB, limit: number): DbFile[] {
-  const sql = `SELECT * FROM File ORDER BY updatedTime DESC LIMIT :limit`;
+  const sql = `SELECT * FROM File ORDER BY updatedAt DESC LIMIT :limit`;
   const bind = paramsToBindings(sql, { limit });
 
   return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);

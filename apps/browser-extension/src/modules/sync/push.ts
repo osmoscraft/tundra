@@ -19,7 +19,7 @@ export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
 export function dbFileToPushChangeType(file: DbFile): ChangeType {
   if (!file.isDirty) return ChangeType.Clean;
 
-  if (file.updatedTime === null) {
+  if (file.updatedAt === null) {
     // FIXME local could be deleted too
     return ChangeType.Add;
   }
