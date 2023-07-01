@@ -1,4 +1,4 @@
-import { deleteObject, getFile, setLocalFile } from "../database";
+import { getFile, setLocalFile } from "../database";
 import { getMetaParser } from "../meta/meta-parser";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
@@ -11,11 +11,6 @@ export * from "./scan";
 
 export function getConnection(db: Sqlite3.DB) {
   return getFile(db, "config/sync/github.json")?.meta as GithubConnection | undefined;
-}
-
-export function clearHistory(db: Sqlite3.DB) {
-  // TODO support delete history
-  return deleteObject(db, "sync.github.remoteHeadCommit");
 }
 
 export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {

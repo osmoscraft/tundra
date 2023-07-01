@@ -13,7 +13,6 @@ import {
   testSearchFileContent,
   testSearchMeta,
 } from "./file.test";
-import { testObjectCRUD } from "./object.test";
 
 export async function testDatabase() {
   // file
@@ -30,7 +29,4 @@ export async function testDatabase() {
   await testMetaCRUD();
   await testSearchMeta();
   await testSearchFileContent();
-
-  // object
-  await testObjectCRUD();
 }

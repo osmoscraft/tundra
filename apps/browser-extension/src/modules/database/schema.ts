@@ -22,8 +22,3 @@ export interface DbFileInternal {
   isDirty: 0 | 1;
   updatedTime: string | null;
 }
-
-export interface DbObject<T = any> {
-  path: string;
-  data: T;
-}

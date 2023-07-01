@@ -51,8 +51,3 @@ CREATE TRIGGER IF NOT EXISTS FileFtsAfterUpdateTrigger AFTER UPDATE ON File BEGI
   VALUES (new.rowid, new.path, new.content, new.meta);
 END;
 
--- Object
-CREATE TABLE IF NOT EXISTS Object (
-  path TEXT PRIMARY KEY,
-  data TEXT
-);
