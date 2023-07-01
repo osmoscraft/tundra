@@ -2,7 +2,7 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
-import { parseMarkdownMeta } from "../modules/meta/meta-parser";
+import { getMetaParser } from "../modules/meta/meta-parser";
 import { search, searchRecentFiles, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
@@ -24,16 +24,10 @@ const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
 const routes = {
   checkHealth: () => dbApi.testDatabase(),
-  clearFiles: async () => {
-    const db = await dbInit();
-    Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
-  },
   destoryData: async () => {
     const db = await dbInit();
     const connection = sync.getConnection(db);
-
     await destoryAll();
-
     if (connection) {
       const newDb = await dbApi.init(DB_PATH);
       sync.setConnection(newDb, connection);
@@ -46,7 +40,7 @@ const routes = {
   getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
   clone: async () => {
     const db = await dbInit();
-    await Promise.all([dbApi.deleteAllFiles(db), sync.clearHistory(db)]);
+    await routes.destoryData();
     const { generator, oid } = await sync.getGithubRemote(db);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) =>
@@ -94,8 +88,8 @@ const routes = {
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
     // TODO encapsulate
-    const meta = parseMarkdownMeta(content ?? "");
-    dbApi.setLocalFile(db, { path, content, meta: { title: meta?.title } });
+    const meta = getMetaParser(path)(content);
+    dbApi.setLocalFile(db, { path, content, meta });
     await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
   },
 };

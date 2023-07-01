@@ -4,13 +4,8 @@ import { arrayToParams, paramsToBindings } from "./utils";
 export interface FileChange {
   path: string;
   content: string | null;
-  meta?: MetaChange;
+  meta?: any;
   updatedTime?: string;
-}
-
-export interface MetaChange {
-  title?: string;
-  [key: string]: any;
 }
 
 export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
@@ -94,6 +89,28 @@ ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = j
   return db.exec(sql, { bind });
 }
 
+export function deleteAllFiles(db: Sqlite3.DB) {
+  return db.exec(`DELETE FROM File`);
+}
+
+export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
+  if (!patterns.length) return;
+
+  const sql = `
+  WITH DeleteList(pattern) AS (
+    SELECT json_each.value FROM json_each(json(:patterns))
+  )
+  DELETE FROM File WHERE EXISTS (
+    SELECT 1
+    FROM DeleteList
+    WHERE File.path GLOB DeleteList.pattern
+  );
+  `;
+
+  const bind = paramsToBindings(sql, { patterns: JSON.stringify(patterns) });
+  db.exec(sql, { bind });
+}
+
 export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
   const sql = `SELECT * FROM File WHERE path = :path`;
   const bind = paramsToBindings(sql, { path });
@@ -130,10 +147,6 @@ export function getDirtyFiles(db: Sqlite3.DB, ignorePatterns: string[] = []): Db
 
   const bind = paramsToBindings(sql, { ignoreList: JSON.stringify(ignorePatterns) });
   return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
-}
-
-export function deleteAllFiles(db: Sqlite3.DB) {
-  return db.exec(`DELETE FROM File`);
 }
 
 export interface SearchFilesInput {

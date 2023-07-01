@@ -21,10 +21,6 @@ export class DevtoolElement extends HTMLElement {
           this.proxy.checkHealth();
           break;
         }
-        case "clear-files": {
-          this.proxy.clearFiles();
-          break;
-        }
         case "download-db-file": {
           const file = await this.proxy.getDbFile();
           downloadFile(file);

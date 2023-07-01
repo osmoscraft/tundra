@@ -1,6 +1,7 @@
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
 import {
   deleteAllFiles,
+  deleteFiles,
   getDirtyFiles,
   getFile,
   getRecentFiles,
@@ -131,6 +132,32 @@ export async function testLocalFirstSync() {
   assertEqual(file.updatedTime, "2000-01-01T00:00:04Z", "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
+}
+
+export async function testDeleteFiles() {
+  console.log("[test] fileDeletion");
+  const db = await createTestDb(SCHEMA);
+
+  setLocalFiles(db, [
+    { path: "file-1.md", content: "", updatedTime: "2000-01-01T00:00:03Z" },
+    { path: "dir1/file-2.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "dir1/file-3.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "dir2/subdir/file-4.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+  ]);
+
+  assertEqual(getFile(db, "file-1.md")?.path, "file-1.md", "file-1.md");
+  deleteFiles(db, ["file-1.md"]);
+  assertEqual(getFile(db, "file-1.md"), undefined, "file-1.md");
+
+  assertEqual(getFile(db, "dir1/file-2.md")?.path, "dir1/file-2.md", "dir1/file-2.md");
+  assertEqual(getFile(db, "dir1/file-3.md")?.path, "dir1/file-3.md", "dir1/file-3.md");
+  deleteFiles(db, ["dir1*"]);
+  assertEqual(getFile(db, "dir1/file-2.md"), undefined, "dir1/file-2.md");
+  assertEqual(getFile(db, "dir1/file-3.md"), undefined, "dir1/file-3.md");
+
+  assertEqual(getFile(db, "dir2/subdir/file-4.md")?.path, "dir2/subdir/file-4.md", "dir2/subdir/file-4.md");
+  deleteFiles(db, ["dir2/*"]);
+  assertEqual(getFile(db, "dir2/subdir/file-4.md"), undefined, "dir2/subdir/file-4.md");
 }
 
 export async function testRemoteFirstSync() {
