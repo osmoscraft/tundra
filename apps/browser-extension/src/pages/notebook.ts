@@ -101,12 +101,12 @@ function initSystemBar(
     } else if (q.length) {
       performance.mark("search-start");
       const files = await proxy.search({ query: e.detail, limit: 10 });
-      menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+      menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta?.title ?? "Untitled" })));
       console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
     } else {
       performance.mark("load-recent-start");
       const files = await proxy.getRecentFiles();
-      menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+      menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta?.title ?? "Untitled" })));
       console.log(
         `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
       );

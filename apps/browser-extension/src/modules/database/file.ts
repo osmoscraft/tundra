@@ -103,7 +103,7 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
 
   return {
     ...raw,
-    meta: JSON.parse(raw.meta),
+    meta: raw.meta ? JSON.parse(raw.meta) : undefined,
   };
 }
 
@@ -144,6 +144,6 @@ SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH 
 function parseMeta(dbFile: DbFileInternal) {
   return {
     ...dbFile,
-    meta: JSON.parse(dbFile.meta),
+    meta: dbFile.meta ? JSON.parse(dbFile.meta) : undefined,
   };
 }
