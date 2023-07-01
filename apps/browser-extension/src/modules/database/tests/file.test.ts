@@ -321,7 +321,7 @@ export async function testGetDirtyFilesWithIgnore() {
     "file-2.md",
   ]);
 
-  const dirtyFilesWithIgnore = getDirtyFiles(db, ["file-2.md", "dir-1/subdir%", "dir-2%"]);
+  const dirtyFilesWithIgnore = getDirtyFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
   assertDeepEqual(dirtyFilesWithIgnore.map((f) => f.path).sort(), ["dir-1/file.md", "file-1.md"]);
 }
 

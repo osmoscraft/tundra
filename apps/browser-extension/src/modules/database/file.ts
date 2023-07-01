@@ -124,7 +124,7 @@ export function getDirtyFiles(db: Sqlite3.DB, ignorePatterns: string[] = []): Db
   WHERE isDirty = 1 AND NOT EXISTS (
     SELECT 1
     FROM Ignore
-    WHERE File.path LIKE Ignore.pattern
+    WHERE File.path GLOB Ignore.pattern
   );
   `;
 
