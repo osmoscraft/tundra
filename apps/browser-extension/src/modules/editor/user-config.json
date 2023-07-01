@@ -47,12 +47,12 @@
     {
       "name": "Omnibox search",
       "run": "shell.openSearch",
-      "key": "Mod-Space"
+      "key": "Mod-p"
     },
     {
       "name": "Omnibox command",
       "run": "shell.openCommand",
-      "key": "Mod-p"
+      "key": "Mod-Shift-p"
     },
     {
       "name": "Save",
