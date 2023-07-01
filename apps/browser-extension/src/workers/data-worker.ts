@@ -104,6 +104,8 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
   const db = await dbInit();
 
   // on start, report change status
+  // TODO load ignore list from .gitignore file inside the DB
+  // Consider encapsulating this logic inside the sync module
   await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db)));
 
   console.log("[data worker] initialized");
