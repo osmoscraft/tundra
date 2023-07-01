@@ -300,6 +300,31 @@ export async function testGetDirtyFiles() {
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["/file-1.md", "/file-2.md", "/file-3.md"]);
 }
 
+export async function testGetDirtyFilesWithIgnore() {
+  const db = await createTestDb(SCHEMA);
+
+  // prepare files with various sources and timestamps
+  setLocalFiles(db, [
+    { path: "file-1.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "file-2.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "dir-1/file.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "dir-1/subdir/file.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+    { path: "dir-2/file.md", content: "", updatedTime: "2000-01-01T00:00:08Z" },
+  ]);
+
+  const dirtyFiles = getDirtyFiles(db);
+  assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), [
+    "dir-1/file.md",
+    "dir-1/subdir/file.md",
+    "dir-2/file.md",
+    "file-1.md",
+    "file-2.md",
+  ]);
+
+  const dirtyFilesWithIgnore = getDirtyFiles(db, ["file-2.md", "dir-1/subdir%", "dir-2%"]);
+  assertDeepEqual(dirtyFilesWithIgnore.map((f) => f.path).sort(), ["dir-1/file.md", "file-1.md"]);
+}
+
 export async function testBulkOperations() {
   const db = await createTestDb(SCHEMA);
 

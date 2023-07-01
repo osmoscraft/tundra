@@ -114,9 +114,22 @@ export function getRecentFiles(db: Sqlite3.DB, limit: number): DbFile[] {
   return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, ignoreList: string[] = []): DbFile[] {
-  const sql = `SELECT * FROM File WHERE isDirty = 1`;
-  return db.selectObjects<DbFileInternal>(sql).map(parseMeta);
+export function getDirtyFiles(db: Sqlite3.DB, ignorePatterns: string[] = []): DbFile[] {
+  const sql = `
+  WITH Ignore(pattern) AS (
+    SELECT json_each.value FROM json_each(json(:ignoreList))
+  )
+  SELECT *
+  FROM File
+  WHERE isDirty = 1 AND NOT EXISTS (
+    SELECT 1
+    FROM Ignore
+    WHERE File.path LIKE Ignore.pattern
+  );
+  `;
+
+  const bind = paramsToBindings(sql, { ignoreList: JSON.stringify(ignorePatterns) });
+  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
 }
 
 export function deleteAllFiles(db: Sqlite3.DB) {

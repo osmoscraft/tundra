@@ -3,6 +3,7 @@ import {
   testConflictLocalWins,
   testConflictRemoteWins,
   testGetDirtyFiles,
+  testGetDirtyFilesWithIgnore,
   testGetRecentFiles,
   testLocalFileEditLifecycle,
   testLocalFirstSync,
@@ -22,6 +23,7 @@ export async function testDatabase() {
   await testConflictLocalWins();
   await testGetRecentFiles();
   await testGetDirtyFiles();
+  await testGetDirtyFilesWithIgnore();
   await testBulkOperations();
   await testMetaCRUD();
   await testSearchMeta();
