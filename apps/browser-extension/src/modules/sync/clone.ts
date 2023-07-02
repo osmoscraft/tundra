@@ -12,7 +12,7 @@ export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange
   return {
     path: record.path,
     content: record.text,
-    updatedAt: record.timestamp,
+    updatedAt: new Date(record.timestamp).getTime(),
     meta,
   };
 }

@@ -43,39 +43,64 @@ export function removeMany(db: Sqlite3.DB, globs: string[]) {
   db.exec(sql, { bind });
 }
 
+export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
+  const clauses = [
+    ...(options.globs?.length || options.ignore?.length ? ["WITH"] : []),
+    ...(options.globs?.length ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`] : []),
+    ...(options.ignore?.length ? [`Ignore(pattern) AS (SELECT json_each.value FROM json_each(json(:ignore)))`] : []),
+    `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File`,
+    ...(options.filters?.length
+      ? [
+          "WHERE",
+          [
+            ...options.filters.map(([col, op]) => `${col} ${op} :${col}`),
+            ...(options.globs?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
+            ...(options.ignore?.length
+              ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`]
+              : []),
+          ].join(" AND "),
+        ]
+      : []),
+    ...(options.orderBy?.length ? [`ORDER BY ${options.orderBy.map(([col, dir]) => `${col} ${dir}`).join(",")}`] : []),
+    ...(options.limit !== undefined ? [`LIMIT :limit`] : []),
+  ];
+
+  const dict = {
+    ...options.filters?.reduce((acc, [col, _op, value]) => ({ ...acc, [col]: value }), {}),
+    ...(options.limit !== undefined ? { limit: options.limit } : {}),
+    ...(options.globs ? { include: JSON.stringify(options.globs) } : {}),
+    ...(options.ignore ? { ignore: JSON.stringify(options.ignore) } : {}),
+  };
+
+  const sql = clauses.join("\n");
+  const bind = paramsToBindings(sql, dict);
+  return db.selectObjects<DbFileInternalV2>(sql, bind);
+}
+
 export interface PathOptions {
   exclude?: string[];
   include?: string[];
 }
 
 export interface ListOptions {
-  paths?: string[];
+  globs?: string[];
   limit?: number;
-  orderBy?: OrderByOption[];
-  direction?: DirectionOption;
-  filters?: FilterOption[];
-  exclude?: string[];
-  include?: string[];
+  orderBy?: OrderBy[];
+  filters?: Filter[];
+  ignore?: string[];
 }
 
 export interface SearchOptions extends ListOptions {
   query: string;
 }
 
-export enum OrderByOption {
-  Path = "path",
-  UpdatedAt = "updatedAt",
-}
+export type OrderBy = [col: keyof DbFileInternalV2, dir: "ASC" | "DESC"];
 
-export enum DirectionOption {
-  Asc = "ASC",
-  Desc = "DESC",
-}
-
-export enum FilterOption {
-  IsDirty = "isDirty",
-  IsDeleted = "isDeleted",
-}
+export type Filter = [
+  col: keyof DbFileInternalV2,
+  operator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "IS" | "IS NOT",
+  value: string | number
+];
 
 export interface FileWrite {
   path: string;

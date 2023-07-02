@@ -61,12 +61,12 @@ const routes = {
 
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
-    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = sync.scanLocalChangedFiles(db);
+    const files = dbApi.getDirtyFiles(db, sync.getUserIgnores(db));
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushResult = await updateContentBulk(connection, fileChanges);
 
@@ -75,12 +75,12 @@ const routes = {
       .map((dbFile) => ({
         path: dbFile.path,
         content: dbFile.content,
-        updatedAt: new Date().toISOString(), // TODO use push commit timestamp
+        updatedAt: Date.now(), // TODO use push commit timestamp
       }))
       .map((file) => dbApi.setRemoteFile(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
-    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
   search: async (input: SearchInput) => search(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
@@ -90,13 +90,14 @@ const routes = {
     // TODO encapsulate
     const meta = getMetaParser(path)(content);
     dbApi.setLocalFile(db, { path, content, meta });
-    await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(db)));
+    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
 };
 
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 (async function init() {
-  await proxy.setStatus(formatStatus(sync.scanLocalChangedFiles(await dbInit())));
+  const db = await dbInit();
+  await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   console.log("[data worker] initialized");
 })();

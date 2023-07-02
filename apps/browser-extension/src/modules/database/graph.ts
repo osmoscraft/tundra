@@ -1,6 +1,6 @@
 import { paramsToBindings } from "@tinykb/sqlite-utils";
-import { read, removeMany, writeMany } from "./file";
-import type { DbFile, DbFileInternal } from "./schema";
+import { list, read, removeMany, writeMany } from "./file";
+import type { DbFile, DbFileInternal, DbFileReadable } from "./schema";
 
 export interface FileChange {
   path: string;
@@ -55,29 +55,21 @@ export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
   };
 }
 
-export function getRecentFiles(db: Sqlite3.DB, limit: number): DbFile[] {
-  const sql = `SELECT * FROM File ORDER BY updatedAt DESC LIMIT :limit`;
-  const bind = paramsToBindings(sql, { limit });
-
-  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
+export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []): DbFileReadable[] {
+  const files = list(db, {
+    ignore,
+    orderBy: [["updatedAt", "DESC"]],
+    limit,
+  });
+  return files.map(parseMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, ignorePatterns: string[] = []): DbFile[] {
-  const sql = `
-  WITH Ignore(pattern) AS (
-    SELECT json_each.value FROM json_each(json(:ignoreList))
-  )
-  SELECT *
-  FROM File
-  WHERE isDirty = 1 AND NOT EXISTS (
-    SELECT 1
-    FROM Ignore
-    WHERE File.path GLOB Ignore.pattern
-  );
-  `;
-
-  const bind = paramsToBindings(sql, { ignoreList: JSON.stringify(ignorePatterns) });
-  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
+export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileReadable[] {
+  const files = list(db, {
+    ignore,
+    filters: [["isDirty", "=", 1]],
+  });
+  return files.map(parseMeta);
 }
 
 export interface SearchFilesInput {
@@ -98,9 +90,12 @@ SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH 
   return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
 }
 
-function parseMeta(dbFile: DbFileInternal) {
+export interface WithMeta {
+  meta: string | null;
+}
+function parseMeta<T extends WithMeta>(withMeta: T): T {
   return {
-    ...dbFile,
-    meta: dbFile.meta !== null ? JSON.parse(dbFile.meta) : {},
+    ...withMeta,
+    meta: withMeta.meta !== null ? JSON.parse(withMeta.meta) : {},
   };
 }
