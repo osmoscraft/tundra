@@ -9,34 +9,11 @@ export interface FileChange {
 }
 
 export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
-  const sql = `
-  INSERT INTO File (path, localContent, meta, localUpdatedAt) VALUES (:path, :content, json(:meta), :updatedAt)
-  ON CONFLICT(path) DO UPDATE SET localContent = excluded.content, meta = json(excluded.meta), localUpdatedAt = excluded.updatedAt
-  `;
-
-  const bindings = paramsToBindings(sql, {
-    path: file.path,
-    content: file.content,
-    meta: JSON.stringify(file.meta),
-    updatedAt: file.updatedAt ?? Date.now(),
-  });
-
-  return db.exec(sql, { bind: bindings });
+  setLocalFiles(db, [file]);
 }
 
 export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
-  const sql = `
-  INSERT INTO File (path, remoteContent, remoteUpdatedAt) VALUES (:path, :content, :updatedAt)
-  ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.content, remoteUpdatedAt = excluded.updatedAt
-  `;
-
-  const bindings = paramsToBindings(sql, {
-    path: file.path,
-    content: file.content,
-    updatedAt: file.updatedAt ?? Date.now(),
-  });
-
-  return db.exec(sql, { bind: bindings });
+  setRemoteFiles(db, [file]);
 }
 
 export function setLocalFiles(db: Sqlite3.DB, files: FileChange[]) {
@@ -90,7 +67,7 @@ ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = j
 }
 
 export function deleteAllFiles(db: Sqlite3.DB) {
-  return db.exec(`DELETE FROM File`);
+  return deleteFiles(db, ["*"]);
 }
 
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {

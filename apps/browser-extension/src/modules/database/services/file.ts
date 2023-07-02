@@ -1,7 +1,7 @@
 export function read(db: Sqlite3.DB, globs: string[], options?: PathOptions) {}
 export function rm(db: Sqlite3.DB, globs: string[], options?: PathOptions) {}
 export function write(db: Sqlite3.DB, files: FileWrite[]) {}
-export function search(db: Sqlite3.DB, options?: SearchOptions) {}
+export function search(db: Sqlite3.DB, options: SearchOptions) {}
 
 export interface PathOptions {
   exclude?: string[];
