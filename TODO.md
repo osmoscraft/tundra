@@ -25,3 +25,4 @@
 - Heading level based colorization
 - Hierarchical note directory path support
 - Allow undo to rewind local timestamp
+- Fallback to full import when history is too long to catch up
