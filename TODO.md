@@ -4,6 +4,7 @@
 - Refactor: rename dirty to isLocalChanged
 - Refactor: add graph layer to handle meta + dirty tracking
 - Refactor: lift undefined values to graph layer
+- Refactor: avoid unnecessary parsing of json files
 - Auto generate built-in gitignore
 - Regenerate system files after clone
 - Better system files scaffolding
@@ -26,3 +27,4 @@
 - Heading level based indentation
 - Heading level based colorization
 - Hierarchical note directory path support
+- Allow undo to rewind local timestamp

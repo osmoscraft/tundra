@@ -3,8 +3,7 @@ interface PathOptions {
   include?: stirng[];
 }
 
-interface SearchOptions {
-  textQuery?: string;
+interface ListOptions {
   paths?: string[];
   limit?: number;
   orderBy?: OrderByOption[];
@@ -12,6 +11,10 @@ interface SearchOptions {
   filters?: FilterOption[];
   exclude?: string[];
   include?: stirng[];
+}
+
+interface SearchOptions extends ListOptions {
+  query: string;
 }
 
 type OrderByOption = "path" | "updatedAt";
@@ -37,15 +40,17 @@ interface FsLayer {
 interface GraphNodeInput {
   path: string;
   content: string;
+  updatedAt?: number;
 }
 interface GraphNodeOutput<T = any> extends GraphNodeInput {
   data: T;
 }
 
 interface GraphNodeLayer {
-  get<T = any>(paths: string[]): GraphNodeOutput<T>;
-  trackLocal(nodes: GraphNodeInput[]);
-  trackRemote(nodes: GraphNodeInput[]);
-  getRecent<T = any>(): GraphNodeOutput<T>[];
-  search<T = any>(): GraphNodeOutput<T>[];
+  commit(nodes: GraphNodeInput[]);
+  clone(nodes: GraphNodeInput[]);
+  pull(nodes: GraphNodeInput[]);
+  push(nodes: GraphNodeInput[]);
+  list<T = any>(paths: string[], options: ListOptions): GraphNodeOutput<T>[];
+  search<T = any>(options: SearchOptions): GraphNodeOutput<T>[];
 }
