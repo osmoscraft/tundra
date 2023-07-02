@@ -1,5 +1,5 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import type { DbFileInternalV2, DbFileReadable, DbFileWritable } from "./schema";
+import type { DbFileInternal, DbFileReadable, DbFileWritable } from "./schema";
 
 export function writeMany(db: Sqlite3.DB, files: (Pick<DbFileWritable, "path" | "meta"> & Partial<DbFileWritable>)[]) {
   if (!files.length) return;
@@ -21,7 +21,7 @@ export function read(db: Sqlite3.DB, path: string): DbFileReadable | undefined {
   const sql = `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File WHERE path = :path`;
   const bind = paramsToBindings(sql, { path });
 
-  const file = db.selectObject<DbFileInternalV2>(sql, bind);
+  const file = db.selectObject<DbFileInternal>(sql, bind);
   return file;
 }
 
@@ -74,7 +74,7 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
 
   const sql = clauses.join("\n");
   const bind = paramsToBindings(sql, dict);
-  return db.selectObjects<DbFileInternalV2>(sql, bind);
+  return db.selectObjects<DbFileInternal>(sql, bind);
 }
 
 export interface PathOptions {
@@ -94,10 +94,10 @@ export interface SearchOptions extends ListOptions {
   query: string;
 }
 
-export type OrderBy = [col: keyof DbFileInternalV2, dir: "ASC" | "DESC"];
+export type OrderBy = [col: keyof DbFileInternal, dir: "ASC" | "DESC"];
 
 export type Filter = [
-  col: keyof DbFileInternalV2,
+  col: keyof DbFileInternal,
   operator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "IS" | "IS NOT",
   value: string | number
 ];
