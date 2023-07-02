@@ -6,15 +6,20 @@ export interface SearchInput {
   limit: number;
 }
 
-export function search(db: Sqlite3.DB, input: SearchInput) {
+export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
   const query = consecutiveWordPrefixQuery(input.query);
   console.log(`[search] internal query ${query}`);
-  const files = dbApi.searchFiles(db, { query, limit: input.limit });
+  const files = dbApi.searchFiles(db, {
+    query,
+    limit: input.limit,
+    globs: ["data/notes*"],
+    ignore: getUserIgnores(db),
+  });
   return files;
 }
 
-export function searchRecentFiles(db: Sqlite3.DB, limit: number) {
-  const files = dbApi.getRecentFiles(db, limit, getUserIgnores(db));
+export function searchRecentNotes(db: Sqlite3.DB, limit: number) {
+  const files = dbApi.getRecentFiles(db, { limit, globs: ["data/notes*"], ignore: getUserIgnores(db) });
   return files;
 }
 

@@ -84,11 +84,17 @@ export function getFile(db: Sqlite3.DB, path: string) {
   return decodeMeta(file);
 }
 
-export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []) {
+export interface RecentFilesInput {
+  limit: number;
+  globs?: string[];
+  ignore?: string[];
+}
+export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   const files = fileApi.list(db, {
-    ignore,
+    globs: input.globs,
+    ignore: input.ignore,
     orderBy: [["updatedAt", "DESC"]],
-    limit,
+    limit: input.limit,
   });
   return files.map(decodeMeta);
 }

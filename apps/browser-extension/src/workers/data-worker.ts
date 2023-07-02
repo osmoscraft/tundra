@@ -2,7 +2,7 @@ import { asyncPipe, callOnce } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
-import { search, searchRecentFiles, type SearchInput } from "../modules/search/search";
+import { searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -36,7 +36,7 @@ const routes = {
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
-  getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
+  getRecentFiles: async () => searchRecentNotes(await dbInit(), 10),
   clone: async () => {
     const db = await dbInit();
     await routes.destoryData();
@@ -81,7 +81,7 @@ const routes = {
 
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
-  search: async (input: SearchInput) => search(await dbInit(), input),
+  search: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {

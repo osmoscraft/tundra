@@ -277,56 +277,97 @@ export async function testConflictLocalWins() {
 }
 
 export async function testGetRecentFiles() {
+  console.log("[text] getRecentFiles");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "", updatedAt: 9 },
-    { path: "/file-2.md", content: "", updatedAt: 4 },
-    { path: "/file-3.md", content: "", updatedAt: 6 },
+    { path: "file-1.md", content: "", updatedAt: 9 },
+    { path: "file-2.md", content: "", updatedAt: 4 },
+    { path: "file-3.md", content: "", updatedAt: 6 },
   ]);
   setRemoteFiles(db, [
-    { path: "/file-4.md", content: "", updatedAt: 8 },
-    { path: "/file-5.md", content: "", updatedAt: 10 },
-    { path: "/file-6.md", content: "", updatedAt: 2 },
+    { path: "file-4.md", content: "", updatedAt: 8 },
+    { path: "file-5.md", content: "", updatedAt: 10 },
+    { path: "file-6.md", content: "", updatedAt: 2 },
   ]);
 
-  const recentFiles = getRecentFiles(db, 10);
+  const recentFiles = getRecentFiles(db, { limit: 10 });
   assertDeepEqual(
     recentFiles.map((f) => f.path),
-    ["/file-5.md", "/file-1.md", "/file-4.md", "/file-3.md", "/file-2.md", "/file-6.md"]
+    ["file-5.md", "file-1.md", "file-4.md", "file-3.md", "file-2.md", "file-6.md"]
+  );
+}
+
+export async function testGetRecentFilesWithScope() {
+  console.log("[text] getRecentFilesWithScope");
+  const db = await createTestDb(SCHEMA);
+
+  // prepare files with various sources and timestamps
+  setLocalFiles(db, [
+    { path: "dir1/file-1.md", content: "", updatedAt: 9 },
+    { path: "dir1/file-2.md", content: "", updatedAt: 4 },
+    { path: "dir2/file-3.md", content: "", updatedAt: 6 },
+    { path: "dir2/file-4.md", content: "", updatedAt: 7 },
+  ]);
+
+  const recentFilesDir1 = getRecentFiles(db, { limit: 10, globs: ["dir2/*"] });
+  assertDeepEqual(
+    recentFilesDir1.map((f) => f.path),
+    ["dir2/file-4.md", "dir2/file-3.md"]
+  );
+}
+
+export async function testGetRecentFilesWithIgnore() {
+  console.log("[text] getRecentFilesWithIgnore");
+  const db = await createTestDb(SCHEMA);
+
+  // prepare files with various sources and timestamps
+  setLocalFiles(db, [
+    { path: "dir1/file-1.md", content: "", updatedAt: 9 },
+    { path: "dir1/file-2.md", content: "", updatedAt: 4 },
+    { path: "dir2/file-3.md", content: "", updatedAt: 6 },
+    { path: "dir2/file-4.md", content: "", updatedAt: 7 },
+  ]);
+
+  const recentFilesDir1 = getRecentFiles(db, { limit: 10, ignore: ["dir1/*"] });
+  assertDeepEqual(
+    recentFilesDir1.map((f) => f.path),
+    ["dir2/file-4.md", "dir2/file-3.md"]
   );
 }
 
 export async function testGetDirtyFiles() {
+  console.log("[text] getDirtyFiles");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "", updatedAt: 9 }, // created
-    { path: "/file-2.md", content: "modified", updatedAt: 4 }, // modified
-    { path: "/file-3.md", content: null, updatedAt: 6 }, // deleted
-    { path: "/file-4.md", content: null, updatedAt: 6 }, // clean (remote deleted last)
-    { path: "/file-5.md", content: null, updatedAt: 6 }, // clean (local deleted last)
-    { path: "/file-6.md", content: null, updatedAt: 6 }, // clean (deleted at same time)
-    { path: "/file-7.md", content: "", updatedAt: 6 }, // clean (remote modified last)
-    { path: "/file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
+    { path: "file-1.md", content: "", updatedAt: 9 }, // created
+    { path: "file-2.md", content: "modified", updatedAt: 4 }, // modified
+    { path: "file-3.md", content: null, updatedAt: 6 }, // deleted
+    { path: "file-4.md", content: null, updatedAt: 6 }, // clean (remote deleted last)
+    { path: "file-5.md", content: null, updatedAt: 6 }, // clean (local deleted last)
+    { path: "file-6.md", content: null, updatedAt: 6 }, // clean (deleted at same time)
+    { path: "file-7.md", content: "", updatedAt: 6 }, // clean (remote modified last)
+    { path: "file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
   ]);
   setRemoteFiles(db, [
-    { path: "/file-2.md", content: "", updatedAt: 3 },
-    { path: "/file-3.md", content: "", updatedAt: 5 },
-    { path: "/file-4.md", content: null, updatedAt: 7 },
-    { path: "/file-5.md", content: null, updatedAt: 5 },
-    { path: "/file-6.md", content: null, updatedAt: 6 },
-    { path: "/file-7.md", content: "", updatedAt: 7 },
-    { path: "/file-8.md", content: "", updatedAt: 5 },
+    { path: "file-2.md", content: "", updatedAt: 3 },
+    { path: "file-3.md", content: "", updatedAt: 5 },
+    { path: "file-4.md", content: null, updatedAt: 7 },
+    { path: "file-5.md", content: null, updatedAt: 5 },
+    { path: "file-6.md", content: null, updatedAt: 6 },
+    { path: "file-7.md", content: "", updatedAt: 7 },
+    { path: "file-8.md", content: "", updatedAt: 5 },
   ]);
 
   const dirtyFiles = getDirtyFiles(db);
-  assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["/file-1.md", "/file-2.md", "/file-3.md"]);
+  assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-3.md"]);
 }
 
 export async function testGetDirtyFilesWithIgnore() {
+  console.log("[text] dirtyFilesWithIgnore");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -352,6 +393,7 @@ export async function testGetDirtyFilesWithIgnore() {
 }
 
 export async function testBulkOperations() {
+  console.log("[text] bulkOperations");
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, []); // empty
@@ -384,15 +426,15 @@ export async function testMetaCRUD() {
   });
   assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
 
-  setLocalFiles(db, [{ path: "/file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
-  setRemoteFiles(db, [{ path: "/file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
+  setLocalFiles(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
+  setRemoteFiles(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
 
-  const recentFiles = getRecentFiles(db, 10);
-  assertEqual(recentFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
-  assertEqual(recentFiles.find((f) => f.path === "/file-3.md")!.meta.title, "title 3", "title 3");
+  const recentFiles = getRecentFiles(db, { limit: 10 });
+  assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
+  assertEqual(recentFiles.find((f) => f.path === "file-3.md")!.meta.title, "title 3", "title 3");
 
   const dirtyFiles = getDirtyFiles(db);
-  assertEqual(dirtyFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
+  assertEqual(dirtyFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
 }
 
 export async function testSearchMeta() {

@@ -6,6 +6,8 @@ import {
   testGetDirtyFiles,
   testGetDirtyFilesWithIgnore,
   testGetRecentFiles,
+  testGetRecentFilesWithIgnore,
+  testGetRecentFilesWithScope,
   testLocalFileEditLifecycle,
   testLocalFirstSync,
   testMetaCRUD,
@@ -23,6 +25,8 @@ export async function testDatabase() {
   await testConflictLocalWins();
   await testDeleteFiles();
   await testGetRecentFiles();
+  await testGetRecentFilesWithScope();
+  await testGetRecentFilesWithIgnore();
   await testGetDirtyFiles();
   await testGetDirtyFilesWithIgnore();
   await testBulkOperations();

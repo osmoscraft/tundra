@@ -76,11 +76,11 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
         ]
       : []),
     `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File`,
-    ...(options.filters?.length
+    ...(options.filters?.length || options.globs?.length || options.ignore?.length
       ? [
           "WHERE",
           [
-            ...options.filters.map(([col, op]) => `${col} ${op} :${col}`),
+            ...(options.filters?.map(([col, op]) => `${col} ${op} :${col}`) ?? []),
             ...(options.globs?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
             ...(options.ignore?.length
               ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`]
