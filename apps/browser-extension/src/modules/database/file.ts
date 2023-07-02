@@ -1,5 +1,5 @@
+import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
 import type { DbFile, DbFileInternal } from "./schema";
-import { arrayToParams, paramsToBindings } from "./utils";
 
 export interface FileChange {
   path: string;
