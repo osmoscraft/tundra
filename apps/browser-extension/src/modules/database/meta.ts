@@ -1,10 +1,20 @@
-export type MetaParser = (content: string) => any;
+export interface WithMeta {
+  meta: string | null;
+}
+export function decodeMeta<T extends WithMeta>(withMeta: T) {
+  return {
+    ...withMeta,
+    meta: withMeta.meta !== null ? JSON.parse(withMeta.meta) : {},
+  };
+}
+
+export type MetaExtractor = (content: string) => any;
 
 export interface NoteMeta {
   title?: string;
 }
 
-export function getMetaExtractor(path: string): MetaParser {
+export function getMetaExtractor(path: string): MetaExtractor {
   if (path.endsWith(".md")) return extractMarkdownMeta;
   else if (path.endsWith(".gitignore")) return extractIgnoreMeta;
   else return nullParser;

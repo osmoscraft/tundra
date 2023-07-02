@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { extractMarkdownMeta } from "../extract-meta";
+import { extractMarkdownMeta } from "../meta";
 
-describe("metaParser", () => {
+describe("extractMeta", () => {
   it("empty file", () => {
     const meta = extractMarkdownMeta("");
     assert.equal(meta, undefined);

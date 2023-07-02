@@ -1,7 +1,7 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
 import type { FileChange } from "../database";
-import { getMetaExtractor } from "../meta/extract-meta";
+import { getMetaExtractor } from "../database/meta";
 import * as github from "./github";
 import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";

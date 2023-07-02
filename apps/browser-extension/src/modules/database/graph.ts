@@ -1,5 +1,6 @@
 import { paramsToBindings } from "@tinykb/sqlite-utils";
 import { list, read, removeMany, writeMany } from "./file";
+import { decodeMeta } from "./meta";
 import type { DbFileInternal, DbFileWithMeta } from "./schema";
 
 /**
@@ -73,7 +74,7 @@ export function getFile(db: Sqlite3.DB, path: string): DbFileWithMeta | undefine
   const file = read(db, path);
   if (!file) return undefined;
 
-  return parseMeta(file);
+  return decodeMeta(file);
 }
 
 export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []): DbFileWithMeta[] {
@@ -82,7 +83,7 @@ export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] =
     orderBy: [["updatedAt", "DESC"]],
     limit,
   });
-  return files.map(parseMeta);
+  return files.map(decodeMeta);
 }
 
 export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWithMeta[] {
@@ -90,7 +91,7 @@ export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWith
     ignore,
     filters: [["isDirty", "=", 1]],
   });
-  return files.map(parseMeta);
+  return files.map(decodeMeta);
 }
 
 export interface SearchFilesInput {
@@ -108,15 +109,5 @@ SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH 
     limit: input.limit,
   });
 
-  return db.selectObjects<DbFileInternal>(sql, bind).map(parseMeta);
-}
-
-export interface WithMeta {
-  meta: string | null;
-}
-function parseMeta<T extends WithMeta>(withMeta: T) {
-  return {
-    ...withMeta,
-    meta: withMeta.meta !== null ? JSON.parse(withMeta.meta) : {},
-  };
+  return db.selectObjects<DbFileInternal>(sql, bind).map(decodeMeta);
 }

@@ -1,1 +1,1 @@
-import "./modules/meta/tests/meta-parser";
+import "./modules/database/tests/meta.test";
