@@ -12,14 +12,14 @@ export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
   const files = dbApi.searchFiles(db, {
     query,
     limit: input.limit,
-    globs: ["data/notes*"],
+    paths: ["data/notes*"],
     ignore: getUserIgnores(db),
   });
   return files;
 }
 
 export function searchRecentNotes(db: Sqlite3.DB, limit: number) {
-  const files = dbApi.getRecentFiles(db, { limit, globs: ["data/notes*"], ignore: getUserIgnores(db) });
+  const files = dbApi.getRecentFiles(db, { limit, paths: ["data/notes*"], ignore: getUserIgnores(db) });
   return files;
 }
 

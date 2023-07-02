@@ -311,7 +311,7 @@ export async function testGetRecentFilesWithScope() {
     { path: "dir2/file-4.md", content: "", updatedAt: 7 },
   ]);
 
-  const recentFilesDir1 = getRecentFiles(db, { limit: 10, globs: ["dir2/*"] });
+  const recentFilesDir1 = getRecentFiles(db, { limit: 10, paths: ["dir2/*"] });
   assertDeepEqual(
     recentFilesDir1.map((f) => f.path),
     ["dir2/file-4.md", "dir2/file-3.md"]
@@ -506,11 +506,11 @@ export async function testSearchFileContent() {
     { path: "dir2/c.md", content: "red", updatedAt: 1 },
     { path: "dir2/d.md", content: "blue", updatedAt: 1 },
   ]);
-  const inScopePosResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir1*"] });
-  const inScopeNegResults = searchFiles(db, { query: "green", limit: 10, globs: ["dir1*"] });
-  const outOfScopeResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir3*"] });
-  const outOfScopeNegResults = searchFiles(db, { query: "green", limit: 10, globs: ["dir2*"] });
-  const multiScopeResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir1*", "dir2*"] });
+  const inScopePosResults = searchFiles(db, { query: "red", limit: 10, paths: ["dir1*"] });
+  const inScopeNegResults = searchFiles(db, { query: "green", limit: 10, paths: ["dir1*"] });
+  const outOfScopeResults = searchFiles(db, { query: "red", limit: 10, paths: ["dir3*"] });
+  const outOfScopeNegResults = searchFiles(db, { query: "green", limit: 10, paths: ["dir2*"] });
+  const multiScopeResults = searchFiles(db, { query: "red", limit: 10, paths: ["dir1*", "dir2*"] });
   assertEqual(inScopePosResults[0]?.path, "dir1/a.md", "Exactly one result");
   assertEqual(inScopeNegResults.length, 0, "in scope no result");
   assertEqual(outOfScopeResults.length, 0, "out of scope exclude result");

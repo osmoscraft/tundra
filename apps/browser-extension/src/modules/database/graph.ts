@@ -86,12 +86,12 @@ export function getFile(db: Sqlite3.DB, path: string) {
 
 export interface RecentFilesInput {
   limit: number;
-  globs?: string[];
+  paths?: string[];
   ignore?: string[];
 }
 export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   const files = fileApi.list(db, {
-    globs: input.globs,
+    paths: input.paths,
     ignore: input.ignore,
     orderBy: [["updatedAt", "DESC"]],
     limit: input.limit,
@@ -110,14 +110,14 @@ export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
 export interface SearchFilesInput {
   query: string;
   limit: number;
-  globs?: string[];
+  paths?: string[];
   ignore?: string[];
 }
 export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
   const files = fileApi.search(db, {
     query: input.query,
     limit: input.limit,
-    globs: input.globs,
+    paths: input.paths,
     ignore: input.ignore,
   });
   return files.map(decodeMeta);

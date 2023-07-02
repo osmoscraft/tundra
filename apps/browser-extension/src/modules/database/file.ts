@@ -26,8 +26,8 @@ export function read(db: Sqlite3.DB, path: string): DbFileReadable | undefined {
   return file;
 }
 
-export function removeMany(db: Sqlite3.DB, globs: string[]) {
-  if (!globs.length) return;
+export function removeMany(db: Sqlite3.DB, paths: string[]) {
+  if (!paths.length) return;
 
   const sql = `
     WITH DeleteList(pattern) AS (
@@ -40,12 +40,12 @@ export function removeMany(db: Sqlite3.DB, globs: string[]) {
     );
     `;
 
-  const bind = paramsToBindings(sql, { patterns: JSON.stringify(globs) });
+  const bind = paramsToBindings(sql, { patterns: JSON.stringify(paths) });
   db.exec(sql, { bind });
 }
 
 export interface ListOptions {
-  globs?: string[];
+  paths?: string[];
   limit?: number;
   orderBy?: OrderBy[];
   filters?: Filter[];
@@ -62,11 +62,11 @@ export type Filter = [
 
 export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
   const clauses = [
-    ...(options.globs?.length || options.ignore?.length
+    ...(options.paths?.length || options.ignore?.length
       ? [
           "WITH",
           [
-            ...(options.globs?.length
+            ...(options.paths?.length
               ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`]
               : []),
             ...(options.ignore?.length
@@ -76,12 +76,12 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
         ]
       : []),
     `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File`,
-    ...(options.filters?.length || options.globs?.length || options.ignore?.length
+    ...(options.filters?.length || options.paths?.length || options.ignore?.length
       ? [
           "WHERE",
           [
             ...(options.filters?.map(([col, op]) => `${col} ${op} :${col}`) ?? []),
-            ...(options.globs?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
+            ...(options.paths?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
             ...(options.ignore?.length
               ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`]
               : []),
@@ -95,7 +95,7 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
   const dict = {
     ...options.filters?.reduce((acc, [col, _op, value]) => ({ ...acc, [col]: value }), {}),
     ...(options.limit !== undefined ? { limit: options.limit } : {}),
-    ...(options.globs ? { include: JSON.stringify(options.globs) } : {}),
+    ...(options.paths ? { include: JSON.stringify(options.paths) } : {}),
     ...(options.ignore ? { ignore: JSON.stringify(options.ignore) } : {}),
   };
 
@@ -106,7 +106,7 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
 
 export interface SearchOptions {
   query: string;
-  globs?: string[];
+  paths?: string[];
   limit?: number;
   filters?: Filter[];
   ignore?: string[];
@@ -114,11 +114,11 @@ export interface SearchOptions {
 
 export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[] {
   const clauses = [
-    ...(options.globs?.length || options.ignore?.length
+    ...(options.paths?.length || options.ignore?.length
       ? [
           "WITH",
           [
-            ...(options.globs?.length
+            ...(options.paths?.length
               ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`]
               : []),
             ...(options.ignore?.length
@@ -133,7 +133,7 @@ export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[]
       [
         `FileFts MATCH :query`,
         ...(options.filters?.map(([col, op]) => `File.${col} ${op} :${col}`) ?? []),
-        ...(options.globs?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
+        ...(options.paths?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
         ...(options.ignore?.length ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`] : []),
       ].join(" AND "),
     ],
@@ -145,7 +145,7 @@ export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[]
     query: options.query,
     ...options.filters?.reduce((acc, [col, _op, value]) => ({ ...acc, [col]: value }), {}),
     ...(options.limit !== undefined ? { limit: options.limit } : {}),
-    ...(options.globs ? { include: JSON.stringify(options.globs) } : {}),
+    ...(options.paths ? { include: JSON.stringify(options.paths) } : {}),
     ...(options.ignore ? { ignore: JSON.stringify(options.ignore) } : {}),
   };
 
