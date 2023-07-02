@@ -6,7 +6,6 @@ export interface NoteMeta {
 
 export function getMetaExtractor(path: string): MetaParser {
   if (path.endsWith(".md")) return extractMarkdownMeta;
-  else if (path.endsWith(".json")) return JSON.parse;
   else if (path.endsWith(".gitignore")) return extractIgnoreMeta;
   else return nullParser;
 }
