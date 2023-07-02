@@ -1,5 +1,5 @@
 import { getFile, setLocalFile } from "../database";
-import { getMetaParser } from "../meta/meta-parser";
+import { getMetaExtractor } from "../meta/extract-meta";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
 
@@ -20,7 +20,7 @@ export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {
   const path = "config/sync/github.json";
   const content = JSON.stringify(connection);
-  const meta = getMetaParser(path)(content);
+  const meta = getMetaExtractor(path)(content);
 
   setLocalFile(db, {
     path,

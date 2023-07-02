@@ -1,5 +1,5 @@
 import { getConnection } from ".";
-import type { DbFile } from "../database/schema";
+import type { DbFileReadable } from "../database/schema";
 import type { GithubConnection } from "./github";
 import { ChangeType, type BulkFileChangeItem } from "./github/operations/update-content-bulk";
 
@@ -16,7 +16,7 @@ export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
 }
 
 // WIP
-export function dbFileToPushChangeType(file: DbFile): ChangeType {
+export function dbFileToPushChangeType(file: DbFileReadable): ChangeType {
   if (!file.isDirty) return ChangeType.Clean;
 
   if (file.updatedAt === null) {
@@ -29,7 +29,7 @@ export function dbFileToPushChangeType(file: DbFile): ChangeType {
   return ChangeType.Modify;
 }
 
-export function localChangedFileToBulkFileChangeItem(file: DbFile): BulkFileChangeItem {
+export function localChangedFileToBulkFileChangeItem(file: DbFileReadable): BulkFileChangeItem {
   return {
     path: file.path,
     content: file.content,

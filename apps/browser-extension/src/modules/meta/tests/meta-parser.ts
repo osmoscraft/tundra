@@ -1,20 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseMarkdownMeta } from "../meta-parser";
+import { extractMarkdownMeta } from "../extract-meta";
 
 describe("metaParser", () => {
   it("empty file", () => {
-    const meta = parseMarkdownMeta("");
+    const meta = extractMarkdownMeta("");
     assert.equal(meta, undefined);
   });
 
   it("empty line", () => {
-    const meta = parseMarkdownMeta("\n");
+    const meta = extractMarkdownMeta("\n");
     assert.equal(meta, undefined);
   });
 
   it("meta only", () => {
-    const meta = parseMarkdownMeta(
+    const meta = extractMarkdownMeta(
       `
 ---
 title: Hello
@@ -24,7 +24,7 @@ title: Hello
   });
 
   it("meta only with empty body", () => {
-    const meta = parseMarkdownMeta(
+    const meta = extractMarkdownMeta(
       `
 ---
 title: Hello
@@ -35,7 +35,7 @@ title: Hello
   });
 
   it("meta only with body", () => {
-    const meta = parseMarkdownMeta(
+    const meta = extractMarkdownMeta(
       `
 ---
 title: Hello

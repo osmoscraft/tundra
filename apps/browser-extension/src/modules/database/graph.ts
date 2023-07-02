@@ -1,6 +1,30 @@
 import { paramsToBindings } from "@tinykb/sqlite-utils";
 import { list, read, removeMany, writeMany } from "./file";
-import type { DbFile, DbFileInternal, DbFileReadable } from "./schema";
+import type { DbFileInternal, DbFileWithMeta } from "./schema";
+
+/**
+ * TODO graph v2
+ * 
+export interface GraphNodeInput {
+  path: string;
+  content: string;
+  updatedAt?: number;
+}
+export interface GraphNodeOutput<T = any> extends GraphNodeInput {
+  meta: T;
+}
+
+export function commit(nodes: GraphNodeInput[]) {}
+export function clone(nodes: GraphNodeInput[]) {}
+export function pull(nodes: GraphNodeInput[]) {}
+export function push(nodes: GraphNodeInput[]) {}
+export function get<T = any>(paths: string[]): GraphNodeOutput<T>[] {
+  return [];
+}
+export function search<T = any>(query: string): GraphNodeOutput<T>[] {
+  return [];
+}
+*/
 
 export interface FileChange {
   path: string;
@@ -45,17 +69,14 @@ export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
   removeMany(db, patterns);
 }
 
-export function getFile(db: Sqlite3.DB, path: string): DbFile | undefined {
+export function getFile(db: Sqlite3.DB, path: string): DbFileWithMeta | undefined {
   const file = read(db, path);
   if (!file) return undefined;
 
-  return {
-    ...file,
-    meta: file.meta !== null ? JSON.parse(file.meta) : {},
-  };
+  return parseMeta(file);
 }
 
-export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []): DbFileReadable[] {
+export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []): DbFileWithMeta[] {
   const files = list(db, {
     ignore,
     orderBy: [["updatedAt", "DESC"]],
@@ -64,7 +85,7 @@ export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] =
   return files.map(parseMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileReadable[] {
+export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWithMeta[] {
   const files = list(db, {
     ignore,
     filters: [["isDirty", "=", 1]],
@@ -76,7 +97,7 @@ export interface SearchFilesInput {
   query: string;
   limit: number;
 }
-export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFile[] {
+export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFileWithMeta[] {
   // weights map to fts columns: path, content, meta,
   const sql = `
 SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH :query ORDER BY bm25(FileFts, 0.1, 1, 100) LIMIT :limit
@@ -93,7 +114,7 @@ SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH 
 export interface WithMeta {
   meta: string | null;
 }
-function parseMeta<T extends WithMeta>(withMeta: T): T {
+function parseMeta<T extends WithMeta>(withMeta: T) {
   return {
     ...withMeta,
     meta: withMeta.meta !== null ? JSON.parse(withMeta.meta) : {},

@@ -1,10 +1,11 @@
-/** @deprecated */
-export interface DbFile {
+export interface DbFileWithMeta<T = any> {
+  meta: T;
+  path: string;
+
+  /* Derived */
   content: string | null;
   isDeleted: 0 | 1;
   isDirty: 0 | 1;
-  meta: any;
-  path: string;
   updatedAt: number | null;
 }
 

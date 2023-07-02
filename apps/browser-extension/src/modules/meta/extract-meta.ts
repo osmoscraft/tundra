@@ -4,17 +4,17 @@ export interface NoteMeta {
   title?: string;
 }
 
-export function getMetaParser(path: string): MetaParser {
-  if (path.endsWith(".md")) return parseMarkdownMeta;
+export function getMetaExtractor(path: string): MetaParser {
+  if (path.endsWith(".md")) return extractMarkdownMeta;
   else if (path.endsWith(".json")) return JSON.parse;
-  else if (path.endsWith(".gitignore")) return parseIgnore;
+  else if (path.endsWith(".gitignore")) return extractIgnoreMeta;
   else return nullParser;
 }
 
 const DOC_PATTERN = /^---\n([\s\S]*?)\n---/;
 const TITLE_PATTERN = /^title: (.*)$/m;
 
-export function parseMarkdownMeta(rawFile: string): NoteMeta | undefined {
+export function extractMarkdownMeta(rawFile: string): NoteMeta | undefined {
   const [_, frontmatterText] = DOC_PATTERN.exec(rawFile) ?? [];
   const frontmatter = frontmatterText ? parseFrontmatter(frontmatterText) : undefined;
 
@@ -31,7 +31,7 @@ export interface IgnoreNeta {
   match: string[];
   negate: string[];
 }
-function parseIgnore(rawFile: string): IgnoreNeta {
+function extractIgnoreMeta(rawFile: string): IgnoreNeta {
   return rawFile.split("\n").reduce<IgnoreNeta>(
     (acc, line) => {
       if (line.startsWith("#")) return acc;
