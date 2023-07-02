@@ -1,14 +1,24 @@
-export interface WithMeta {
+export type Meta = Record<string, any>;
+export interface WithEncodedMeta {
   meta: string | null;
 }
-export function decodeMeta<T extends WithMeta>(withMeta: T) {
+export type WithDecodedMeta<T extends WithEncodedMeta> = Omit<T, "meta"> & { meta: Meta };
+export function decodeMeta<T extends WithEncodedMeta>(withEncodedMeta: T): WithDecodedMeta<T> {
   return {
-    ...withMeta,
-    meta: withMeta.meta !== null ? JSON.parse(withMeta.meta) : {},
+    ...withEncodedMeta,
+    meta: withEncodedMeta.meta !== null ? JSON.parse(withEncodedMeta.meta) : null,
   };
 }
 
-export type MetaExtractor = (content: string) => any;
+export interface EncodableFile {
+  path: string;
+  content: string | null;
+}
+export function encodeMeta(file: EncodableFile): string | null {
+  return file.content === null ? null : JSON.stringify(getMetaExtractor(file.path)(file.content));
+}
+
+export type MetaExtractor = (content: string) => Record<string, any>;
 
 export interface NoteMeta {
   title?: string;
@@ -17,19 +27,18 @@ export interface NoteMeta {
 export function getMetaExtractor(path: string): MetaExtractor {
   if (path.endsWith(".md")) return extractMarkdownMeta;
   else if (path.endsWith(".gitignore")) return extractIgnoreMeta;
-  else return nullParser;
+  else return emptyMetaExtractor;
 }
 
 const DOC_PATTERN = /^---\n([\s\S]*?)\n---/;
-const TITLE_PATTERN = /^title: (.*)$/m;
-
-export function extractMarkdownMeta(rawFile: string): NoteMeta | undefined {
+export function extractMarkdownMeta(rawFile: string): NoteMeta {
   const [_, frontmatterText] = DOC_PATTERN.exec(rawFile) ?? [];
-  const frontmatter = frontmatterText ? parseFrontmatter(frontmatterText) : undefined;
+  const frontmatter = frontmatterText ? parseFrontmatter(frontmatterText) : {};
 
   return frontmatter;
 }
 
+const TITLE_PATTERN = /^title: (.*)$/m;
 function parseFrontmatter(frontmatterText: string): NoteMeta {
   const [_, title] = TITLE_PATTERN.exec(frontmatterText) ?? [];
 
@@ -52,6 +61,6 @@ function extractIgnoreMeta(rawFile: string): IgnoreNeta {
   );
 }
 
-function nullParser() {
-  return null;
+export function emptyMetaExtractor() {
+  return {};
 }

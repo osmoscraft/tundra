@@ -16,7 +16,8 @@ export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
 }
 
 // WIP
-export function dbFileToPushChangeType(file: DbFileReadable): ChangeType {
+export type PushFile = Pick<DbFileReadable, "path" | "content" | "isDirty" | "updatedAt" | "isDeleted">;
+export function dbFileToPushChangeType(file: PushFile): ChangeType {
   if (!file.isDirty) return ChangeType.Clean;
 
   if (file.updatedAt === null) {
@@ -29,7 +30,7 @@ export function dbFileToPushChangeType(file: DbFileReadable): ChangeType {
   return ChangeType.Modify;
 }
 
-export function localChangedFileToBulkFileChangeItem(file: DbFileReadable): BulkFileChangeItem {
+export function localChangedFileToBulkFileChangeItem(file: PushFile): BulkFileChangeItem {
   return {
     path: file.path,
     content: file.content,

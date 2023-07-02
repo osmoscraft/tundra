@@ -1,7 +1,8 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
 import type { DbFileInternal, DbFileReadable, DbFileWritable } from "./schema";
 
-export function writeMany(db: Sqlite3.DB, files: (Pick<DbFileWritable, "path" | "meta"> & Partial<DbFileWritable>)[]) {
+export type FileWrite = Pick<DbFileWritable, "path" | "meta"> & Partial<DbFileWritable>;
+export function writeMany(db: Sqlite3.DB, files: FileWrite[]) {
   if (!files.length) return;
 
   const cols = Object.keys(files[0]);

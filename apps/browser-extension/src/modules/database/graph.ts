@@ -1,6 +1,5 @@
-import { list, read, removeMany, search, writeMany } from "./file";
-import { decodeMeta } from "./meta";
-import type { DbFileWithMeta } from "./schema";
+import * as fileApi from "./file";
+import { decodeMeta, encodeMeta } from "./meta";
 
 /**
  * TODO graph v2
@@ -26,6 +25,22 @@ export function search<T = any>(query: string): GraphNodeOutput<T>[] {
 }
 */
 
+export interface CommitInput {
+  path: string;
+  content: string | null;
+  updatedAt?: number;
+}
+export function commitMany(db: Sqlite3.DB, input: CommitInput[]) {
+  const now = Date.now();
+  const fileWrites = input.map((file) => ({
+    path: file.path,
+    localContent: file.content,
+    meta: encodeMeta(file),
+    localUpdatedAt: file.updatedAt ?? now,
+  }));
+  fileApi.writeMany(db, fileWrites);
+}
+
 export interface FileChange {
   path: string;
   content: string | null;
@@ -33,7 +48,7 @@ export interface FileChange {
   updatedAt?: number;
 }
 
-export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
+export function setLocalFile(db: Sqlite3.DB, file: CommitInput) {
   setLocalFiles(db, [file]);
 }
 
@@ -41,43 +56,36 @@ export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
   setRemoteFiles(db, [file]);
 }
 
-export function setLocalFiles(db: Sqlite3.DB, files: FileChange[]) {
-  writeMany(
-    db,
-    files.map((file) => ({
-      path: file.path,
-      localContent: file.content,
-      localUpdatedAt: file.updatedAt ?? Date.now(),
-      meta: JSON.stringify(file.meta),
-    }))
-  );
+export function setLocalFiles(db: Sqlite3.DB, files: CommitInput[]) {
+  commitMany(db, files);
 }
 
 export function setRemoteFiles(db: Sqlite3.DB, files: FileChange[]) {
-  writeMany(
+  const now = Date.now();
+  fileApi.writeMany(
     db,
     files.map((file) => ({
       path: file.path,
       remoteContent: file.content,
-      remoteUpdatedAt: file.updatedAt ?? Date.now(),
-      meta: JSON.stringify(file.meta),
+      remoteUpdatedAt: file.updatedAt ?? now,
+      meta: encodeMeta(file),
     }))
   );
 }
 
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
-  removeMany(db, patterns);
+  fileApi.removeMany(db, patterns);
 }
 
-export function getFile(db: Sqlite3.DB, path: string): DbFileWithMeta | undefined {
-  const file = read(db, path);
+export function getFile(db: Sqlite3.DB, path: string) {
+  const file = fileApi.read(db, path);
   if (!file) return undefined;
 
   return decodeMeta(file);
 }
 
-export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []): DbFileWithMeta[] {
-  const files = list(db, {
+export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] = []) {
+  const files = fileApi.list(db, {
     ignore,
     orderBy: [["updatedAt", "DESC"]],
     limit,
@@ -85,8 +93,8 @@ export function getRecentFiles(db: Sqlite3.DB, limit: number, ignore: string[] =
   return files.map(decodeMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWithMeta[] {
-  const files = list(db, {
+export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
+  const files = fileApi.list(db, {
     ignore,
     filters: [["isDirty", "=", 1]],
   });
@@ -99,8 +107,8 @@ export interface SearchFilesInput {
   globs?: string[];
   ignore?: string[];
 }
-export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFileWithMeta[] {
-  const files = search(db, {
+export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
+  const files = fileApi.search(db, {
     query: input.query,
     limit: input.limit,
     globs: input.globs,

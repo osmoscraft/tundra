@@ -362,23 +362,30 @@ export async function testMetaCRUD() {
   console.log("[text] metaCRUD");
   const db = await createTestDb(SCHEMA);
 
+  setLocalFile(db, { path: "/no-content-meta.md", content: null, updatedAt: 1 });
+  assertDeepEqual(getFile(db, "/no-content-meta.md")!.meta, null, "no content meta");
+
   setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-undefined.md")!.meta, {}, "undefined meta");
 
-  setLocalFile(db, { path: "/meta-empty.md", content: "", meta: {}, updatedAt: 1 });
+  setLocalFile(db, { path: "/meta-empty.md", content: "---\n---", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");
+
+  setLocalFile(db, { path: "/unsupported-type.exe", content: "---\n---", updatedAt: 1 });
+  assertDeepEqual(getFile(db, "/unsupported-type.exe")!.meta, {}, "unsupported type");
+
+  setLocalFile(db, { path: "/unsupported-type-deleted.exe", content: null, updatedAt: 1 });
+  assertDeepEqual(getFile(db, "/unsupported-type-deleted.exe")!.meta, null, "unsupported type deleted");
 
   setLocalFile(db, {
     path: "/meta-extended.md",
-    content: "",
-    meta: { hello: 42, world: true },
+    content: "---\nhello: 42\nworld: true\n---\n",
     updatedAt: 1,
   });
-  assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, { hello: 42, world: true }, "extended meta");
+  assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
 
-  setLocalFiles(db, [{ path: "/file-2.md", content: "", meta: { title: "title 2" }, updatedAt: 1 }]);
-
-  setRemoteFiles(db, [{ path: "/file-3.md", content: "", meta: { title: "title 3" }, updatedAt: 1 }]);
+  setLocalFiles(db, [{ path: "/file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
+  setRemoteFiles(db, [{ path: "/file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
 
   const recentFiles = getRecentFiles(db, 10);
   assertEqual(recentFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
@@ -393,9 +400,9 @@ export async function testSearchMeta() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, [
-    { path: "/node-1", content: "", meta: { title: "hello world" }, updatedAt: 1 },
-    { path: "/node-2", content: "", meta: { title: "OK Computer" }, updatedAt: 1 },
-    { path: "/node-3", content: "", meta: { title: "random stuff" }, updatedAt: 1 },
+    { path: "node-1.md", content: "---\ntitle: hello world\n---", updatedAt: 1 },
+    { path: "node-2.md", content: "---\ntitle: OK Computer\n---", updatedAt: 1 },
+    { path: "node-3.md", content: "---\ntitle: random stuff\n---", updatedAt: 1 },
   ]);
 
   console.log("[test] searchMeta/empty");
@@ -405,7 +412,7 @@ export async function testSearchMeta() {
   console.log("[test] searchMeta/simple");
   const simpleResults = searchFiles(db, { query: "hello", limit: 10 });
   assertEqual(simpleResults.length, 1, "Exactly one result");
-  assertEqual(simpleResults[0].path, "/node-1", "Path matches");
+  assertEqual(simpleResults[0].path, "node-1.md", "Path matches");
   assertEqual(simpleResults[0].meta.title, "hello world", "Title matches");
 
   console.log("[test] searchMeta/caseInsensitive");
