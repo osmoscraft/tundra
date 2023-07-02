@@ -44,8 +44,8 @@ interface GraphNodeOutput<T = any> extends GraphNodeInput {
 
 interface GraphNodeLayer {
   get<T = any>(paths: string[]): GraphNodeOutput<T>;
-  updateLocal(nodes: GraphNodeInput[]);
-  updateRemote(nodes: GraphNodeInput[]);
+  trackLocal(nodes: GraphNodeInput[]);
+  trackRemote(nodes: GraphNodeInput[]);
   getRecent<T = any>(): GraphNodeOutput<T>[];
   search<T = any>(): GraphNodeOutput<T>[];
 }
