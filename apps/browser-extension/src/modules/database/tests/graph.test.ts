@@ -449,4 +449,22 @@ export async function testSearchFileContent() {
   const ignoreNoMatchResults = searchFiles(db, { query: "hello", limit: 10, ignore: ["file-2.md"] });
   assertEqual(ignoreMatchResults.length, 0, "No result");
   assertEqual(ignoreNoMatchResults.length, 1, "Exactly one result");
+
+  console.log("[test] fileSearch/scoped");
+  setLocalFiles(db, [
+    { path: "dir1/a.md", content: "red", updatedAt: 1 },
+    { path: "dir1/b.md", content: "blue", updatedAt: 1 },
+    { path: "dir2/c.md", content: "red", updatedAt: 1 },
+    { path: "dir2/d.md", content: "blue", updatedAt: 1 },
+  ]);
+  const inScopePosResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir1*"] });
+  const inScopeNegResults = searchFiles(db, { query: "green", limit: 10, globs: ["dir1*"] });
+  const outOfScopeResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir3*"] });
+  const outOfScopeNegResults = searchFiles(db, { query: "green", limit: 10, globs: ["dir2*"] });
+  const multiScopeResults = searchFiles(db, { query: "red", limit: 10, globs: ["dir1*", "dir2*"] });
+  assertEqual(inScopePosResults[0]?.path, "dir1/a.md", "Exactly one result");
+  assertEqual(inScopeNegResults.length, 0, "in scope no result");
+  assertEqual(outOfScopeResults.length, 0, "out of scope exclude result");
+  assertEqual(outOfScopeNegResults.length, 0, "out of scope no result");
+  assertEqual(multiScopeResults.length, 2, "multi scope result");
 }

@@ -96,12 +96,14 @@ export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWith
 export interface SearchFilesInput {
   query: string;
   limit: number;
+  globs?: string[];
   ignore?: string[];
 }
 export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFileWithMeta[] {
   const files = search(db, {
     query: input.query,
     limit: input.limit,
+    globs: input.globs,
     ignore: input.ignore,
   });
   return files.map(decodeMeta);
