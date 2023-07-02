@@ -1,9 +1,7 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
 import type { DbFileInternalV2, DbFileReadable, DbFileWritable } from "./schema";
 
-export type DbFileRemoteWritable = Omit<DbFileWritable, "localContent" | "localUpdatedAt">;
-export type DbFileLocalWritable = Omit<DbFileWritable, "remoteContent" | "remoteUpdatedAt">;
-export function writeMany(db: Sqlite3.DB, files: DbFileWritable[] | DbFileLocalWritable[] | DbFileRemoteWritable[]) {
+export function writeMany(db: Sqlite3.DB, files: (Pick<DbFileWritable, "path" | "meta"> & Partial<DbFileWritable>)[]) {
   if (!files.length) return;
 
   const cols = Object.keys(files[0]);
@@ -44,7 +42,6 @@ export function removeMany(db: Sqlite3.DB, globs: string[]) {
   const bind = paramsToBindings(sql, { patterns: JSON.stringify(globs) });
   db.exec(sql, { bind });
 }
-export function search(db: Sqlite3.DB, options: SearchOptions) {}
 
 export interface PathOptions {
   exclude?: string[];
