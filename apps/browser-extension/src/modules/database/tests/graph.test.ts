@@ -1,6 +1,5 @@
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
 import {
-  deleteAllFiles,
   deleteFiles,
   getDirtyFiles,
   getFile,
@@ -10,7 +9,7 @@ import {
   setLocalFiles,
   setRemoteFile,
   setRemoteFiles,
-} from "../file";
+} from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -61,7 +60,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.isDirty, 0, "isDirty");
 
   // hard delete
-  deleteAllFiles(db);
+  deleteFiles(db, ["*"]);
 
   assertUndefined(getFile(db, "/test.md"), "After all files deleted");
 }

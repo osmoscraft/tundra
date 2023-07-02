@@ -12,7 +12,7 @@ import {
   testRemoteFirstSync,
   testSearchFileContent,
   testSearchMeta,
-} from "./file.test";
+} from "./graph.test";
 
 export async function testDatabase() {
   // file

@@ -1,3 +1,4 @@
+/** @deprecated */
 export interface DbFile {
   content: string | null;
   isDeleted: 0 | 1;
@@ -43,4 +44,4 @@ export interface DbFileReadable {
   updatedAt: number | null;
 }
 
-export interface DbFileV2 extends DbFileWritable, DbFileReadable {}
+export interface DbFileInternalV2 extends DbFileWritable, DbFileReadable {}
