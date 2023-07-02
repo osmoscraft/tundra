@@ -24,13 +24,13 @@ export async function testLocalFileEditLifecycle() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
 
   let file = getFile(db, "/test.md")!;
   assertDefined(file, "After file created");
   assertEqual(file.content, "hello world", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:00Z", "Latest time");
+  assertEqual(file.updatedAt, 1, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 1, "isDirty");
 
@@ -38,12 +38,12 @@ export async function testLocalFileEditLifecycle() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world 2",
-    updatedAt: "2000-01-01T00:00:01Z",
+    updatedAt: 2,
   });
 
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world 2", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:01Z", "Latest time");
+  assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 1, "isDirty");
 
@@ -51,12 +51,12 @@ export async function testLocalFileEditLifecycle() {
   setLocalFile(db, {
     path: "/test.md",
     content: null,
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, null, "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:02Z", "Latest time");
+  assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.isDeleted, 1, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 
@@ -74,20 +74,20 @@ export async function testLocalFirstSync() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
 
   // push
   setRemoteFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:01Z",
+    updatedAt: 2,
   });
 
   let file = getFile(db, "/test.md")!;
 
   assertEqual(file.content, "hello world", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:01Z", "Latest time");
+  assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 
@@ -95,13 +95,13 @@ export async function testLocalFirstSync() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world 2",
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   file = getFile(db, "/test.md")!;
 
   assertEqual(file.content, "hello world 2", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:02Z", "Latest time");
+  assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 1, "isDirty");
 
@@ -109,13 +109,13 @@ export async function testLocalFirstSync() {
   setLocalFile(db, {
     path: "/test.md",
     content: null,
-    updatedAt: "2000-01-01T00:00:03Z",
+    updatedAt: 4,
   });
 
   file = getFile(db, "/test.md")!;
 
   assertEqual(file.content, null, "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:03Z", "Latest time");
+  assertEqual(file.updatedAt, 4, "Latest time");
   assertEqual(file.isDeleted, 1, "isDelete");
   assertEqual(file.isDirty, 1, "isDirty");
 
@@ -123,13 +123,13 @@ export async function testLocalFirstSync() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:04Z",
+    updatedAt: 5,
   });
 
   file = getFile(db, "/test.md")!;
 
   assertEqual(file.content, "hello world", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:04Z", "Latest time");
+  assertEqual(file.updatedAt, 5, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 }
@@ -139,10 +139,10 @@ export async function testDeleteFiles() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, [
-    { path: "file-1.md", content: "", updatedAt: "2000-01-01T00:00:03Z" },
-    { path: "dir1/file-2.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "dir1/file-3.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "dir2/subdir/file-4.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
+    { path: "file-1.md", content: "", updatedAt: 4 },
+    { path: "dir1/file-2.md", content: "", updatedAt: 9 },
+    { path: "dir1/file-3.md", content: "", updatedAt: 9 },
+    { path: "dir2/subdir/file-4.md", content: "", updatedAt: 9 },
   ]);
 
   assertEqual(getFile(db, "file-1.md")?.path, "file-1.md", "file-1.md");
@@ -168,12 +168,12 @@ export async function testRemoteFirstSync() {
   setRemoteFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
 
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:00Z", "Latest time");
+  assertEqual(file.updatedAt, 1, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 
@@ -181,12 +181,12 @@ export async function testRemoteFirstSync() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:01Z",
+    updatedAt: 2,
   });
 
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:01Z", "Latest time");
+  assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 
@@ -194,12 +194,12 @@ export async function testRemoteFirstSync() {
   setRemoteFile(db, {
     path: "/test.md",
     content: "hello world 2",
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world 2", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:02Z", "Latest time");
+  assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 
@@ -207,12 +207,12 @@ export async function testRemoteFirstSync() {
   setRemoteFile(db, {
     path: "/test.md",
     content: null,
-    updatedAt: "2000-01-01T00:00:03Z",
+    updatedAt: 4,
   });
 
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, null, "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:03Z", "Latest time");
+  assertEqual(file.updatedAt, 4, "Latest time");
   assertEqual(file.isDeleted, 1, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 }
@@ -225,24 +225,24 @@ export async function testConflictRemoteWins() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
 
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world local version",
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   setRemoteFile(db, {
     path: "/test.md",
     content: "hello world remote version",
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world remote version", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:02Z", "Latest time");
+  assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 0, "isDirty");
 }
@@ -255,24 +255,24 @@ export async function testConflictLocalWins() {
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world",
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
 
   setLocalFile(db, {
     path: "/test.md",
     content: "hello world local version",
-    updatedAt: "2000-01-01T00:00:02Z",
+    updatedAt: 3,
   });
 
   setRemoteFile(db, {
     path: "/test.md",
     content: "hello world remote version",
-    updatedAt: "2000-01-01T00:00:01Z",
+    updatedAt: 2,
   });
 
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world local version", "Latest content");
-  assertEqual(file.updatedAt, "2000-01-01T00:00:02Z", "Latest time");
+  assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.isDeleted, 0, "isDelete");
   assertEqual(file.isDirty, 1, "isDirty");
 }
@@ -282,14 +282,14 @@ export async function testGetRecentFiles() {
 
   // prepare files with various sources and timestamps
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "/file-2.md", content: "", updatedAt: "2000-01-01T00:00:03Z" },
-    { path: "/file-3.md", content: "", updatedAt: "2000-01-01T00:00:05Z" },
+    { path: "/file-1.md", content: "", updatedAt: 9 },
+    { path: "/file-2.md", content: "", updatedAt: 4 },
+    { path: "/file-3.md", content: "", updatedAt: 6 },
   ]);
   setRemoteFiles(db, [
-    { path: "/file-4.md", content: "", updatedAt: "2000-01-01T00:00:07Z" },
-    { path: "/file-5.md", content: "", updatedAt: "2000-01-01T00:00:09Z" },
-    { path: "/file-6.md", content: "", updatedAt: "2000-01-01T00:00:01Z" },
+    { path: "/file-4.md", content: "", updatedAt: 8 },
+    { path: "/file-5.md", content: "", updatedAt: 10 },
+    { path: "/file-6.md", content: "", updatedAt: 2 },
   ]);
 
   const recentFiles = getRecentFiles(db, 10);
@@ -304,23 +304,23 @@ export async function testGetDirtyFiles() {
 
   // prepare files with various sources and timestamps
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "", updatedAt: "2000-01-01T00:00:08Z" }, // created
-    { path: "/file-2.md", content: "modified", updatedAt: "2000-01-01T00:00:03Z" }, // modified
-    { path: "/file-3.md", content: null, updatedAt: "2000-01-01T00:00:05Z" }, // deleted
-    { path: "/file-4.md", content: null, updatedAt: "2000-01-01T00:00:05Z" }, // clean (remote deleted last)
-    { path: "/file-5.md", content: null, updatedAt: "2000-01-01T00:00:05Z" }, // clean (local deleted last)
-    { path: "/file-6.md", content: null, updatedAt: "2000-01-01T00:00:05Z" }, // clean (deleted at same time)
-    { path: "/file-7.md", content: "", updatedAt: "2000-01-01T00:00:05Z" }, // clean (remote modified last)
-    { path: "/file-8.md", content: "", updatedAt: "2000-01-01T00:00:05Z" }, // clean (local modified last)
+    { path: "/file-1.md", content: "", updatedAt: 9 }, // created
+    { path: "/file-2.md", content: "modified", updatedAt: 4 }, // modified
+    { path: "/file-3.md", content: null, updatedAt: 6 }, // deleted
+    { path: "/file-4.md", content: null, updatedAt: 6 }, // clean (remote deleted last)
+    { path: "/file-5.md", content: null, updatedAt: 6 }, // clean (local deleted last)
+    { path: "/file-6.md", content: null, updatedAt: 6 }, // clean (deleted at same time)
+    { path: "/file-7.md", content: "", updatedAt: 6 }, // clean (remote modified last)
+    { path: "/file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
   ]);
   setRemoteFiles(db, [
-    { path: "/file-2.md", content: "", updatedAt: "2000-01-01T00:00:02Z" },
-    { path: "/file-3.md", content: "", updatedAt: "2000-01-01T00:00:04Z" },
-    { path: "/file-4.md", content: null, updatedAt: "2000-01-01T00:00:06Z" },
-    { path: "/file-5.md", content: null, updatedAt: "2000-01-01T00:00:04Z" },
-    { path: "/file-6.md", content: null, updatedAt: "2000-01-01T00:00:05Z" },
-    { path: "/file-7.md", content: "", updatedAt: "2000-01-01T00:00:06Z" },
-    { path: "/file-8.md", content: "", updatedAt: "2000-01-01T00:00:04Z" },
+    { path: "/file-2.md", content: "", updatedAt: 3 },
+    { path: "/file-3.md", content: "", updatedAt: 5 },
+    { path: "/file-4.md", content: null, updatedAt: 7 },
+    { path: "/file-5.md", content: null, updatedAt: 5 },
+    { path: "/file-6.md", content: null, updatedAt: 6 },
+    { path: "/file-7.md", content: "", updatedAt: 7 },
+    { path: "/file-8.md", content: "", updatedAt: 5 },
   ]);
 
   const dirtyFiles = getDirtyFiles(db);
@@ -332,11 +332,11 @@ export async function testGetDirtyFilesWithIgnore() {
 
   // prepare files with various sources and timestamps
   setLocalFiles(db, [
-    { path: "file-1.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "file-2.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "dir-1/file.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "dir-1/subdir/file.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
-    { path: "dir-2/file.md", content: "", updatedAt: "2000-01-01T00:00:08Z" },
+    { path: "file-1.md", content: "", updatedAt: 9 },
+    { path: "file-2.md", content: "", updatedAt: 9 },
+    { path: "dir-1/file.md", content: "", updatedAt: 9 },
+    { path: "dir-1/subdir/file.md", content: "", updatedAt: 9 },
+    { path: "dir-2/file.md", content: "", updatedAt: 9 },
   ]);
 
   const dirtyFiles = getDirtyFiles(db);
@@ -363,27 +363,23 @@ export async function testMetaCRUD() {
   console.log("[text] metaCRUD");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedAt: "2000-01-01T00:00:00Z" });
+  setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-undefined.md")!.meta, {}, "undefined meta");
 
-  setLocalFile(db, { path: "/meta-empty.md", content: "", meta: {}, updatedAt: "2000-01-01T00:00:00Z" });
+  setLocalFile(db, { path: "/meta-empty.md", content: "", meta: {}, updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");
 
   setLocalFile(db, {
     path: "/meta-extended.md",
     content: "",
     meta: { hello: 42, world: true },
-    updatedAt: "2000-01-01T00:00:00Z",
+    updatedAt: 1,
   });
   assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, { hello: 42, world: true }, "extended meta");
 
-  setLocalFiles(db, [
-    { path: "/file-2.md", content: "", meta: { title: "title 2" }, updatedAt: "2000-01-01T00:00:00Z" },
-  ]);
+  setLocalFiles(db, [{ path: "/file-2.md", content: "", meta: { title: "title 2" }, updatedAt: 1 }]);
 
-  setRemoteFiles(db, [
-    { path: "/file-3.md", content: "", meta: { title: "title 3" }, updatedAt: "2000-01-01T00:00:00Z" },
-  ]);
+  setRemoteFiles(db, [{ path: "/file-3.md", content: "", meta: { title: "title 3" }, updatedAt: 1 }]);
 
   const recentFiles = getRecentFiles(db, 10);
   assertEqual(recentFiles.find((f) => f.path === "/file-2.md")!.meta.title, "title 2", "title 2");
@@ -398,9 +394,9 @@ export async function testSearchMeta() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, [
-    { path: "/node-1", content: "", meta: { title: "hello world" }, updatedAt: "2000-01-01T00:00:00Z" },
-    { path: "/node-2", content: "", meta: { title: "OK Computer" }, updatedAt: "2000-01-01T00:00:00Z" },
-    { path: "/node-3", content: "", meta: { title: "random stuff" }, updatedAt: "2000-01-01T00:00:00Z" },
+    { path: "/node-1", content: "", meta: { title: "hello world" }, updatedAt: 1 },
+    { path: "/node-2", content: "", meta: { title: "OK Computer" }, updatedAt: 1 },
+    { path: "/node-3", content: "", meta: { title: "random stuff" }, updatedAt: 1 },
   ]);
 
   console.log("[test] searchMeta/empty");
@@ -424,11 +420,11 @@ export async function testSearchFileContent() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "hello world", updatedAt: "2000-01-01T00:00:00Z" },
-    { path: "/file-3.md", content: "OK Computer", updatedAt: "2000-01-01T00:00:00Z" },
+    { path: "/file-1.md", content: "hello world", updatedAt: 1 },
+    { path: "/file-3.md", content: "OK Computer", updatedAt: 1 },
   ]);
-  setRemoteFiles(db, [{ path: "/file-2.md", content: "random stuff", updatedAt: "2000-01-01T00:00:00Z" }]);
-  setRemoteFiles(db, [{ path: "/file-4.md", content: "fancy content", updatedAt: "2000-01-01T00:00:00Z" }]);
+  setRemoteFiles(db, [{ path: "/file-2.md", content: "random stuff", updatedAt: 1 }]);
+  setRemoteFiles(db, [{ path: "/file-4.md", content: "fancy content", updatedAt: 1 }]);
 
   console.log("[test] fileSearch/empty");
   const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });
@@ -447,5 +443,5 @@ export async function testSearchFileContent() {
 
   console.log("[test] fileSearch/additionalFields");
   const additionalFieldsResult = searchFiles(db, { query: "fancy", limit: 10 });
-  assertEqual(additionalFieldsResult[0].updatedAt, "2000-01-01T00:00:00Z", "Updated time matches");
+  assertEqual(additionalFieldsResult[0].updatedAt, 1, "Updated time matches");
 }

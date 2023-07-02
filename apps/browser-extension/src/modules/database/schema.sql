@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS File (
   path TEXT PRIMARY KEY,
   localContent TEXT,
-  localUpdatedAt TEXT,
+  localUpdatedAt INTEGER,
   remoteContent TEXT,
-  remoteUpdatedAt TEXT,
+  remoteUpdatedAt INTEGER,
   meta TEXT,
 
   /* Drived columns */
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS File (
   ),
   isDeleted INTEGER GENERATED ALWAYS AS (content IS NULL),
   isDirty INTEGER GENERATED ALWAYS AS (content IS NOT remoteContent),
-  updatedAt TEXT GENERATED ALWAYS AS (
+  updatedAt INTEGER GENERATED ALWAYS AS (
     CASE
       WHEN ifnull(localUpdatedAt, 0) > ifnull(remoteUpdatedAt, 0) THEN localUpdatedAt
       ELSE remoteUpdatedAt

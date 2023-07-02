@@ -5,7 +5,7 @@ export interface FileChange {
   path: string;
   content: string | null;
   meta?: any;
-  updatedAt?: string;
+  updatedAt?: number;
 }
 
 export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
@@ -18,7 +18,7 @@ export function setLocalFile(db: Sqlite3.DB, file: FileChange) {
     path: file.path,
     content: file.content,
     meta: JSON.stringify(file.meta),
-    updatedAt: file.updatedAt ?? new Date().toISOString(),
+    updatedAt: file.updatedAt ?? Date.now(),
   });
 
   return db.exec(sql, { bind: bindings });
@@ -33,7 +33,7 @@ export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
   const bindings = paramsToBindings(sql, {
     path: file.path,
     content: file.content,
-    updatedAt: file.updatedAt ?? new Date().toISOString(),
+    updatedAt: file.updatedAt ?? Date.now(),
   });
 
   return db.exec(sql, { bind: bindings });
@@ -49,7 +49,7 @@ ON CONFLICT(path) DO UPDATE SET localContent = excluded.localContent, meta = jso
   `;
 
   const timedFiles = files.map((file) => {
-    const timestamp = file.updatedAt ?? new Date().toISOString();
+    const timestamp = file.updatedAt ?? Date.now();
 
     return {
       p: file.path,
@@ -74,7 +74,7 @@ ON CONFLICT(path) DO UPDATE SET remoteContent = excluded.remoteContent, meta = j
   `;
 
   const timedFiles = files.map((file) => {
-    const timestamp = file.updatedAt ?? new Date().toISOString();
+    const timestamp = file.updatedAt ?? Date.now();
 
     return {
       p: file.path,
