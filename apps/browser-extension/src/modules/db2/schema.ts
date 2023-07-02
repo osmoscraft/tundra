@@ -1,10 +1,10 @@
 export interface DbFileWritable {
   localContent: string | null;
-  localUpdatedAt: string;
+  localUpdatedAt: number;
   meta: string | null;
   path: string;
   remoteContent: string | null;
-  remoteUpdatedAt: string | null;
+  remoteUpdatedAt: number | null;
 }
 
 export interface DbFileReadable {
@@ -15,7 +15,7 @@ export interface DbFileReadable {
   content: string | null;
   isDeleted: 0 | 1;
   isDirty: 0 | 1;
-  updatedAt: string | null;
+  updatedAt: number | null;
 }
 
 export interface DbFile extends DbFileWritable, DbFileReadable {}
