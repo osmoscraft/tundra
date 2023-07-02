@@ -419,11 +419,11 @@ export async function testSearchFileContent() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, [
-    { path: "/file-1.md", content: "hello world", updatedAt: 1 },
-    { path: "/file-3.md", content: "OK Computer", updatedAt: 1 },
+    { path: "file-1.md", content: "hello world", updatedAt: 1 },
+    { path: "file-3.md", content: "OK Computer", updatedAt: 1 },
   ]);
-  setRemoteFiles(db, [{ path: "/file-2.md", content: "random stuff", updatedAt: 1 }]);
-  setRemoteFiles(db, [{ path: "/file-4.md", content: "fancy content", updatedAt: 1 }]);
+  setRemoteFiles(db, [{ path: "file-2.md", content: "random stuff", updatedAt: 1 }]);
+  setRemoteFiles(db, [{ path: "file-4.md", content: "fancy content", updatedAt: 1 }]);
 
   console.log("[test] fileSearch/empty");
   const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });
@@ -432,7 +432,7 @@ export async function testSearchFileContent() {
   console.log("[test] fileSearch/simple");
   const simpleResults = searchFiles(db, { query: "hello", limit: 10 });
   assertEqual(simpleResults.length, 1, "Exactly one result");
-  assertEqual(simpleResults[0].path, "/file-1.md", "Path matches");
+  assertEqual(simpleResults[0].path, "file-1.md", "Path matches");
   assertEqual(simpleResults[0].content, "hello world", "Title matches");
 
   console.log("[test] fileSearch/caseInsensitive");
@@ -443,4 +443,10 @@ export async function testSearchFileContent() {
   console.log("[test] fileSearch/additionalFields");
   const additionalFieldsResult = searchFiles(db, { query: "fancy", limit: 10 });
   assertEqual(additionalFieldsResult[0].updatedAt, 1, "Updated time matches");
+
+  console.log("[test] fileSearch/ignore");
+  const ignoreMatchResults = searchFiles(db, { query: "hello", limit: 10, ignore: ["file-1.md"] });
+  const ignoreNoMatchResults = searchFiles(db, { query: "hello", limit: 10, ignore: ["file-2.md"] });
+  assertEqual(ignoreMatchResults.length, 0, "No result");
+  assertEqual(ignoreNoMatchResults.length, 1, "Exactly one result");
 }

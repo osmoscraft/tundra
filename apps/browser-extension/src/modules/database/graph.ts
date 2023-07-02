@@ -1,7 +1,6 @@
-import { paramsToBindings } from "@tinykb/sqlite-utils";
-import { list, read, removeMany, writeMany } from "./file";
+import { list, read, removeMany, search, writeMany } from "./file";
 import { decodeMeta } from "./meta";
-import type { DbFileInternal, DbFileWithMeta } from "./schema";
+import type { DbFileWithMeta } from "./schema";
 
 /**
  * TODO graph v2
@@ -97,17 +96,13 @@ export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []): DbFileWith
 export interface SearchFilesInput {
   query: string;
   limit: number;
+  ignore?: string[];
 }
 export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput): DbFileWithMeta[] {
-  // weights map to fts columns: path, content, meta,
-  const sql = `
-SELECT * FROM File JOIN FileFts ON File.path = FileFts.path WHERE FileFts MATCH :query ORDER BY bm25(FileFts, 0.1, 1, 100) LIMIT :limit
-`;
-
-  const bind = paramsToBindings(sql, {
+  const files = search(db, {
     query: input.query,
     limit: input.limit,
+    ignore: input.ignore,
   });
-
-  return db.selectObjects<DbFileInternal>(sql, bind).map(decodeMeta);
+  return files.map(decodeMeta);
 }
