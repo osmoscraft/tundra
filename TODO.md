@@ -1,10 +1,6 @@
 # Alpha must have
 
-- Refactor: make fs agnostic of meta parsing
-- Refactor: rename dirty to isLocalChanged
 - Refactor: add graph layer to handle meta + dirty tracking
-- Refactor: lift undefined values to graph layer
-- Refactor: avoid unnecessary parsing of json files
 - Auto generate built-in gitignore
 - Regenerate system files after clone
 - Better system files scaffolding
@@ -15,6 +11,7 @@
 - Need to handle invalid frontmatter state during auto save
 - Ignore system files in search
 - DB Migration strategy
+- Add unit test for search
 
 # Future
 
