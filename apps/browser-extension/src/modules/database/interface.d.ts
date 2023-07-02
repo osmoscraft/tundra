@@ -51,6 +51,6 @@ interface GraphNodeLayer {
   clone(nodes: GraphNodeInput[]);
   pull(nodes: GraphNodeInput[]);
   push(nodes: GraphNodeInput[]);
-  list<T = any>(paths: string[], options: ListOptions): GraphNodeOutput<T>[];
+  get<T = any>(paths: string[], options: ListOptions): GraphNodeOutput<T>[];
   search<T = any>(options: SearchOptions): GraphNodeOutput<T>[];
 }
