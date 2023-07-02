@@ -23,7 +23,7 @@ type FilterOption = "isDirty" | "isDeleted";
 
 interface FileWrite {
   path: string;
-  data: string | null;
+  meta: string | null;
   localContent?: string | null;
   localUpdatedAt?: number;
   remoteContent?: string | null;
@@ -43,7 +43,7 @@ interface GraphNodeInput {
   updatedAt?: number;
 }
 interface GraphNodeOutput<T = any> extends GraphNodeInput {
-  data: T;
+  meta: T;
 }
 
 interface GraphNodeLayer {
