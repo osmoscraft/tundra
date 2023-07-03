@@ -1,15 +1,5 @@
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
-import {
-  deleteFiles,
-  getDirtyFiles,
-  getFile,
-  getRecentFiles,
-  searchFiles,
-  setLocalFile,
-  setLocalFiles,
-  setRemoteFile,
-  updateRemote,
-} from "../graph";
+import { deleteFiles, getDirtyFiles, getFile, getRecentFiles, searchFiles, updateLocal, updateRemote } from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -20,7 +10,7 @@ export async function testLocalFileEditLifecycle() {
   assertUndefined(getFile(db, "/test.md"), "Before file created");
 
   // create
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
@@ -34,7 +24,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.isDirty, 1, "isDirty");
 
   // edit
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 2,
@@ -47,7 +37,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.isDirty, 1, "isDirty");
 
   // soft delete
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: null,
     updatedAt: 3,
@@ -70,14 +60,14 @@ export async function testLocalFirstSync() {
   const db = await createTestDb(SCHEMA);
 
   // create
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
   // push
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 2,
@@ -91,7 +81,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.isDirty, 0, "isDirty");
 
   // edit after push
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 3,
@@ -105,7 +95,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.isDirty, 1, "isDirty");
 
   // delete after push
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: null,
     updatedAt: 4,
@@ -119,7 +109,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.isDirty, 1, "isDirty");
 
   // undo all changes after push
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 5,
@@ -137,7 +127,7 @@ export async function testDeleteFiles() {
   console.log("[test] fileDeletion");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "file-1.md", content: "", updatedAt: 4 },
     { path: "dir1/file-2.md", content: "", updatedAt: 9 },
     { path: "dir1/file-3.md", content: "", updatedAt: 9 },
@@ -164,7 +154,7 @@ export async function testRemoteFirstSync() {
   const db = await createTestDb(SCHEMA);
 
   // remote create
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
@@ -177,7 +167,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.isDirty, 0, "isDirty");
 
   // pull
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 2,
@@ -190,7 +180,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.isDirty, 0, "isDirty");
 
   // remote edit
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 3,
@@ -203,7 +193,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.isDirty, 0, "isDirty");
 
   // remote delete
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: null,
     updatedAt: 4,
@@ -221,19 +211,19 @@ export async function testConflictRemoteWins() {
   const db = await createTestDb(SCHEMA);
 
   // remote time >= local
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world local version",
     updatedAt: 3,
   });
 
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: "hello world remote version",
     updatedAt: 3,
@@ -251,19 +241,19 @@ export async function testConflictLocalWins() {
   const db = await createTestDb(SCHEMA);
 
   // remote time < local
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/test.md",
     content: "hello world local version",
     updatedAt: 3,
   });
 
-  setRemoteFile(db, {
+  updateRemote(db, {
     path: "/test.md",
     content: "hello world remote version",
     updatedAt: 2,
@@ -281,7 +271,7 @@ export async function testGetRecentFiles() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "file-1.md", content: "", updatedAt: 9 },
     { path: "file-2.md", content: "", updatedAt: 4 },
     { path: "file-3.md", content: "", updatedAt: 6 },
@@ -304,7 +294,7 @@ export async function testGetRecentFilesWithScope() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "dir1/file-1.md", content: "", updatedAt: 9 },
     { path: "dir1/file-2.md", content: "", updatedAt: 4 },
     { path: "dir2/file-3.md", content: "", updatedAt: 6 },
@@ -323,7 +313,7 @@ export async function testGetRecentFilesWithIgnore() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "dir1/file-1.md", content: "", updatedAt: 9 },
     { path: "dir1/file-2.md", content: "", updatedAt: 4 },
     { path: "dir2/file-3.md", content: "", updatedAt: 6 },
@@ -342,7 +332,7 @@ export async function testGetDirtyFiles() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "file-1.md", content: "", updatedAt: 9 }, // created
     { path: "file-2.md", content: "modified", updatedAt: 4 }, // modified
     { path: "file-3.md", content: null, updatedAt: 6 }, // deleted
@@ -371,7 +361,7 @@ export async function testGetDirtyFilesWithIgnore() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "file-1.md", content: "", updatedAt: 9 },
     { path: "file-2.md", content: "", updatedAt: 9 },
     { path: "dir-1/file.md", content: "", updatedAt: 9 },
@@ -396,7 +386,7 @@ export async function testBulkOperations() {
   console.log("[text] bulkOperations");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFiles(db, []); // empty
+  updateLocal(db, []); // empty
   updateRemote(db, []); // empty
 }
 
@@ -404,29 +394,29 @@ export async function testMetaCRUD() {
   console.log("[text] metaCRUD");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFile(db, { path: "/no-content-meta.md", content: null, updatedAt: 1 });
+  updateLocal(db, { path: "/no-content-meta.md", content: null, updatedAt: 1 });
   assertDeepEqual(getFile(db, "/no-content-meta.md")!.meta, null, "no content meta");
 
-  setLocalFile(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
+  updateLocal(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-undefined.md")!.meta, {}, "undefined meta");
 
-  setLocalFile(db, { path: "/meta-empty.md", content: "---\n---", updatedAt: 1 });
+  updateLocal(db, { path: "/meta-empty.md", content: "---\n---", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");
 
-  setLocalFile(db, { path: "/unsupported-type.exe", content: "---\n---", updatedAt: 1 });
+  updateLocal(db, { path: "/unsupported-type.exe", content: "---\n---", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/unsupported-type.exe")!.meta, {}, "unsupported type");
 
-  setLocalFile(db, { path: "/unsupported-type-deleted.exe", content: null, updatedAt: 1 });
+  updateLocal(db, { path: "/unsupported-type-deleted.exe", content: null, updatedAt: 1 });
   assertDeepEqual(getFile(db, "/unsupported-type-deleted.exe")!.meta, null, "unsupported type deleted");
 
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "/meta-extended.md",
     content: "---\nhello: 42\nworld: true\n---\n",
     updatedAt: 1,
   });
   assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
 
-  setLocalFiles(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
+  updateLocal(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
   updateRemote(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
 
   const recentFiles = getRecentFiles(db, { limit: 10 });
@@ -441,7 +431,7 @@ export async function testSearchMeta() {
   console.log("[test] searchMeta");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "node-1.md", content: "---\ntitle: hello world\n---", updatedAt: 1 },
     { path: "node-2.md", content: "---\ntitle: OK Computer\n---", updatedAt: 1 },
     { path: "node-3.md", content: "---\ntitle: random stuff\n---", updatedAt: 1 },
@@ -467,7 +457,7 @@ export async function testSearchFileContent() {
   console.log("[test] searchFiles");
   const db = await createTestDb(SCHEMA);
 
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "file-1.md", content: "hello world", updatedAt: 1 },
     { path: "file-3.md", content: "OK Computer", updatedAt: 1 },
   ]);
@@ -500,7 +490,7 @@ export async function testSearchFileContent() {
   assertEqual(ignoreNoMatchResults.length, 1, "Exactly one result");
 
   console.log("[test] fileSearch/scoped");
-  setLocalFiles(db, [
+  updateLocal(db, [
     { path: "dir1/a.md", content: "red", updatedAt: 1 },
     { path: "dir1/b.md", content: "blue", updatedAt: 1 },
     { path: "dir2/c.md", content: "red", updatedAt: 1 },

@@ -1,4 +1,4 @@
-import { getFile, setLocalFile } from "../database";
+import { getFile, updateLocal } from "../database";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
 
@@ -21,14 +21,14 @@ export async function setConnection(db: Sqlite3.DB, connection: GithubConnection
   const path = "config/sync/github.json";
   const content = JSON.stringify(connection);
 
-  setLocalFile(db, {
+  updateLocal(db, {
     path,
     content,
   });
 }
 
 export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string) {
-  setLocalFile(db, {
+  updateLocal(db, {
     path: "config/sync/github-head-commit.txt",
     content: commit,
   });

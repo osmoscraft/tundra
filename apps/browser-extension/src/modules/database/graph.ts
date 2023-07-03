@@ -70,18 +70,6 @@ export interface FileChange {
   updatedAt?: number;
 }
 
-export function setLocalFile(db: Sqlite3.DB, file: CommitInput) {
-  setLocalFiles(db, [file]);
-}
-
-export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
-  updateRemote(db, [file]);
-}
-
-export function setLocalFiles(db: Sqlite3.DB, files: CommitInput[]) {
-  updateLocal(db, files);
-}
-
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
   fileApi.removeMany(db, patterns);
 }

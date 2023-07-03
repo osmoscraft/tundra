@@ -76,7 +76,7 @@ const routes = {
         content: dbFile.content,
         updatedAt: Date.now(), // TODO use push commit timestamp
       }))
-      .map((file) => dbApi.setRemoteFile(db, file));
+      .map((file) => dbApi.updateRemote(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
@@ -86,7 +86,7 @@ const routes = {
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
-    dbApi.setLocalFile(db, { path, content });
+    dbApi.updateLocal(db, { path, content });
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
 };
