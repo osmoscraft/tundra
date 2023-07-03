@@ -1,3 +1,4 @@
+import { array } from "@tinykb/fp-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
 
@@ -30,15 +31,36 @@ export interface CommitInput {
   content: string | null;
   updatedAt?: number;
 }
-export function commitMany(db: Sqlite3.DB, input: CommitInput[]) {
+export function updateLocal(db: Sqlite3.DB, input: CommitInput | CommitInput[]) {
   const now = Date.now();
-  const fileWrites = input.map((file) => ({
-    path: file.path,
-    localContent: file.content,
-    meta: encodeMeta(file),
-    localUpdatedAt: file.updatedAt ?? now,
-  }));
-  fileApi.writeMany(db, fileWrites);
+  fileApi.writeMany(
+    db,
+    array(input).map((file) => ({
+      path: file.path,
+      localContent: file.content,
+      meta: encodeMeta(file),
+      localUpdatedAt: file.updatedAt ?? now,
+    }))
+  );
+}
+
+export function updateRemote(db: Sqlite3.DB, files: CommitInput | CommitInput[]) {
+  const now = Date.now();
+  fileApi.writeMany(
+    db,
+    array(files).map((file) => ({
+      path: file.path,
+      remoteContent: file.content,
+      remoteUpdatedAt: file.updatedAt ?? now,
+      meta: encodeMeta(file),
+    }))
+  );
+}
+
+export function mergeRemote(db: Sqlite3.DB, input: CommitInput | CommitInput[]) {
+  // update remote version
+  // if local version is older, clean up local version
+  // if local version is newer,
 }
 
 export interface FileChange {
@@ -53,24 +75,11 @@ export function setLocalFile(db: Sqlite3.DB, file: CommitInput) {
 }
 
 export function setRemoteFile(db: Sqlite3.DB, file: FileChange) {
-  setRemoteFiles(db, [file]);
+  updateRemote(db, [file]);
 }
 
 export function setLocalFiles(db: Sqlite3.DB, files: CommitInput[]) {
-  commitMany(db, files);
-}
-
-export function setRemoteFiles(db: Sqlite3.DB, files: FileChange[]) {
-  const now = Date.now();
-  fileApi.writeMany(
-    db,
-    files.map((file) => ({
-      path: file.path,
-      remoteContent: file.content,
-      remoteUpdatedAt: file.updatedAt ?? now,
-      meta: encodeMeta(file),
-    }))
-  );
+  updateLocal(db, files);
 }
 
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {

@@ -8,7 +8,7 @@ import {
   setLocalFile,
   setLocalFiles,
   setRemoteFile,
-  setRemoteFiles,
+  updateRemote,
 } from "../graph";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
@@ -286,7 +286,7 @@ export async function testGetRecentFiles() {
     { path: "file-2.md", content: "", updatedAt: 4 },
     { path: "file-3.md", content: "", updatedAt: 6 },
   ]);
-  setRemoteFiles(db, [
+  updateRemote(db, [
     { path: "file-4.md", content: "", updatedAt: 8 },
     { path: "file-5.md", content: "", updatedAt: 10 },
     { path: "file-6.md", content: "", updatedAt: 2 },
@@ -352,7 +352,7 @@ export async function testGetDirtyFiles() {
     { path: "file-7.md", content: "", updatedAt: 6 }, // clean (remote modified last)
     { path: "file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
   ]);
-  setRemoteFiles(db, [
+  updateRemote(db, [
     { path: "file-2.md", content: "", updatedAt: 3 },
     { path: "file-3.md", content: "", updatedAt: 5 },
     { path: "file-4.md", content: null, updatedAt: 7 },
@@ -397,7 +397,7 @@ export async function testBulkOperations() {
   const db = await createTestDb(SCHEMA);
 
   setLocalFiles(db, []); // empty
-  setRemoteFiles(db, []); // empty
+  updateRemote(db, []); // empty
 }
 
 export async function testMetaCRUD() {
@@ -427,7 +427,7 @@ export async function testMetaCRUD() {
   assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
 
   setLocalFiles(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
-  setRemoteFiles(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
+  updateRemote(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
 
   const recentFiles = getRecentFiles(db, { limit: 10 });
   assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
@@ -471,8 +471,8 @@ export async function testSearchFileContent() {
     { path: "file-1.md", content: "hello world", updatedAt: 1 },
     { path: "file-3.md", content: "OK Computer", updatedAt: 1 },
   ]);
-  setRemoteFiles(db, [{ path: "file-2.md", content: "random stuff", updatedAt: 1 }]);
-  setRemoteFiles(db, [{ path: "file-4.md", content: "fancy content", updatedAt: 1 }]);
+  updateRemote(db, [{ path: "file-2.md", content: "random stuff", updatedAt: 1 }]);
+  updateRemote(db, [{ path: "file-4.md", content: "fancy content", updatedAt: 1 }]);
 
   console.log("[test] fileSearch/empty");
   const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });

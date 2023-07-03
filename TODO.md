@@ -1,6 +1,7 @@
 # Alpha must have
 
 - Refactor: add graph layer to handle meta + dirty tracking
+- Use node.js for testing
 - Auto generate built-in gitignore
 - Regenerate system files after clone
 - Better system files scaffolding
