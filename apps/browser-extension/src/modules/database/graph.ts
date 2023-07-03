@@ -5,15 +5,6 @@ import { decodeMeta, encodeMeta } from "./meta";
 /**
  * TODO graph v2
  * 
-export interface GraphNodeInput {
-  path: string;
-  content: string;
-  updatedAt?: number;
-}
-export interface GraphNodeOutput<T = any> extends GraphNodeInput {
-  meta: T;
-}
-
 export function commit(nodes: GraphNodeInput[]) {}
 export function clone(nodes: GraphNodeInput[]) {}
 export function pull(nodes: GraphNodeInput[]) {}
@@ -26,12 +17,12 @@ export function search<T = any>(query: string): GraphNodeOutput<T>[] {
 }
 */
 
-export interface CommitInput {
+export interface TextFile {
   path: string;
   content: string | null;
   updatedAt?: number;
 }
-export function updateLocal(db: Sqlite3.DB, input: CommitInput | CommitInput[]) {
+export function updateLocal(db: Sqlite3.DB, input: TextFile | TextFile[]) {
   const now = Date.now();
   fileApi.writeMany(
     db,
@@ -44,7 +35,7 @@ export function updateLocal(db: Sqlite3.DB, input: CommitInput | CommitInput[]) 
   );
 }
 
-export function updateRemote(db: Sqlite3.DB, files: CommitInput | CommitInput[]) {
+export function updateRemote(db: Sqlite3.DB, files: TextFile | TextFile[]) {
   const now = Date.now();
   fileApi.writeMany(
     db,
@@ -57,17 +48,10 @@ export function updateRemote(db: Sqlite3.DB, files: CommitInput | CommitInput[])
   );
 }
 
-export function mergeRemote(db: Sqlite3.DB, input: CommitInput | CommitInput[]) {
+export function mergeRemote(db: Sqlite3.DB, input: TextFile | TextFile[]) {
   // update remote version
   // if local version is older, clean up local version
   // if local version is newer,
-}
-
-export interface FileChange {
-  path: string;
-  content: string | null;
-  meta?: any;
-  updatedAt?: number;
 }
 
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {

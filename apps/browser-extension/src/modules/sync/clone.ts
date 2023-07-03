@@ -1,19 +1,15 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
-import type { FileChange } from "../database";
-import { getMetaExtractor } from "../database/meta";
+import type { TextFile } from "../database";
 import * as github from "./github";
 import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export function GithubChangeToFileChange(record: RemoteChangeRecord): FileChange {
-  const meta = record.text === null ? null : getMetaExtractor(record.path)(record.text);
-
+export function GithubChangeToLocalChange(record: RemoteChangeRecord): TextFile {
   return {
     path: record.path,
     content: record.text,
     updatedAt: new Date(record.timestamp).getTime(),
-    meta,
   };
 }
 
