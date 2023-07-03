@@ -1,3 +1,4 @@
+export * from "./lib/array";
 export * from "./lib/compose";
 export * from "./lib/memoize";
 export * from "./lib/pipe";
