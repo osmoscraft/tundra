@@ -18,7 +18,7 @@ export async function testFileV2Status() {
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [{ path: "added", localContent: "", localUpdatedAt: 1 }]);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [{ path: "unchanged", baseContent: "", baseUpdatedAt: 1 }]);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "modified", localContent: "local", localUpdatedAt: 2, baseContent: "", baseUpdatedAt: 1 },
+    { path: "outgoing", localContent: "local", localUpdatedAt: 2, baseContent: "", baseUpdatedAt: 1 },
   ]);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
@@ -34,7 +34,7 @@ export async function testFileV2Status() {
 
   assertEqual(readV2(db, "added")?.status, DbFileStatus.Added);
   assertEqual(readV2(db, "unchanged")?.status, DbFileStatus.Unchanged);
-  assertEqual(readV2(db, "modified")?.status, DbFileStatus.Modified);
+  assertEqual(readV2(db, "outgoing")?.status, DbFileStatus.Outgoing);
   assertEqual(readV2(db, "conflict")?.status, DbFileStatus.Conflict);
 }
 
@@ -106,62 +106,62 @@ export async function testFileV2StatusTransition101() {
   console.log(`[test] transition101/both deleted`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/bothNull",
+      path: "outgoing/bothNull",
       localContent: null,
       localUpdatedAt: 2,
       baseContent: null,
       baseUpdatedAt: 1,
     },
   ]);
-  assertUndefined(readV2(db, "modified/bothNull"));
+  assertUndefined(readV2(db, "outgoing/bothNull"));
 
   console.log(`[test] transition10l/both edited`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/bothSame",
+      path: "outgoing/bothSame",
       localContent: "same",
       localUpdatedAt: 2,
       baseContent: "same",
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/bothSame")?.status, DbFileStatus.Unchanged);
+  assertEqual(readV2(db, "outgoing/bothSame")?.status, DbFileStatus.Unchanged);
 
   console.log(`[test] transition101/local created`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/localCreated",
+      path: "outgoing/localCreated",
       localContent: "local",
       localUpdatedAt: 2,
       baseContent: null,
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/localCreated")?.status, DbFileStatus.Added);
+  assertEqual(readV2(db, "outgoing/localCreated")?.status, DbFileStatus.Added);
 
   console.log(`[test] transition101/local deteted`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/localDeleted",
+      path: "outgoing/localDeleted",
       localContent: null,
       localUpdatedAt: 2,
       baseContent: "base",
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/localDeleted")?.status, DbFileStatus.Modified);
+  assertEqual(readV2(db, "outgoing/localDeleted")?.status, DbFileStatus.Outgoing);
 
   console.log(`[test] transition101/local edited`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/localEdited",
+      path: "outgoing/localEdited",
       localContent: "local",
       localUpdatedAt: 2,
       baseContent: "base",
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/localEdited")?.status, DbFileStatus.Modified);
+  assertEqual(readV2(db, "outgoing/localEdited")?.status, DbFileStatus.Outgoing);
 }
 
 export async function testFileV2StatusTransition011() {
@@ -196,50 +196,50 @@ export async function testFileV2StatusTransition011() {
   console.log(`[test] transition011/both deleted`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/bothNull",
+      path: "incoming/bothNull",
       remoteContent: null,
       remoteUpdatedAt: 2,
       baseContent: null,
       baseUpdatedAt: 1,
     },
   ]);
-  assertUndefined(readV2(db, "modified/bothNull"));
+  assertUndefined(readV2(db, "incoming/bothNull"));
 
   console.log(`[test] transition011/remote created`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/remoteCreated",
+      path: "incoming/remoteCreated",
       remoteContent: "remote",
       remoteUpdatedAt: 2,
       baseContent: null,
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/remoteCreated")?.status, DbFileStatus.Unchanged);
+  assertEqual(readV2(db, "incoming/remoteCreated")?.status, DbFileStatus.Unchanged);
 
   console.log(`[test] transition011/remote edited`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/remoteEdited",
+      path: "incoming/remoteEdited",
       remoteContent: "remote",
       remoteUpdatedAt: 2,
       baseContent: "base",
       baseUpdatedAt: 1,
     },
   ]);
-  assertEqual(readV2(db, "modified/remoteEdited")?.status, DbFileStatus.Unchanged);
+  assertEqual(readV2(db, "incoming/remoteEdited")?.status, DbFileStatus.Unchanged);
 
   console.log(`[test] transition011/remote deleted`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
     {
-      path: "modified/remoteDeleted",
+      path: "incoming/remoteDeleted",
       remoteContent: null,
       remoteUpdatedAt: 2,
       baseContent: "base",
       baseUpdatedAt: 1,
     },
   ]);
-  assertUndefined(readV2(db, "modified/remoteDeleted"));
+  assertUndefined(readV2(db, "incoming/remoteDeleted"));
 }
 export async function testFileV2StatusTransition110() {}
 

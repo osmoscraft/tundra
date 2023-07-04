@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS FileV2 (
       WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 2 -- (T)
       WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 3 -- (T)
       WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NULL THEN 4 -- Added
-      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 5 -- Modified
+      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 5 -- Outgoing
       WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 6 -- (T)
       WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 7 -- Conflict
     END
@@ -121,6 +121,8 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   /* Status 3 */
   -- When remoteUpdatedAt is older than baseUpdatedAt -> abort
   SELECT RAISE(ABORT, 'remoteUpdatedAt is older than baseUpdatedAt') WHERE new.status = 3 AND new.remoteUpdatedAt < new.baseUpdatedAt;
+
+  -- TODO support incoming status
 
   -- When remoteUpdatedAt is newer than baseUpdatedAt and remote content is null -> delete row
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 3 AND new.remoteContent IS NULL AND new.remoteUpdatedAt >= new.baseUpdatedAt;

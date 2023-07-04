@@ -38,9 +38,9 @@ export enum DbFileStatus {
   Untracked = 0,
   Unchanged = 1,
   S2 = 2,
-  S3 = 3,
+  Incoming = 3,
   Added = 4,
-  Modified = 5,
+  Outgoing = 5,
   S6 = 6,
   Conflict = 7,
 }
