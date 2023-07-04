@@ -75,29 +75,29 @@ CREATE TABLE IF NOT EXISTS FileV2 (
 CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEGIN
   /* 0: Synced */
   -- Delete row when content is null
-  DELETE FROM FileV2 WHERE new.status = 0 AND path = new.path AND new.content IS NULL;
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 0 AND new.content IS NULL;
 
   /* 1: Behind */
   -- Clear remote when remote.content is the same as synced.content
-  UPDATE FileV2 SET remote = NULL WHERE new.status = 1 AND path = new.path AND remote ->> '$.content' IS synced ->> '$.content'; 
+  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS synced ->> '$.content'; 
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content
-  UPDATE FileV2 SET local = NULL WHERE new.status = 2 AND path = new.path AND local ->> '$.content' IS synced ->> '$.content'; 
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS synced ->> '$.content'; 
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
   /* 0: Synced */
   -- Delete row when content is null
-  DELETE FROM FileV2 WHERE new.status = 0 AND path = new.path AND new.content IS NULL;
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 0 AND new.content IS NULL;
 
   /* 1: Behind */
   -- Clear remote when remote.content is the same as synced.content
-  UPDATE FileV2 SET remote = NULL WHERE new.status = 1 AND path = new.path AND remote ->> '$.content' IS synced ->> '$.content'; 
+  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS synced ->> '$.content'; 
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content
-  UPDATE FileV2 SET local = NULL WHERE new.status = 2 AND path = new.path AND local ->> '$.content' IS synced ->> '$.content'; 
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS synced ->> '$.content'; 
 END;
 
 -- TODO prevent invalid timestamp
