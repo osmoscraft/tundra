@@ -47,93 +47,60 @@ END;
 
 CREATE TABLE IF NOT EXISTS FileV2 (
   path TEXT PRIMARY KEY,
-  localContent TEXT,
-  localUpdatedAt INTEGER,
-  remoteContent TEXT,
-  remoteUpdatedAt INTEGER,
-  baseContent TEXT,
-  baseUpdatedAt INTEGER,
-  meta TEXT,
+
+  local TEXT,
+  remote TEXT,
+  synced TEXT,
+
 
   /* Derived columns */
-  status INTEGER GENERATED ALWAYS AS (
+  status INTEGER NOT NULL GENERATED ALWAYS AS (
     /*
-     * Bit mask NULL=0, NOT NULL=1  [localUpdated, remoteUpdated, baseUpdated]
+     * Bit mask NULL=0, NOT NULL=1  [local, remote]
      * (T) status are transient and should be resolved by trigger
      */
     CASE
-      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NULL THEN 0 -- (T)
-      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 1 -- Unchanged
-      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 2 -- (T)
-      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 3 -- (T)
-      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NULL THEN 4 -- Added
-      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 5 -- Outgoing
-      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 6 -- (T)
-      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 7 -- Conflict
+      WHEN local IS NULL AND remote IS NULL THEN 0 -- Synced
+      WHEN local IS NULL AND remote IS NOT NULL THEN 1 -- Behind
+      WHEN local IS NOT NULL AND remote IS NULL THEN 2 -- Ahead
+      WHEN local IS NOT NULL AND remote IS NOT NULL THEN 3 -- Conflict
     END
-  )
+  ),
+
+  source TEXT GENERATED ALWAYS AS (ifnull(local, synced)),
+  content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
+  meta TEXT GENERATED ALWAYS AS (source ->> '$.meta')
 );
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEGIN
-  /* Status 4 */
-  -- When localUpdatedAt only and localContent is null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 4 AND new.localContent IS NULL;
+  /* 0: Synced */
+  -- Delete row when content is null
+  DELETE FROM FileV2 WHERE new.status = 0 AND path = new.path AND new.content IS NULL;
 
-  /* Status 2 */
-  -- When remoteUpdatedAt only and remoteContent is not null -> shift remote timestamp and content to base
-  UPDATE FileV2 SET
-    baseContent = new.remoteContent,
-    baseUpdatedAt = new.remoteUpdatedAt,
-    remoteContent = NULL,
-    remoteUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 2 AND new.remoteContent IS NOT NULL;
+  /* 1: Behind */
+  -- Clear remote when remote.content is the same as synced.content
+  UPDATE FileV2 SET remote = NULL WHERE new.status = 1 AND path = new.path AND remote ->> '$.content' IS synced ->> '$.content'; 
 
-  -- When remoteUpdatedAt only and remoteContent is null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND new.remoteContent IS NULL;
-
-  /* Status 1 */
-  -- When basedUpdatedAt only and baseContent is null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND new.baseContent IS NULL;
-
-  /* Status 5 */
-  -- When localUpdatedAt is older than baseUpdatedAt -> abort
-  SELECT RAISE(ABORT, 'localUpdatedAt is older than baseUpdatedAt') WHERE new.status = 5 AND new.localUpdatedAt < new.baseUpdatedAt;
-
-  -- When localUpdatedAt is newer than baseUpdatedAt and both content are null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NULL AND new.localUpdatedAt >= new.baseUpdatedAt;
-
-  -- When localUpdatedAt is newer than baseUpdatedAt and both content are not null and the same -> clear local content
-  UPDATE FileV2 SET
-    localContent = NULL,
-    localUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NOT NULL AND new.localContent IS NOT NULL AND new.localContent = new.baseContent AND new.localUpdatedAt >= new.baseUpdatedAt;
-
-
-  -- When localUpdatedAt is newer than baseUpdatedAt and local content is not null and base content is null -> clear base content
-  UPDATE FileV2 SET
-    baseContent = NULL,
-    baseUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NOT NULL AND new.localUpdatedAt >= new.baseUpdatedAt;
-
-  -- When localUpdatedAt is newer than baseUpdatedAt and local content is null and base content is not null -> noop
-  -- When localUpdatedAt is newer than baseUpdatedAt and both content are not null and different -> noop
-
-  /* Status 3 */
-  -- When remoteUpdatedAt is older than baseUpdatedAt -> abort
-  SELECT RAISE(ABORT, 'remoteUpdatedAt is older than baseUpdatedAt') WHERE new.status = 3 AND new.remoteUpdatedAt < new.baseUpdatedAt;
-
-  -- TODO support incoming status
-
-  -- When remoteUpdatedAt is newer than baseUpdatedAt and remote content is null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 3 AND new.remoteContent IS NULL AND new.remoteUpdatedAt >= new.baseUpdatedAt;
-
-  -- When remoteUpdatedAt is newer than baseUpdatedAt and remote content is not null -> shift remote to base
-  UPDATE FileV2 SET
-    baseContent = new.remoteContent,
-    baseUpdatedAt = new.remoteUpdatedAt,
-    remoteContent = NULL,
-    remoteUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 3 AND new.remoteContent IS NOT NULL AND new.remoteUpdatedAt >= new.baseUpdatedAt;
+  /* 2: Ahead */
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE new.status = 2 AND path = new.path AND local ->> '$.content' IS synced ->> '$.content'; 
 END;
 
--- TODO after update trigger
+CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
+  /* 0: Synced */
+  -- Delete row when content is null
+  DELETE FROM FileV2 WHERE new.status = 0 AND path = new.path AND new.content IS NULL;
+
+  /* 1: Behind */
+  -- Clear remote when remote.content is the same as synced.content
+  UPDATE FileV2 SET remote = NULL WHERE new.status = 1 AND path = new.path AND remote ->> '$.content' IS synced ->> '$.content'; 
+
+  /* 2: Ahead */
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE new.status = 2 AND path = new.path AND local ->> '$.content' IS synced ->> '$.content'; 
+END;
+
+-- TODO prevent invalid timestamp
+-- TODO ensure safe merge when ahead/behind
+-- if old.status = behind, new.synced != old.synced, then new.synced must be old.remote
+-- if old.status = ahead, new.synced != old.synced, then new.synced must be old.local

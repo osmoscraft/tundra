@@ -23,24 +23,27 @@ export type DbFileWithMeta<T = any> = DbFileReadable & { meta: T };
 export interface DbFileInternal extends DbFileWritable, DbFileReadable {}
 
 export interface DbFileV2Internal {
-  baseContent: string | null;
-  baseUpdatedAt: number;
-  localContent: string | null;
-  localUpdatedAt: number;
-  meta: string | null;
   path: string;
+  local: string | null;
+  remote: string | null;
+  synced: string | null;
+
+  /* Derived */
+  source: string | null;
   status: DbFileStatus;
-  remoteContent: string | null;
-  remoteUpdatedAt: number | null;
+  content: string | null;
+  meta: string | null;
+}
+
+export interface DbFileV2Snapshot {
+  time: number;
+  content: string | null;
+  meta: string | null;
 }
 
 export enum DbFileStatus {
-  Untracked = 0,
-  Unchanged = 1,
-  S2 = 2,
-  Incoming = 3,
-  Added = 4,
-  Outgoing = 5,
-  S6 = 6,
-  Conflict = 7,
+  Synced = 0,
+  Behind = 1,
+  Ahead = 2,
+  Conflict = 3,
 }

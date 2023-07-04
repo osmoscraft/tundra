@@ -1,271 +1,202 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import { assertDefined, assertEqual, assertThrows, assertUndefined } from "../../live-test";
-import { DbFileStatus, type DbFileV2Internal } from "../schema";
+import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
+import { DbFileStatus, type DbFileV2Internal, type DbFileV2Snapshot } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
 export async function testFileV2Db() {
   const db = await createTestDb(SCHEMA);
-
   assertDefined(db, "db is defined");
 }
 
-type TestDbWritableRow = Partial<DbFileV2Internal> & { path: string };
+type TestDbWritable = Partial<DbFileV2Internal> & { path: string };
 
-export async function testFileV2Status() {
-  const db = await createTestDb(SCHEMA);
-
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [{ path: "added", localContent: "", localUpdatedAt: 1 }]);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [{ path: "unchanged", baseContent: "", baseUpdatedAt: 1 }]);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "outgoing", localContent: "local", localUpdatedAt: 2, baseContent: "", baseUpdatedAt: 1 },
-  ]);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "conflict",
-      localContent: "local",
-      localUpdatedAt: 2,
-      remoteContent: "remote",
-      remoteUpdatedAt: 2,
-      baseContent: "",
-      baseUpdatedAt: 1,
-    },
-  ]);
-
-  assertEqual(readV2(db, "added")?.status, DbFileStatus.Added);
-  assertEqual(readV2(db, "unchanged")?.status, DbFileStatus.Unchanged);
-  assertEqual(readV2(db, "outgoing")?.status, DbFileStatus.Outgoing);
-  assertEqual(readV2(db, "conflict")?.status, DbFileStatus.Conflict);
+// test utils
+function mockFile(time: number, content: string | null, meta: string | null = null) {
+  const snapshot: DbFileV2Snapshot = { time, content, meta };
+  return JSON.stringify(snapshot);
 }
 
-export async function testFileV2StatusTransition100() {
-  const db = await createTestDb(SCHEMA);
-
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "local/withContent", localContent: "", localUpdatedAt: 1 },
-    { path: "local/deleted", localContent: null, localUpdatedAt: 1 },
-  ]);
-
-  assertEqual(readV2(db, "local/withContent")?.status, DbFileStatus.Added);
-  assertUndefined(readV2(db, "local/deleted"));
+function upsertFiles(db: Sqlite3.DB, files: TestDbWritable[]) {
+  return upsertMany<TestDbWritable>(db, { table: "FileV2", key: "path", rows: files });
+}
+function upsertFile(db: Sqlite3.DB, file: TestDbWritable) {
+  return upsertFiles(db, [file]);
 }
 
-export async function testFileV2StatusTransition010() {
-  const db = await createTestDb(SCHEMA);
-
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "remote/withContent", remoteContent: "", remoteUpdatedAt: 1 },
-    { path: "remote/deleted", remoteContent: null, remoteUpdatedAt: 1 },
-  ]);
-
-  assertEqual(readV2(db, "remote/withContent")?.status, DbFileStatus.Unchanged);
-  assertUndefined(readV2(db, "remote/deleted"));
+function selectFiles(db: Sqlite3.DB, paths: string[]) {
+  return selectMany<TestDbWritable>(db, { table: "FileV2", key: "path", value: paths });
 }
 
-export async function testFileV2StatusTransition001() {
-  const db = await createTestDb(SCHEMA);
-
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "base/withContent", baseContent: "", baseUpdatedAt: 1 },
-    { path: "base/deleted", baseContent: null, baseUpdatedAt: 1 },
-  ]);
-
-  assertEqual(readV2(db, "base/withContent")?.status, DbFileStatus.Unchanged);
-  assertUndefined(readV2(db, "base/deleted"));
+function selectFile(db: Sqlite3.DB, path: string) {
+  return selectFiles(db, [path])[0];
 }
 
-export async function testFileV2StatusTransition101() {
+export async function testFileV2StatusUntracked() {
   const db = await createTestDb(SCHEMA);
 
-  console.log(`[test] transition101/outdated/edited`);
-  assertThrows(() =>
-    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-      {
-        path: "outdated/edited",
-        localContent: "local",
-        localUpdatedAt: 1,
-        baseContent: "base",
-        baseUpdatedAt: 2,
-      },
-    ])
-  );
+  console.log("[test] untracked > setS(content) > synced");
+  upsertFile(db, { path: "file", synced: mockFile(1, "") });
+  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
 
-  console.log(`[test] transition101/outdated/deleted`);
-  assertThrows(() =>
-    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-      {
-        path: "outdated/deleted",
-        localContent: "local",
-        localUpdatedAt: 1,
-        baseContent: null,
-        baseUpdatedAt: 2,
-      },
-    ])
-  );
+  console.log("[test] untracked > setS(null) > untracked ");
+  upsertFile(db, { path: "file2", synced: mockFile(1, null) });
+  assertUndefined(selectFile(db, "file2"));
 
-  console.log(`[test] transition101/both deleted`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outgoing/bothNull",
-      localContent: null,
-      localUpdatedAt: 2,
-      baseContent: null,
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertUndefined(readV2(db, "outgoing/bothNull"));
+  console.log("[test] untracked > setL(content) > ahead");
+  upsertFile(db, { path: "file3", local: mockFile(1, "") });
+  assertEqual(selectFile(db, "file3")?.status, DbFileStatus.Ahead);
 
-  console.log(`[test] transition10l/both edited`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outgoing/bothSame",
-      localContent: "same",
-      localUpdatedAt: 2,
-      baseContent: "same",
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "outgoing/bothSame")?.status, DbFileStatus.Unchanged);
+  console.log("[test] untracked > setL(null) > untracked");
+  upsertFile(db, { path: "file4", local: mockFile(1, null) });
+  assertUndefined(selectFile(db, "file4"));
 
-  console.log(`[test] transition101/local created`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outgoing/localCreated",
-      localContent: "local",
-      localUpdatedAt: 2,
-      baseContent: null,
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "outgoing/localCreated")?.status, DbFileStatus.Added);
+  console.log("[test] untracked > setR(content) > behind");
+  upsertFile(db, { path: "file5", remote: mockFile(1, "") });
+  assertEqual(selectFile(db, "file5")?.status, DbFileStatus.Behind);
 
-  console.log(`[test] transition101/local deteted`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outgoing/localDeleted",
-      localContent: null,
-      localUpdatedAt: 2,
-      baseContent: "base",
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "outgoing/localDeleted")?.status, DbFileStatus.Outgoing);
-
-  console.log(`[test] transition101/local edited`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outgoing/localEdited",
-      localContent: "local",
-      localUpdatedAt: 2,
-      baseContent: "base",
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "outgoing/localEdited")?.status, DbFileStatus.Outgoing);
+  console.log("[test] untracked > setR(null) > untracked");
+  upsertFile(db, { path: "file6", remote: mockFile(1, null) });
+  assertUndefined(selectFile(db, "file6"));
 }
 
-export async function testFileV2StatusTransition011() {
+export async function testFileV2StatusSynced() {
   const db = await createTestDb(SCHEMA);
 
-  console.log(`[test] transition011/outdated/edited`);
-  assertThrows(() =>
-    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-      {
-        path: "outdated/edited",
-        remoteContent: "remote",
-        remoteUpdatedAt: 1,
-        baseContent: "base",
-        baseUpdatedAt: 2,
-      },
-    ])
-  );
+  console.log("[test] synced > setS(same content) > synced");
+  upsertFile(db, { path: "file", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file", synced: mockFile(2, "") });
+  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
+  assertDeepEqual(JSON.parse(selectFile(db, "file")!.source!), JSON.parse(mockFile(2, "")));
 
-  console.log(`[test] transition011/outdated/deleted`);
-  assertThrows(() =>
-    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-      {
-        path: "outdated/deleted",
-        remoteContent: "remote",
-        remoteUpdatedAt: 1,
-        baseContent: null,
-        baseUpdatedAt: 2,
-      },
-    ])
-  );
+  console.log("[test] synced > setS(different content) > synced");
+  upsertFile(db, { path: "file", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file", synced: mockFile(2, "new") });
+  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
+  assertDeepEqual(JSON.parse(selectFile(db, "file")!.source!), JSON.parse(mockFile(2, "new")));
 
-  console.log(`[test] transition011/both deleted`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "incoming/bothNull",
-      remoteContent: null,
-      remoteUpdatedAt: 2,
-      baseContent: null,
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertUndefined(readV2(db, "incoming/bothNull"));
+  console.log("[test] synced > setS(null) > untracked");
+  upsertFile(db, { path: "file2", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file2", synced: mockFile(2, null) });
+  assertUndefined(selectFile(db, "file2"));
 
-  console.log(`[test] transition011/remote created`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "incoming/remoteCreated",
-      remoteContent: "remote",
-      remoteUpdatedAt: 2,
-      baseContent: null,
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "incoming/remoteCreated")?.status, DbFileStatus.Unchanged);
+  console.log("[test] synced > setL(same content) > synced");
+  upsertFile(db, { path: "file3", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file3", local: mockFile(2, "") });
+  assertEqual(selectFile(db, "file3")?.status, DbFileStatus.Synced);
+  assertDeepEqual(JSON.parse(selectFile(db, "file3")!.source!), JSON.parse(mockFile(1, "")));
 
-  console.log(`[test] transition011/remote edited`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "incoming/remoteEdited",
-      remoteContent: "remote",
-      remoteUpdatedAt: 2,
-      baseContent: "base",
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertEqual(readV2(db, "incoming/remoteEdited")?.status, DbFileStatus.Unchanged);
+  console.log("[test] synced > setL(different content) > ahead");
+  upsertFile(db, { path: "file4", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file4", local: mockFile(2, "new") });
+  assertEqual(selectFile(db, "file4")?.status, DbFileStatus.Ahead);
+  assertDeepEqual(JSON.parse(selectFile(db, "file4")!.source!), JSON.parse(mockFile(2, "new")));
 
-  console.log(`[test] transition011/remote deleted`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "incoming/remoteDeleted",
-      remoteContent: null,
-      remoteUpdatedAt: 2,
-      baseContent: "base",
-      baseUpdatedAt: 1,
-    },
-  ]);
-  assertUndefined(readV2(db, "incoming/remoteDeleted"));
+  console.log("[test] synced > setL(null) > ahead");
+  upsertFile(db, { path: "file4", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file4", local: mockFile(2, null) });
+  assertEqual(selectFile(db, "file4")?.status, DbFileStatus.Ahead);
+  assertDeepEqual(JSON.parse(selectFile(db, "file4")!.source!), JSON.parse(mockFile(2, null)));
+
+  console.log("[test] synced > setR(same content) > synced");
+  upsertFile(db, { path: "file5", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file5", remote: mockFile(2, "") });
+  assertEqual(selectFile(db, "file5")?.status, DbFileStatus.Synced);
+  assertDeepEqual(JSON.parse(selectFile(db, "file5")!.source!), JSON.parse(mockFile(1, "")));
+
+  console.log("[test] synced > setR(different content) > behind");
+  upsertFile(db, { path: "file6", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file6", remote: mockFile(2, "new") });
+  assertEqual(selectFile(db, "file6")?.status, DbFileStatus.Behind);
+  assertDeepEqual(JSON.parse(selectFile(db, "file6")!.source!), JSON.parse(mockFile(1, "")));
+
+  console.log("[test] synced > setR(null) > behind");
+  upsertFile(db, { path: "file7", synced: mockFile(1, "") });
+  upsertFile(db, { path: "file7", remote: mockFile(2, null) });
+  assertEqual(selectFile(db, "file7")?.status, DbFileStatus.Behind);
+  assertDeepEqual(JSON.parse(selectFile(db, "file7")!.source!), JSON.parse(mockFile(1, "")));
 }
-export async function testFileV2StatusTransition110() {}
 
-export async function testFileV2StatusTransition111() {}
-export async function testFileV2StatusTransition000() {}
+export async function testFileV2StatusBehind() {
+  const db = await createTestDb(SCHEMA);
+}
+
+export interface UpsertManyInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  rows: T[];
+}
 
 /**
- * Rows must be of the type type
+ * Upsert multiple rows of different kind
  */
-export function upsertMany<T extends {}>(db: Sqlite3.DB, table: string, key: string, rows: T[]) {
-  if (!rows.length) return;
+export function upsertMany<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  return input.rows.map((row) => {
+    return upsertOne(db, { table: input.table, key: input.key, row });
+  });
+}
 
-  const cols = Object.keys(rows[0]);
-  const sql = `
-INSERT INTO ${table} (${cols.join(",")}) VALUES
-${rows.map((_, i) => `(${cols.map((col) => `:${col}${i}`).join(",")})`).join(",")}
-ON CONFLICT(${key}) DO UPDATE SET ${cols.filter((col) => col !== key).map((col) => `${col} = excluded.${col}`)}
-  `;
-  const bind = paramsToBindings(sql, arrayToParams(rows));
+/**
+ * Upsert multiple rows of the same kind
+ */
+export function usertBulk<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  return upsertInternal(db, input);
+}
+
+export interface UpsertOneInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  row: T;
+}
+
+export function upsertOne<T extends {}>(db: Sqlite3.DB, input: UpsertOneInput<T>) {
+  return upsertInternal(db, { table: input.table, key: input.key, rows: [input.row] });
+}
+
+function upsertInternal<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  if (!input.rows.length) return;
+
+  const refRow = input.rows[0];
+  const cols = Object.keys(refRow);
+  const nonKeyCols = cols.filter((col) => col !== input.key);
+
+  const sql = [
+    `INSERT INTO ${input.table} (${cols.join(",")}) VALUES`,
+    input.rows.map((_, i) => `(${cols.map((col) => `:${col}${i}`).join(",")})`).join(","),
+    nonKeyCols.length
+      ? `ON CONFLICT(${input.key}) DO UPDATE SET ${cols
+          .filter((col) => col !== input.key)
+          .map((col) => `${col} = excluded.${col}`)}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // TODO minimize col names to index
+  const bind = paramsToBindings(sql, arrayToParams(input.rows));
   return db.exec(sql, { bind });
 }
 
-export function readV2(db: Sqlite3.DB, path: string): DbFileV2Internal | undefined {
-  const sql = `SELECT * FROM FileV2 WHERE path = :path`;
-  const bind = paramsToBindings(sql, { path });
+export interface SelectManyInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any[];
+}
+export function selectMany<T extends {}>(db: Sqlite3.DB, input: SelectManyInput<T>): (T | undefined)[] {
+  return input.value.map((value) => {
+    return selectOne(db, { table: input.table, key: input.key, value });
+  });
+}
 
-  const file = db.selectObject<DbFileV2Internal>(sql, bind);
+export interface SelectOneInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any;
+}
+
+export function selectOne<T extends {}>(db: Sqlite3.DB, input: SelectOneInput<T>): T | undefined {
+  const sql = `SELECT * FROM ${input.table} WHERE ${input.key} = :${input.key}`;
+  const bind = paramsToBindings(sql, { [input.key]: input.value });
+  const file = db.selectObject<T>(sql, bind);
   return file;
 }

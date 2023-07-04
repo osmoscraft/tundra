@@ -1,13 +1,8 @@
 import {
   testFileV2Db,
-  testFileV2Status,
-  testFileV2StatusTransition001,
-  testFileV2StatusTransition010,
-  testFileV2StatusTransition011,
-  testFileV2StatusTransition100,
-  testFileV2StatusTransition101,
-  testFileV2StatusTransition110,
-  testFileV2StatusTransition111,
+  testFileV2StatusBehind,
+  testFileV2StatusSynced,
+  testFileV2StatusUntracked,
 } from "./file-v2.test";
 import {
   testBulkOperations,
@@ -31,14 +26,9 @@ export async function testDatabase() {
   const suites = [
     // file v2
     testFileV2Db,
-    testFileV2Status,
-    testFileV2StatusTransition100,
-    testFileV2StatusTransition010,
-    testFileV2StatusTransition001,
-    testFileV2StatusTransition101,
-    testFileV2StatusTransition011,
-    testFileV2StatusTransition110,
-    testFileV2StatusTransition111,
+    testFileV2StatusUntracked,
+    testFileV2StatusSynced,
+    testFileV2StatusBehind,
 
     // file
     testLocalFileEditLifecycle,
