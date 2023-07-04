@@ -71,7 +71,22 @@ CREATE TABLE IF NOT EXISTS FileV2 (
   )
 );
 
-/* When localUpdatedAt only and localContent is null -> delete row */
 CREATE TRIGGER IF NOT EXISTS FileV2BeforeInsertTrigger AFTER INSERT ON FileV2 BEGIN
+  /* When localUpdatedAt only and localContent is null -> delete row */
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 4 AND new.localContent IS NULL;
+
+  /* When remoteUpdatedAt only and remoteContent is not null -> shift remote timestamp and content to base */
+  UPDATE FileV2 SET
+    baseContent = new.remoteContent,
+    baseUpdatedAt = new.remoteUpdatedAt,
+    remoteContent = NULL,
+    remoteUpdatedAt = NULL
+  WHERE path = new.path AND new.status = 2 AND new.remoteContent IS NOT NULL;
+
+  /* When remoteUpdatedAt only and remoteContent is null -> delete row */
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND new.remoteContent IS NULL;
+
+  /* When basedUpdatedAt only and baseContent is null -> delete row */
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND new.baseContent IS NULL;
+  
 END;

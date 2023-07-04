@@ -1,4 +1,10 @@
-import { testFileV2Db, testFileV2Status, testFileV2StatusTransition100 } from "./file-v2.test";
+import {
+  testFileV2Db,
+  testFileV2Status,
+  testFileV2StatusTransition001,
+  testFileV2StatusTransition010,
+  testFileV2StatusTransition100,
+} from "./file-v2.test";
 import {
   testBulkOperations,
   testConflictLocalWins,
@@ -23,6 +29,8 @@ export async function testDatabase() {
     testFileV2Db,
     testFileV2Status,
     testFileV2StatusTransition100,
+    testFileV2StatusTransition010,
+    testFileV2StatusTransition001,
 
     // file
     testLocalFileEditLifecycle,

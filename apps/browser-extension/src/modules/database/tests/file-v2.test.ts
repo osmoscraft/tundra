@@ -42,12 +42,36 @@ export async function testFileV2StatusTransition100() {
   const db = await createTestDb(SCHEMA);
 
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    { path: "added/withContent", localContent: "", localUpdatedAt: 1 },
-    { path: "added/deleted", localContent: null, localUpdatedAt: 1 },
+    { path: "local/withContent", localContent: "", localUpdatedAt: 1 },
+    { path: "local/deleted", localContent: null, localUpdatedAt: 1 },
   ]);
 
-  assertEqual(readV2(db, "added/withContent")?.status, DbFileStatus.Added);
-  assertUndefined(readV2(db, "added/deleted"));
+  assertEqual(readV2(db, "local/withContent")?.status, DbFileStatus.Added);
+  assertUndefined(readV2(db, "local/deleted"));
+}
+
+export async function testFileV2StatusTransition010() {
+  const db = await createTestDb(SCHEMA);
+
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    { path: "remote/withContent", remoteContent: "", remoteUpdatedAt: 1 },
+    { path: "remote/deleted", remoteContent: null, remoteUpdatedAt: 1 },
+  ]);
+
+  assertEqual(readV2(db, "remote/withContent")?.status, DbFileStatus.Unchanged);
+  assertUndefined(readV2(db, "remote/deleted"));
+}
+
+export async function testFileV2StatusTransition001() {
+  const db = await createTestDb(SCHEMA);
+
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    { path: "base/withContent", baseContent: "", baseUpdatedAt: 1 },
+    { path: "base/deleted", baseContent: null, baseUpdatedAt: 1 },
+  ]);
+
+  assertEqual(readV2(db, "base/withContent")?.status, DbFileStatus.Unchanged);
+  assertUndefined(readV2(db, "base/deleted"));
 }
 
 export function upsertMany<T extends {}>(db: Sqlite3.DB, table: string, key: string, rows: T[]) {
