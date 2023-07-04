@@ -1,5 +1,5 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import { assertDefined, assertEqual, assertUndefined } from "../../live-test";
+import { assertDefined, assertEqual, assertThrows, assertUndefined } from "../../live-test";
 import { DbFileStatus, type DbFileV2Internal } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
@@ -78,28 +78,30 @@ export async function testFileV2StatusTransition101() {
   const db = await createTestDb(SCHEMA);
 
   console.log(`[test] transition101/outdated/edited`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outdated/edited",
-      localContent: "local",
-      localUpdatedAt: 1,
-      baseContent: "base",
-      baseUpdatedAt: 2,
-    },
-  ]);
-  assertEqual(readV2(db, "outdated/edited")?.status, DbFileStatus.Unchanged);
+  assertThrows(() =>
+    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+      {
+        path: "outdated/edited",
+        localContent: "local",
+        localUpdatedAt: 1,
+        baseContent: "base",
+        baseUpdatedAt: 2,
+      },
+    ])
+  );
 
   console.log(`[test] transition101/outdated/deleted`);
-  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
-    {
-      path: "outdated/deleted",
-      localContent: "local",
-      localUpdatedAt: 1,
-      baseContent: null,
-      baseUpdatedAt: 2,
-    },
-  ]);
-  assertUndefined(readV2(db, "outdated/deleted"));
+  assertThrows(() =>
+    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+      {
+        path: "outdated/deleted",
+        localContent: "local",
+        localUpdatedAt: 1,
+        baseContent: null,
+        baseUpdatedAt: 2,
+      },
+    ])
+  );
 
   console.log(`[test] transition101/both deleted`);
   upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
@@ -162,8 +164,84 @@ export async function testFileV2StatusTransition101() {
   assertEqual(readV2(db, "modified/localEdited")?.status, DbFileStatus.Modified);
 }
 
+export async function testFileV2StatusTransition011() {
+  const db = await createTestDb(SCHEMA);
+
+  console.log(`[test] transition011/outdated/edited`);
+  assertThrows(() =>
+    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+      {
+        path: "outdated/edited",
+        remoteContent: "remote",
+        remoteUpdatedAt: 1,
+        baseContent: "base",
+        baseUpdatedAt: 2,
+      },
+    ])
+  );
+
+  console.log(`[test] transition011/outdated/deleted`);
+  assertThrows(() =>
+    upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+      {
+        path: "outdated/deleted",
+        remoteContent: "remote",
+        remoteUpdatedAt: 1,
+        baseContent: null,
+        baseUpdatedAt: 2,
+      },
+    ])
+  );
+
+  console.log(`[test] transition011/both deleted`);
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    {
+      path: "modified/bothNull",
+      remoteContent: null,
+      remoteUpdatedAt: 2,
+      baseContent: null,
+      baseUpdatedAt: 1,
+    },
+  ]);
+  assertUndefined(readV2(db, "modified/bothNull"));
+
+  console.log(`[test] transition011/remote created`);
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    {
+      path: "modified/remoteCreated",
+      remoteContent: "remote",
+      remoteUpdatedAt: 2,
+      baseContent: null,
+      baseUpdatedAt: 1,
+    },
+  ]);
+  assertEqual(readV2(db, "modified/remoteCreated")?.status, DbFileStatus.Unchanged);
+
+  console.log(`[test] transition011/remote edited`);
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    {
+      path: "modified/remoteEdited",
+      remoteContent: "remote",
+      remoteUpdatedAt: 2,
+      baseContent: "base",
+      baseUpdatedAt: 1,
+    },
+  ]);
+  assertEqual(readV2(db, "modified/remoteEdited")?.status, DbFileStatus.Unchanged);
+
+  console.log(`[test] transition011/remote deleted`);
+  upsertMany<TestDbWritableRow>(db, "FileV2", "path", [
+    {
+      path: "modified/remoteDeleted",
+      remoteContent: null,
+      remoteUpdatedAt: 2,
+      baseContent: "base",
+      baseUpdatedAt: 1,
+    },
+  ]);
+  assertUndefined(readV2(db, "modified/remoteDeleted"));
+}
 export async function testFileV2StatusTransition110() {}
-export async function testFileV2StatusTransition011() {}
 
 export async function testFileV2StatusTransition111() {}
 export async function testFileV2StatusTransition000() {}

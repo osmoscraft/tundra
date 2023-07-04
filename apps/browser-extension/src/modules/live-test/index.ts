@@ -27,3 +27,12 @@ export function assertUndefined(actual: any, message?: string) {
     throw new Error(`Assert undefined failed: ${message ?? "it is actually defined"}`);
   }
 }
+
+export function assertThrows(fn: () => any, message?: string) {
+  try {
+    fn();
+  } catch (e) {
+    return;
+  }
+  throw new Error(`Assert throws failed: ${message ?? "it did not throw"}`);
+}

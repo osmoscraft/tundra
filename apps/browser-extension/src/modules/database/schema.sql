@@ -96,37 +96,42 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND new.baseContent IS NULL;
 
   /* Status 5 */
-  -- When localUpdatedAt is older than baseUpdatedAt and base content is null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localUpdatedAt <= new.baseUpdatedAt;
-
-  -- When localUpdatedAt is older than baseUpdatedAt and base content is not null -> clear local content
-  UPDATE FileV2 SET
-    localContent = NULL,
-    localUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NOT NULL AND new.localUpdatedAt <= new.baseUpdatedAt;
+  -- When localUpdatedAt is older than baseUpdatedAt -> abort
+  SELECT RAISE(ABORT, 'localUpdatedAt is older than baseUpdatedAt') WHERE new.status = 5 AND new.localUpdatedAt < new.baseUpdatedAt;
 
   -- When localUpdatedAt is newer than baseUpdatedAt and both content are null -> delete row
-  DELETE FROM FileV2 WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NULL AND new.localUpdatedAt > new.baseUpdatedAt;
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NULL AND new.localUpdatedAt >= new.baseUpdatedAt;
 
   -- When localUpdatedAt is newer than baseUpdatedAt and both content are not null and the same -> clear local content
   UPDATE FileV2 SET
     localContent = NULL,
     localUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NOT NULL AND new.localContent IS NOT NULL AND new.localContent = new.baseContent AND new.localUpdatedAt > new.baseUpdatedAt;
+  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NOT NULL AND new.localContent IS NOT NULL AND new.localContent = new.baseContent AND new.localUpdatedAt >= new.baseUpdatedAt;
 
 
   -- When localUpdatedAt is newer than baseUpdatedAt and local content is not null and base content is null -> clear base content
   UPDATE FileV2 SET
     baseContent = NULL,
     baseUpdatedAt = NULL
-  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NOT NULL AND new.localUpdatedAt > new.baseUpdatedAt;
+  WHERE path = new.path AND new.status = 5 AND new.baseContent IS NULL AND new.localContent IS NOT NULL AND new.localUpdatedAt >= new.baseUpdatedAt;
 
   -- When localUpdatedAt is newer than baseUpdatedAt and local content is null and base content is not null -> noop
   -- When localUpdatedAt is newer than baseUpdatedAt and both content are not null and different -> noop
 
   /* Status 3 */
+  -- When remoteUpdatedAt is older than baseUpdatedAt -> abort
+  SELECT RAISE(ABORT, 'remoteUpdatedAt is older than baseUpdatedAt') WHERE new.status = 3 AND new.remoteUpdatedAt < new.baseUpdatedAt;
 
-  
+  -- When remoteUpdatedAt is newer than baseUpdatedAt and remote content is null -> delete row
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 3 AND new.remoteContent IS NULL AND new.remoteUpdatedAt >= new.baseUpdatedAt;
+
+  -- When remoteUpdatedAt is newer than baseUpdatedAt and remote content is not null -> shift remote to base
+  UPDATE FileV2 SET
+    baseContent = new.remoteContent,
+    baseUpdatedAt = new.remoteUpdatedAt,
+    remoteContent = NULL,
+    remoteUpdatedAt = NULL
+  WHERE path = new.path AND new.status = 3 AND new.remoteContent IS NOT NULL AND new.remoteUpdatedAt >= new.baseUpdatedAt;
 END;
 
 -- TODO after update trigger
