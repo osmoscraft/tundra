@@ -70,3 +70,8 @@ CREATE TABLE IF NOT EXISTS FileV2 (
     END
   )
 );
+
+/* When localUpdatedAt only and localContent is null -> delete row */
+CREATE TRIGGER IF NOT EXISTS FileV2BeforeInsertTrigger AFTER INSERT ON FileV2 BEGIN
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 4 AND new.localContent IS NULL;
+END;
