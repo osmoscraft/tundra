@@ -45,3 +45,28 @@ CREATE TRIGGER IF NOT EXISTS FileFtsAfterUpdateTrigger AFTER UPDATE ON File BEGI
   VALUES (new.rowid, new.path, new.content, new.meta);
 END;
 
+CREATE TABLE IF NOT EXISTS FileV2 (
+  path TEXT PRIMARY KEY,
+  localContent TEXT,
+  localUpdatedAt INTEGER,
+  remoteContent TEXT,
+  remoteUpdatedAt INTEGER,
+  baseContent TEXT,
+  baseUpdatedAt INTEGER,
+  meta TEXT,
+
+  /* Derived columns */
+  status INTEGER GENERATED ALWAYS AS (
+    /* Bit mask NULL=0, NOT NULL=1  [localUpdated, remoteUpdated, baseUpdated] */
+    CASE
+      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NULL THEN 0
+      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 1
+      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 2
+      WHEN localUpdatedAt IS NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 3
+      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NULL THEN 4
+      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NULL AND baseUpdatedAt IS NOT NULL THEN 5
+      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NULL THEN 6
+      WHEN localUpdatedAt IS NOT NULL AND remoteUpdatedAt IS NOT NULL AND baseUpdatedAt IS NOT NULL THEN 7
+    END
+  )
+);

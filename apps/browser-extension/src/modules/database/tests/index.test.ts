@@ -1,3 +1,4 @@
+import { testFileV2Db, testFileV2Status, testFileV2StatusTransition100 } from "./file-v2.test";
 import {
   testBulkOperations,
   testConflictLocalWins,
@@ -17,20 +18,32 @@ import {
 } from "./graph.test";
 
 export async function testDatabase() {
-  // file
-  await testLocalFileEditLifecycle();
-  await testLocalFirstSync();
-  await testRemoteFirstSync();
-  await testConflictRemoteWins();
-  await testConflictLocalWins();
-  await testDeleteFiles();
-  await testGetRecentFiles();
-  await testGetRecentFilesWithScope();
-  await testGetRecentFilesWithIgnore();
-  await testGetDirtyFiles();
-  await testGetDirtyFilesWithIgnore();
-  await testBulkOperations();
-  await testMetaCRUD();
-  await testSearchMeta();
-  await testSearchFileContent();
+  const suites = [
+    // file v2
+    testFileV2Db,
+    testFileV2Status,
+    testFileV2StatusTransition100,
+
+    // file
+    testLocalFileEditLifecycle,
+    testLocalFirstSync,
+    testRemoteFirstSync,
+    testConflictRemoteWins,
+    testConflictLocalWins,
+    testDeleteFiles,
+    testGetRecentFiles,
+    testGetRecentFilesWithScope,
+    testGetRecentFilesWithIgnore,
+    testGetDirtyFiles,
+    testGetDirtyFilesWithIgnore,
+    testBulkOperations,
+    testMetaCRUD,
+    testSearchMeta,
+    testSearchFileContent,
+  ];
+
+  for (const suite of suites) {
+    console.log(`[test] ${suite.name}`);
+    await suite();
+  }
 }

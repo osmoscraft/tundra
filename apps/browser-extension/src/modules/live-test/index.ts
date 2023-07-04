@@ -16,14 +16,14 @@ export function assertDeepEqual<T = any>(actual?: T, expected?: T, message?: str
   }
 }
 
-export function assertDefined(actual: any, message: string) {
+export function assertDefined(actual: any, message?: string) {
   if (typeof actual === "undefined") {
-    throw new Error(`Assert defined failed: ${message}`);
+    throw new Error(`Assert defined failed: ${message ?? "it is actually undefined"}`);
   }
 }
 
-export function assertUndefined(actual: any, message: string) {
+export function assertUndefined(actual: any, message?: string) {
   if (typeof actual !== "undefined") {
-    throw new Error(`Assert undefined failed: ${message}`);
+    throw new Error(`Assert undefined failed: ${message ?? "it is actually defined"}`);
   }
 }

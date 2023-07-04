@@ -4,7 +4,6 @@ import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
 export async function testLocalFileEditLifecycle() {
-  console.log("[test] localFileEditLifecycle");
   const db = await createTestDb(SCHEMA);
 
   assertUndefined(getFile(db, "/test.md"), "Before file created");
@@ -56,7 +55,6 @@ export async function testLocalFileEditLifecycle() {
 }
 
 export async function testLocalFirstSync() {
-  console.log("[test] localFirstSync");
   const db = await createTestDb(SCHEMA);
 
   // create
@@ -124,7 +122,6 @@ export async function testLocalFirstSync() {
 }
 
 export async function testDeleteFiles() {
-  console.log("[test] fileDeletion");
   const db = await createTestDb(SCHEMA);
 
   updateLocal(db, [
@@ -150,7 +147,6 @@ export async function testDeleteFiles() {
 }
 
 export async function testRemoteFirstSync() {
-  console.log("[test] remoteFirstSync");
   const db = await createTestDb(SCHEMA);
 
   // remote create
@@ -207,7 +203,6 @@ export async function testRemoteFirstSync() {
 }
 
 export async function testConflictRemoteWins() {
-  console.log("[text] conflictRemoteWins");
   const db = await createTestDb(SCHEMA);
 
   // remote time >= local
@@ -237,7 +232,6 @@ export async function testConflictRemoteWins() {
 }
 
 export async function testConflictLocalWins() {
-  console.log("[text] conflictLocalWins");
   const db = await createTestDb(SCHEMA);
 
   // remote time < local
@@ -267,7 +261,6 @@ export async function testConflictLocalWins() {
 }
 
 export async function testGetRecentFiles() {
-  console.log("[text] getRecentFiles");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -290,7 +283,6 @@ export async function testGetRecentFiles() {
 }
 
 export async function testGetRecentFilesWithScope() {
-  console.log("[text] getRecentFilesWithScope");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -309,7 +301,6 @@ export async function testGetRecentFilesWithScope() {
 }
 
 export async function testGetRecentFilesWithIgnore() {
-  console.log("[text] getRecentFilesWithIgnore");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -328,7 +319,6 @@ export async function testGetRecentFilesWithIgnore() {
 }
 
 export async function testGetDirtyFiles() {
-  console.log("[text] getDirtyFiles");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -357,7 +347,6 @@ export async function testGetDirtyFiles() {
 }
 
 export async function testGetDirtyFilesWithIgnore() {
-  console.log("[text] dirtyFilesWithIgnore");
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
@@ -383,7 +372,6 @@ export async function testGetDirtyFilesWithIgnore() {
 }
 
 export async function testBulkOperations() {
-  console.log("[text] bulkOperations");
   const db = await createTestDb(SCHEMA);
 
   updateLocal(db, []); // empty
@@ -391,7 +379,6 @@ export async function testBulkOperations() {
 }
 
 export async function testMetaCRUD() {
-  console.log("[text] metaCRUD");
   const db = await createTestDb(SCHEMA);
 
   updateLocal(db, { path: "/no-content-meta.md", content: null, updatedAt: 1 });
@@ -428,7 +415,6 @@ export async function testMetaCRUD() {
 }
 
 export async function testSearchMeta() {
-  console.log("[test] searchMeta");
   const db = await createTestDb(SCHEMA);
 
   updateLocal(db, [
@@ -454,7 +440,6 @@ export async function testSearchMeta() {
 }
 
 export async function testSearchFileContent() {
-  console.log("[test] searchFiles");
   const db = await createTestDb(SCHEMA);
 
   updateLocal(db, [
