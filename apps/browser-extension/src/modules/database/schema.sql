@@ -124,6 +124,8 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   -- When localUpdatedAt is newer than baseUpdatedAt and local content is null and base content is not null -> noop
   -- When localUpdatedAt is newer than baseUpdatedAt and both content are not null and different -> noop
 
+  /* Status 3 */
+
   
 END;
 
