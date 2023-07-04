@@ -3,7 +3,11 @@ import {
   testFileV2Status,
   testFileV2StatusTransition001,
   testFileV2StatusTransition010,
+  testFileV2StatusTransition011,
   testFileV2StatusTransition100,
+  testFileV2StatusTransition101,
+  testFileV2StatusTransition110,
+  testFileV2StatusTransition111,
 } from "./file-v2.test";
 import {
   testBulkOperations,
@@ -31,6 +35,10 @@ export async function testDatabase() {
     testFileV2StatusTransition100,
     testFileV2StatusTransition010,
     testFileV2StatusTransition001,
+    testFileV2StatusTransition101,
+    testFileV2StatusTransition011,
+    testFileV2StatusTransition110,
+    testFileV2StatusTransition111,
 
     // file
     testLocalFileEditLifecycle,
