@@ -9,6 +9,7 @@ import {
   assertFileUpdatedAt,
   createTestDb,
   currentFile,
+  fsm,
   mockFile,
   newFile,
   selectFile,
@@ -18,6 +19,17 @@ import {
 export async function testFileV2Db() {
   const db = await createTestDb(SCHEMA);
   assertDefined(db, "db is defined");
+}
+
+export async function testFileV2FSM() {
+  const db = await createTestDb(SCHEMA);
+  fsm(db, ".. .. .. | .. .. .. | .. .. ..");
+  fsm(db, ".. .. .. | .. .. c1 | .. .. c1");
+  fsm(db, ".. .. .. | .. .. .1 | .. .. ..");
+  fsm(db, ".. .. .. | a1 .. .. | a1 .. ..");
+  fsm(db, ".. .. .. | .1 .. .. | .. .. ..");
+  fsm(db, ".. .. .. | .. b1 .. | .. b1 ..");
+  fsm(db, ".. .. .. | .. .1 .. | .. .. ..");
 }
 
 export async function testFileV2StatusUntracked() {

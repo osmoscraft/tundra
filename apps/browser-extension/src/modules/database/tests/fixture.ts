@@ -88,27 +88,46 @@ export function currentFile() {
   return fileNames.current();
 }
 
-/**
- * Test FSM transitions
- *
- * Spec format: `fromFileSpec > actionSpec > toFileSpec`
- *
- * File or action spec foramt: `<localState> <remoteState> <syncedState>`
- *
- * State format: `<A-Za-z><0-9> | <A-Za-z>- | -- | ..`
- * - `a1`: content = a, updatedAt = 1
- * - `-1`: content = null, updatedAt = 1
- * - `--`: non-exist state
- * - `..`: no-op (actionSpec only)
- *
- * Special Spec string
- * - `-- -- --`: untracked item (fromFileSpec and toFileSpec only)
- * - `!! !! !!`: error (toSpec only)
- * - `.. .. ..`: skip entire action (actionSpec only)
- */
-export function fsmSpec(db: Sqlite3.DB, spec: string) {
+export interface Fsm {
+  /**
+   * Test FSM transitions
+   *
+   * Spec format: `fromFileSpec | actionSpec | toFileSpec`
+   *
+   * File or action spec foramt: `<localState> <remoteState> <syncedState>`
+   *
+   * State format:
+   * - `<A-Za-z><0-9>`: e.g. `a1` means content = a, updatedAt = 1
+   * - `.<A-Za-z>`: e.g. `.1` emans content = null, updatedAt = 1
+   * - `..`: no-op in actionSpec, non-exist state otherwise
+   *
+   * Special Spec string
+   * - `.. .. ..`: skip action in actionSpec, untracked item otherwise
+   * - `!! !! !!`: error (toSpec only)
+   */
+  (db: Sqlite3.DB, spec: string): void;
+  /** Same as fsm() but print verbose log */
+  verbose(db: Sqlite3.DB, spec: string): void;
+  /** Same as fsm.verbose() but pause at breakpoint before test */
+  debug(db: Sqlite3.DB, spec: string): void;
+}
+
+export const fsm: Fsm = ((db: Sqlite3.DB, spec: string) => fsmSpec(db, spec)) as Fsm;
+Object.assign(fsm, {
+  verbose(db: Sqlite3.DB, spec: string) {
+    fsmSpec(db, spec, { verbose: true });
+  },
+  debug(db: Sqlite3.DB, spec: string) {
+    fsmSpec(db, spec, { verbose: true, debugger: true });
+  },
+});
+
+function fsmSpec(db: Sqlite3.DB, spec: string, options?: FsmOptions) {
   try {
-    assertFSM(db, spec);
+    assertFSM(db, spec, {
+      debugger: options?.debugger ?? false,
+      verbose: options?.verbose ?? false,
+    });
     console.log("✅", spec);
   } catch (e) {
     console.log("❌", spec);
@@ -116,35 +135,48 @@ export function fsmSpec(db: Sqlite3.DB, spec: string) {
   }
 }
 
-export function assertFSM(db: Sqlite3.DB, spec: string) {
-  const [from, action, to] = spec.split(" > ");
+interface FsmOptions {
+  debugger?: boolean;
+  verbose?: boolean;
+}
+
+function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
+  if (options.debugger) debugger;
+
+  const [from, action, to] = spec.split(" | ");
   const parsedFrom = parseState(from);
-  if (parsedFrom === null || parsedFrom.type === "ERROR" || parsedFrom.type === "NOOP")
-    throw Error(`from (${from}) cannot be of type ${parsedFrom?.type ?? null}`);
+  if (parsedFrom?.type === "ERROR") throw Error(`from (${from}) cannot be of type ${parsedFrom?.type ?? null}`);
   const parsedAction = parseState(action);
-  if (parsedAction === null || parsedAction.type === "ERROR")
-    throw Error(`action (${action}) cannot be of type ${parsedAction?.type ?? null}`);
+  if (parsedAction?.type === "ERROR") throw Error(`action (${action}) cannot be of type ${parsedAction?.type ?? null}`);
   const parsedTo = parseState(to);
-  if (parsedTo?.type === "NOOP") throw Error(`to (${to}) cannot be of type ${parsedTo.type}`);
 
   const filename = newFile();
 
   // setup from state
   const setupFrom = () => {
-    if (parsedFrom === null) return;
+    if (parsedFrom === null) {
+      if (options.verbose) console.log("[fsm] from skipped");
+      return;
+    }
 
-    upsertFile(db, {
+    const fromState: TestDbWritable = {
       path: filename,
       ...(parsedFrom.local ? { local: mockFile(parsedFrom.local.updatedAt, parsedFrom.local.content) } : undefined),
       ...(parsedFrom.remote ? { remote: mockFile(parsedFrom.remote.updatedAt, parsedFrom.remote.content) } : undefined),
       ...(parsedFrom.synced ? { synced: mockFile(parsedFrom.synced.updatedAt, parsedFrom.synced.content) } : undefined),
-    });
+    };
+
+    if (options.verbose) console.log("[fsm] from", fromState);
+    upsertFile(db, fromState);
   };
 
   const setupAction = () => {
-    if (parsedAction.type !== "NOOP") return;
+    if (parsedAction === null) {
+      if (options.verbose) console.log("[fsm] action skipped");
+      return;
+    }
 
-    upsertFile(db, {
+    const actionState: TestDbWritable = {
       path: filename,
       ...(parsedAction.local
         ? { local: mockFile(parsedAction.local.updatedAt, parsedAction.local.content) }
@@ -155,17 +187,23 @@ export function assertFSM(db: Sqlite3.DB, spec: string) {
       ...(parsedAction.synced
         ? { synced: mockFile(parsedAction.synced.updatedAt, parsedAction.synced.content) }
         : undefined),
-    });
+    };
+
+    if (options.verbose) console.log("[fsm] action", actionState);
+
+    upsertFile(db, actionState);
   };
 
   const assertResults = (task: () => any) => {
     if (parsedTo === null) {
       task();
+      if (options.verbose) console.log("[fsm] expect to is untracked");
       assertFileUntracked(db, filename);
       return;
     }
 
     if (parsedTo.type === "ERROR") {
+      if (options.verbose) console.log("[fsm] expect error");
       assertThrows(task);
       return;
     }
@@ -173,6 +211,8 @@ export function assertFSM(db: Sqlite3.DB, spec: string) {
     if (parsedTo.type === "STATE") {
       task();
       const resultFile = selectFile(db, filename);
+      if (options.verbose) console.log("[fsm] to", resultFile);
+
       if (!resultFile) throw Error(`file does not exist after test`);
 
       assertStateItem(parsedTo.local, resultFile.local);
@@ -193,8 +233,6 @@ export function assertFSM(db: Sqlite3.DB, spec: string) {
       assertDefined(fileStateString);
     }
 
-    if (stateItem.type === "NOOP") throw new Error("NOOP state item not supported");
-
     const fileStateItem = JSON.parse(fileStateString!) as DbFileV2Snapshot;
     assertEqual(stateItem.updatedAt, fileStateItem.updatedAt);
     assertEqual(stateItem.content, fileStateItem.content);
@@ -207,22 +245,21 @@ export function assertFSM(db: Sqlite3.DB, spec: string) {
 }
 
 interface ParsedState {
-  type: "STATE" | "ERROR" | "NOOP";
+  type: "STATE" | "ERROR";
   local: ParsedStateItem | null;
   remote: ParsedStateItem | null;
   synced: ParsedStateItem | null;
 }
 
 interface ParsedStateItem {
-  type: "NOOP" | "STATE";
+  type: "STATE";
   content: string | null;
   updatedAt: number;
 }
 
 function parseState(state: string): ParsedState | null {
-  if (state === "-- -- --") return null;
+  if (state === ".. .. ..") return null;
   if (state === "!! !! !!") return specialState("ERROR");
-  if (state === ".. .. ..") return specialState("NOOP");
 
   function specialState(stateType: ParsedState["type"]): ParsedState {
     return {
@@ -234,27 +271,15 @@ function parseState(state: string): ParsedState | null {
   }
 
   const [local, remote, synced] = state.split(" ").map((s) => {
+    if (s === "..") return null;
     const contentTimeMatch = s.match(/(.+?)(\d+)/);
     if (!contentTimeMatch) throw Error(`invalid state string ${state}`);
     const [, content, time] = contentTimeMatch;
-    const pattern = content + time;
-    switch (pattern) {
-      case "..":
-        return {
-          type: "NOOP",
-          content: null,
-          updatedAt: 0,
-        } as ParsedStateItem;
-      case "--":
-        return null;
-      default: {
-        return {
-          type: "STATE",
-          content: content === "-" ? null : content,
-          updatedAt: parseInt(time),
-        } as ParsedStateItem;
-      }
-    }
+    return {
+      type: "STATE",
+      content: content === "." ? null : content,
+      updatedAt: parseInt(time),
+    } as ParsedStateItem;
   });
 
   return {

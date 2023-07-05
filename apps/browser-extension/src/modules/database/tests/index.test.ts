@@ -1,5 +1,6 @@
 import {
   testFileV2Db,
+  testFileV2FSM,
   testFileV2StatusAhead,
   testFileV2StatusBehind,
   testFileV2StatusConflict,
@@ -28,6 +29,7 @@ export async function testDatabase() {
   const suites = [
     // file v2
     testFileV2Db,
+    testFileV2FSM,
     testFileV2StatusUntracked,
     testFileV2StatusSynced,
     testFileV2StatusBehind,
