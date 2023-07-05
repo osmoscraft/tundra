@@ -1,5 +1,6 @@
 import {
   testFileV2Db,
+  testFileV2StatusAhead,
   testFileV2StatusBehind,
   testFileV2StatusSynced,
   testFileV2StatusUntracked,
@@ -29,6 +30,7 @@ export async function testDatabase() {
     testFileV2StatusUntracked,
     testFileV2StatusSynced,
     testFileV2StatusBehind,
+    testFileV2StatusAhead,
 
     // file
     testLocalFileEditLifecycle,
