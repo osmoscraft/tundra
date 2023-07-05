@@ -1,5 +1,5 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
-import { assertDefined, assertEqual, assertThrows } from "../../live-test";
+import { assertEqual } from "../../live-test";
 import type { DbFileStatus, DbFileV2Internal, DbFileV2Snapshot } from "../schema";
 import { selectMany, upsertMany } from "./file-v2.test";
 
@@ -97,8 +97,8 @@ export interface Fsm {
    * File or action spec foramt: `<localState> <remoteState> <syncedState>`
    *
    * State format:
-   * - `<A-Za-z><0-9>`: e.g. `a1` means content = a, updatedAt = 1
-   * - `.<A-Za-z>`: e.g. `.1` emans content = null, updatedAt = 1
+   * - `<0-9><A-Za-z>`: e.g. `1a` means content = a, updatedAt = 1
+   * - `<A-Za-z>.`: e.g. `1.` emans content = null, updatedAt = 1
    * - `..`: no-op in actionSpec, non-exist state otherwise
    *
    * Special Spec string
@@ -153,7 +153,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
   const filename = newFile();
 
   // setup from state
-  const setupFrom = () => {
+  const arrange = () => {
     if (parsedFrom === null) {
       if (options.verbose) console.log("[fsm] from skipped");
       return;
@@ -170,7 +170,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     upsertFile(db, fromState);
   };
 
-  const setupAction = () => {
+  const act = () => {
     if (parsedAction === null) {
       if (options.verbose) console.log("[fsm] action skipped");
       return;
@@ -194,53 +194,37 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     upsertFile(db, actionState);
   };
 
-  const assertResults = (task: () => any) => {
-    if (parsedTo === null) {
-      task();
-      if (options.verbose) console.log("[fsm] expect to is untracked");
-      assertFileUntracked(db, filename);
-      return;
-    }
-
-    if (parsedTo.type === "ERROR") {
-      if (options.verbose) console.log("[fsm] expect error");
-      assertThrows(task);
-      return;
-    }
-
-    if (parsedTo.type === "STATE") {
-      task();
+  const assert = (act: () => any) => {
+    let actualTo: string;
+    try {
+      act();
       const resultFile = selectFile(db, filename);
-      if (options.verbose) console.log("[fsm] to", resultFile);
-
-      if (!resultFile) throw Error(`file does not exist after test`);
-
-      assertStateItem(parsedTo.local, resultFile.local);
-      assertStateItem(parsedTo.remote, resultFile.remote);
-      assertStateItem(parsedTo.synced, resultFile.synced);
-      return;
+      if (options.verbose) console.log("[fsm] action result ", resultFile);
+      actualTo = encodeFile(resultFile);
+      if (options.verbose) console.log("[fsm] action result encoded", actualTo);
+    } catch (e) {
+      if (options.verbose) console.log("[fsm] action error", e);
+      actualTo = "!! !! !!";
     }
+
+    assertEqual(actualTo, to);
   };
 
-  function assertStateItem(
-    stateItem: ParsedStateItem | null,
-    fileStateString: DbFileV2Internal["local" | "remote" | "synced" | "source"]
-  ) {
-    if (stateItem === null) {
-      assertEqual(fileStateString, null);
-      return;
-    } else {
-      assertDefined(fileStateString);
-    }
-
-    const fileStateItem = JSON.parse(fileStateString!) as DbFileV2Snapshot;
-    assertEqual(stateItem.updatedAt, fileStateItem.updatedAt);
-    assertEqual(stateItem.content, fileStateItem.content);
+  function encodeFile(file?: DbFileV2Internal) {
+    if (!file) return ".. .. ..";
+    return `${encodeFileStateItem(file.local)} ${encodeFileStateItem(file.remote)} ${encodeFileStateItem(file.synced)}`;
   }
 
-  assertResults(() => {
-    setupFrom();
-    setupAction();
+  function encodeFileStateItem(fileStateString: DbFileV2Internal["local" | "remote" | "synced" | "source"]) {
+    if (!fileStateString) return "..";
+
+    const fileStateItem = JSON.parse(fileStateString!) as DbFileV2Snapshot;
+    return `${fileStateItem.updatedAt}${fileStateItem.content}`;
+  }
+
+  arrange();
+  assert(() => {
+    act();
   });
 }
 
@@ -272,9 +256,9 @@ function parseState(state: string): ParsedState | null {
 
   const [local, remote, synced] = state.split(" ").map((s) => {
     if (s === "..") return null;
-    const contentTimeMatch = s.match(/(.+?)(\d+)/);
+    const contentTimeMatch = s.match(/(\d+)(.+)/);
     if (!contentTimeMatch) throw Error(`invalid state string ${state}`);
-    const [, content, time] = contentTimeMatch;
+    const [, time, content] = contentTimeMatch;
     return {
       type: "STATE",
       content: content === "." ? null : content,

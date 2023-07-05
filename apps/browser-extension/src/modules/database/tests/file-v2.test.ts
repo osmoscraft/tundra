@@ -24,12 +24,12 @@ export async function testFileV2Db() {
 export async function testFileV2FSM() {
   const db = await createTestDb(SCHEMA);
   fsm(db, ".. .. .. | .. .. .. | .. .. ..");
-  fsm(db, ".. .. .. | .. .. c1 | .. .. c1");
-  fsm(db, ".. .. .. | .. .. .1 | .. .. ..");
-  fsm(db, ".. .. .. | a1 .. .. | a1 .. ..");
-  fsm(db, ".. .. .. | .1 .. .. | .. .. ..");
-  fsm(db, ".. .. .. | .. b1 .. | .. b1 ..");
-  fsm(db, ".. .. .. | .. .1 .. | .. .. ..");
+  fsm(db, ".. .. .. | .. .. 1c | .. .. 1c");
+  fsm(db, ".. .. .. | .. .. 1. | .. .. ..");
+  fsm(db, ".. .. .. | 1a .. .. | 1a .. ..");
+  fsm(db, ".. .. .. | 1. .. .. | .. .. ..");
+  fsm(db, ".. .. .. | .. 1b .. | .. 1b ..");
+  fsm(db, ".. .. .. | .. 1. .. | .. .. ..");
 }
 
 export async function testFileV2StatusUntracked() {
