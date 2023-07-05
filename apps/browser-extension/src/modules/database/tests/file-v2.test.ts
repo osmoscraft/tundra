@@ -290,6 +290,10 @@ export async function testFileV2StatusBehind() {
   assertFileUpdatedAt(db, currentFile(), 1);
 }
 
+export async function testFileV2StatusAhead() {
+  const db = await createTestDb(SCHEMA);
+}
+
 // TODO test timestamp order view
 // TODO test meta view
 // TODO test content view
