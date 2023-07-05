@@ -84,6 +84,13 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS synced ->> '$.content'; 
+
+  /* 3: Conflict */
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
+  -- Clear local when local.content is the same as remote.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
@@ -98,6 +105,12 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS synced ->> '$.content'; 
+
+  /* 3: Conflict */
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
+  -- Clear local when local.content is the same as remote.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
 END;
 
 -- TODO prevent invalid timestamp

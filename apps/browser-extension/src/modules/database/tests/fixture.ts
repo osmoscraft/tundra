@@ -11,6 +11,11 @@ export async function createTestDb(schema: string) {
   DROP TRIGGER IF EXISTS FileFtsAfterInsertTrigger;
   DROP TRIGGER IF EXISTS FileFtsAfterDeleteTrigger;
   DROP TRIGGER IF EXISTS FileFtsAfterUpdateTrigger;
+
+  -- v2
+  DROP TABLE IF EXISTS FileV2;
+  DROP TRIGGER IF EXISTS FileV2AfterInsertTrigger;
+  DROP TRIGGER IF EXISTS FileV2AfterUpdateTrigger;
   `);
   db.exec(schema);
 
