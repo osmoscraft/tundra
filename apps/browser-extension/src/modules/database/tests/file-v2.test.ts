@@ -1,5 +1,5 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import { assertDefined, assertEqual, assertUndefined } from "../../live-test";
+import { assertDefined, assertEqual, assertThrows, assertUndefined } from "../../live-test";
 import { DbFileStatus, type DbFileV2Internal, type DbFileV2Snapshot } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
@@ -434,11 +434,36 @@ export async function testFileV2StatusAhead() {
   assertFileUpdatedAt(db, currentFile(), 3);
 
   console.log("[test] ahead (synced null, local non-null) -> setS(same as local) -> synced");
+  upsertFile(db, { path: newFile(), local: mockFile(1, "local") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(1, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+
   console.log("[test] ahead (synced null, local non-null) -> setS(different from local) -> error");
+  upsertFile(db, { path: newFile(), local: mockFile(1, "local") });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "other") }));
+
   console.log("[test] ahead (synced non-null, local null) -> setS(null) -> synced");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, null) });
+  assertFileUntracked(db, currentFile());
+
   console.log("[test] ahead (synced non-null, local null) -> setS(non-null) -> error");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, null) });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "") }));
+
   console.log("[test] ahead (synced non-null, local non-null) -> setS(same as local) -> synced");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "local") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 2);
+
   console.log("[test] ahead (synced non-null, local non-null) -> setS(different from local) -> error");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "local") });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "other") }));
 }
 
 // TODO test timestamp order view

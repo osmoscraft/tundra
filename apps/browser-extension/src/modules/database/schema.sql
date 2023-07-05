@@ -94,7 +94,6 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
-
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
@@ -119,9 +118,13 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+
+  /* Special: safe merge */
+  -- raise error on violation: if old.status = ahead and new.synced != old.synced, then new.synced must be old.local
+  SELECT RAISE(ABORT, 'merge must use local content when status is ahead') WHERE old.status = 2 AND new.synced IS NOT old.synced AND new.synced IS NOT old.local;
+
 END;
 
 -- TODO prevent invalid timestamp
 -- TODO ensure safe merge when ahead/behind
 -- if old.status = behind, new.synced != old.synced, then new.synced must be old.remote
--- if old.status = ahead, new.synced != old.synced, then new.synced must be old.local
