@@ -289,8 +289,12 @@ export async function testFileV2StatusBehind() {
   assertFileStatus(db, currentFile(), DbFileStatus.Behind);
   assertFileUpdatedAt(db, currentFile(), 1);
 
-  //// !!!
-  //setS
+  console.log("[test] behind (synced null, remote non-null) -> setS(same as remote) -> synced");
+  console.log("[test] behind (synced null, remote non-null) -> setS(different from remote) -> error");
+  console.log("[test] behind (synced non-null, remote null) -> setS(null) -> synced");
+  console.log("[test] behind (synced non-null, remote null) -> setS(non-null) -> error");
+  console.log("[test] behind (synced non-null, remote non-null) -> setS(same as remote) -> synced");
+  console.log("[test] behind (synced non-null, remote non-null) -> setS(different from remote) -> error");
 }
 
 export async function testFileV2StatusAhead() {
@@ -429,7 +433,12 @@ export async function testFileV2StatusAhead() {
   assertFileStatus(db, currentFile(), DbFileStatus.Ahead);
   assertFileUpdatedAt(db, currentFile(), 3);
 
-  /// Test setS
+  console.log("[test] ahead (synced null, local non-null) -> setS(same as local) -> synced");
+  console.log("[test] ahead (synced null, local non-null) -> setS(different from local) -> error");
+  console.log("[test] ahead (synced non-null, local null) -> setS(null) -> synced");
+  console.log("[test] ahead (synced non-null, local null) -> setS(non-null) -> error");
+  console.log("[test] ahead (synced non-null, local non-null) -> setS(same as local) -> synced");
+  console.log("[test] ahead (synced non-null, local non-null) -> setS(different from local) -> error");
 }
 
 // TODO test timestamp order view
