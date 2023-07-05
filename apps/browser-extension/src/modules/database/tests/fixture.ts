@@ -1,7 +1,6 @@
-import { sqlite3Mem } from "@tinykb/sqlite-utils";
+import { arrayToParams, paramsToBindings, sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
 import type { DbFileStatus, DbFileV2Internal, DbFileV2Snapshot } from "../schema";
-import { selectMany, upsertMany } from "./file-v2.test";
 
 let db: Sqlite3.DB | undefined;
 export async function createTestDb(schema: string) {
@@ -123,6 +122,7 @@ Object.assign(fsm, {
 });
 
 function fsmSpec(db: Sqlite3.DB, spec: string, options?: FsmOptions) {
+  if (options?.verbose) console.log("\n▶️", spec);
   try {
     assertFSM(db, spec, {
       debugger: options?.debugger ?? false,
@@ -148,7 +148,6 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
   if (parsedFrom?.type === "ERROR") throw Error(`from (${from}) cannot be of type ${parsedFrom?.type ?? null}`);
   const parsedAction = parseState(action);
   if (parsedAction?.type === "ERROR") throw Error(`action (${action}) cannot be of type ${parsedAction?.type ?? null}`);
-  const parsedTo = parseState(to);
 
   const filename = newFile();
 
@@ -207,7 +206,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
       actualTo = "!! !! !!";
     }
 
-    assertEqual(actualTo, to);
+    assertEqual(actualTo, to, `expected ${to}, got ${actualTo}`);
   };
 
   function encodeFile(file?: DbFileV2Internal) {
@@ -219,7 +218,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     if (!fileStateString) return "..";
 
     const fileStateItem = JSON.parse(fileStateString!) as DbFileV2Snapshot;
-    return `${fileStateItem.updatedAt}${fileStateItem.content}`;
+    return `${fileStateItem.updatedAt}${fileStateItem.content ?? "."}`;
   }
 
   arrange();
@@ -272,4 +271,84 @@ function parseState(state: string): ParsedState | null {
     remote,
     synced,
   };
+}
+
+export interface SelectManyInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any[];
+}
+export function selectMany<T extends {}>(db: Sqlite3.DB, input: SelectManyInput<T>): (T | undefined)[] {
+  return input.value.map((value) => {
+    return selectOne(db, { table: input.table, key: input.key, value });
+  });
+}
+
+export interface SelectOneInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any;
+}
+
+export function selectOne<T extends {}>(db: Sqlite3.DB, input: SelectOneInput<T>): T | undefined {
+  const sql = `SELECT * FROM ${input.table} WHERE ${input.key} = :${input.key}`;
+  const bind = paramsToBindings(sql, { [input.key]: input.value });
+  const file = db.selectObject<T>(sql, bind);
+  return file;
+}
+
+export interface UpsertManyInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  rows: T[];
+}
+
+/**
+ * Upsert multiple rows of different kind
+ */
+export function upsertMany<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  return input.rows.map((row) => {
+    return upsertOne(db, { table: input.table, key: input.key, row });
+  });
+}
+
+/**
+ * Upsert multiple rows of the same kind
+ */
+export function usertBulk<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  return upsertInternal(db, input);
+}
+
+export interface UpsertOneInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  row: T;
+}
+
+export function upsertOne<T extends {}>(db: Sqlite3.DB, input: UpsertOneInput<T>) {
+  return upsertInternal(db, { table: input.table, key: input.key, rows: [input.row] });
+}
+
+function upsertInternal<T extends {}>(db: Sqlite3.DB, input: UpsertManyInput<T>) {
+  if (!input.rows.length) return;
+
+  const refRow = input.rows[0];
+  const cols = Object.keys(refRow);
+  const nonKeyCols = cols.filter((col) => col !== input.key);
+
+  const sql = [
+    `INSERT INTO ${input.table} (${cols.join(",")}) VALUES`,
+    input.rows.map((_, i) => `(${cols.map((col) => `:${col}${i}`).join(",")})`).join(","),
+    nonKeyCols.length
+      ? `ON CONFLICT(${input.key}) DO UPDATE SET ${cols
+          .filter((col) => col !== input.key)
+          .map((col) => `${col} = excluded.${col}`)}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // TODO minimize col names to index
+  const bind = paramsToBindings(sql, arrayToParams(input.rows));
+  return db.exec(sql, { bind });
 }
