@@ -14,6 +14,10 @@ export class DevtoolElement extends HTMLElement {
   private proxy = DevtoolElement.dependencies.proxy;
 
   connectedCallback() {
+    if (new URLSearchParams(location.search).get("checkhealth") === "true") {
+      this.proxy.checkHealth();
+    }
+
     this.menu.addEventListener("click", async (e) => {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
