@@ -78,8 +78,10 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 0 AND new.content IS NULL;
 
   /* 1: Behind */
-  -- Clear remote when remote.content is the same as synced.content
-  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS synced ->> '$.content'; 
+  -- Move remote to synced when remote.content is the same as synced.content and is not null
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' = synced ->> '$.content';
+  -- Delete row when remote.content and synced.content are both is null
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content
@@ -100,7 +102,9 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
 
   /* 1: Behind */
   -- Clear remote when remote.content is the same as synced.content
-  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS synced ->> '$.content'; 
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' = synced ->> '$.content';
+  -- Delete row when remote.content and synced.content are both is null
+  DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content

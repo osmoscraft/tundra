@@ -36,7 +36,7 @@ export interface DbFileV2Internal {
 }
 
 export interface DbFileV2Snapshot {
-  time: number;
+  updatedAt: number;
   content: string | null;
   meta: string | null;
 }

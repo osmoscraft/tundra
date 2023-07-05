@@ -1,5 +1,5 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
+import { assertDefined, assertEqual, assertUndefined } from "../../live-test";
 import { DbFileStatus, type DbFileV2Internal, type DbFileV2Snapshot } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
@@ -13,7 +13,7 @@ type TestDbWritable = Partial<DbFileV2Internal> & { path: string };
 
 // test utils
 function mockFile(time: number, content: string | null, meta: string | null = null) {
-  const snapshot: DbFileV2Snapshot = { time, content, meta };
+  const snapshot: DbFileV2Snapshot = { updatedAt: time, content, meta };
   return JSON.stringify(snapshot);
 }
 
@@ -32,174 +32,267 @@ function selectFile(db: Sqlite3.DB, path: string) {
   return selectFiles(db, [path])[0];
 }
 
+function assertFileUpdatedAt(db: Sqlite3.DB, path: string, version: number) {
+  const source = selectFile(db, path)?.source;
+  if (!source) throw new Error(`File version assertion error: ${path} has no source`);
+  assertEqual((JSON.parse(source) as DbFileV2Snapshot).updatedAt, version);
+}
+
+function assertFileSourceless(db: Sqlite3.DB, path: string) {
+  assertEqual(selectFile(db, path)!.source, null);
+}
+
+function assertFileUntracked(db: Sqlite3.DB, path: string) {
+  assertEqual(selectFile(db, path), undefined);
+}
+
+function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileStatus) {
+  assertEqual(selectFile(db, path)?.status, status);
+}
+
+const fileNames = new (class {
+  private currentIndex = 0;
+  next() {
+    this.currentIndex++;
+    return this.current();
+  }
+  current() {
+    return `file${this.currentIndex}`;
+  }
+})();
+function nextFile() {
+  return fileNames.next();
+}
+function currentFile() {
+  return fileNames.current();
+}
+
 export async function testFileV2StatusUntracked() {
   const db = await createTestDb(SCHEMA);
 
   console.log("[test] untracked > setS(content) > synced");
-  upsertFile(db, { path: "file", synced: mockFile(1, "") });
-  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
+
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
 
   console.log("[test] untracked > setS(null) > untracked ");
-  upsertFile(db, { path: "file2", synced: mockFile(1, null) });
-  assertUndefined(selectFile(db, "file2"));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, null) });
+  assertUndefined(selectFile(db, currentFile()));
 
   console.log("[test] untracked > setL(content) > ahead");
-  upsertFile(db, { path: "file3", local: mockFile(1, "") });
-  assertEqual(selectFile(db, "file3")?.status, DbFileStatus.Ahead);
+  upsertFile(db, { path: nextFile(), local: mockFile(1, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Ahead);
 
   console.log("[test] untracked > setL(null) > untracked");
-  upsertFile(db, { path: "file4", local: mockFile(1, null) });
-  assertUndefined(selectFile(db, "file4"));
+  upsertFile(db, { path: nextFile(), local: mockFile(1, null) });
+  assertUndefined(selectFile(db, currentFile()));
 
   console.log("[test] untracked > setR(content) > behind");
-  upsertFile(db, { path: "file5", remote: mockFile(1, "") });
-  assertEqual(selectFile(db, "file5")?.status, DbFileStatus.Behind);
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
 
   console.log("[test] untracked > setR(null) > untracked");
-  upsertFile(db, { path: "file6", remote: mockFile(1, null) });
-  assertUndefined(selectFile(db, "file6"));
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, null) });
+  assertUndefined(selectFile(db, currentFile()));
 }
 
 export async function testFileV2StatusSynced() {
   const db = await createTestDb(SCHEMA);
 
   console.log("[test] synced > setS(same content) > synced");
-  upsertFile(db, { path: "file", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file", synced: mockFile(2, "") });
-  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
-  assertDeepEqual(JSON.parse(selectFile(db, "file")!.source!), JSON.parse(mockFile(2, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] synced > setS(different content) > synced");
-  upsertFile(db, { path: "file", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file", synced: mockFile(2, "new") });
-  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Synced);
-  assertDeepEqual(JSON.parse(selectFile(db, "file")!.source!), JSON.parse(mockFile(2, "new")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, "new") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] synced > setS(null) > untracked");
-  upsertFile(db, { path: "file2", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file2", synced: mockFile(2, null) });
-  assertUndefined(selectFile(db, "file2"));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, null) });
+  assertFileUntracked(db, currentFile());
 
   console.log("[test] synced > setL(same content) > synced");
-  upsertFile(db, { path: "file3", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file3", local: mockFile(2, "") });
-  assertEqual(selectFile(db, "file3")?.status, DbFileStatus.Synced);
-  assertDeepEqual(JSON.parse(selectFile(db, "file3")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] synced > setL(different content) > ahead");
-  upsertFile(db, { path: "file4", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file4", local: mockFile(2, "new") });
-  assertEqual(selectFile(db, "file4")?.status, DbFileStatus.Ahead);
-  assertDeepEqual(JSON.parse(selectFile(db, "file4")!.source!), JSON.parse(mockFile(2, "new")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "new") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Ahead);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] synced > setL(null) > ahead");
-  upsertFile(db, { path: "file4", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file4", local: mockFile(2, null) });
-  assertEqual(selectFile(db, "file4")?.status, DbFileStatus.Ahead);
-  assertDeepEqual(JSON.parse(selectFile(db, "file4")!.source!), JSON.parse(mockFile(2, null)));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Ahead);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] synced > setR(same content) > synced");
-  upsertFile(db, { path: "file5", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file5", remote: mockFile(2, "") });
-  assertEqual(selectFile(db, "file5")?.status, DbFileStatus.Synced);
-  assertDeepEqual(JSON.parse(selectFile(db, "file5")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] synced > setR(different content) > behind");
-  upsertFile(db, { path: "file6", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file6", remote: mockFile(2, "new") });
-  assertEqual(selectFile(db, "file6")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file6")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "new") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] synced > setR(null) > behind");
-  upsertFile(db, { path: "file7", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file7", remote: mockFile(2, null) });
-  assertEqual(selectFile(db, "file7")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file7")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 }
 
 export async function testFileV2StatusBehind() {
   const db = await createTestDb(SCHEMA);
 
   console.log("[test] behind (synced null, remote non-null) > setL(different from remote) > conflict");
-  upsertFile(db, { path: "file", remote: mockFile(1, "") });
-  upsertFile(db, { path: "file", local: mockFile(2, "local") });
-  assertEqual(selectFile(db, "file")?.status, DbFileStatus.Conflict);
-  assertDeepEqual(JSON.parse(selectFile(db, "file")!.source!), JSON.parse(mockFile(2, "local")));
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Conflict);
+  assertFileUpdatedAt(db, currentFile(), 2);
 
   console.log("[test] behind (synced null, remote non-null) > setL(same as remote) > behind");
-  upsertFile(db, { path: "file2", remote: mockFile(1, "") });
-  upsertFile(db, { path: "file2", local: mockFile(2, "") });
-  assertEqual(selectFile(db, "file2")?.status, DbFileStatus.Behind);
-  assertEqual(selectFile(db, "file2")!.source, null);
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileSourceless(db, currentFile());
 
   console.log("[test] behind (synced null, remote non-null) > setL(null) > behind");
-  upsertFile(db, { path: "file3", remote: mockFile(1, "") });
-  upsertFile(db, { path: "file3", local: mockFile(2, null) });
-  assertEqual(selectFile(db, "file3")?.status, DbFileStatus.Behind);
-  assertEqual(selectFile(db, "file3")!.source, null);
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), local: mockFile(2, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileSourceless(db, currentFile());
 
   console.log("[test] behind (synced non-null, remote null) > setL(same as synced) > behind");
-  upsertFile(db, { path: "file4", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file4", remote: mockFile(2, null) });
-  upsertFile(db, { path: "file4", local: mockFile(3, "") });
-  assertEqual(selectFile(db, "file4")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file4")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] behind (synced non-null, remote null) > setL(different from synced) > conflict");
-  upsertFile(db, { path: "file5", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file5", remote: mockFile(2, null) });
-  upsertFile(db, { path: "file5", local: mockFile(3, "local") });
-  assertEqual(selectFile(db, "file5")?.status, DbFileStatus.Conflict);
-  assertDeepEqual(JSON.parse(selectFile(db, "file5")!.source!), JSON.parse(mockFile(3, "local")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Conflict);
+  assertFileUpdatedAt(db, currentFile(), 3);
 
   console.log("[test] behind (synced non-null, remote null) > setL(null) > behind");
-  upsertFile(db, { path: "file6", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file6", remote: mockFile(2, null) });
-  upsertFile(db, { path: "file6", local: mockFile(3, null) });
-  assertEqual(selectFile(db, "file6")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file6")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] behind (synced non-null, remote non-null) > setL(same as synced) > behind");
-  upsertFile(db, { path: "file7", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file7", remote: mockFile(2, "remote") });
-  upsertFile(db, { path: "file7", local: mockFile(3, "") });
-  assertEqual(selectFile(db, "file7")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file7")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] behind (synced non-null, remote non-null) > setL(same as remote) > behind");
-  upsertFile(db, { path: "file8", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file8", remote: mockFile(2, "remote") });
-  upsertFile(db, { path: "file8", local: mockFile(3, "remote") });
-  assertEqual(selectFile(db, "file8")?.status, DbFileStatus.Behind);
-  assertDeepEqual(JSON.parse(selectFile(db, "file8")!.source!), JSON.parse(mockFile(1, "")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, "remote") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] behind (synced non-null, remote non-null) > setL(different) > conflict");
-  upsertFile(db, { path: "file9", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file9", remote: mockFile(2, "remote") });
-  upsertFile(db, { path: "file9", local: mockFile(3, "local") });
-  assertEqual(selectFile(db, "file9")?.status, DbFileStatus.Conflict);
-  assertDeepEqual(JSON.parse(selectFile(db, "file9")!.source!), JSON.parse(mockFile(3, "local")));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Conflict);
+  assertFileUpdatedAt(db, currentFile(), 3);
 
   console.log("[test] behind (synced non-null, remote non-null) > setL(null) > conflict");
-  upsertFile(db, { path: "file10", synced: mockFile(1, "") });
-  upsertFile(db, { path: "file10", remote: mockFile(2, "remote") });
-  upsertFile(db, { path: "file10", local: mockFile(3, null) });
-  assertEqual(selectFile(db, "file10")?.status, DbFileStatus.Conflict);
-  assertDeepEqual(JSON.parse(selectFile(db, "file10")!.source!), JSON.parse(mockFile(3, null)));
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), local: mockFile(3, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Conflict);
+  assertFileUpdatedAt(db, currentFile(), 3);
 
-  console.log("[test] behind (synced null, remote non-null) > setR(different from remote) > ?");
-  console.log("[test] behind (synced null, remote non-null) > setR(same as remote) > ?");
-  console.log("[test] behind (synced null, remote non-null) > setR(null) > ?");
+  console.log("[test] behind (synced null, remote non-null) > setR(different from remote) > behind");
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileSourceless(db, currentFile());
 
-  console.log("[test] behind (synced non-null, remote null) > setR(same as synced) > ?");
-  console.log("[test] behind (synced non-null, remote null) > setR(different from synced) > ?");
-  console.log("[test] behind (synced non-null, remote null) > setR(null) > ?");
+  console.log("[test] behind (synced null, remote non-null) > setR(same as remote) > behind");
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileSourceless(db, currentFile());
 
-  console.log("[test] behind (synced non-null, remote non-null) > setR(same as synced) > ?");
-  console.log("[test] behind (synced non-null, remote non-null) > setR(same as remote) > ?");
-  console.log("[test] behind (synced non-null, remote non-null) > setR(different) > ?");
-  console.log("[test] behind (synced non-null, remote non-null) > setR(null) > ?");
+  console.log("[test] behind (synced null, remote non-null) > setR(null) > untracked");
+  upsertFile(db, { path: nextFile(), remote: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  assertFileUntracked(db, currentFile());
+
+  console.log("[test] behind (synced non-null, remote null) > setR(same as synced) > synced");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 3);
+
+  console.log("[test] behind (synced non-null, remote null) > setR(different from synced) > behind");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
+
+  console.log("[test] behind (synced non-null, remote null) > setR(null) > behind");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
+
+  console.log("[test] behind (synced non-null, remote non-null) > setR(same as synced) > synced");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, "") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 3);
+
+  console.log("[test] behind (synced non-null, remote non-null) > setR(same as remote) > behind");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, "remote") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
+
+  console.log("[test] behind (synced non-null, remote non-null) > setR(different) > behind");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, "local") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
+
+  console.log("[test] behind (synced non-null, remote non-null) > setR(null) > behind");
+  upsertFile(db, { path: nextFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(3, null) });
+  assertFileStatus(db, currentFile(), DbFileStatus.Behind);
+  assertFileUpdatedAt(db, currentFile(), 1);
 }
+
+// TODO test timestamp order view
+// TODO test meta view
+// TODO test content view
 
 export interface UpsertManyInput<T extends {}> {
   table: string;
