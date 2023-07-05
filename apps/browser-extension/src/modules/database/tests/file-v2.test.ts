@@ -290,11 +290,36 @@ export async function testFileV2StatusBehind() {
   assertFileUpdatedAt(db, currentFile(), 1);
 
   console.log("[test] behind (synced null, remote non-null) -> setS(same as remote) -> synced");
+  upsertFile(db, { path: newFile(), remote: mockFile(1, "remote") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(1, "remote") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+
   console.log("[test] behind (synced null, remote non-null) -> setS(different from remote) -> error");
+  upsertFile(db, { path: newFile(), remote: mockFile(1, "remote") });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "other") }));
+
   console.log("[test] behind (synced non-null, remote null) -> setS(null) -> synced");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, null) });
+  assertFileUntracked(db, currentFile());
+
   console.log("[test] behind (synced non-null, remote null) -> setS(non-null) -> error");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, null) });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "") }));
+
   console.log("[test] behind (synced non-null, remote non-null) -> setS(same as remote) -> synced");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  upsertFile(db, { path: currentFile(), synced: mockFile(2, "remote") });
+  assertFileStatus(db, currentFile(), DbFileStatus.Synced);
+  assertFileUpdatedAt(db, currentFile(), 2);
+
   console.log("[test] behind (synced non-null, remote non-null) -> setS(different from remote) -> error");
+  upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
+  upsertFile(db, { path: currentFile(), remote: mockFile(2, "remote") });
+  assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "other") }));
 }
 
 export async function testFileV2StatusAhead() {
@@ -464,6 +489,10 @@ export async function testFileV2StatusAhead() {
   upsertFile(db, { path: newFile(), synced: mockFile(1, "") });
   upsertFile(db, { path: currentFile(), local: mockFile(2, "local") });
   assertThrows(() => upsertFile(db, { path: currentFile(), synced: mockFile(2, "other") }));
+}
+
+export async function testFileV2StatusConflict() {
+  const db = await createTestDb(SCHEMA);
 }
 
 // TODO test timestamp order view

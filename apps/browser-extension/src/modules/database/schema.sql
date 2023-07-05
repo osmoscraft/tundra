@@ -90,10 +90,10 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 3: Conflict */
-  -- Clear local when local.content is the same as synced.content
-  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
@@ -106,25 +106,36 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' = synced ->> '$.content';
   -- Delete row when remote.content and synced.content are both is null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
+  -- Raise error on violation: when updating synced, then new.synced must be old.remote
+  SELECT RAISE(ABORT, 'merge must use remote content when status is behind') WHERE old.status = 1 AND new.synced IS NOT old.synced AND new.synced IS NOT old.remote;
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content and is not null
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' = synced ->> '$.content'; 
   -- Delete row when local.content and synced.content are both is null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
-
-  /* 3: Conflict */
-  -- Clear local when local.content is the same as synced.content
-  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
-  -- Clear local when local.content is the same as remote.content
-  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
-
-  /* Special: safe merge */
-  -- raise error on violation: if old.status = ahead and new.synced != old.synced, then new.synced must be old.local
+  -- Raise error on violation: when updating synced, then new.synced must be old.local
   SELECT RAISE(ABORT, 'merge must use local content when status is ahead') WHERE old.status = 2 AND new.synced IS NOT old.synced AND new.synced IS NOT old.local;
 
+  /* 3: Conflict */
+  -- Clear local when local.content is the same as remote.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+  -- Clear local when local.content is the same as synced.content
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content';
 END;
 
 -- TODO prevent invalid timestamp
--- TODO ensure safe merge when ahead/behind
--- if old.status = behind, new.synced != old.synced, then new.synced must be old.remote
+-- TODO compress triggers by action
+-- TODO handle complex conflict resolution
+   -- When L = S != R
+   -- When L = R != S
+   -- When L = R = S != NULL, Move R to S and clear L
+   -- When L = R = S = NULL, Delete row
+   -- Comply to timestamp order by rebasing local content
+   -- Sequence: Set L <- S, Set S <- R, Replay L
+-- TODO flex merge
+  -- Allow both setL and setR and rebase
+  -- Rebase: (L, S) <- (new L, R)
+  -- Ensure when old.status = conflict and synced field is changed, new.synced must be old.remote and new.localTime >= new.syncedTime
+  -- The goal is to ensure conflict is resolved without timestamp order violation
+-- TODO ensure conflict state only allows setL
