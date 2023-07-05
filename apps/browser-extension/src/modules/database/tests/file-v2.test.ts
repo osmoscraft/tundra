@@ -1,70 +1,23 @@
 import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import { assertDefined, assertEqual, assertThrows, assertUndefined } from "../../live-test";
-import { DbFileStatus, type DbFileV2Internal, type DbFileV2Snapshot } from "../schema";
+import { assertDefined, assertThrows, assertUndefined } from "../../live-test";
+import { DbFileStatus } from "../schema";
 import SCHEMA from "../schema.sql";
-import { createTestDb } from "./fixture";
+import {
+  assertFileSourceless,
+  assertFileStatus,
+  assertFileUntracked,
+  assertFileUpdatedAt,
+  createTestDb,
+  currentFile,
+  mockFile,
+  newFile,
+  selectFile,
+  upsertFile,
+} from "./fixture";
 
 export async function testFileV2Db() {
   const db = await createTestDb(SCHEMA);
   assertDefined(db, "db is defined");
-}
-
-type TestDbWritable = Partial<DbFileV2Internal> & { path: string };
-
-// test utils
-function mockFile(time: number, content: string | null, meta: string | null = null) {
-  const snapshot: DbFileV2Snapshot = { updatedAt: time, content, meta };
-  return JSON.stringify(snapshot);
-}
-
-function upsertFiles(db: Sqlite3.DB, files: TestDbWritable[]) {
-  return upsertMany<TestDbWritable>(db, { table: "FileV2", key: "path", rows: files });
-}
-function upsertFile(db: Sqlite3.DB, file: TestDbWritable) {
-  return upsertFiles(db, [file]);
-}
-
-function selectFiles(db: Sqlite3.DB, paths: string[]) {
-  return selectMany<TestDbWritable>(db, { table: "FileV2", key: "path", value: paths });
-}
-
-function selectFile(db: Sqlite3.DB, path: string) {
-  return selectFiles(db, [path])[0];
-}
-
-function assertFileUpdatedAt(db: Sqlite3.DB, path: string, version: number) {
-  const source = selectFile(db, path)?.source;
-  if (!source) throw new Error(`File version assertion error: ${path} has no source`);
-  assertEqual((JSON.parse(source) as DbFileV2Snapshot).updatedAt, version);
-}
-
-function assertFileSourceless(db: Sqlite3.DB, path: string) {
-  assertEqual(selectFile(db, path)!.source, null);
-}
-
-function assertFileUntracked(db: Sqlite3.DB, path: string) {
-  assertEqual(selectFile(db, path), undefined);
-}
-
-function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileStatus) {
-  assertEqual(selectFile(db, path)?.status, status);
-}
-
-const fileNames = new (class {
-  private currentIndex = 0;
-  next() {
-    this.currentIndex++;
-    return this.current();
-  }
-  current() {
-    return `file${this.currentIndex}`;
-  }
-})();
-function newFile() {
-  return fileNames.next();
-}
-function currentFile() {
-  return fileNames.current();
 }
 
 export async function testFileV2StatusUntracked() {
