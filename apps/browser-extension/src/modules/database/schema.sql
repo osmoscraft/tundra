@@ -103,7 +103,6 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
   -- Clear remote when remote.content and synced.content are both null
   UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
-
   -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
   UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
 END;
@@ -138,7 +137,6 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
   -- Clear remote when remote.content and synced.content are both null
   UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
-
     -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
   UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
 END;
@@ -158,6 +156,8 @@ END;
   -- Ensure when old.status = conflict and synced field is changed, new.synced must be old.remote and new.localTime >= new.syncedTime
   -- The goal is to ensure conflict is resolved without timestamp order violation
 -- TODO ensure conflict state only allows setL
+
+-- TODO consolidate triggers for performance
 
 
 -- REF
