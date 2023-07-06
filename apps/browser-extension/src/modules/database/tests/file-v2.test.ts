@@ -189,20 +189,51 @@ export async function testFileV2StatusConflict() {
   const db = await createTestDb(SCHEMA);
 
   fsm(db, "1. 2. .. | .. .. .. | .. .. .."); // static + collapse
+  fsm(db, "1. 2. 3. | .. .. .. | .. .. .."); // static + collapse
+  fsm(db, "1. 2. 3a | .. .. .. | .. .. 3a"); // static + collapse
   fsm(db, "1. 2a .. | .. .. .. | .. 2a .."); // static + collapse
-  fsm(db, "1a 2. .. | .. .. .. | 1a 2. .."); // no merge due to conflict
+  fsm(db, "1. 2a. 3. | .. .. .. | .. .. .."); // static + collapse + auto merge
+  fsm(db, "1. 2a. 3a | .. .. .. | .. .. 3a"); // static + collapse + auto merge
+  fsm(db, "1. 2a. 3b | .. .. .. | .. .. 3b"); // static + collapse + auto merge
+  fsm(db, "1a 2. .. | .. .. .. | 1a 2. .."); // static + no merge due to conflict
+  fsm(db, "1a 2. 3. | .. .. .. | .. .. .."); // static + collapse + auto merge
+  fsm(db, "1a 2. 3a | .. .. .. | .. .. 3a"); // static + collapse + auto merge
+  fsm(db, "1a 2. 3b | .. .. .. | .. .. 3b"); // static + collapse + auto merge
   fsm(db, "1a 2a .. | .. .. .. | .. 2a .."); // static + collapse
+  fsm(db, "1a 2a 3. | .. .. .. | .. .. .."); // static + collapse + auto merge
+  fsm(db, "1a 2a 3a | .. .. .. | .. .. 3a"); // static + auto merge
+  fsm(db, "1a 2a 3b | .. .. .. | .. .. 3b"); // static + auto merge
   fsm(db, "1a 2b .. | .. .. .. | 1a 2b .."); // static
+  fsm(db, "1a 2b 3. | .. .. .. | .. .. .."); // static + collapse + auto merge
+  fsm(db, "1a 2b 3a | .. .. .. | .. .. 3a"); // static + auto merge
+  fsm(db, "1a 2b 3b | .. .. .. | .. .. 3b"); // static + auto merge
+  fsm(db, "1a 2b 3c | .. .. .. | .. .. 3c"); // static + auto merge
   fsm(db, "2. 1. .. | .. .. .. | .. .. .."); // static + collapse
+  fsm(db, "2. 1. 3. | .. .. .. | .. .. ..");
+  fsm(db, "2. 1. 3a | .. .. .. | .. .. 3a");
   fsm(db, "2. 1a .. | .. .. .. | 2. 1a .."); // static
+  fsm(db, "2. 1a 3. | .. .. .. | .. .. ..");
+  fsm(db, "2. 1a 3a | .. .. .. | .. .. 3a");
+  fsm(db, "2. 1a 3b | .. .. .. | .. .. 3b");
   fsm(db, "2. 3. 1. | .. .. .. | .. .. .."); // static + collapse
   fsm(db, "2. 3. 1a | .. .. .. | .. 3. 1a"); // static + auto merge
   fsm(db, "2. 3a 1. | .. .. .. | .. 3a .."); // static + collapse
   fsm(db, "2. 3a 1a | .. .. .. | 2. 3a 1a"); // static + no merge due to conflict
   fsm(db, "2. 3b 1a | .. .. .. | 2. 3b 1a"); // static
+  fsm(db, "2. 3b 1c | .. .. .. | 2. 3b 1c"); // static
   fsm(db, "2a 1. .. | .. .. .. | 2a 1. .."); // no merge due to conflict
+  fsm(db, "2a 1. 3. | .. .. .. | .. .. ..");
+  fsm(db, "2a 1. 3a | .. .. .. | .. .. 3a");
+  fsm(db, "2a 1. 3b | .. .. .. | .. .. 3b");
   fsm(db, "2a 1a .. | .. .. .. | .. 1a .."); // static + auto merge
+  fsm(db, "2a 1a 3. | .. .. .. | .. .. ..");
+  fsm(db, "2a 1a 3a | .. .. .. | .. .. 3a");
+  fsm(db, "2a 1a 3b | .. .. .. | .. ..  3b");
   fsm(db, "2a 1b .. | .. .. .. | 2a 1b .."); // static
+  fsm(db, "2a 1b 3. | .. .. .. | .. .. ..");
+  fsm(db, "2a 1b 3a | .. .. .. | .. .. 3a");
+  fsm(db, "2a 1b 3b | .. .. .. | .. .. 3b");
+  fsm(db, "2a 1b 3c | .. .. .. | .. .. 3c");
   fsm(db, "2a 3. 1. | .. .. .. | 2a 3. .."); // static + collapse
   fsm(db, "2a 3. 1a | .. .. .. | .. 3. 1a"); // static + auto merge
   fsm(db, "2a 3a 1. | .. .. .. | .. 3a .."); // static + auto merge
@@ -213,6 +244,7 @@ export async function testFileV2StatusConflict() {
   fsm(db, "2b 3b 1a | .. .. .. | .. 3b 1a"); // static + auto merge
   fsm(db, "2b 3c 1a | .. .. .. | 2b 3c 1a"); // static
   fsm(db, "2c 3b 1a | .. .. .. | 2c 3b 1a"); // static
+
   fsm(db, "3. 2. 1. | .. .. .. | .. .. .."); // static + collapse
   fsm(db, "3. 2. 1a | .. .. .. | .. 2. 1a"); // static + auto merge
   fsm(db, "3. 2a 1. | .. .. .. | 3. 2a .."); // static + collapse
