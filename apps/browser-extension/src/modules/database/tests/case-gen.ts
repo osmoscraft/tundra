@@ -58,11 +58,18 @@ const testInOut = qualifiedOptions.map((inArr) => {
 
   const multiPassResult = `${initial} | ${current}`;
   const singlePassResult = `${initial} | ${digestStateSinglePass(initial)}`;
+  const singlePassResultUnordered = `${initial} | ${digestStateSinglePassUnordered(initial)}`;
 
   if (multiPassResult !== singlePassResult) {
     throw new Error(`Multi-pass and single-pass results do not match:
 Multi: ${multiPassResult}
 Single: ${singlePassResult}`);
+  }
+
+  if (singlePassResult !== singlePassResultUnordered) {
+    throw new Error(`Single-pass and single-pass-unordered results do not match:
+Single: ${singlePassResult}
+Single Unordered: ${singlePassResultUnordered}`);
   }
 
   return `${multiPassResult} (${passCount} pass)`;
@@ -228,6 +235,73 @@ function digestStateSinglePass(stateSpec: string): string {
   }, initialState);
 
   return encodeParsedState(finalState);
+}
+
+/**
+ * The reducer in this algorithm is meant to be ported into SQLite trigger
+ */
+function digestStateSinglePassUnordered(stateSpec: string): string {
+  const parsed = parseState(stateSpec);
+  // sort events by time ascending
+  const sortedEvent = [
+    parsed?.synced ? { origin: "synced", ...parsed?.synced } : null,
+    parsed?.local ? { origin: "local", ...parsed?.local } : null,
+    parsed?.remote ? { origin: "remote", ...parsed?.remote } : null,
+  ].filter(Boolean);
+
+  // digest events
+  const acc: ParsedState = {
+    type: "STATE",
+    local: sortedEvent.find((e) => e?.origin === "local") ?? null,
+    remote: sortedEvent.find((e) => e?.origin === "remote") ?? null,
+    synced: sortedEvent.find((e) => e?.origin === "synced") ?? null,
+  };
+
+  // clear outdated local and remote
+  if (acc.synced && acc.synced.updatedAt >= (acc.local?.updatedAt ?? 0)) {
+    acc.local = null;
+  }
+  if (acc.synced && acc.synced.updatedAt >= (acc.remote?.updatedAt ?? 0)) {
+    acc.remote = null;
+  }
+
+  // auto merge local if no conflict
+  if (
+    acc.local &&
+    (!acc.remote || acc.local.updatedAt <= acc.remote.updatedAt) && // no conflict with remote
+    acc.local.content === (acc.synced?.content ?? null) // mergeable with synced
+  ) {
+    acc.local = null;
+  }
+
+  // auto merge identical local and remote
+  if (acc.remote?.content === acc.local?.content) {
+    acc.local = null;
+  }
+
+  // auto merge remote if no conflict
+  if (
+    acc.remote &&
+    (!acc.local || acc.remote.updatedAt <= acc.local.updatedAt) && // no conflict with local
+    acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
+  ) {
+    // Because we recreated a synced event, it would require an additional pass
+    // To prevent the pass, we also process the rules for synced event here
+    acc.synced = acc.remote;
+    acc.remote = null;
+
+    // clear outdated local
+    if (acc.synced.updatedAt >= (acc.local?.updatedAt ?? 0)) {
+      acc.local = null;
+    }
+  }
+
+  // collapse synced when it is null
+  if (acc.synced?.content === null) {
+    acc.synced = null;
+  }
+
+  return encodeParsedState(acc);
 }
 
 console.log(testInOut.join("\n"));
