@@ -53,7 +53,7 @@ export function getQualifiedInputs(): string[] {
 }
 
 /**
- * The reducer in this algorithm is meant to be ported into SQLite trigger
+ * This algorithm is meant to be ported into SQLite trigger
  */
 export function digestStateSinglePassUnordered(stateSpec: string): string {
   const parsed = parseState(stateSpec);
