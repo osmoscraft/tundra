@@ -5,6 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "tsx current file",
+      "request": "launch",
+      "runtimeArgs": ["run-script", "env"],
+      "runtimeExecutable": "npm",
+      "args": ["tsx", "${relativeFile}"],
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    },
+
+    {
       "name": "debug rpc-utils test",
       "request": "launch",
       "runtimeArgs": ["run-script", "test"],

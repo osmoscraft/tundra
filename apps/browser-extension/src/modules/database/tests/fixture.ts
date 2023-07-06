@@ -222,7 +222,21 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
   });
 }
 
-interface ParsedState {
+export function encodeParsedState(parsedState: ParsedState | null) {
+  if (parsedState === null) return ".. .. ..";
+
+  return `${encodeParsedStateItem(parsedState.local)} ${encodeParsedStateItem(
+    parsedState.remote
+  )} ${encodeParsedStateItem(parsedState.synced)}`;
+}
+
+function encodeParsedStateItem(parsedStateItem: ParsedStateItem | null) {
+  if (parsedStateItem === null) return "..";
+
+  return `${parsedStateItem.updatedAt}${parsedStateItem.content ?? "."}`;
+}
+
+export interface ParsedState {
   type: "STATE" | "ERROR";
   local: ParsedStateItem | null;
   remote: ParsedStateItem | null;
@@ -235,7 +249,7 @@ interface ParsedStateItem {
   updatedAt: number;
 }
 
-function parseState(state: string): ParsedState | null {
+export function parseState(state: string): ParsedState | null {
   if (state === ".. .. ..") return null;
   if (state === "!! !! !!") return specialState("ERROR");
 
