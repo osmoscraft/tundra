@@ -32,17 +32,9 @@ const qualifiedOptions = allOptions.filter(([a, b, c]) => {
   // xb requires seeing xa
   if (letters.includes("b") && !letters.includes("a")) return false;
 
-  // first appearance of a,b,c must appear in ascending order from left to right
+  // first index of a,b,c must appear in ascending order from left to right
   const firstIndex = ["a", "b", "c"].map((x) => letters.indexOf(x));
   if (firstIndex.sort().join("") !== firstIndex.join("")) return false;
-
-  // if (
-  //   letters
-  //     .filter((x) => x !== ".")
-  //     .sort()
-  //     .join("") !== letters.filter((x) => x !== ".").join("")
-  // )
-  //   return false;
 
   return true;
 });
@@ -59,16 +51,99 @@ const testInOut = qualifiedOptions.map((inArr) => {
   while (current !== prev) {
     pass++;
     prev = current;
-    current = digestState(prev);
+    current = digestMultiPass(prev);
   }
 
-  const result = `${initial} | ${current} (pass ${pass - 1})`;
-  if (pass > 2) console.error(`Too many passes, ${result}`);
+  const passCount = pass - 1;
 
-  return result;
+  const multiPassResult = `${initial} | ${current}`;
+  const singlePassResult = `${initial} | ${digestStateSinglePass(initial)}`;
+
+  if (multiPassResult !== singlePassResult) {
+    throw new Error(`Multi-pass and single-pass results do not match:
+Multi: ${multiPassResult}
+Single: ${singlePassResult}`);
+  }
+
+  return `${multiPassResult} (${passCount} pass)`;
 });
 
-function digestState(stateSpec: string): string {
+function digestMultiPass(stateSpec: string): string {
+  const parsed = parseState(stateSpec);
+  // sort events by time ascending
+  const sortedEvent = [
+    parsed?.local ? { origin: "local", ...parsed?.local } : null,
+    parsed?.remote ? { origin: "remote", ...parsed?.remote } : null,
+    parsed?.synced ? { origin: "synced", ...parsed?.synced } : null,
+  ]
+    .filter(Boolean)
+    .sort((a, b) => a!.updatedAt - b!.updatedAt);
+
+  // digest events
+  const initialState: ParsedState = {
+    type: "STATE",
+    local: null,
+    remote: null,
+    synced: null,
+  };
+
+  const finalState = sortedEvent.reduce((acc, event) => {
+    switch (event?.origin) {
+      case "local":
+        acc.local = event;
+        // merge if no conflict
+        if (
+          (!acc.remote || acc.local.updatedAt === acc.remote.updatedAt) && // no conflict with remote (tie breaker to ensure local<->remote symmetry)
+          acc.local.content === (acc.synced?.content ?? null) // mergeable with synced
+        ) {
+          acc.local = null;
+        }
+
+        // discard if repeating remote
+        if (acc.remote?.content === acc.local?.content) {
+          acc.local = null;
+        }
+
+        break;
+      case "remote":
+        acc.remote = event;
+        // merge if no conflict
+        if (
+          (!acc.local || acc.local.updatedAt === acc.remote.updatedAt) && // no conflict with local (tie breaker to ensure local<->remote symmetry)
+          acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
+        ) {
+          acc.synced = acc.remote;
+          acc.remote = null;
+        }
+
+        // absort local if repeating local
+        if (acc.remote?.content === acc.local?.content) {
+          acc.local = null;
+        }
+
+        break;
+      case "synced":
+        acc.synced = event;
+        // clear outdated local and remote
+        if (event.updatedAt >= Math.max(acc.local?.updatedAt ?? 0, acc.remote?.updatedAt ?? 0)) {
+          acc.local = null;
+          acc.remote = null;
+        }
+
+        // collapse synced when it is null
+        if (acc.synced?.content === null) {
+          acc.synced = null;
+        }
+        break;
+    }
+
+    return acc;
+  }, initialState);
+
+  return encodeParsedState(finalState);
+}
+
+function digestStateSinglePass(stateSpec: string): string {
   const parsed = parseState(stateSpec);
   // sort events by time ascending
   const sortedEvent = [
