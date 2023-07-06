@@ -180,3 +180,4 @@ END;
 -- state resolution should not depend on how the state is reached
 -- local and remote are each considered snapshots, not aware of the synced value and each other
 -- replaying the event one by one or in groups will always render the same end results
+-- The algorithm must be greedy. When two timestamps are the same, try both ordering and pick the most reduction possible

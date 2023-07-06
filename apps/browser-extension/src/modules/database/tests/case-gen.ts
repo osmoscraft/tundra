@@ -92,7 +92,10 @@ function digestState(stateSpec: string): string {
       case "local":
         acc.local = event;
         // merge if no conflict
-        if (!acc.remote && acc.local.content === (acc.synced?.content ?? null)) {
+        if (
+          (!acc.remote || acc.local.updatedAt === acc.remote.updatedAt) && // no conflict with remote (tie breaker to ensure local<->remote symmetry)
+          acc.local.content === (acc.synced?.content ?? null) // mergeable with synced
+        ) {
           acc.local = null;
         }
 
@@ -105,12 +108,23 @@ function digestState(stateSpec: string): string {
       case "remote":
         acc.remote = event;
         // merge if no conflict
-        if (!acc.local && acc.remote.content === (acc.synced?.content ?? null)) {
-          if (acc.remote.content === null) {
-            acc.remote = null;
-          } else {
-            acc.synced = acc.remote; // this must be a valid assignment for singple pass to work
-            acc.remote = null;
+        if (
+          (!acc.local || acc.local.updatedAt === acc.remote.updatedAt) && // no conflict with local (tie breaker to ensure local<->remote symmetry)
+          acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
+        ) {
+          // Because we generated a synced event, it would require an additional pass
+          // To prevent the pass, we also process the rules for synced event here
+          acc.synced = acc.remote;
+          acc.remote = null;
+
+          // clear outdated local
+          if (acc.synced.updatedAt >= (acc.local?.updatedAt ?? 0)) {
+            acc.local = null;
+          }
+
+          // collapse synced when it is null
+          if (acc.synced?.content === null) {
+            acc.synced = null;
           }
         }
 
@@ -142,3 +156,4 @@ function digestState(stateSpec: string): string {
 }
 
 console.log(testInOut.join("\n"));
+console.log(testInOut.length);
