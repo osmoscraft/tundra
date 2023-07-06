@@ -1,6 +1,7 @@
 import { assertDefined } from "../../live-test";
 import SCHEMA from "../schema.sql";
 import { createTestDb, fsm } from "./fixture";
+import { generateFsmSpecs } from "./spec-gen";
 
 export async function testFileV2Db() {
   const db = await createTestDb(SCHEMA);
@@ -10,13 +11,10 @@ export async function testFileV2Db() {
 export async function testFileV2StatusUntracked() {
   const db = await createTestDb(SCHEMA);
 
-  fsm(db, ".. .. .. | .. .. .. | .. .. .."); // static
-  fsm(db, ".. .. .. | .. .. 1. | .. .. .."); // collapse
-  fsm(db, ".. .. .. | .. .. 1a | .. .. 1a");
-  fsm(db, ".. .. .. | .. 1. .. | .. .. .."); // auto merge
-  fsm(db, ".. .. .. | .. 1a .. | .. 1a ..");
-  fsm(db, ".. .. .. | 1. .. .. | .. .. ..");
-  fsm(db, ".. .. .. | 1a .. .. | 1a .. ..");
+  const specs = generateFsmSpecs();
+  for (const spec of specs) {
+    fsm(db, `${spec.input} | .. .. .. | ${spec.output}`);
+  }
 }
 
 export async function testFileV2StatusSynced() {
