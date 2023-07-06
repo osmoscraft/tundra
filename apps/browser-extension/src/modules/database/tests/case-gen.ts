@@ -258,42 +258,40 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
   };
 
   // clear outdated local and remote
-  if (acc.synced && acc.synced.updatedAt >= (acc.local?.updatedAt ?? 0)) {
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
     acc.local = null;
   }
-  if (acc.synced && acc.synced.updatedAt >= (acc.remote?.updatedAt ?? 0)) {
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.remote?.updatedAt ?? 0)) {
     acc.remote = null;
   }
 
-  // auto merge local if no conflict
-  if (
+  // auto merge local
+  const mergableWithSynced =
     acc.local &&
-    (!acc.remote || acc.local.updatedAt <= acc.remote.updatedAt) && // no conflict with remote
-    acc.local.content === (acc.synced?.content ?? null) // mergeable with synced
-  ) {
+    (!acc.remote || acc.local.updatedAt <= acc.remote.updatedAt) &&
+    acc.local.content === (acc.synced?.content ?? null);
+
+  const mergableWithRemote = acc.remote?.content === acc.local?.content;
+
+  if (mergableWithSynced || mergableWithRemote) {
     acc.local = null;
   }
 
-  // auto merge identical local and remote
-  if (acc.remote?.content === acc.local?.content) {
-    acc.local = null;
-  }
-
-  // auto merge remote if no conflict
+  // auto merge remote
   if (
     acc.remote &&
     (!acc.local || acc.remote.updatedAt <= acc.local.updatedAt) && // no conflict with local
     acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
   ) {
-    // Because we recreated a synced event, it would require an additional pass
-    // To prevent the pass, we also process the rules for synced event here
     acc.synced = acc.remote;
     acc.remote = null;
+  }
 
-    // clear outdated local
-    if (acc.synced.updatedAt >= (acc.local?.updatedAt ?? 0)) {
-      acc.local = null;
-    }
+  // Because we recreated a synced event
+  // we need to process the rules for synced event here
+  // clear outdated local again!
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
+    acc.local = null;
   }
 
   // collapse synced when it is null
