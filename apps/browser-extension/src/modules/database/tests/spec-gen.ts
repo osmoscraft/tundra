@@ -82,44 +82,41 @@ export function digestStateSinglePassUnordered(stateSpec: string): string {
     synced: parsed?.synced ?? null,
   };
 
-  // clear outdated local and remote
-  if (sql.gte(acc.synced?.updatedAt, acc.local?.updatedAt)) {
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
     acc.local = null;
   }
-  if (sql.gte(acc.synced?.updatedAt, acc.remote?.updatedAt)) {
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.remote?.updatedAt ?? 0)) {
     acc.remote = null;
   }
 
   // auto merge local
   const mergableWithSynced =
-    (sql.isnull(acc.remote) || sql.lte(acc.local?.updatedAt, acc.remote!.updatedAt)) &&
-    sql.is(acc.local?.content, acc.synced?.content);
+    acc.local &&
+    (!acc.remote || acc.local.updatedAt <= acc.remote.updatedAt) &&
+    acc.local.content === (acc.synced?.content ?? null);
 
-  // both has content ='null' or both has same content
-  const mergableWithRemote = sql.eq(sql["->"](acc.local, "$.content"), sql["->"](acc.remote, "$.content"));
+  const mergableWithRemote = acc.remote?.content === acc.local?.content;
 
   if (mergableWithSynced || mergableWithRemote) {
     acc.local = null;
   }
-
   // auto merge remote
   if (
-    (sql.isnull(acc.local) || sql.lte(acc.remote?.updatedAt, acc.local!.updatedAt)) && // no conflict with local
-    sql.is(acc.remote?.content, acc.synced?.content) // mergeable with synced
+    acc.remote &&
+    (!acc.local || acc.remote.updatedAt <= acc.local.updatedAt) && // no conflict with local
+    acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
   ) {
     acc.synced = acc.remote;
     acc.remote = null;
   }
-
   // Because we recreated a synced event
   // we need to process the rules for synced event here
   // clear outdated local again!
-  if (sql.gte(acc.synced?.updatedAt, acc.local?.updatedAt)) {
+  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
     acc.local = null;
   }
-
   // collapse synced when it is null
-  if (sql.eq(sql["->"](acc.synced, "$.content"), "null")) {
+  if (acc.synced?.content === null) {
     acc.synced = null;
   }
 
