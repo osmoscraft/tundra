@@ -91,12 +91,21 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content and is not null
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' = synced ->> '$.content'; 
+  -- Clear local when local time is older than synced time
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.updatedAt' < synced ->> '$.updatedAt';
+  -- Clear synced when sync.content is null
+  UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 2 AND synced ->> '$.content' IS NULL;
   -- Delete row when local.content and synced.content are both is null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 3: Conflict */
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+  -- Clear remote when remote.content and synced.content are both null
+  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
+
+  -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
@@ -113,20 +122,25 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 1 AND remote ->> '$.content' = synced ->> '$.content';
   -- Clear synced when sync.content is null
   UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 1 AND synced ->> '$.content' IS NULL;
-  -- Raise error on violation: when updating synced, then new.synced must be old.remote
-  -- SELECT RAISE(ABORT, 'merge must use remote content when status is behind') WHERE old.status = 1 AND new.synced IS NOT old.synced AND new.synced IS NOT old.remote;
 
   /* 2: Ahead */
   -- Clear local when local.content is the same as synced.content and is not null
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.content' = synced ->> '$.content'; 
+  -- Clear local when local time is older than synced time
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.updatedAt' < synced ->> '$.updatedAt';
+  -- Clear synced when sync.content is null
+  UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 2 AND synced ->> '$.content' IS NULL;
   -- Delete row when local.content and synced.content are both is null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
-  -- Raise error on violation: when updating synced, then new.synced must be old.local
-  -- SELECT RAISE(ABORT, 'merge must use local content when status is ahead') WHERE old.status = 2 AND new.synced IS NOT old.synced AND new.synced IS NOT old.local;
 
   /* 3: Conflict */
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+  -- Clear remote when remote.content and synced.content are both null
+  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
+
+    -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
 END;
 
 -- TODO prevent invalid timestamp
@@ -144,3 +158,14 @@ END;
   -- Ensure when old.status = conflict and synced field is changed, new.synced must be old.remote and new.localTime >= new.syncedTime
   -- The goal is to ensure conflict is resolved without timestamp order violation
 -- TODO ensure conflict state only allows setL
+
+
+-- REF
+-- Raise error on violation: when updating synced, then new.synced must be old.remote
+-- SELECT RAISE(ABORT, 'merge must use remote content when status is behind') WHERE old.status = 1 AND new.synced IS NOT old.synced AND new.synced IS NOT old.remote;
+
+-- TODO document design principles
+-- setSynced should override any outdated content
+-- do not assume timestamp monotonicity
+-- auto merge newer version when possible
+-- auto resolve conflict when possible
