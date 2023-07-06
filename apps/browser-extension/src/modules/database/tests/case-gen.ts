@@ -258,13 +258,6 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
         : null,
   };
 
-  // const results = [
-  //   sql["->"](JSON.parse('{"a":2,"c":[4,5,{"f":7}]}'), "$.c"),
-  //   sql["->"](JSON.parse('{"a":2,"c":[4,5,{"f":7}]}'), "$.x"),
-  //   sql["->"](JSON.parse('{"a":"xyz"}'), "$.a"),
-  //   sql["->"](JSON.parse('{"a":null}'), "$.a"),
-  // ];
-
   const parsed = parseState(stateSpec);
   // sort events by time ascending
   const sortedEvent = [
@@ -294,7 +287,8 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
     (sql.isnull(acc.remote) || sql.lte(acc.local?.updatedAt, acc.remote!.updatedAt)) &&
     sql.is(acc.local?.content, acc.synced?.content);
 
-  const mergableWithRemote = sql.eq(sql["->"](acc.local, "$.content"), sql["->"](acc.remote, "$.content")); // both has content ='null' or both has same content
+  // both has content ='null' or both has same content
+  const mergableWithRemote = sql.eq(sql["->"](acc.local, "$.content"), sql["->"](acc.remote, "$.content"));
 
   if (mergableWithSynced || mergableWithRemote) {
     acc.local = null;
@@ -302,9 +296,8 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
 
   // auto merge remote
   if (
-    acc.remote &&
-    (!acc.local || acc.remote.updatedAt <= acc.local.updatedAt) && // no conflict with local
-    acc.remote.content === (acc.synced?.content ?? null) // mergeable with synced
+    (sql.isnull(acc.local) || sql.lte(acc.remote?.updatedAt, acc.local!.updatedAt)) && // no conflict with local
+    sql.is(acc.remote?.content, acc.synced?.content) // mergeable with synced
   ) {
     acc.synced = acc.remote;
     acc.remote = null;
@@ -313,12 +306,12 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
   // Because we recreated a synced event
   // we need to process the rules for synced event here
   // clear outdated local again!
-  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
+  if (sql.gte(acc.synced?.updatedAt, acc.local?.updatedAt)) {
     acc.local = null;
   }
 
   // collapse synced when it is null
-  if (acc.synced?.content === null) {
+  if (sql.eq(sql["->"](acc.synced, "$.content"), "null")) {
     acc.synced = null;
   }
 
