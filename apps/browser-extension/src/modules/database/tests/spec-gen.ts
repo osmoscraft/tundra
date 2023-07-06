@@ -52,23 +52,6 @@ export function getQualifiedInputs(): string[] {
   return qualifiedOptions.map((item) => item.join(" "));
 }
 
-const sql = {
-  eq: (a: any, b: any) => (a === null || a === undefined || b === null || b === undefined ? null : a === b),
-  is: (a: any, b: any) => (a ?? null) === (b ?? null),
-  gt: (a: any, b: any) => a !== undefined && b !== undefined && a > b,
-  gte: (a: any, b: any) => a !== undefined && b !== undefined && a >= b,
-  lte: (a: any, b: any) => a !== undefined && b !== undefined && a <= b,
-  not: (a: any) => (a === undefined || a === null ? null : !a),
-  isnull: (a: any) => a === undefined || a === null,
-  isnotnull: (a: any) => a !== undefined && a !== null,
-  "->": (a: any, b: any) =>
-    a === undefined || a === null
-      ? null
-      : Object.hasOwn(a, b.replace("$.", ""))
-      ? JSON.stringify(a[b.replace("$.", "")])
-      : null,
-};
-
 /**
  * The reducer in this algorithm is meant to be ported into SQLite trigger
  */
