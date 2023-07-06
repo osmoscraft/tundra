@@ -16,7 +16,9 @@ const qualifiedOptions = allOptions.filter(([a, b, c]) => {
   const withDigit = [a, b, c].filter((x) => x !== "..");
   const digits = withDigit.map((x) => x[0]);
   const letters = withDigit.map((x) => x[1]);
-  if (new Set(digits).size !== digits.length) return false;
+
+  // unique timestamps
+  // if (new Set(digits).size !== digits.length) return false;
 
   // 2x requires seeing 1x
   if (digits.includes("2") && !digits.includes("1")) return false;
@@ -30,14 +32,17 @@ const qualifiedOptions = allOptions.filter(([a, b, c]) => {
   // xb requires seeing xa
   if (letters.includes("b") && !letters.includes("a")) return false;
 
-  // abc must appear in ascending order from left to right
-  if (
-    letters
-      .filter((x) => x !== ".")
-      .sort()
-      .join("") !== letters.filter((x) => x !== ".").join("")
-  )
-    return false;
+  // first appearance of a,b,c must appear in ascending order from left to right
+  const firstIndex = ["a", "b", "c"].map((x) => letters.indexOf(x));
+  if (firstIndex.sort().join("") !== firstIndex.join("")) return false;
+
+  // if (
+  //   letters
+  //     .filter((x) => x !== ".")
+  //     .sort()
+  //     .join("") !== letters.filter((x) => x !== ".").join("")
+  // )
+  //   return false;
 
   return true;
 });
@@ -57,7 +62,10 @@ const testInOut = qualifiedOptions.map((inArr) => {
     current = digestState(prev);
   }
 
-  return `${initial} | ${current} (pass ${pass - 1})`;
+  const result = `${initial} | ${current} (pass ${pass - 1})`;
+  if (pass > 2) console.error(`Too many passes, ${result}`);
+
+  return result;
 });
 
 function digestState(stateSpec: string): string {
@@ -98,8 +106,12 @@ function digestState(stateSpec: string): string {
         acc.remote = event;
         // merge if no conflict
         if (!acc.local && acc.remote.content === (acc.synced?.content ?? null)) {
-          acc.synced = acc.remote;
-          acc.remote = null;
+          if (acc.remote.content === null) {
+            acc.remote = null;
+          } else {
+            acc.synced = acc.remote; // this must be a valid assignment for singple pass to work
+            acc.remote = null;
+          }
         }
 
         // absort local if repeating local
@@ -111,7 +123,7 @@ function digestState(stateSpec: string): string {
       case "synced":
         acc.synced = event;
         // clear outdated local and remote
-        if (event.updatedAt > Math.max(acc.local?.updatedAt ?? 0, acc.remote?.updatedAt ?? 0)) {
+        if (event.updatedAt >= Math.max(acc.local?.updatedAt ?? 0, acc.remote?.updatedAt ?? 0)) {
           acc.local = null;
           acc.remote = null;
         }
