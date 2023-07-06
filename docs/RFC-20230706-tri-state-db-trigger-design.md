@@ -1,0 +1,26 @@
+# Tri-state sync design principles
+
+- The state of each file is always consistent
+  - DB Write should allow invalid state
+  - DB Read should never yield invalid state
+- Each file can be descontructed into a sequence of events
+  - Each file can have 0 to 3 events
+  - Each event must be of one of the three types: local, remote, synced
+  - No two events can have the same type
+  - Replaying the sequence of events will always render the same end results
+  - When multiple events in one file have the same timestamp, they can be replayed in any order in relation to each other
+- Validity
+  - timestamp guarantee
+    - local.time > synced.time if local exists
+    - remote.time > synced.time if remote exists
+    - Using strict > because copying remote into synced should suggest remote to be obsolete
+  - local should not exist when one of merge conditions are met
+    - local.content is the same as synced.content and local.time <= remote.time
+    - local.content is the same as remote.content
+  - remote should not exist when one of merge conditions are met
+    - remote.content is the same as synced.content and remote.time <= local.time
+  - sync.content cannot be null
+  - At least one of local.content, remote.content, synced.content must exist
+- Efficiency
+  - Avoid recursive triggers. The resolution must finish in one pass
+  - Exploit trigger ordering. Earlier triggers should reduce work for later triggers

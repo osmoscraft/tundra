@@ -1,7 +1,13 @@
+import assert from "node:assert";
+import { describe, it } from "node:test";
 import { encodeParsedState, parseState, type ParsedState } from "./fixture";
 import { digestStateSinglePassUnordered, getQualifiedInputs } from "./spec-gen";
 
-testSpecGenerator();
+describe("generateFsmSpecs", () => {
+  it("should generate valid spec", () => {
+    testSpecGenerator();
+  });
+});
 
 export function testSpecGenerator() {
   let maxPass = 0;
@@ -24,23 +30,27 @@ export function testSpecGenerator() {
     const singlePassResult = `${initial} | ${digestStateSinglePass(initial)}`;
     const singlePassResultUnordered = `${initial} | ${digestStateSinglePassUnordered(initial)}`;
 
-    if (multiPassResult !== singlePassResult) {
-      throw new Error(`Multi-pass and single-pass results do not match:
+    assert.strictEqual(
+      multiPassResult,
+      singlePassResult,
+      `Multi-pass and single-pass results do not match:
 Multi: ${multiPassResult}
-Single: ${singlePassResult}`);
-    }
+Single: ${singlePassResult}`
+    );
 
-    if (singlePassResult !== singlePassResultUnordered) {
-      throw new Error(`Single-pass and single-pass-unordered results do not match:
+    assert.strictEqual(
+      singlePassResult,
+      singlePassResultUnordered,
+      `Single-pass and single-pass-unordered results do not match:
 Single: ${singlePassResult}
-Single Unordered: ${singlePassResultUnordered}`);
-    }
+Single Unordered: ${singlePassResultUnordered}`
+    );
 
-    console.log(`${multiPassResult} (${passCount} pass)`);
+    // console.log(`${multiPassResult} (${passCount} pass)`);
     return { input: initial, output: multiPassResult };
   });
 
-  if (maxPass < 2) throw new Error(`Multipass did not take more than one pass`);
+  assert(maxPass > 1, `Multipass did not take more than one pass`);
 
   console.log("Total cases", testInOut.length);
   console.log("Max pass", maxPass);

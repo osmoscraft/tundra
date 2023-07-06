@@ -5,12 +5,12 @@ import { extractMarkdownMeta } from "../meta";
 describe("extractMeta", () => {
   it("empty file", () => {
     const meta = extractMarkdownMeta("");
-    assert.equal(meta, undefined);
+    assert.deepEqual(meta, {});
   });
 
   it("empty line", () => {
     const meta = extractMarkdownMeta("\n");
-    assert.equal(meta, undefined);
+    assert.deepEqual(meta, {});
   });
 
   it("meta only", () => {
