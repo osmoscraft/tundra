@@ -241,6 +241,30 @@ function digestStateSinglePass(stateSpec: string): string {
  * The reducer in this algorithm is meant to be ported into SQLite trigger
  */
 function digestStateSinglePassUnordered(stateSpec: string): string {
+  const sql = {
+    eq: (a: any, b: any) => (a === null || a === undefined || b === null || b === undefined ? null : a === b),
+    is: (a: any, b: any) => (a ?? null) === (b ?? null),
+    gt: (a: any, b: any) => a !== undefined && b !== undefined && a > b,
+    gte: (a: any, b: any) => a !== undefined && b !== undefined && a >= b,
+    lte: (a: any, b: any) => a !== undefined && b !== undefined && a <= b,
+    not: (a: any) => (a === undefined || a === null ? null : !a),
+    isnull: (a: any) => a === undefined || a === null,
+    isnotnull: (a: any) => a !== undefined && a !== null,
+    "->": (a: any, b: any) =>
+      a === undefined || a === null
+        ? null
+        : Object.hasOwn(a, b.replace("$.", ""))
+        ? JSON.stringify(a[b.replace("$.", "")])
+        : null,
+  };
+
+  // const results = [
+  //   sql["->"](JSON.parse('{"a":2,"c":[4,5,{"f":7}]}'), "$.c"),
+  //   sql["->"](JSON.parse('{"a":2,"c":[4,5,{"f":7}]}'), "$.x"),
+  //   sql["->"](JSON.parse('{"a":"xyz"}'), "$.a"),
+  //   sql["->"](JSON.parse('{"a":null}'), "$.a"),
+  // ];
+
   const parsed = parseState(stateSpec);
   // sort events by time ascending
   const sortedEvent = [
@@ -258,20 +282,19 @@ function digestStateSinglePassUnordered(stateSpec: string): string {
   };
 
   // clear outdated local and remote
-  if ((acc.synced?.updatedAt ?? 0) >= (acc.local?.updatedAt ?? 0)) {
+  if (sql.gte(acc.synced?.updatedAt, acc.local?.updatedAt)) {
     acc.local = null;
   }
-  if ((acc.synced?.updatedAt ?? 0) >= (acc.remote?.updatedAt ?? 0)) {
+  if (sql.gte(acc.synced?.updatedAt, acc.remote?.updatedAt)) {
     acc.remote = null;
   }
 
   // auto merge local
   const mergableWithSynced =
-    acc.local &&
-    (!acc.remote || acc.local.updatedAt <= acc.remote.updatedAt) &&
-    acc.local.content === (acc.synced?.content ?? null);
+    (sql.isnull(acc.remote) || sql.lte(acc.local?.updatedAt, acc.remote!.updatedAt)) &&
+    sql.is(acc.local?.content, acc.synced?.content);
 
-  const mergableWithRemote = acc.remote?.content === acc.local?.content;
+  const mergableWithRemote = sql.eq(sql["->"](acc.local, "$.content"), sql["->"](acc.remote, "$.content")); // both has content ='null' or both has same content
 
   if (mergableWithSynced || mergableWithRemote) {
     acc.local = null;
