@@ -10,14 +10,9 @@ export async function createTestDb(schema: string) {
   DROP INDEX IF EXISTS IsDirtyIdx;
   DROP INDEX IF EXISTS UpdatedAtIdx;
   DROP TABLE IF EXISTS FileFts;
-  DROP TRIGGER IF EXISTS FileFtsAfterInsertTrigger;
-  DROP TRIGGER IF EXISTS FileFtsAfterDeleteTrigger;
-  DROP TRIGGER IF EXISTS FileFtsAfterUpdateTrigger;
 
   -- v2
   DROP TABLE IF EXISTS FileV2;
-  DROP TRIGGER IF EXISTS FileV2AfterInsertTrigger;
-  DROP TRIGGER IF EXISTS FileV2AfterUpdateTrigger;
   `);
   db.exec(schema);
 
@@ -221,8 +216,8 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     return `${fileStateItem.updatedAt}${fileStateItem.content ?? "."}`;
   }
 
-  arrange();
   assert(() => {
+    arrange();
     act();
   });
 }
