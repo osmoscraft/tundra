@@ -94,7 +94,3 @@ export async function testFileV2StatusBehind() {
   fsm(db, ".. 3b 1a | 2b .. .. | .. 3b 1a"); // auto resolve
   fsm(db, ".. 3b 1a | 2c .. .. | 2c 3b 1a");
 }
-
-// TODO test timestamp order view
-// TODO test meta view
-// TODO test content view
