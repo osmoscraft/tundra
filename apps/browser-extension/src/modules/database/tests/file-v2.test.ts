@@ -307,5 +307,5 @@ let qualifiedOptions = allOptions.filter(([a, b, c]) => {
   return true;
 });
 
-console.log(qualifiedOptions.length);
+console.log(qualifiedOptions.length); // 114 test cases
 console.log(qualifiedOptions.map((x) => x.join(" ")));
