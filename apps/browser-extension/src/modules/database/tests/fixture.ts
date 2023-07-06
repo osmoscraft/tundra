@@ -206,7 +206,11 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
 
   function encodeFile(file?: DbFileV2Internal) {
     if (!file) return ".. .. ..";
-    return `${encodeFileStateItem(file.local)} ${encodeFileStateItem(file.remote)} ${encodeFileStateItem(file.synced)}`;
+    const encoding = `${encodeFileStateItem(file.local)} ${encodeFileStateItem(file.remote)} ${encodeFileStateItem(
+      file.synced
+    )}`;
+    if (file && encoding === ".. .. ..") return "!! !! !!";
+    return encoding;
   }
 
   function encodeFileStateItem(fileStateString: DbFileV2Internal["local" | "remote" | "synced" | "source"]) {

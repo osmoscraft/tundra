@@ -74,19 +74,12 @@ const sql = {
  */
 export function digestStateSinglePassUnordered(stateSpec: string): string {
   const parsed = parseState(stateSpec);
-  // sort events by time ascending
-  const sortedEvent = [
-    parsed?.synced ? { origin: "synced", ...parsed?.synced } : null,
-    parsed?.local ? { origin: "local", ...parsed?.local } : null,
-    parsed?.remote ? { origin: "remote", ...parsed?.remote } : null,
-  ].filter(Boolean);
-
   // digest events
   const acc: ParsedState = {
     type: "STATE",
-    local: sortedEvent.find((e) => e?.origin === "local") ?? null,
-    remote: sortedEvent.find((e) => e?.origin === "remote") ?? null,
-    synced: sortedEvent.find((e) => e?.origin === "synced") ?? null,
+    local: parsed?.local ?? null,
+    remote: parsed?.remote ?? null,
+    synced: parsed?.synced ?? null,
   };
 
   // clear outdated local and remote

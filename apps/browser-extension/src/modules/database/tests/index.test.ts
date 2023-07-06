@@ -1,11 +1,4 @@
-import {
-  testFileV2Db,
-  testFileV2StatusAhead,
-  testFileV2StatusBehind,
-  testFileV2StatusConflict,
-  testFileV2StatusSynced,
-  testFileV2StatusUntracked,
-} from "./file-v2.test";
+import { testFileV2Db, testFileV2Fsm } from "./file-v2.test";
 import {
   testBulkOperations,
   testConflictLocalWins,
@@ -28,11 +21,7 @@ export async function testDatabase() {
   const suites = [
     // file v2
     testFileV2Db,
-    testFileV2StatusUntracked,
-    testFileV2StatusSynced,
-    testFileV2StatusBehind,
-    testFileV2StatusAhead,
-    testFileV2StatusConflict,
+    testFileV2Fsm,
 
     // file
     testLocalFileEditLifecycle,
