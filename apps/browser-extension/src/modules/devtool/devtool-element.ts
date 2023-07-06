@@ -22,7 +22,8 @@ export class DevtoolElement extends HTMLElement {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "check-health": {
-          this.proxy.checkHealth();
+          // set checkhealth=true in the url to check health
+          location.search = new URLSearchParams({ checkhealth: "true" }).toString();
           break;
         }
         case "download-db-file": {

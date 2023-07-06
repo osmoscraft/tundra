@@ -95,16 +95,20 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.updatedAt' < synced ->> '$.updatedAt';
   -- Clear synced when sync.content is null
   UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 2 AND synced ->> '$.content' IS NULL;
-  -- Delete row when local.content and synced.content are both is null
+  -- Delete row when local.content and synced.content are both null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 3: Conflict */
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
-  -- Clear remote when remote.content and synced.content are both null
-  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
   -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
-  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
+  -- Clear remote when remote.content and synced.content are both null
+  -- UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
+  -- Clear local when local.content is the same as synced.content, and local time <= remote time
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS synced ->> '$.content' AND local ->> '$.updatedAt' <= remote ->> '$.updatedAt';
+  -- Clear sync when sync.content is null
+  UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 3 AND synced ->> '$.content' IS NULL;
 END;
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
@@ -129,16 +133,20 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 2 AND local ->> '$.updatedAt' < synced ->> '$.updatedAt';
   -- Clear synced when sync.content is null
   UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 2 AND synced ->> '$.content' IS NULL;
-  -- Delete row when local.content and synced.content are both is null
+  -- Delete row when local.content and synced.content are both null
   DELETE FROM FileV2 WHERE path = new.path AND new.status = 2 AND local ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
 
   /* 3: Conflict */
   -- Clear local when local.content is the same as remote.content
   UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' IS remote ->> '$.content';
+  -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
+  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
   -- Clear remote when remote.content and synced.content are both null
-  UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
-    -- Move remote to synced when remote.content is the same as synced.content, localTime >= remoteTime  >= syncedTime
-  UPDATE FileV2 SET synced = remote, remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' = synced ->> '$.content' AND local ->> '$.updatedAt' >= remote ->> '$.updatedAt' AND remote ->> '$.updatedAt' >= synced ->> '$.updatedAt';
+  -- UPDATE FileV2 SET remote = NULL WHERE path = new.path AND new.status = 3 AND remote ->> '$.content' IS NULL AND synced ->> '$.content' IS NULL;
+  -- Clear local when local.content is the same as synced.content, and local time <= remote time
+  UPDATE FileV2 SET local = NULL WHERE path = new.path AND new.status = 3 AND local ->> '$.content' is synced ->> '$.content' AND local ->> '$.updatedAt' <= remote ->> '$.updatedAt';
+  -- Clear sync when sync.content is null
+  UPDATE FileV2 SET synced = NULL WHERE path = new.path AND new.status = 3 AND synced ->> '$.content' IS NULL;
 END;
 
 -- TODO prevent invalid timestamp
@@ -169,3 +177,6 @@ END;
 -- do not assume timestamp monotonicity
 -- auto merge newer version when possible
 -- auto resolve conflict when possible
+-- state resolution should not depend on how the state is reached
+-- local and remote are each considered snapshots, not aware of the synced value and each other
+-- replaying the event one by one or in groups will always render the same end results
