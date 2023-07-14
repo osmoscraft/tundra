@@ -1,5 +1,5 @@
 import { array } from "@tinykb/fp-utils";
-import * as fileApi from "./file-v2";
+import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
 import { DbFileV2Status } from "./schema";
 

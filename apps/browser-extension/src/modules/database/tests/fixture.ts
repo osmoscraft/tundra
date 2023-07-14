@@ -1,6 +1,6 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
-import { selectFile, upsertFile } from "../file-v2";
+import { selectFile, upsertFile } from "../file";
 import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
 
 let db: Sqlite3.DB | undefined;
@@ -11,9 +11,6 @@ export async function createTestDb(schema: string) {
   DROP INDEX IF EXISTS IsDirtyIdx;
   DROP INDEX IF EXISTS UpdatedAtIdx;
   DROP TABLE IF EXISTS FileFts;
-
-  -- v2
-  DROP TABLE IF EXISTS FileV2;
   `);
   db.exec(schema);
 

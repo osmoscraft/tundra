@@ -1,47 +1,28 @@
-import { arrayToParams, paramsToBindings } from "@tinykb/sqlite-utils";
-import type { DbFileInternal, DbFileReadable, DbFileWritable } from "./schema";
+import { deleteMany, paramsToBindings, selectMany, upsertMany } from "@tinykb/sqlite-utils";
+import type { DbReadableFileV2, DbWritableFileV2 } from "./schema";
 
-export type FileWrite = Pick<DbFileWritable, "path" | "meta"> & Partial<DbFileWritable>;
-export function writeMany(db: Sqlite3.DB, files: FileWrite[]) {
-  if (!files.length) return;
-
-  const cols = Object.keys(files[0]);
-
-  const sql = `
-INSERT INTO File (${cols.join(",")}) VALUES
-${files.map((_, i) => `(${cols.map((col) => `:${col}${i}`).join(",")})`).join(",")}
-ON CONFLICT(path) DO UPDATE SET ${cols.filter((col) => col !== "path").map((col) => `${col} = excluded.${col}`)}
-  `;
-
-  const bind = paramsToBindings(sql, arrayToParams(files));
-
-  return db.exec(sql, { bind });
+export function upsertFiles(db: Sqlite3.DB, files: DbWritableFileV2[]) {
+  return upsertMany<DbWritableFileV2>(db, { table: "File", key: "path", rows: files });
 }
 
-export function read(db: Sqlite3.DB, path: string): DbFileReadable | undefined {
-  const sql = `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File WHERE path = :path`;
-  const bind = paramsToBindings(sql, { path });
-
-  const file = db.selectObject<DbFileInternal>(sql, bind);
-  return file;
+export function upsertFile(db: Sqlite3.DB, file: DbWritableFileV2) {
+  return upsertFiles(db, [file]);
 }
 
-export function removeMany(db: Sqlite3.DB, paths: string[]) {
-  if (!paths.length) return;
+export function selectFiles(db: Sqlite3.DB, paths: string[]) {
+  return selectMany<DbReadableFileV2>(db, { table: "File", key: "path", value: paths });
+}
 
-  const sql = `
-    WITH DeleteList(pattern) AS (
-      SELECT json_each.value FROM json_each(json(:patterns))
-    )
-    DELETE FROM File WHERE EXISTS (
-      SELECT 1
-      FROM DeleteList
-      WHERE File.path GLOB DeleteList.pattern
-    );
-    `;
+export function selectFile(db: Sqlite3.DB, path: string) {
+  return selectFiles(db, [path])[0];
+}
 
-  const bind = paramsToBindings(sql, { patterns: JSON.stringify(paths) });
-  db.exec(sql, { bind });
+export function deleteFiles(db: Sqlite3.DB, paths: string[]) {
+  return deleteMany(db, { table: "File", key: "path", value: paths, comparator: "GLOB" });
+}
+
+export function deleteFile(db: Sqlite3.DB, path: string) {
+  return deleteFiles(db, [path]);
 }
 
 export interface ListOptions {
@@ -52,16 +33,15 @@ export interface ListOptions {
   ignore?: string[];
 }
 
-export type OrderBy = [col: keyof DbFileInternal, dir: "ASC" | "DESC"];
+export type OrderBy = [col: keyof DbReadableFileV2, dir: "ASC" | "DESC"];
 
 export type Filter = [
-  col: keyof DbFileInternal,
+  col: keyof DbReadableFileV2,
   operator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "IS" | "IS NOT",
   value: string | number
 ];
 
-// TODO refactor into DB Utils
-export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
+export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFileV2[] {
   const clauses = [
     ...(options.paths?.length || options.ignore?.length
       ? [
@@ -76,7 +56,7 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
           ].join("\n,"),
         ]
       : []),
-    `SELECT meta,path,content,isDeleted,isDirty,updatedAt FROM File`,
+    `SELECT meta,path,content,isDeleted,status,updatedAt FROM File`,
     ...(options.filters?.length || options.paths?.length || options.ignore?.length
       ? [
           "WHERE",
@@ -102,7 +82,7 @@ export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
 
   const sql = clauses.join("\n");
   const bind = paramsToBindings(sql, dict);
-  return db.selectObjects<DbFileInternal>(sql, bind);
+  return db.selectObjects<DbReadableFileV2>(sql, bind);
 }
 
 export interface SearchOptions {
@@ -113,7 +93,7 @@ export interface SearchOptions {
   ignore?: string[];
 }
 
-export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[] {
+export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableFileV2[] {
   const clauses = [
     ...(options.paths?.length || options.ignore?.length
       ? [
@@ -128,7 +108,7 @@ export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[]
           ].join("\n,"),
         ]
       : []),
-    `SELECT File.meta,File.path,File.content,isDeleted,isDirty,updatedAt FROM File JOIN FileFts ON File.path = FileFts.path`,
+    `SELECT File.meta,File.path,File.content,isDeleted,status,updatedAt FROM File JOIN FileFts ON File.path = FileFts.path`,
     ...[
       "WHERE",
       [
@@ -154,5 +134,5 @@ export function search(db: Sqlite3.DB, options: SearchOptions): DbFileReadable[]
 
   const bind = paramsToBindings(sql, dict);
 
-  return db.selectObjects<DbFileInternal>(sql, bind);
+  return db.selectObjects<DbReadableFileV2>(sql, bind);
 }
