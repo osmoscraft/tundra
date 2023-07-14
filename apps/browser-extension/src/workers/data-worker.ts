@@ -22,7 +22,7 @@ const getDbFile = () => getOpfsFileByPath(DB_PATH);
 const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
 const routes = {
-  checkHealth: () => dbApi.testDatabase(),
+  checkHealth: async () => dbInit().finally(() => dbApi.testDatabase()), // in case test code cause db init to timeout
   destoryData: async () => {
     const db = await dbInit();
     const connection = sync.getConnection(db);
@@ -91,6 +91,7 @@ const routes = {
   },
 };
 
+dbInit(); // start db init early to reduce response time
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 (async function init() {
