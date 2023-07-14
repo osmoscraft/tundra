@@ -9,7 +9,7 @@
 # Alpha must have
 
 - Refactor: add graph layer to handle meta + dirty tracking
-- Use node.js for testing
+- Use node.js for testing (need sqlite 3.43)
 - Auto generate built-in gitignore
 - Regenerate system files after clone
 - Better system files scaffolding
