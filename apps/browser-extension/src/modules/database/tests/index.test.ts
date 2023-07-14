@@ -1,4 +1,4 @@
-import { testDbCreation, testSchema } from "./db.test";
+import { testDbCreation, testSchemaTriggerFsm } from "./db.test";
 import {
   testBulkOperations,
   testConflictLocalWins,
@@ -21,7 +21,7 @@ export async function testDatabase() {
   const suites = [
     // db v2
     testDbCreation,
-    testSchema,
+    testSchemaTriggerFsm,
 
     // file
     testLocalFileEditLifecycle,

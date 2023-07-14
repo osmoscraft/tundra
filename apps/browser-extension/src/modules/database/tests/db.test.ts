@@ -8,7 +8,7 @@ export async function testDbCreation() {
   assertDefined(db, "db is defined");
 }
 
-export async function testSchema() {
+export async function testSchemaTriggerFsm() {
   const db = await createTestDb(SCHEMA);
 
   const specs = generateFsmSpecs();
