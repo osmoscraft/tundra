@@ -70,8 +70,13 @@ CREATE TABLE IF NOT EXISTS FileV2 (
   source TEXT GENERATED ALWAYS AS (ifnull(local, synced)),
   content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
   meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
-  updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt')
+  updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt'),
+  isDeleted INTEGER GENERATED ALWAYS AS (local IS NULL AND synced IS NOT NULL)
 );
+
+CREATE INDEX IF NOT EXISTS IsDeletedIdx ON FileV2(isDeleted);
+CREATE INDEX IF NOT EXISTS UpdatedAtIdx ON FileV2(updatedAt);
+CREATE INDEX IF NOT EXISTS StatusIdx ON FileV2(status);
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEGIN
   -- Clear outdated local
