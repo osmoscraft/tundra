@@ -1,4 +1,4 @@
-import { testFileV2Db, testFileV2Fsm } from "./file-v2.test";
+import { testDbCreation, testSchema } from "./db.test";
 import {
   testBulkOperations,
   testConflictLocalWins,
@@ -19,9 +19,9 @@ import {
 
 export async function testDatabase() {
   const suites = [
-    // file v2
-    testFileV2Db,
-    testFileV2Fsm,
+    // db v2
+    testDbCreation,
+    testSchema,
 
     // file
     testLocalFileEditLifecycle,
