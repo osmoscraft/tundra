@@ -60,6 +60,7 @@ export type Filter = [
   value: string | number
 ];
 
+// TODO refactor into DB Utils
 export function list(db: Sqlite3.DB, options: ListOptions): DbFileReadable[] {
   const clauses = [
     ...(options.paths?.length || options.ignore?.length

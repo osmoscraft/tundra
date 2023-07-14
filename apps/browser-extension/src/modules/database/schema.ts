@@ -31,9 +31,12 @@ export interface DbWritableFileV2 {
 
 export interface DbReadableFileV2 {
   path: string;
-  status: DbFileV2Status;
+
+  /* Derived */
   content: string | null;
+  isDeleted: 0 | 1;
   meta: string | null;
+  status: DbFileV2Status;
   updatedAt: number | null;
 }
 
@@ -44,10 +47,12 @@ export interface DbInternalFileV2 {
   synced: string | null;
 
   /* Derived */
+  content: string | null;
+  isDeleted: 0 | 1;
+  meta: string | null;
   source: string | null;
   status: DbFileV2Status;
-  content: string | null;
-  meta: string | null;
+  updatedAt: number | null;
 }
 
 /** The deserialized representation of local, remote, or synced field data */
