@@ -1,8 +1,8 @@
 # Scratchpad
 
 - File v1->v2 schema migration
-  - isDeleted field DB implementation + test
-  - isDirty field DB implementation + test
+  - migrate isDeleted to checking content == null, regardless of metadata, cover with test
+  - migrate isDirty to status = ahead, cover with test
   - file.list method implementation
   - file.search method implementation
 
