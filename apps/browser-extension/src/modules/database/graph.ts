@@ -1,6 +1,7 @@
 import { array } from "@tinykb/fp-utils";
-import * as fileApi from "./file";
+import * as fileApi from "./file-v2";
 import { decodeMeta, encodeMeta } from "./meta";
+import { DbFileV2Status } from "./schema";
 
 /**
  * TODO graph v2
@@ -24,42 +25,59 @@ export interface TextFile {
 }
 export function updateLocal(db: Sqlite3.DB, input: TextFile | TextFile[]) {
   const now = Date.now();
-  fileApi.writeMany(
+  fileApi.upsertFiles(
     db,
     array(input).map((file) => ({
       path: file.path,
-      localContent: file.content,
-      meta: encodeMeta(file),
-      localUpdatedAt: file.updatedAt ?? now,
+      local: JSON.stringify({
+        content: file.content,
+        meta: encodeMeta(file),
+        updatedAt: file.updatedAt ?? now,
+      }),
     }))
   );
 }
 
 export function updateRemote(db: Sqlite3.DB, files: TextFile | TextFile[]) {
   const now = Date.now();
-  fileApi.writeMany(
+  fileApi.upsertFiles(
     db,
     array(files).map((file) => ({
       path: file.path,
-      remoteContent: file.content,
-      remoteUpdatedAt: file.updatedAt ?? now,
-      meta: encodeMeta(file),
+      remote: JSON.stringify({
+        content: file.content,
+        updatedAt: file.updatedAt ?? now,
+        meta: encodeMeta(file),
+      }),
+    }))
+  );
+}
+
+export function updateSynced(db: Sqlite3.DB, files: TextFile | TextFile[]) {
+  const now = Date.now();
+  fileApi.upsertFiles(
+    db,
+    array(files).map((file) => ({
+      path: file.path,
+      synced: JSON.stringify({
+        content: file.content,
+        updatedAt: file.updatedAt ?? now,
+        meta: encodeMeta(file),
+      }),
     }))
   );
 }
 
 export function mergeRemote(db: Sqlite3.DB, input: TextFile | TextFile[]) {
-  // update remote version
-  // if local version is older, clean up local version
-  // if local version is newer,
+  // set synced col to the same as remote col
 }
 
 export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
-  fileApi.removeMany(db, patterns);
+  fileApi.deleteFiles(db, patterns);
 }
 
 export function getFile(db: Sqlite3.DB, path: string) {
-  const file = fileApi.read(db, path);
+  const file = fileApi.selectFile(db, path);
   if (!file) return undefined;
 
   return decodeMeta(file);
@@ -71,7 +89,7 @@ export interface RecentFilesInput {
   ignore?: string[];
 }
 export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
-  const files = fileApi.list(db, {
+  const files = fileApi.listFiles(db, {
     paths: input.paths,
     ignore: input.ignore,
     orderBy: [["updatedAt", "DESC"]],
@@ -81,9 +99,9 @@ export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
 }
 
 export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
-  const files = fileApi.list(db, {
+  const files = fileApi.listFiles(db, {
     ignore,
-    filters: [["isDirty", "=", 1]],
+    filters: [["status", "=", DbFileV2Status.Ahead]],
   });
   return files.map(decodeMeta);
 }
@@ -95,7 +113,7 @@ export interface SearchFilesInput {
   ignore?: string[];
 }
 export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
-  const files = fileApi.search(db, {
+  const files = fileApi.searchFiles(db, {
     query: input.query,
     limit: input.limit,
     paths: input.paths,

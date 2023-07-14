@@ -1,5 +1,5 @@
 import { getConnection } from ".";
-import type { DbFileReadable } from "../database/schema";
+import { DbFileV2Status, type DbReadableFileV2 } from "../database/schema";
 import type { GithubConnection } from "./github";
 import { ChangeType, type BulkFileChangeItem } from "./github/operations/update-content-bulk";
 
@@ -16,12 +16,12 @@ export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
 }
 
 // WIP
-export type PushFile = Pick<DbFileReadable, "path" | "content" | "isDirty" | "updatedAt" | "isDeleted">;
+export type PushFile = Pick<DbReadableFileV2, "path" | "content" | "status" | "updatedAt" | "isDeleted">;
 export function dbFileToPushChangeType(file: PushFile): ChangeType {
-  if (!file.isDirty) return ChangeType.Clean;
+  if (file.status !== DbFileV2Status.Ahead) return ChangeType.Clean;
 
   if (file.updatedAt === null) {
-    // FIXME local could be deleted too
+    // FIXME need a way to detect file creation
     return ChangeType.Add;
   }
 

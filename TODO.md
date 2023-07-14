@@ -5,6 +5,8 @@
   - migrate isDirty to status = ahead, cover with test
   - file.list method implementation
   - file.search method implementation
+  - Add commit, push, fetch, merge methods in graph
+  - Refactor list and search into generic sql utils
 
 # Alpha must have
 

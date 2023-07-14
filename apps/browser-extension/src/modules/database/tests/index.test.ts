@@ -1,8 +1,6 @@
 import { testDbCreation, testSchemaTriggerFsm } from "./db.test";
 import {
   testBulkOperations,
-  testConflictLocalWins,
-  testConflictRemoteWins,
   testDeleteFiles,
   testGetDirtyFiles,
   testGetDirtyFilesWithIgnore,
@@ -11,24 +9,22 @@ import {
   testGetRecentFilesWithScope,
   testLocalFileEditLifecycle,
   testLocalFirstSync,
+  testLocalOverrideSync,
   testMetaCRUD,
   testRemoteFirstSync,
   testSearchFileContent,
   testSearchMeta,
+  testSyncOverrideLocal,
 } from "./graph.test";
 
 export async function testDatabase() {
   const suites = [
-    // db v2
-    testDbCreation,
-    testSchemaTriggerFsm,
-
     // file
     testLocalFileEditLifecycle,
     testLocalFirstSync,
     testRemoteFirstSync,
-    testConflictRemoteWins,
-    testConflictLocalWins,
+    testSyncOverrideLocal,
+    testLocalOverrideSync,
     testDeleteFiles,
     testGetRecentFiles,
     testGetRecentFilesWithScope,
@@ -39,6 +35,10 @@ export async function testDatabase() {
     testMetaCRUD,
     testSearchMeta,
     testSearchFileContent,
+
+    // db v2
+    testDbCreation,
+    testSchemaTriggerFsm,
   ];
 
   for (const suite of suites) {

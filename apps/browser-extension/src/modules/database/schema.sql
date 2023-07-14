@@ -26,25 +26,6 @@ CREATE TABLE IF NOT EXISTS File (
 CREATE INDEX IF NOT EXISTS IsDirtyIdx ON File(isDirty);
 CREATE INDEX IF NOT EXISTS UpdatedAtIdx ON File(updatedAt);
 
-CREATE VIRTUAL TABLE IF NOT EXISTS FileFts USING fts5(path, content, meta, content=File);
-
-CREATE TRIGGER IF NOT EXISTS FileFtsAfterInsertTrigger AFTER INSERT ON File BEGIN
-    INSERT INTO FileFts(rowid, path, content, meta)
-    VALUES (new.rowid, new.path, new.content, new.meta);
-END;
-
-CREATE TRIGGER IF NOT EXISTS FileFtsAfterDeleteTrigger AFTER DELETE ON File BEGIN
-  INSERT INTO FileFts(FileFts, rowid, path, content, meta)
-  VALUES('delete', old.rowid, old.path, old.content, old.meta);
-END;
-
-CREATE TRIGGER IF NOT EXISTS FileFtsAfterUpdateTrigger AFTER UPDATE ON File BEGIN
-  INSERT INTO FileFts( FileFts, rowid, path, content, meta)
-  VALUES('delete', old.rowid, old.path, old.content, old.meta);
-  INSERT INTO FileFts(rowid, path, content, meta)
-  VALUES (new.rowid, new.path, new.content, new.meta);
-END;
-
 CREATE TABLE IF NOT EXISTS FileV2 (
   path TEXT PRIMARY KEY,
 
@@ -71,7 +52,7 @@ CREATE TABLE IF NOT EXISTS FileV2 (
   content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
   meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
   updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt'),
-  isDeleted INTEGER GENERATED ALWAYS AS (local IS NULL AND synced IS NOT NULL)
+  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL) -- TODO consider rename: changeType: created | deleted | updated | unchanged
 );
 
 CREATE INDEX IF NOT EXISTS IsDeletedIdx ON FileV2(isDeleted);
@@ -130,4 +111,21 @@ CREATE TRIGGER IF NOT EXISTS FileV2AfterUpdateTrigger AFTER UPDATE ON FileV2 BEG
   DELETE FROM FileV2 WHERE path = new.path AND local IS NULL AND remote IS NULL AND synced IS NULL;
 END;
 
+CREATE VIRTUAL TABLE IF NOT EXISTS FileFts USING fts5(path, content, meta, content=FileV2);
 
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterInsertTrigger AFTER INSERT ON FileV2 BEGIN
+    INSERT INTO FileFts(rowid, path, content, meta)
+    VALUES (new.rowid, new.path, new.content, new.meta);
+END;
+
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterDeleteTrigger AFTER DELETE ON FileV2 BEGIN
+  INSERT INTO FileFts(FileFts, rowid, path, content, meta)
+  VALUES('delete', old.rowid, old.path, old.content, old.meta);
+END;
+
+CREATE TRIGGER IF NOT EXISTS FileFtsAfterUpdateTrigger AFTER UPDATE ON FileV2 BEGIN
+  INSERT INTO FileFts( FileFts, rowid, path, content, meta)
+  VALUES('delete', old.rowid, old.path, old.content, old.meta);
+  INSERT INTO FileFts(rowid, path, content, meta)
+  VALUES (new.rowid, new.path, new.content, new.meta);
+END;

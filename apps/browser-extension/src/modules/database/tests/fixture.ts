@@ -1,6 +1,6 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
-import { selectFile, upsertRawFile } from "../file-v2";
+import { selectFile, upsertFile } from "../file-v2";
 import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
 
 let db: Sqlite3.DB | undefined;
@@ -147,7 +147,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     };
 
     if (options.verbose) console.log("[fsm] from", fromState);
-    upsertRawFile(db, fromState);
+    upsertFile(db, fromState);
   };
 
   const act = () => {
@@ -171,7 +171,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
 
     if (options.verbose) console.log("[fsm] action", actionState);
 
-    upsertRawFile(db, actionState);
+    upsertFile(db, actionState);
   };
 
   const assert = (act: () => any) => {

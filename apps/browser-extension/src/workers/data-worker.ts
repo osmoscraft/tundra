@@ -43,7 +43,7 @@ const routes = {
     const { generator, oid } = await sync.getGithubRemote(db);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) =>
-      dbApi.updateRemote(db, chunk.map(sync.GithubChangeToLocalChange));
+      dbApi.updateSynced(db, chunk.map(sync.GithubChangeToLocalChange));
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, oid);
   },
@@ -54,7 +54,7 @@ const routes = {
     const processChunk = (chunk: RemoteChangeRecord[]) => {
       const fileChanges = chunk.map(sync.GithubChangeToLocalChange);
       // TODO encapsulate all dbApi calls into version control module
-      dbApi.updateRemote(db, fileChanges);
+      dbApi.updateSynced(db, fileChanges);
       dbApi.updateLocal(db, fileChanges); // TODO: skip write if local timestamp is newer
     };
 
@@ -76,7 +76,7 @@ const routes = {
         content: dbFile.content,
         updatedAt: Date.now(), // TODO use push commit timestamp
       }))
-      .map((file) => dbApi.updateRemote(db, file));
+      .map((file) => dbApi.updateSynced(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
