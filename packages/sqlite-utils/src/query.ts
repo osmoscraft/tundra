@@ -8,7 +8,7 @@ export interface DeleteManyInput<T extends {}> {
 }
 export function deleteMany<T extends {}>(db: Sqlite3.DB, input: DeleteManyInput<T>) {
   const sql = `
-WITH DeleteList(valueList) AS (
+WITH DeleteList(value) AS (
   SELECT json_each.value FROM json_each(json(:valueList))
 )
 DELETE FROM ${input.table} WHERE EXISTS (
