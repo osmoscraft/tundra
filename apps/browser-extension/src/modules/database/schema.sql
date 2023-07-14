@@ -23,7 +23,23 @@ CREATE TABLE IF NOT EXISTS File (
   content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
   meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
   updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt'),
-  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL) -- TODO consider rename: changeType: created | deleted | updated | unchanged
+  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL),
+
+  localStatus INTEGER GENERATED ALWAYS AS (
+    CASE
+      WHEN (status = 2 OR status = 3) AND local IS NOT NULL AND synced IS NULL THEN 1 -- Added
+      WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NULL THEN 2 -- Removed
+      WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+    END
+  ),
+
+  remoteStatus INTEGER GENERATED ALWAYS AS (
+    CASE
+      WHEN (status = 1 OR status = 3) AND remote IS NOT NULL AND synced IS NULL THEN 1 -- Added
+      WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NULL THEN 2 -- Removed
+      WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+    END
+  )
 );
 
 CREATE INDEX IF NOT EXISTS IsDeletedIdx ON File(isDeleted);

@@ -38,6 +38,8 @@ export interface DbReadableFileV2 {
   meta: string | null;
   status: DbFileV2Status;
   updatedAt: number | null;
+  localStatus: DbFileCompareStatus | null;
+  remoteStatus: DbFileCompareStatus | null;
 }
 
 export interface DbInternalFileV2 {
@@ -53,6 +55,8 @@ export interface DbInternalFileV2 {
   source: string | null;
   status: DbFileV2Status;
   updatedAt: number | null;
+  localStatus: DbFileCompareStatus | null;
+  remoteStatus: DbFileCompareStatus | null;
 }
 
 /** The deserialized representation of local, remote, or synced field data */
@@ -67,4 +71,10 @@ export enum DbFileV2Status {
   Behind = 1,
   Ahead = 2,
   Conflict = 3,
+}
+
+export enum DbFileCompareStatus {
+  Added = 1,
+  Removed = 2,
+  Modified = 3,
 }
