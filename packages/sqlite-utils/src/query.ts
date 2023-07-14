@@ -1,13 +1,46 @@
 import { arrayToParams, paramsToBindings } from "./params";
 
+export interface DeleteManyInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any[];
+  comparator?: "=" | "GLOB" | "LIKE";
+}
+export function deleteMany<T extends {}>(db: Sqlite3.DB, input: DeleteManyInput<T>) {
+  const sql = `
+WITH DeleteList(valueList) AS (
+  SELECT json_each.value FROM json_each(json(:valueList))
+)
+DELETE FROM ${input.table} WHERE EXISTS (
+  SELECT 1
+  FROM DeleteList
+  WHERE ${input.table}.${input.key} ${input.comparator ?? "="} DeleteList.value
+);
+  `;
+
+  const bind = paramsToBindings(sql, { valueList: JSON.stringify(input.value) });
+  db.exec(sql, { bind });
+}
+
+export interface DeleteOneInput<T extends {}> {
+  table: string;
+  key: string & keyof T;
+  value: any;
+  comparator?: "=" | "GLOB" | "LIKE";
+}
+export function deleteOne<T extends {}>(db: Sqlite3.DB, input: DeleteOneInput<T>) {
+  return deleteMany(db, { table: input.table, key: input.key, value: [input.value], comparator: input.comparator });
+}
+
 export interface SelectManyInput<T extends {}> {
   table: string;
   key: string & keyof T;
   value: any[];
+  comparator?: "=" | "GLOB" | "LIKE";
 }
 export function selectMany<T extends {}>(db: Sqlite3.DB, input: SelectManyInput<T>): (T | undefined)[] {
   return input.value.map((value) => {
-    return selectOne(db, { table: input.table, key: input.key, value });
+    return selectOne(db, { table: input.table, key: input.key, value, comparator: input.comparator });
   });
 }
 
@@ -15,10 +48,11 @@ export interface SelectOneInput<T extends {}> {
   table: string;
   key: string & keyof T;
   value: any;
+  comparator?: "=" | "GLOB" | "LIKE";
 }
 
 export function selectOne<T extends {}>(db: Sqlite3.DB, input: SelectOneInput<T>): T | undefined {
-  const sql = `SELECT * FROM ${input.table} WHERE ${input.key} = :${input.key}`;
+  const sql = `SELECT * FROM ${input.table} WHERE ${input.key} ${input.comparator ?? "="} :${input.key} LIMIT 1`;
   const bind = paramsToBindings(sql, { [input.key]: input.value });
   const file = db.selectObject<T>(sql, bind);
   return file;
