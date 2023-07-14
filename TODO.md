@@ -1,3 +1,11 @@
+# Scratchpad
+
+- File v1->v2 schema migration
+  - isDeleted field DB implementation + test
+  - isDirty field DB implementation + test
+  - file.list method implementation
+  - file.search method implementation
+
 # Alpha must have
 
 - Refactor: add graph layer to handle meta + dirty tracking
