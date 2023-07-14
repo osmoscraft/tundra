@@ -1,5 +1,6 @@
 import {
   testDbCreation,
+  testSchemaCanonicalStates,
   testSchemaDerivedColumns,
   testSchemaTriggerFsmDeterminism,
   testSchemaTriggerFsmSink,
@@ -45,6 +46,7 @@ export async function testDatabase() {
     testDbCreation,
     testSchemaTriggerFsmSink,
     testSchemaTriggerFsmDeterminism,
+    testSchemaCanonicalStates,
     testSchemaDerivedColumns,
   ];
 

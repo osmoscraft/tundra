@@ -28,18 +28,18 @@ CREATE TABLE IF NOT EXISTS File (
 
   localStatus INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
-      WHEN (status = 2 OR status = 3) AND local IS NOT NULL AND synced IS NULL THEN 1 -- Added
-      WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NULL THEN 2 -- Removed
-      WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+      WHEN local ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Added
+      WHEN local -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Removed 
+      WHEN local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
       ELSE 0 -- Unchanged
     END
   ),
 
   remoteStatus INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
-      WHEN (status = 1 OR status = 3) AND remote IS NOT NULL AND synced IS NULL THEN 1 -- Added
-      WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NULL THEN 2 -- Removed
-      WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Added
+      WHEN remote -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Removed 
+      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
       ELSE 0 -- Unchanged
     END
   )

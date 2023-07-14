@@ -2,6 +2,7 @@ import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
 import { selectFile, upsertFile } from "../file";
 import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
+import type { ColumnSpec } from "./spec-gen";
 
 let db: Sqlite3.DB | undefined;
 export async function createTestDb(schema: string) {
@@ -90,8 +91,8 @@ export interface Fsm {
   debug(db: Sqlite3.DB, spec: string): void;
 }
 
-export const fsm: Fsm = ((db: Sqlite3.DB, spec: string) => fsmSpec(db, spec)) as Fsm;
-Object.assign(fsm, {
+export const assertFsm: Fsm = ((db: Sqlite3.DB, spec: string) => fsmSpec(db, spec)) as Fsm;
+Object.assign(assertFsm, {
   verbose(db: Sqlite3.DB, spec: string) {
     fsmSpec(db, spec, { verbose: true });
   },
@@ -269,3 +270,71 @@ export function parseState(state: string): ParsedState | null {
     synced,
   };
 }
+
+interface ColumnSpecOptions {
+  debugger?: boolean;
+  verbose?: boolean;
+}
+
+export interface AssertColumnSpec {
+  /**
+   * Test Derived Columns
+   */
+  (db: Sqlite3.DB, spec: ColumnSpec, options?: ColumnSpecOptions): void;
+  /** Same as fsm() but print verbose log */
+  verbose(db: Sqlite3.DB, spec: string): void;
+  /** Same as fsm.verbose() but pause at breakpoint before test */
+  debug(db: Sqlite3.DB, spec: string): void;
+}
+
+export const assertColumnSpec: AssertColumnSpec = ((
+  db: Sqlite3.DB,
+  columnSpec: ColumnSpec,
+  options: ColumnSpecOptions
+) => {
+  if (options?.debugger) debugger;
+
+  const parsedFrom = parseState(columnSpec.input);
+  if (parsedFrom === null) throw new Error("column spec test does not support null input");
+
+  const filename = newFile();
+
+  const act = () => {
+    const fromState: DbWritableFileV2 = {
+      path: filename,
+      ...(parsedFrom.local ? { local: mockFile(parsedFrom.local.updatedAt, parsedFrom.local.content) } : undefined),
+      ...(parsedFrom.remote ? { remote: mockFile(parsedFrom.remote.updatedAt, parsedFrom.remote.content) } : undefined),
+      ...(parsedFrom.synced ? { synced: mockFile(parsedFrom.synced.updatedAt, parsedFrom.synced.content) } : undefined),
+    };
+
+    if (options?.verbose) console.log("[column specs] from", fromState);
+    upsertFile(db, fromState);
+  };
+
+  const assert = () => {
+    const resultFile = selectTestFile(db, filename);
+    if (options?.verbose) console.log("[column specs] action result ", resultFile);
+    columnSpec.cols.forEach((col) => {
+      const actualValue = (resultFile as any)[col.key];
+      if (actualValue !== col.value)
+        throw new Error(
+          `❌ "${columnSpec.input}" is expected to have ${col.key}=${col.value} but got ${col.key}=${actualValue}`
+        );
+    });
+  };
+
+  try {
+    act();
+    console.log("✅", `${columnSpec.input} | ${columnSpec.cols.map((c) => `${c.key}=${c.value}`).join(" | ")}`);
+  } catch (e) {
+    console.log(`❌ "${columnSpec.input}" caused action error`, e);
+    throw e;
+  }
+
+  assert();
+}) as AssertColumnSpec;
+
+Object.assign(assertColumnSpec, {
+  verbose: (db: Sqlite3.DB, spec: ColumnSpec) => assertColumnSpec(db, spec, { verbose: true }),
+  debug: (db: Sqlite3.DB, spec: ColumnSpec) => assertColumnSpec(db, spec, { debugger: true }),
+});

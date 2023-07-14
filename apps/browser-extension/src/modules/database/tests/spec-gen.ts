@@ -10,16 +10,26 @@ export function generateFsmDeterminismSpecs(): { input: string; output: string }
   return specs;
 }
 
-export function generateFsmSinkSpecs(): { input: string; output: string }[] {
+export function generateFsmSinkSpecs(): string[] {
   const specs = generateFsmDeterminismSpecs();
   const uniqueSpecOutputs = specs.map((spec) => spec.output).filter((x, i, a) => a.indexOf(x) === i);
-  return uniqueSpecOutputs.map((spec) => ({ input: spec, output: spec }));
+  return uniqueSpecOutputs;
 }
 
+export function generateFsmCanonicalSpecs(): string[] {
+  const specs = generateFsmDeterminismSpecs();
+  const uniqueSpecOutputs = specs.map((spec) => toCanonicalSpec(spec.output)).filter((x, i, a) => a.indexOf(x) === i);
+  return uniqueSpecOutputs;
+}
+
+export interface ColumnSpec {
+  input: string;
+  cols: { key: string; value: any }[];
+}
 export function generateFsmDerivedColumnSpecs(): { input: string; cols: { key: string; value: any }[] }[] {
-  const sinkSpecs = generateFsmSinkSpecs();
-  const parsedSinkSpecs = sinkSpecs
-    .map((spec) => ({ raw: spec.output, parsed: parseState(spec.output)! }))
+  const canonicalSpecs = generateFsmCanonicalSpecs();
+  const parsedSinkSpecs = canonicalSpecs
+    .map((spec) => ({ raw: spec, parsed: parseState(spec)! }))
     .filter((spec) => spec.parsed !== null); // do not test blank rows
 
   const specs = parsedSinkSpecs.map((spec) => {
@@ -53,9 +63,35 @@ export function generateFsmDerivedColumnSpecs(): { input: string; cols: { key: s
       }
     }
 
+    let remoteStatus = DbFileCompareStatus.Unchanged;
+
+    switch (true) {
+      case spec.parsed.remote && spec.parsed.remote.content !== null && spec.parsed.synced === null: {
+        remoteStatus = DbFileCompareStatus.Added;
+        break;
+      }
+      case spec.parsed.remote &&
+        spec.parsed.remote.content === null &&
+        spec.parsed.synced &&
+        spec.parsed.synced.content !== null: {
+        remoteStatus = DbFileCompareStatus.Removed;
+        break;
+      }
+      case spec.parsed.remote &&
+        spec.parsed.remote.content !== null &&
+        spec.parsed.synced &&
+        spec.parsed.synced?.content !== null: {
+        remoteStatus = DbFileCompareStatus.Modified;
+        break;
+      }
+    }
+
     return {
       input: spec.raw,
-      cols: [{ key: "localStatus", value: localStatus }],
+      cols: [
+        { key: "localStatus", value: localStatus },
+        { key: "remoteStatus", value: remoteStatus },
+      ],
     };
   });
 
@@ -157,4 +193,39 @@ export function digestStateSinglePassUnordered(stateSpec: string): string {
   }
 
   return encodeParsedState(acc);
+}
+
+function toCanonicalSpec(spec: string): string {
+  let timeSpecs = [spec[0], spec[3], spec[6]];
+  let contentSpecs = [spec[1], spec[4], spec[7]];
+
+  // pack all timestamps into consecutive numbers
+  // ignore . and map index -> 1,2,3...
+  // if 2 is missing, 3 -> 2
+  if (!timeSpecs.includes("2")) {
+    timeSpecs = timeSpecs.map((x) => (x === "3" ? "2" : x));
+  }
+  // if 1 is missing, 2 -> 1 and 3 -> 2
+  if (!timeSpecs.includes("1")) {
+    timeSpecs = timeSpecs.map((x) => (x === "2" ? "1" : x)).map((x) => (x === "3" ? "2" : x));
+  }
+
+  // pack all file contents into consecutive letters
+  // ignore . and map index -> a,b,c...
+  // if b is missing, c -> b
+  if (!contentSpecs.includes("b")) {
+    contentSpecs = contentSpecs.map((x) => (x === "c" ? "b" : x));
+  }
+  // if a is missing, b -> a and c -> b
+  if (!contentSpecs.includes("a")) {
+    contentSpecs = contentSpecs.map((x) => (x === "b" ? "a" : x)).map((x) => (x === "c" ? "b" : x));
+  }
+
+  // make all letters ascending
+  const orderedCharset = [".", "a", "b", "c"];
+  const charset = [...new Set(contentSpecs)]; // . | .a | .ab | .abc but in any order
+  const charsetIndexToOrderedCarsetMap = charset.map((x) => orderedCharset.indexOf(x));
+  contentSpecs = contentSpecs.map((x) => orderedCharset[charsetIndexToOrderedCarsetMap[charset.indexOf(x)]]);
+
+  return `${timeSpecs[0]}${contentSpecs[0]} ${timeSpecs[1]}${contentSpecs[1]} ${timeSpecs[2]}${contentSpecs[2]}`;
 }
