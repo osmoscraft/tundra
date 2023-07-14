@@ -22,7 +22,22 @@ export type DbFileWithMeta<T = any> = DbFileReadable & { meta: T };
 
 export interface DbFileInternal extends DbFileWritable, DbFileReadable {}
 
-export interface DbFileV2Internal {
+export interface DbWritableFileV2 {
+  path: string;
+  local?: string | null;
+  remote?: string | null;
+  synced?: string | null;
+}
+
+export interface DbReadableFileV2 {
+  path: string;
+  status: DbFileV2Status;
+  content: string | null;
+  meta: string | null;
+  updatedAt: number | null;
+}
+
+export interface DbInternalFileV2 {
   path: string;
   local: string | null;
   remote: string | null;
@@ -30,18 +45,19 @@ export interface DbFileV2Internal {
 
   /* Derived */
   source: string | null;
-  status: DbFileStatus;
+  status: DbFileV2Status;
   content: string | null;
   meta: string | null;
 }
 
-export interface DbFileV2Snapshot {
+/** The deserialized representation of local, remote, or synced field data */
+export interface DbFileV2ParsedSource {
   updatedAt: number;
   content: string | null;
   meta: string | null;
 }
 
-export enum DbFileStatus {
+export enum DbFileV2Status {
   Synced = 0,
   Behind = 1,
   Ahead = 2,

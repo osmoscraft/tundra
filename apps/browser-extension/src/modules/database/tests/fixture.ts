@@ -1,6 +1,7 @@
-import { selectMany, sqlite3Mem, upsertMany } from "@tinykb/sqlite-utils";
+import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
-import type { DbFileStatus, DbFileV2Internal, DbFileV2Snapshot } from "../schema";
+import { selectFile, upsertRawFile } from "../file-v2";
+import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
 
 let db: Sqlite3.DB | undefined;
 export async function createTestDb(schema: string) {
@@ -24,45 +25,30 @@ export async function createEmptyDb() {
   return db;
 }
 
-type TestDbWritable = Partial<DbFileV2Internal> & { path: string };
-
 // test utils
 export function mockFile(time: number, content: string | null, meta: string | null = null) {
-  const snapshot: DbFileV2Snapshot = { updatedAt: time, content, meta };
+  const snapshot: DbFileV2ParsedSource = { updatedAt: time, content, meta };
   return JSON.stringify(snapshot);
 }
 
-export function upsertFiles(db: Sqlite3.DB, files: TestDbWritable[]) {
-  return upsertMany<TestDbWritable>(db, { table: "FileV2", key: "path", rows: files });
-}
-export function upsertFile(db: Sqlite3.DB, file: TestDbWritable) {
-  return upsertFiles(db, [file]);
-}
-
-export function selectFiles(db: Sqlite3.DB, paths: string[]) {
-  return selectMany<DbFileV2Internal>(db, { table: "FileV2", key: "path", value: paths });
-}
-
-export function selectFile(db: Sqlite3.DB, path: string) {
-  return selectFiles(db, [path])[0];
-}
+const selectTestFile = selectFile as (db: Sqlite3.DB, path: string) => DbInternalFileV2 | undefined;
 
 export function assertFileUpdatedAt(db: Sqlite3.DB, path: string, version: number) {
-  const source = selectFile(db, path)?.source;
+  const source = selectTestFile(db, path)?.source;
   if (!source) throw new Error(`File version assertion error: ${path} has no source`);
-  assertEqual((JSON.parse(source) as DbFileV2Snapshot).updatedAt, version);
+  assertEqual((JSON.parse(source) as DbFileV2ParsedSource).updatedAt, version);
 }
 
 export function assertFileSourceless(db: Sqlite3.DB, path: string) {
-  assertEqual(selectFile(db, path)!.source, null);
+  assertEqual(selectTestFile(db, path)!.source, null);
 }
 
 export function assertFileUntracked(db: Sqlite3.DB, path: string) {
-  assertEqual(selectFile(db, path), undefined);
+  assertEqual(selectTestFile(db, path), undefined);
 }
 
-export function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileStatus) {
-  assertEqual(selectFile(db, path)?.status, status);
+export function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileV2Status) {
+  assertEqual(selectTestFile(db, path)?.status, status);
 }
 
 const fileNames = new (class {
@@ -153,7 +139,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
       return;
     }
 
-    const fromState: TestDbWritable = {
+    const fromState: DbWritableFileV2 = {
       path: filename,
       ...(parsedFrom.local ? { local: mockFile(parsedFrom.local.updatedAt, parsedFrom.local.content) } : undefined),
       ...(parsedFrom.remote ? { remote: mockFile(parsedFrom.remote.updatedAt, parsedFrom.remote.content) } : undefined),
@@ -161,7 +147,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     };
 
     if (options.verbose) console.log("[fsm] from", fromState);
-    upsertFile(db, fromState);
+    upsertRawFile(db, fromState);
   };
 
   const act = () => {
@@ -170,7 +156,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
       return;
     }
 
-    const actionState: TestDbWritable = {
+    const actionState: DbWritableFileV2 = {
       path: filename,
       ...(parsedAction.local
         ? { local: mockFile(parsedAction.local.updatedAt, parsedAction.local.content) }
@@ -185,14 +171,14 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
 
     if (options.verbose) console.log("[fsm] action", actionState);
 
-    upsertFile(db, actionState);
+    upsertRawFile(db, actionState);
   };
 
   const assert = (act: () => any) => {
     let actualTo: string;
     try {
       act();
-      const resultFile = selectFile(db, filename);
+      const resultFile = selectTestFile(db, filename);
       if (options.verbose) console.log("[fsm] action result ", resultFile);
       actualTo = encodeFile(resultFile);
       if (options.verbose) console.log("[fsm] action result encoded", actualTo);
@@ -204,7 +190,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     assertEqual(actualTo, to, `expected ${to}, got ${actualTo}`);
   };
 
-  function encodeFile(file?: DbFileV2Internal) {
+  function encodeFile(file?: DbInternalFileV2) {
     if (!file) return ".. .. ..";
     const encoding = `${encodeFileStateItem(file.local)} ${encodeFileStateItem(file.remote)} ${encodeFileStateItem(
       file.synced
@@ -213,10 +199,10 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     return encoding;
   }
 
-  function encodeFileStateItem(fileStateString: DbFileV2Internal["local" | "remote" | "synced" | "source"]) {
+  function encodeFileStateItem(fileStateString: DbInternalFileV2["local" | "remote" | "synced" | "source"]) {
     if (!fileStateString) return "..";
 
-    const fileStateItem = JSON.parse(fileStateString!) as DbFileV2Snapshot;
+    const fileStateItem = JSON.parse(fileStateString!) as DbFileV2ParsedSource;
     return `${fileStateItem.updatedAt}${fileStateItem.content ?? "."}`;
   }
 

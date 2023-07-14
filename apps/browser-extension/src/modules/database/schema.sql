@@ -69,7 +69,8 @@ CREATE TABLE IF NOT EXISTS FileV2 (
 
   source TEXT GENERATED ALWAYS AS (ifnull(local, synced)),
   content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
-  meta TEXT GENERATED ALWAYS AS (source ->> '$.meta')
+  meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
+  updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt')
 );
 
 CREATE TRIGGER IF NOT EXISTS FileV2AfterInsertTrigger AFTER INSERT ON FileV2 BEGIN
