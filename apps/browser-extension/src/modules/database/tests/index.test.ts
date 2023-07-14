@@ -1,4 +1,9 @@
-import { testDbCreation, testSchemaTriggerFsm } from "./db.test";
+import {
+  testDbCreation,
+  testSchemaDerivedColumns,
+  testSchemaTriggerFsmDeterminism,
+  testSchemaTriggerFsmSink,
+} from "./db.test";
 import {
   testBulkOperations,
   testDeleteFiles,
@@ -38,11 +43,15 @@ export async function testDatabase() {
 
     // db v2
     testDbCreation,
-    testSchemaTriggerFsm,
+    testSchemaTriggerFsmSink,
+    testSchemaTriggerFsmDeterminism,
+    testSchemaDerivedColumns,
   ];
 
   for (const suite of suites) {
     console.log(`[test] ${suite.name}`);
     await suite();
   }
+
+  console.log("[test] All done");
 }

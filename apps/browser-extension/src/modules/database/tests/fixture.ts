@@ -8,8 +8,9 @@ export async function createTestDb(schema: string) {
   db ??= await createEmptyDb();
   db.exec(`
   DROP TABLE IF EXISTS File;
-  DROP INDEX IF EXISTS IsDirtyIdx;
+  DROP INDEX IF EXISTS IsDeletedIdx;
   DROP INDEX IF EXISTS UpdatedAtIdx;
+  DROP INDEX IF EXISTS StatusIdx;
   DROP TABLE IF EXISTS FileFts;
   `);
   db.exec(schema);

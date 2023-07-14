@@ -23,21 +23,24 @@ CREATE TABLE IF NOT EXISTS File (
   content TEXT GENERATED ALWAYS AS (source ->> '$.content'),
   meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
   updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt'),
-  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL),
 
-  localStatus INTEGER GENERATED ALWAYS AS (
+  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL), -- remove col
+
+  localStatus INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
       WHEN (status = 2 OR status = 3) AND local IS NOT NULL AND synced IS NULL THEN 1 -- Added
       WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NULL THEN 2 -- Removed
       WHEN (status = 2 OR status = 3) AND local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+      ELSE 0 -- Unchanged
     END
   ),
 
-  remoteStatus INTEGER GENERATED ALWAYS AS (
+  remoteStatus INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
       WHEN (status = 1 OR status = 3) AND remote IS NOT NULL AND synced IS NULL THEN 1 -- Added
       WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NULL THEN 2 -- Removed
       WHEN (status = 1 OR status = 3) AND remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
+      ELSE 0 -- Unchanged
     END
   )
 );

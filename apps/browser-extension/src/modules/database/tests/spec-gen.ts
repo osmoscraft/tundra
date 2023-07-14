@@ -1,12 +1,65 @@
+import { DbFileCompareStatus } from "../schema";
 import { encodeParsedState, parseState, type ParsedState } from "./fixture";
 
-export function generateFsmSpecs(): { input: string; output: string }[] {
-  const testInOut = getQualifiedInputs().map((initial) => {
+export function generateFsmDeterminismSpecs(): { input: string; output: string }[] {
+  const specs = getQualifiedInputs().map((initial) => {
     const output = digestStateSinglePassUnordered(initial);
     return { input: initial, output: output };
   });
 
-  return testInOut;
+  return specs;
+}
+
+export function generateFsmSinkSpecs(): { input: string; output: string }[] {
+  const specs = generateFsmDeterminismSpecs();
+  const uniqueSpecOutputs = specs.map((spec) => spec.output).filter((x, i, a) => a.indexOf(x) === i);
+  return uniqueSpecOutputs.map((spec) => ({ input: spec, output: spec }));
+}
+
+export function generateFsmDerivedColumnSpecs(): { input: string; cols: { key: string; value: any }[] }[] {
+  const sinkSpecs = generateFsmSinkSpecs();
+  const parsedSinkSpecs = sinkSpecs
+    .map((spec) => ({ raw: spec.output, parsed: parseState(spec.output)! }))
+    .filter((spec) => spec.parsed !== null); // do not test blank rows
+
+  const specs = parsedSinkSpecs.map((spec) => {
+    // rules for derived columns:
+    // localStatus:
+    // - added: local content not null, synced null
+    // - removed: local content null, synced not null
+    // - modified: local and synced not null
+    // - unchanged: otherwise
+
+    let localStatus = DbFileCompareStatus.Unchanged;
+
+    switch (true) {
+      case spec.parsed.local && spec.parsed.local.content !== null && spec.parsed.synced === null: {
+        localStatus = DbFileCompareStatus.Added;
+        break;
+      }
+      case spec.parsed.local &&
+        spec.parsed.local.content === null &&
+        spec.parsed.synced &&
+        spec.parsed.synced.content !== null: {
+        localStatus = DbFileCompareStatus.Removed;
+        break;
+      }
+      case spec.parsed.local &&
+        spec.parsed.local.content !== null &&
+        spec.parsed.synced &&
+        spec.parsed.synced?.content !== null: {
+        localStatus = DbFileCompareStatus.Modified;
+        break;
+      }
+    }
+
+    return {
+      input: spec.raw,
+      cols: [{ key: "localStatus", value: localStatus }],
+    };
+  });
+
+  return specs;
 }
 
 export function getQualifiedInputs(): string[] {

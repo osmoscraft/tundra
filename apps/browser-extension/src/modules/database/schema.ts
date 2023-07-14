@@ -74,6 +74,7 @@ export enum DbFileV2Status {
 }
 
 export enum DbFileCompareStatus {
+  Unchanged = 0,
   Added = 1,
   Removed = 2,
   Modified = 3,
