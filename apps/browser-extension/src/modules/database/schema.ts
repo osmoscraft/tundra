@@ -1,27 +1,3 @@
-export interface DbFileWritable {
-  localContent: string | null;
-  localUpdatedAt: number;
-  meta: string | null;
-  path: string;
-  remoteContent: string | null;
-  remoteUpdatedAt: number | null;
-}
-
-export interface DbFileReadable {
-  meta: string | null;
-  path: string;
-
-  /* Derived */
-  content: string | null;
-  isDeleted: 0 | 1;
-  isDirty: 0 | 1;
-  updatedAt: number | null;
-}
-
-export type DbFileWithMeta<T = any> = DbFileReadable & { meta: T };
-
-export interface DbFileInternal extends DbFileWritable, DbFileReadable {}
-
 export interface DbWritableFileV2 {
   path: string;
   local?: string | null;
@@ -34,12 +10,11 @@ export interface DbReadableFileV2 {
 
   /* Derived */
   content: string | null;
-  isDeleted: 0 | 1;
   meta: string | null;
   status: DbFileV2Status;
   updatedAt: number | null;
-  localStatus: DbFileCompareStatus | null;
-  remoteStatus: DbFileCompareStatus | null;
+  localAction: DbFileAction;
+  remoteAction: DbFileAction;
 }
 
 export interface DbInternalFileV2 {
@@ -50,13 +25,12 @@ export interface DbInternalFileV2 {
 
   /* Derived */
   content: string | null;
-  isDeleted: 0 | 1;
   meta: string | null;
   source: string | null;
   status: DbFileV2Status;
   updatedAt: number | null;
-  localStatus: DbFileCompareStatus | null;
-  remoteStatus: DbFileCompareStatus | null;
+  localAction: DbFileAction;
+  remoteAction: DbFileAction;
 }
 
 /** The deserialized representation of local, remote, or synced field data */
@@ -73,9 +47,9 @@ export enum DbFileV2Status {
   Conflict = 3,
 }
 
-export enum DbFileCompareStatus {
-  Unchanged = 0,
-  Added = 1,
-  Removed = 2,
-  Modified = 3,
+export enum DbFileAction {
+  None = 0,
+  Add = 1,
+  Remove = 2,
+  Modify = 3,
 }

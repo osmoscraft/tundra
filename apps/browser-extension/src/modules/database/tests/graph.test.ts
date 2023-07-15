@@ -9,7 +9,7 @@ import {
   updateRemote,
   updateSynced,
 } from "../graph";
-import { DbFileV2Status } from "../schema";
+import { DbFileAction, DbFileV2Status } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
@@ -29,7 +29,8 @@ export async function testLocalFileEditLifecycle() {
   assertDefined(file, "After file created");
   assertEqual(file.content, "hello world", "Latest content");
   assertEqual(file.updatedAt, 1, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.Add, "local add");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // edit
@@ -42,7 +43,8 @@ export async function testLocalFileEditLifecycle() {
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world 2", "Latest content");
   assertEqual(file.updatedAt, 2, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.Add, "local add");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete
@@ -72,7 +74,8 @@ export async function testLocalFirstSync() {
 
   assertEqual(file.content, "hello world", "Latest content");
   assertEqual(file.updatedAt, 2, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // edit after push
@@ -86,7 +89,8 @@ export async function testLocalFirstSync() {
 
   assertEqual(file.content, "hello world 2", "Latest content");
   assertEqual(file.updatedAt, 3, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.Modify, "local modify");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete after push
@@ -100,7 +104,8 @@ export async function testLocalFirstSync() {
 
   assertEqual(file.content, null, "Latest content");
   assertEqual(file.updatedAt, 4, "Latest time");
-  assertEqual(file.isDeleted, 1, "isDelete");
+  assertEqual(file.localAction, DbFileAction.Remove, "local remove");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // undo all changes after push
@@ -114,7 +119,8 @@ export async function testLocalFirstSync() {
 
   assertEqual(file.content, "hello world", "Latest content");
   assertEqual(file.updatedAt, 2, "Latest time"); // clock rewind
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 }
 
@@ -156,7 +162,8 @@ export async function testRemoteFirstSync() {
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, null, "Latest content");
   assertEqual(file.updatedAt, null, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.Add, "remote add");
   assertEqual(file.status, DbFileV2Status.Behind, "is behind");
 
   // pull
@@ -169,7 +176,8 @@ export async function testRemoteFirstSync() {
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world", "Latest content");
   assertEqual(file.updatedAt, 2, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // remote edit
@@ -182,7 +190,8 @@ export async function testRemoteFirstSync() {
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world", "Latest content");
   assertEqual(file.updatedAt, 2, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.Modify, "remote modify");
   assertEqual(file.status, DbFileV2Status.Behind, "is behind");
 
   // pull edit
@@ -195,7 +204,8 @@ export async function testRemoteFirstSync() {
   file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world 2", "Latest content");
   assertEqual(file.updatedAt, 3, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // remote delete
@@ -234,7 +244,8 @@ export async function testSyncOverrideLocal() {
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world remote version", "Latest content");
   assertEqual(file.updatedAt, 3, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.None, "local none");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 }
 
@@ -263,7 +274,8 @@ export async function testLocalOverrideSync() {
   let file = getFile(db, "/test.md")!;
   assertEqual(file.content, "hello world local version", "Latest content");
   assertEqual(file.updatedAt, 3, "Latest time");
-  assertEqual(file.isDeleted, 0, "isDelete");
+  assertEqual(file.localAction, DbFileAction.Modify, "local modify");
+  assertEqual(file.remoteAction, DbFileAction.None, "remote none");
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 }
 

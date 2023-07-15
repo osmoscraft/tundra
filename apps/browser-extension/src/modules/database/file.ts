@@ -56,7 +56,7 @@ export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFileV
           ].join("\n,"),
         ]
       : []),
-    `SELECT meta,path,content,isDeleted,status,updatedAt FROM File`,
+    `SELECT meta,path,content,localAction,remoteAction,status,updatedAt FROM File`,
     ...(options.filters?.length || options.paths?.length || options.ignore?.length
       ? [
           "WHERE",
@@ -108,7 +108,7 @@ export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableF
           ].join("\n,"),
         ]
       : []),
-    `SELECT File.meta,File.path,File.content,isDeleted,status,updatedAt FROM File JOIN FileFts ON File.path = FileFts.path`,
+    `SELECT File.meta,File.path,File.content,localAction,remoteAction,status,updatedAt FROM File JOIN FileFts ON File.path = FileFts.path`,
     ...[
       "WHERE",
       [

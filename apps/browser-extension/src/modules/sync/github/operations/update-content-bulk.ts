@@ -12,7 +12,7 @@ export interface BulkFileChangeItem {
 }
 
 export enum ChangeType {
-  Clean = 0,
+  None = 0,
   Add = 1,
   Modify = 2,
   Remove = 3,

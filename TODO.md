@@ -1,8 +1,6 @@
 # Scratchpad
 
 - File v1->v2 schema migration
-  - migrate isDeleted to checking content == null, regardless of metadata, cover with test
-  - migrate isDirty to status = ahead, cover with test
   - file.list method implementation
   - file.search method implementation
   - Add commit, push, fetch, merge methods in graph
@@ -10,6 +8,7 @@
 
 # Alpha must have
 
+- Prevent merge when in conflict
 - Decide json vs. yaml for persistence and editing
 - Refactor: add graph layer to handle meta + dirty tracking
 - Use node.js for testing (need sqlite 3.43)

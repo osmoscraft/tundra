@@ -24,28 +24,26 @@ CREATE TABLE IF NOT EXISTS File (
   meta TEXT GENERATED ALWAYS AS (source ->> '$.meta'),
   updatedAt INTEGER GENERATED ALWAYS AS (source ->> '$.updatedAt'),
 
-  isDeleted INTEGER GENERATED ALWAYS AS (source IS NOT NULL and content IS NULL), -- remove col
-
-  localStatus INTEGER NOT NULL GENERATED ALWAYS AS (
+  localAction INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
-      WHEN local ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Added
-      WHEN local -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Removed 
-      WHEN local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
-      ELSE 0 -- Unchanged
+      WHEN local ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Add
+      WHEN local -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Remove
+      WHEN local ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modify
+      ELSE 0 -- None
     END
   ),
-
-  remoteStatus INTEGER NOT NULL GENERATED ALWAYS AS (
+  remoteAction INTEGER NOT NULL GENERATED ALWAYS AS (
     CASE
-      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Added
-      WHEN remote -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Removed 
-      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modified
-      ELSE 0 -- Unchanged
+      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NULL THEN 1 -- Add
+      WHEN remote -> '$.content' IS 'null' AND synced IS NOT NULL THEN 2 -- Remove
+      WHEN remote ->> '$.content' IS NOT NULL AND synced IS NOT NULL THEN 3 --Modify
+      ELSE 0 -- None
     END
   )
 );
 
-CREATE INDEX IF NOT EXISTS IsDeletedIdx ON File(isDeleted);
+CREATE INDEX IF NOT EXISTS LocalActionIdx ON File(localAction);
+CREATE INDEX IF NOT EXISTS RemoteActionIdx ON File(remoteAction);
 CREATE INDEX IF NOT EXISTS UpdatedAtIdx ON File(updatedAt);
 CREATE INDEX IF NOT EXISTS StatusIdx ON File(status);
 

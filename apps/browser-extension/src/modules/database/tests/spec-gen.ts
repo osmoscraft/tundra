@@ -1,4 +1,4 @@
-import { DbFileCompareStatus } from "../schema";
+import { DbFileAction, type DbInternalFileV2 } from "../schema";
 import { encodeParsedState, parseState, type ParsedState } from "./fixture";
 
 export function generateFsmDeterminismSpecs(): { input: string; output: string }[] {
@@ -24,9 +24,12 @@ export function generateFsmCanonicalSpecs(): string[] {
 
 export interface ColumnSpec {
   input: string;
-  cols: { key: string; value: any }[];
+  cols: { key: keyof DbInternalFileV2; value: any }[];
 }
-export function generateFsmDerivedColumnSpecs(): { input: string; cols: { key: string; value: any }[] }[] {
+export function generateFsmDerivedColumnSpecs(): {
+  input: string;
+  cols: { key: keyof DbInternalFileV2; value: any }[];
+}[] {
   const canonicalSpecs = generateFsmCanonicalSpecs();
   const parsedSinkSpecs = canonicalSpecs
     .map((spec) => ({ raw: spec, parsed: parseState(spec)! }))
@@ -34,64 +37,66 @@ export function generateFsmDerivedColumnSpecs(): { input: string; cols: { key: s
 
   const specs = parsedSinkSpecs.map((spec) => {
     // rules for derived columns:
-    // localStatus:
+    // localAction:
     // - added: local content not null, synced null
     // - removed: local content null, synced not null
     // - modified: local and synced not null
     // - unchanged: otherwise
 
-    let localStatus = DbFileCompareStatus.Unchanged;
+    let localAction = DbFileAction.None;
 
     switch (true) {
       case spec.parsed.local && spec.parsed.local.content !== null && spec.parsed.synced === null: {
-        localStatus = DbFileCompareStatus.Added;
+        localAction = DbFileAction.Add;
         break;
       }
       case spec.parsed.local &&
         spec.parsed.local.content === null &&
         spec.parsed.synced &&
         spec.parsed.synced.content !== null: {
-        localStatus = DbFileCompareStatus.Removed;
+        localAction = DbFileAction.Remove;
         break;
       }
       case spec.parsed.local &&
         spec.parsed.local.content !== null &&
         spec.parsed.synced &&
         spec.parsed.synced?.content !== null: {
-        localStatus = DbFileCompareStatus.Modified;
+        localAction = DbFileAction.Modify;
         break;
       }
     }
 
-    let remoteStatus = DbFileCompareStatus.Unchanged;
+    let remoteAction = DbFileAction.None;
 
     switch (true) {
       case spec.parsed.remote && spec.parsed.remote.content !== null && spec.parsed.synced === null: {
-        remoteStatus = DbFileCompareStatus.Added;
+        remoteAction = DbFileAction.Add;
         break;
       }
       case spec.parsed.remote &&
         spec.parsed.remote.content === null &&
         spec.parsed.synced &&
         spec.parsed.synced.content !== null: {
-        remoteStatus = DbFileCompareStatus.Removed;
+        remoteAction = DbFileAction.Remove;
         break;
       }
       case spec.parsed.remote &&
         spec.parsed.remote.content !== null &&
         spec.parsed.synced &&
         spec.parsed.synced?.content !== null: {
-        remoteStatus = DbFileCompareStatus.Modified;
+        remoteAction = DbFileAction.Modify;
         break;
       }
     }
 
+    const cols: ColumnSpec["cols"] = [
+      { key: "localAction", value: localAction },
+      { key: "remoteAction", value: remoteAction },
+    ];
+
     return {
       input: spec.raw,
-      cols: [
-        { key: "localStatus", value: localStatus },
-        { key: "remoteStatus", value: remoteStatus },
-      ],
+      cols,
     };
   });
 
