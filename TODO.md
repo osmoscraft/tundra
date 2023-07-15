@@ -22,6 +22,7 @@
 - Need to handle invalid frontmatter state during auto save
 - Ignore system files in search
 - DB Migration strategy
+- Tune clone performance, goal <2ms per file, baseline 4.5ms per file
 
 # Future
 
