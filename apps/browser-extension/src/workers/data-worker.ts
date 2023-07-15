@@ -44,8 +44,10 @@ const routes = {
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) =>
       dbApi.updateSynced(db, chunk.map(sync.GithubChangeToLocalChange));
+    performance.mark("clone-start");
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, oid);
+    console.log("[perf] clone", performance.measure("clone", "clone-start").duration);
   },
   pull: async () => {
     const db = await dbInit();
@@ -60,6 +62,7 @@ const routes = {
 
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
+    // FIXME this does not work for options page
     await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   },
   push: async () => {
@@ -96,6 +99,7 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
 
 (async function init() {
   const db = await dbInit();
+  // FIXME this does not work for options page
   await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
   console.log("[data worker] initialized");
 })();
