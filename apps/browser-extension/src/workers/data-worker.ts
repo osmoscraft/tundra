@@ -55,7 +55,13 @@ const routes = {
     db.transaction(() => dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange)));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     // FIXME this does not work for options page
-    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
+  },
+  merge: async () => {
+    const db = await dbInit();
+    const files = dbApi.getRawBehindFiles(db, sync.getUserIgnores(db));
+    const graphSources = files.map(dbApi.parseDbFileToGraphSource);
+    dbApi.merge(db, graphSources);
   },
   pull: async () => {
     const db = await dbInit();
@@ -71,12 +77,12 @@ const routes = {
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     // FIXME this does not work for options page
-    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = dbApi.getAheadFiles(db, sync.getUserIgnores(db));
+    const files = dbApi.getRawAheadFiles(db, sync.getUserIgnores(db));
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushResult = await updateContentBulk(connection, fileChanges);
 
@@ -90,7 +96,7 @@ const routes = {
       .map((file) => dbApi.clone(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
-    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   search: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
@@ -98,7 +104,7 @@ const routes = {
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
     dbApi.commit(db, { path, content });
-    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
 };
 
@@ -109,7 +115,7 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
   const db = await dbInit();
   // FIXME this does not work for options page
   proxy
-    .setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))))
+    .setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))))
     .catch((e) => console.log(e))
     .finally(() => console.log("working init done"));
 })();

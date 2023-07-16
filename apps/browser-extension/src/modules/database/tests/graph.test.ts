@@ -3,8 +3,8 @@ import {
   clone,
   commit,
   fetch,
-  getAheadFiles,
   getFile,
+  getRawAheadFiles,
   getRecentFiles,
   merge,
   push,
@@ -454,7 +454,7 @@ export async function testGetDirtyFiles() {
     { path: "file-7.md", content: "", updatedAt: 7 },
   ]);
 
-  const dirtyFiles = getAheadFiles(db);
+  const dirtyFiles = getRawAheadFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-3.md"]);
 }
 
@@ -470,7 +470,7 @@ export async function testGetDirtyFilesWithIgnore() {
     { path: "dir-2/file.md", content: "", updatedAt: 9 },
   ]);
 
-  const dirtyFiles = getAheadFiles(db);
+  const dirtyFiles = getRawAheadFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), [
     "dir-1/file.md",
     "dir-1/subdir/file.md",
@@ -479,7 +479,7 @@ export async function testGetDirtyFilesWithIgnore() {
     "file-2.md",
   ]);
 
-  const dirtyFilesWithIgnore = getAheadFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
+  const dirtyFilesWithIgnore = getRawAheadFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
   assertDeepEqual(dirtyFilesWithIgnore.map((f) => f.path).sort(), ["dir-1/file.md", "file-1.md"]);
 }
 
@@ -524,7 +524,7 @@ export async function testMetaCRUD() {
   assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
   assertEqual(recentFiles.find((f) => f.path === "file-3.md")!.meta.title, "title 3", "title 3");
 
-  const dirtyFiles = getAheadFiles(db);
+  const dirtyFiles = getRawAheadFiles(db);
   assertEqual(dirtyFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
 }
 

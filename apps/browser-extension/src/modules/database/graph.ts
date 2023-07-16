@@ -1,80 +1,50 @@
 import { array } from "@tinykb/fp-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
-import { DbFileV2Status } from "./schema";
+import { DbFileV2Status, type DbReadableFileV2, type DbWritableFileV2 } from "./schema";
 
-/**
- * TODO graph v2
- * 
-export function commit(nodes: GraphNodeInput[]) {}
-export function clone(nodes: GraphNodeInput[]) {}
-export function pull(nodes: GraphNodeInput[]) {}
-export function push(nodes: GraphNodeInput[]) {}
-export function get<T = any>(paths: string[]): GraphNodeOutput<T>[] {
-  return [];
-}
-export function search<T = any>(query: string): GraphNodeOutput<T>[] {
-  return [];
-}
-*/
-
-export interface GraphFile {
+export interface GraphWritableSource {
   path: string;
   content: string | null;
-  updatedAt?: number;
+  updatedAt?: number | null;
 }
 
-export function commit(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
+export interface GraphReadableSource {
+  path: string;
+  content: string | null;
+  updatedAt: number | null;
+}
+
+export function commit(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
-    array(input).map((file) => ({
-      path: file.path,
-      local: JSON.stringify({
-        content: file.content,
-        meta: encodeMeta(file),
-        updatedAt: file.updatedAt ?? now,
-      }),
-    }))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "local"))
   );
 }
 
-export function fetch(db: Sqlite3.DB, files: GraphFile | GraphFile[]) {
+export function fetch(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
-    array(files).map((file) => ({
-      path: file.path,
-      remote: JSON.stringify({
-        content: file.content,
-        updatedAt: file.updatedAt ?? now,
-        meta: encodeMeta(file),
-      }),
-    }))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "remote"))
   );
 }
 
-export function clone(db: Sqlite3.DB, files: GraphFile | GraphFile[]) {
+export function clone(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
-    array(files).map((file) => ({
-      path: file.path,
-      synced: JSON.stringify({
-        content: file.content,
-        updatedAt: file.updatedAt ?? now,
-        meta: encodeMeta(file),
-      }),
-    }))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "synced"))
   );
 }
 
-export function merge(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
+export function merge(db: Sqlite3.DB, input: GraphWritableSource | GraphWritableSource[]) {
   const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Behind);
   clone(db, changes);
 }
 
-export function push(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
+export function push(db: Sqlite3.DB, input: GraphWritableSource | GraphWritableSource[]) {
   const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Ahead);
   clone(db, changes);
 }
@@ -105,12 +75,18 @@ export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   return files.map(decodeMeta);
 }
 
-export function getAheadFiles(db: Sqlite3.DB, ignore: string[] = []) {
-  const files = fileApi.listFiles(db, {
+export function getRawAheadFiles(db: Sqlite3.DB, ignore: string[] = []) {
+  return fileApi.listFiles(db, {
     ignore,
     filters: [["status", "=", DbFileV2Status.Ahead]],
   });
-  return files.map(decodeMeta);
+}
+
+export function getRawBehindFiles(db: Sqlite3.DB, ignore: string[] = []) {
+  return fileApi.listFiles(db, {
+    ignore,
+    filters: [["status", "=", DbFileV2Status.Behind]],
+  });
 }
 
 export interface SearchFilesInput {
@@ -127,4 +103,29 @@ export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
     ignore: input.ignore,
   });
   return files.map(decodeMeta);
+}
+
+// conversions
+
+export function serializeGraphSourceToDbFile(
+  graphSource: GraphWritableSource,
+  now: number,
+  dbSourceType: "local" | "remote" | "synced"
+): DbWritableFileV2 {
+  return {
+    path: graphSource.path,
+    [dbSourceType]: JSON.stringify({
+      content: graphSource.content,
+      meta: encodeMeta(graphSource),
+      updatedAt: graphSource.updatedAt === undefined ? now : graphSource.updatedAt,
+    }),
+  };
+}
+
+export function parseDbFileToGraphSource(file: DbReadableFileV2): GraphReadableSource {
+  return {
+    path: file.path,
+    content: file.content,
+    updatedAt: file.updatedAt,
+  };
 }
