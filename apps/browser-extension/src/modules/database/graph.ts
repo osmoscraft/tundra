@@ -129,3 +129,10 @@ export function parseDbFileToGraphSource(file: DbReadableFileV2): GraphReadableS
     updatedAt: file.updatedAt,
   };
 }
+
+export function setUpdatedAt(updatedAt: number, source: GraphReadableSource): GraphReadableSource {
+  return {
+    ...source,
+    updatedAt,
+  };
+}

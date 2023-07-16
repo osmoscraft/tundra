@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce, drainGenerator, pipe } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -72,17 +72,13 @@ const routes = {
     const { connection } = ensurePushParameters(db);
     const files = dbApi.getRawAheadFiles(db, sync.getUserIgnores(db));
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
+    const pushTime = Date.now();
     const pushResult = await updateContentBulk(connection, fileChanges);
-
-    // TODO encapsulate
-    files
-      .map((dbFile) => ({
-        path: dbFile.path,
-        content: dbFile.content,
-        updatedAt: Date.now(), // TODO use push commit timestamp
-      }))
-      .map((file) => dbApi.clone(db, file));
-    sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
+    const graphSources = files.map(pipe(dbApi.parseDbFileToGraphSource, dbApi.setUpdatedAt.bind(null, pushTime)));
+    db.transaction(() => {
+      dbApi.push(db, graphSources);
+      sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
+    });
 
     await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
