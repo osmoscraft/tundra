@@ -18,12 +18,13 @@ export function search<T = any>(query: string): GraphNodeOutput<T>[] {
 }
 */
 
-export interface TextFile {
+export interface GraphFile {
   path: string;
   content: string | null;
   updatedAt?: number;
 }
-export function updateLocal(db: Sqlite3.DB, input: TextFile | TextFile[]) {
+
+export function commit(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
@@ -38,7 +39,7 @@ export function updateLocal(db: Sqlite3.DB, input: TextFile | TextFile[]) {
   );
 }
 
-export function updateRemote(db: Sqlite3.DB, files: TextFile | TextFile[]) {
+export function fetch(db: Sqlite3.DB, files: GraphFile | GraphFile[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
@@ -53,7 +54,7 @@ export function updateRemote(db: Sqlite3.DB, files: TextFile | TextFile[]) {
   );
 }
 
-export function updateSynced(db: Sqlite3.DB, files: TextFile | TextFile[]) {
+export function clone(db: Sqlite3.DB, files: GraphFile | GraphFile[]) {
   const now = Date.now();
   fileApi.upsertFiles(
     db,
@@ -68,11 +69,17 @@ export function updateSynced(db: Sqlite3.DB, files: TextFile | TextFile[]) {
   );
 }
 
-export function mergeRemote(db: Sqlite3.DB, input: TextFile | TextFile[]) {
-  // set synced col to the same as remote col
+export function merge(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
+  const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Behind);
+  clone(db, changes);
 }
 
-export function deleteFiles(db: Sqlite3.DB, patterns: string[]) {
+export function push(db: Sqlite3.DB, input: GraphFile | GraphFile[]) {
+  const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Ahead);
+  clone(db, changes);
+}
+
+export function remove(db: Sqlite3.DB, patterns: string[]) {
   fileApi.deleteFiles(db, patterns);
 }
 
@@ -98,7 +105,7 @@ export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   return files.map(decodeMeta);
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
+export function getAheadFiles(db: Sqlite3.DB, ignore: string[] = []) {
   const files = fileApi.listFiles(db, {
     ignore,
     filters: [["status", "=", DbFileV2Status.Ahead]],

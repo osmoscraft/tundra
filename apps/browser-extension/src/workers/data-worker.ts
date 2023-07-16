@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
 import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -42,12 +42,20 @@ const routes = {
     await routes.destoryData();
     const { generator, oid } = await sync.getGithubRemote(db);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
-    const processChunk = (chunk: RemoteChangeRecord[]) =>
-      dbApi.updateSynced(db, chunk.map(sync.GithubChangeToLocalChange));
+    const processChunk = (chunk: RemoteChangeRecord[]) => dbApi.clone(db, chunk.map(sync.GithubChangeToLocalChange));
     performance.mark("clone-start");
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, oid);
     console.log("[perf] clone", performance.measure("clone", "clone-start").duration);
+  },
+  fetch: async () => {
+    const db = await dbInit();
+    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
+    const items = await drainGenerator(generator);
+    db.transaction(() => dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange)));
+    sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
+    // FIXME this does not work for options page
+    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
   },
   pull: async () => {
     const db = await dbInit();
@@ -56,19 +64,19 @@ const routes = {
     const processChunk = (chunk: RemoteChangeRecord[]) => {
       const fileChanges = chunk.map(sync.GithubChangeToLocalChange);
       // TODO encapsulate all dbApi calls into version control module
-      dbApi.updateSynced(db, fileChanges);
-      dbApi.updateLocal(db, fileChanges); // TODO: skip write if local timestamp is newer
+      dbApi.clone(db, fileChanges);
+      dbApi.commit(db, fileChanges); // TODO: skip write if local timestamp is newer
     };
 
     db.transaction(() => chunks.forEach(processChunk));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     // FIXME this does not work for options page
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = dbApi.getDirtyFiles(db, sync.getUserIgnores(db));
+    const files = dbApi.getAheadFiles(db, sync.getUserIgnores(db));
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushResult = await updateContentBulk(connection, fileChanges);
 
@@ -79,18 +87,18 @@ const routes = {
         content: dbFile.content,
         updatedAt: Date.now(), // TODO use push commit timestamp
       }))
-      .map((file) => dbApi.updateSynced(db, file));
+      .map((file) => dbApi.clone(db, file));
     sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
 
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
+    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
   },
   search: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
-    dbApi.updateLocal(db, { path, content });
-    await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
+    dbApi.commit(db, { path, content });
+    await proxy.setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))));
   },
 };
 
@@ -100,6 +108,8 @@ server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) }
 (async function init() {
   const db = await dbInit();
   // FIXME this does not work for options page
-  await proxy.setStatus(formatStatus(dbApi.getDirtyFiles(db, sync.getUserIgnores(db))));
-  console.log("[data worker] initialized");
+  proxy
+    .setStatus(formatStatus(dbApi.getAheadFiles(db, sync.getUserIgnores(db))))
+    .catch((e) => console.log(e))
+    .finally(() => console.log("working init done"));
 })();

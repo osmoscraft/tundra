@@ -1,11 +1,11 @@
 import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
 import { getConnection } from ".";
-import type { TextFile } from "../database";
+import type { GraphFile } from "../database";
 import * as github from "./github";
 import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export function GithubChangeToLocalChange(record: RemoteChangeRecord): TextFile {
+export function GithubChangeToLocalChange(record: RemoteChangeRecord): GraphFile {
   return {
     path: record.path,
     content: record.text,

@@ -8,6 +8,7 @@
 
 # Alpha must have
 
+- Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Prevent merge when in conflict
 - Decide json vs. yaml for persistence and editing
 - Refactor: add graph layer to handle meta + dirty tracking

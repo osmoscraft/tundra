@@ -1,13 +1,15 @@
 import { assertDeepEqual, assertDefined, assertEqual, assertUndefined } from "../../live-test";
 import {
-  deleteFiles,
-  getDirtyFiles,
+  clone,
+  commit,
+  fetch,
+  getAheadFiles,
   getFile,
   getRecentFiles,
+  merge,
+  push,
+  remove,
   searchFiles,
-  updateLocal,
-  updateRemote,
-  updateSynced,
 } from "../graph";
 import { DbFileAction, DbFileV2Status } from "../schema";
 import SCHEMA from "../schema.sql";
@@ -19,7 +21,7 @@ export async function testLocalFileEditLifecycle() {
   assertUndefined(getFile(db, "/test.md"), "Before file created");
 
   // create
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
@@ -34,7 +36,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // edit
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 2,
@@ -48,7 +50,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete
-  deleteFiles(db, ["/test.md"]);
+  remove(db, ["/test.md"]);
 
   assertUndefined(getFile(db, "/test.md"), "After all files deleted");
 }
@@ -57,14 +59,14 @@ export async function testLocalFirstSync() {
   const db = await createTestDb(SCHEMA);
 
   // create
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
   // push
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 2,
@@ -79,7 +81,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // edit after push
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 3,
@@ -94,7 +96,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete after push
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: null,
     updatedAt: 4,
@@ -109,7 +111,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // undo all changes after push
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 5,
@@ -127,7 +129,7 @@ export async function testLocalFirstSync() {
 export async function testDeleteFiles() {
   const db = await createTestDb(SCHEMA);
 
-  updateLocal(db, [
+  commit(db, [
     { path: "file-1.md", content: "", updatedAt: 4 },
     { path: "dir1/file-2.md", content: "", updatedAt: 9 },
     { path: "dir1/file-3.md", content: "", updatedAt: 9 },
@@ -135,17 +137,17 @@ export async function testDeleteFiles() {
   ]);
 
   assertEqual(getFile(db, "file-1.md")?.path, "file-1.md", "file-1.md");
-  deleteFiles(db, ["file-1.md"]);
+  remove(db, ["file-1.md"]);
   assertEqual(getFile(db, "file-1.md"), undefined, "file-1.md");
 
   assertEqual(getFile(db, "dir1/file-2.md")?.path, "dir1/file-2.md", "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md")?.path, "dir1/file-3.md", "dir1/file-3.md");
-  deleteFiles(db, ["dir1*"]);
+  remove(db, ["dir1*"]);
   assertEqual(getFile(db, "dir1/file-2.md"), undefined, "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md"), undefined, "dir1/file-3.md");
 
   assertEqual(getFile(db, "dir2/subdir/file-4.md")?.path, "dir2/subdir/file-4.md", "dir2/subdir/file-4.md");
-  deleteFiles(db, ["dir2/*"]);
+  remove(db, ["dir2/*"]);
   assertEqual(getFile(db, "dir2/subdir/file-4.md"), undefined, "dir2/subdir/file-4.md");
 }
 
@@ -153,7 +155,7 @@ export async function testRemoteFirstSync() {
   const db = await createTestDb(SCHEMA);
 
   // remote create
-  updateRemote(db, {
+  fetch(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
@@ -167,7 +169,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.status, DbFileV2Status.Behind, "is behind");
 
   // pull
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 2,
@@ -181,7 +183,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // remote edit
-  updateRemote(db, {
+  fetch(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 3,
@@ -195,7 +197,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.status, DbFileV2Status.Behind, "is behind");
 
   // pull edit
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: "hello world 2",
     updatedAt: 3,
@@ -209,7 +211,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 
   // remote delete
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: null,
     updatedAt: 4,
@@ -223,19 +225,19 @@ export async function testSyncOverrideLocal() {
   const db = await createTestDb(SCHEMA);
 
   // remote time >= local
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world local version",
     updatedAt: 3,
   });
 
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: "hello world remote version",
     updatedAt: 3,
@@ -253,19 +255,19 @@ export async function testLocalOverrideSync() {
   const db = await createTestDb(SCHEMA);
 
   // remote time < local
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world",
     updatedAt: 1,
   });
 
-  updateLocal(db, {
+  commit(db, {
     path: "/test.md",
     content: "hello world local version",
     updatedAt: 3,
   });
 
-  updateSynced(db, {
+  clone(db, {
     path: "/test.md",
     content: "hello world remote version",
     updatedAt: 2,
@@ -279,16 +281,103 @@ export async function testLocalOverrideSync() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 }
 
+export async function testPushFiles() {
+  const db = await createTestDb(SCHEMA);
+
+  // setup
+  clone(db, [
+    { path: "file1.md", content: "hello world", updatedAt: 1 }, // to be unchanged
+    { path: "file2.md", content: "hello world", updatedAt: 1 }, // to be deleted
+    { path: "file3.md", content: "hello world", updatedAt: 1 }, // to be modified
+  ]);
+
+  commit(db, [
+    { path: "file2.md", content: null, updatedAt: 2 },
+    { path: "file3.md", content: "modified", updatedAt: 2 },
+    { path: "file4.md", content: "new", updatedAt: 2 }, // new
+  ]);
+
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.localAction, DbFileAction.None);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file2.md")!.localAction, DbFileAction.Remove);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file3.md")!.localAction, DbFileAction.Modify);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file4.md")!.localAction, DbFileAction.Add);
+
+  // push
+
+  push(db, [
+    { path: "file1.md", content: "hello world", updatedAt: 2 },
+    { path: "file2.md", content: null, updatedAt: 2 },
+    { path: "file3.md", content: "modified", updatedAt: 2 },
+    { path: "file4.md", content: "new", updatedAt: 2 },
+  ]);
+
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.localAction, DbFileAction.None);
+  assertUndefined(getFile(db, "file2.md"));
+  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.localAction, DbFileAction.None);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file4.md")!.localAction, DbFileAction.None);
+}
+
+export async function testMergeFiles() {
+  const db = await createTestDb(SCHEMA);
+
+  // setup
+  clone(db, [
+    { path: "file1.md", content: "hello world", updatedAt: 1 }, // to be unchanged
+    { path: "file2.md", content: "hello world", updatedAt: 1 }, // to be deleted
+    { path: "file3.md", content: "hello world", updatedAt: 1 }, // to be modified
+  ]);
+
+  fetch(db, [
+    { path: "file2.md", content: null, updatedAt: 2 },
+    { path: "file3.md", content: "modified", updatedAt: 2 },
+    { path: "file4.md", content: "new", updatedAt: 2 }, // new
+  ]);
+
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.remoteAction, DbFileAction.None);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file2.md")!.remoteAction, DbFileAction.Remove);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file3.md")!.remoteAction, DbFileAction.Modify);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.Add);
+
+  // merge
+  merge(db, [
+    { path: "file1.md", content: "hello world", updatedAt: 2 },
+    { path: "file2.md", content: null, updatedAt: 2 },
+    { path: "file3.md", content: "modified", updatedAt: 2 },
+    { path: "file4.md", content: "new", updatedAt: 2 },
+  ]);
+
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.remoteAction, DbFileAction.None);
+  assertUndefined(getFile(db, "file2.md"));
+  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.remoteAction, DbFileAction.None);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.None);
+}
+
+export async function testMerge() {}
+
 export async function testGetRecentFiles() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  updateLocal(db, [
+  commit(db, [
     { path: "file-1.md", content: "", updatedAt: 9 },
     { path: "file-2.md", content: "", updatedAt: 4 },
     { path: "file-3.md", content: "", updatedAt: 6 },
   ]);
-  updateSynced(db, [
+  clone(db, [
     { path: "file-4.md", content: "", updatedAt: 8 },
     { path: "file-5.md", content: "", updatedAt: 10 },
     { path: "file-6.md", content: "", updatedAt: 2 },
@@ -305,7 +394,7 @@ export async function testGetRecentFilesWithScope() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  updateLocal(db, [
+  commit(db, [
     { path: "dir1/file-1.md", content: "", updatedAt: 9 },
     { path: "dir1/file-2.md", content: "", updatedAt: 4 },
     { path: "dir2/file-3.md", content: "", updatedAt: 6 },
@@ -323,7 +412,7 @@ export async function testGetRecentFilesWithIgnore() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  updateLocal(db, [
+  commit(db, [
     { path: "dir1/file-1.md", content: "", updatedAt: 9 },
     { path: "dir1/file-2.md", content: "", updatedAt: 4 },
     { path: "dir2/file-3.md", content: "", updatedAt: 6 },
@@ -340,7 +429,7 @@ export async function testGetRecentFilesWithIgnore() {
 export async function testGetDirtyFiles() {
   const db = await createTestDb(SCHEMA);
 
-  updateSynced(db, [
+  clone(db, [
     { path: "file-2.md", content: "", updatedAt: 3 },
     { path: "file-3.md", content: "", updatedAt: 5 },
     { path: "file-5.md", content: null, updatedAt: 5 },
@@ -349,7 +438,7 @@ export async function testGetDirtyFiles() {
   ]);
 
   // prepare files with various sources and timestamps
-  updateLocal(db, [
+  commit(db, [
     { path: "file-1.md", content: "", updatedAt: 9 }, // created
     { path: "file-2.md", content: "modified", updatedAt: 4 }, // modified
     { path: "file-3.md", content: null, updatedAt: 6 }, // deleted
@@ -360,12 +449,12 @@ export async function testGetDirtyFiles() {
     { path: "file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
   ]);
 
-  updateSynced(db, [
+  clone(db, [
     { path: "file-4.md", content: null, updatedAt: 7 },
     { path: "file-7.md", content: "", updatedAt: 7 },
   ]);
 
-  const dirtyFiles = getDirtyFiles(db);
+  const dirtyFiles = getAheadFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-3.md"]);
 }
 
@@ -373,7 +462,7 @@ export async function testGetDirtyFilesWithIgnore() {
   const db = await createTestDb(SCHEMA);
 
   // prepare files with various sources and timestamps
-  updateLocal(db, [
+  commit(db, [
     { path: "file-1.md", content: "", updatedAt: 9 },
     { path: "file-2.md", content: "", updatedAt: 9 },
     { path: "dir-1/file.md", content: "", updatedAt: 9 },
@@ -381,7 +470,7 @@ export async function testGetDirtyFilesWithIgnore() {
     { path: "dir-2/file.md", content: "", updatedAt: 9 },
   ]);
 
-  const dirtyFiles = getDirtyFiles(db);
+  const dirtyFiles = getAheadFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), [
     "dir-1/file.md",
     "dir-1/subdir/file.md",
@@ -390,59 +479,59 @@ export async function testGetDirtyFilesWithIgnore() {
     "file-2.md",
   ]);
 
-  const dirtyFilesWithIgnore = getDirtyFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
+  const dirtyFilesWithIgnore = getAheadFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
   assertDeepEqual(dirtyFilesWithIgnore.map((f) => f.path).sort(), ["dir-1/file.md", "file-1.md"]);
 }
 
 export async function testBulkOperations() {
   const db = await createTestDb(SCHEMA);
 
-  updateLocal(db, []); // empty
-  updateSynced(db, []); // empty
+  commit(db, []); // empty
+  clone(db, []); // empty
 }
 
 export async function testMetaCRUD() {
   const db = await createTestDb(SCHEMA);
 
-  updateSynced(db, { path: "/no-content-meta.md", content: "", updatedAt: 1 });
-  updateLocal(db, { path: "/no-content-meta.md", content: null, updatedAt: 2 });
+  clone(db, { path: "/no-content-meta.md", content: "", updatedAt: 1 });
+  commit(db, { path: "/no-content-meta.md", content: null, updatedAt: 2 });
   assertDeepEqual(getFile(db, "/no-content-meta.md")!.meta, null, "deleted file meta");
 
-  updateLocal(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
+  commit(db, { path: "/meta-undefined.md", content: "", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-undefined.md")!.meta, {}, "undefined meta");
 
-  updateLocal(db, { path: "/meta-empty.md", content: "---\n---", updatedAt: 1 });
+  commit(db, { path: "/meta-empty.md", content: "---\n---", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/meta-empty.md")!.meta, {}, "empty meta");
 
-  updateLocal(db, { path: "/unsupported-type.exe", content: "---\n---", updatedAt: 1 });
+  commit(db, { path: "/unsupported-type.exe", content: "---\n---", updatedAt: 1 });
   assertDeepEqual(getFile(db, "/unsupported-type.exe")!.meta, {}, "unsupported type");
 
-  updateSynced(db, { path: "/unsupported-type-deleted.exe", content: "", updatedAt: 1 });
-  updateLocal(db, { path: "/unsupported-type-deleted.exe", content: null, updatedAt: 2 });
+  clone(db, { path: "/unsupported-type-deleted.exe", content: "", updatedAt: 1 });
+  commit(db, { path: "/unsupported-type-deleted.exe", content: null, updatedAt: 2 });
   assertDeepEqual(getFile(db, "/unsupported-type-deleted.exe")!.meta, null, "unsupported type deleted");
 
-  updateLocal(db, {
+  commit(db, {
     path: "/meta-extended.md",
     content: "---\nhello: 42\nworld: true\n---\n",
     updatedAt: 1,
   });
   assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
 
-  updateLocal(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
-  updateSynced(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
+  commit(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
+  clone(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
 
   const recentFiles = getRecentFiles(db, { limit: 10 });
   assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
   assertEqual(recentFiles.find((f) => f.path === "file-3.md")!.meta.title, "title 3", "title 3");
 
-  const dirtyFiles = getDirtyFiles(db);
+  const dirtyFiles = getAheadFiles(db);
   assertEqual(dirtyFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
 }
 
 export async function testSearchMeta() {
   const db = await createTestDb(SCHEMA);
 
-  updateLocal(db, [
+  commit(db, [
     { path: "node-1.md", content: "---\ntitle: hello world\n---", updatedAt: 1 },
     { path: "node-2.md", content: "---\ntitle: OK Computer\n---", updatedAt: 1 },
     { path: "node-3.md", content: "---\ntitle: random stuff\n---", updatedAt: 1 },
@@ -467,12 +556,12 @@ export async function testSearchMeta() {
 export async function testSearchFileContent() {
   const db = await createTestDb(SCHEMA);
 
-  updateLocal(db, [
+  commit(db, [
     { path: "file-1.md", content: "hello world", updatedAt: 1 },
     { path: "file-3.md", content: "OK Computer", updatedAt: 1 },
   ]);
-  updateSynced(db, [{ path: "file-2.md", content: "random stuff", updatedAt: 1 }]);
-  updateSynced(db, [{ path: "file-4.md", content: "fancy content", updatedAt: 1 }]);
+  clone(db, [{ path: "file-2.md", content: "random stuff", updatedAt: 1 }]);
+  clone(db, [{ path: "file-4.md", content: "fancy content", updatedAt: 1 }]);
 
   console.log("[test] fileSearch/empty");
   const emptyResults = searchFiles(db, { query: "nothing should show up", limit: 10 });
@@ -500,7 +589,7 @@ export async function testSearchFileContent() {
   assertEqual(ignoreNoMatchResults.length, 1, "Exactly one result");
 
   console.log("[test] fileSearch/scoped");
-  updateLocal(db, [
+  commit(db, [
     { path: "dir1/a.md", content: "red", updatedAt: 1 },
     { path: "dir1/b.md", content: "blue", updatedAt: 1 },
     { path: "dir2/c.md", content: "red", updatedAt: 1 },

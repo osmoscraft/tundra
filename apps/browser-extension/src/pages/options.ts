@@ -1,11 +1,13 @@
 import { staticDependencies } from "@tinykb/dom-utils";
-import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
+import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
 import { DevtoolElement } from "../modules/devtool/devtool-element";
 import { FileSystemReadonlyExplorerElement } from "../modules/devtool/file-system-readonly-explorer-element";
 import { GithubConfigElement } from "../modules/sync/github/github-config-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
+
+server({ routes: {}, port: dedicatedWorkerHostPort(worker) });
 
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 

@@ -25,6 +25,14 @@ export function deleteFile(db: Sqlite3.DB, path: string) {
   return deleteFiles(db, [path]);
 }
 
+export interface CopyFileSourceInput {
+  source: "local" | "remote";
+  paths: string[];
+  filters?: Filter[];
+  ignore?: string[];
+}
+export function syncFile(db: Sqlite3.DB, source: string, target: string) {}
+
 export interface ListOptions {
   paths?: string[];
   limit?: number;

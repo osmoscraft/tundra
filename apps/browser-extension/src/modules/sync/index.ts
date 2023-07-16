@@ -1,4 +1,5 @@
-import { getFile, updateLocal } from "../database";
+// import { commit, getFile } from "../database";
+import * as graphApi from "../database/graph";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
 
@@ -9,26 +10,26 @@ export * from "./ignore";
 export * from "./push";
 
 export function getConnection(db: Sqlite3.DB) {
-  const raw = getFile(db, "config/sync/github.json");
+  const raw = graphApi.getFile(db, "config/sync/github.json");
   return raw?.content ? (JSON.parse(raw.content) as GithubConnection) : undefined;
 }
 
 export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {
-  return getFile(db, "config/sync/github-head-commit.txt")?.content;
+  return graphApi.getFile(db, "config/sync/github-head-commit.txt")?.content;
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {
   const path = "config/sync/github.json";
   const content = JSON.stringify(connection);
 
-  updateLocal(db, {
+  graphApi.commit(db, {
     path,
     content,
   });
 }
 
 export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string) {
-  updateLocal(db, {
+  graphApi.commit(db, {
     path: "config/sync/github-head-commit.txt",
     content: commit,
   });
