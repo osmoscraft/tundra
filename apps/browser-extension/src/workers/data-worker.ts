@@ -54,7 +54,6 @@ const routes = {
     const items = await drainGenerator(generator);
     db.transaction(() => dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange)));
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
-    // FIXME this does not work for options page
     await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   merge: async () => {
@@ -62,22 +61,11 @@ const routes = {
     const files = dbApi.getRawBehindFiles(db, sync.getUserIgnores(db));
     const graphSources = files.map(dbApi.parseDbFileToGraphSource);
     dbApi.merge(db, graphSources);
+    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   pull: async () => {
-    const db = await dbInit();
-    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
-    const chunks = await sync.collectGithubRemoteToChunks(100, generator);
-    const processChunk = (chunk: RemoteChangeRecord[]) => {
-      const fileChanges = chunk.map(sync.GithubChangeToLocalChange);
-      // TODO encapsulate all dbApi calls into version control module
-      dbApi.clone(db, fileChanges);
-      dbApi.commit(db, fileChanges); // TODO: skip write if local timestamp is newer
-    };
-
-    db.transaction(() => chunks.forEach(processChunk));
-    sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
-    // FIXME this does not work for options page
-    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
+    await routes.fetch();
+    await routes.merge();
   },
   push: async () => {
     const db = await dbInit();
