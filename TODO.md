@@ -1,21 +1,12 @@
-# Scratchpad
-
-- File v1->v2 schema migration
-  - file.list method implementation
-  - file.search method implementation
-  - Add commit, push, fetch, merge methods in graph
-  - Refactor list and search into generic sql utils
-
 # Alpha must have
 
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
-- Prevent merge when in conflict
+- Automerge with higher timestamp
 - Decide json vs. yaml for persistence and editing
-- Refactor: add graph layer to handle meta + dirty tracking
 - Use node.js for testing (need sqlite 3.43)
+- Better system files scaffolding
 - Auto generate built-in gitignore
 - Regenerate system files after clone
-- Better system files scaffolding
 - Backlink display in bottom panel suggestion bar (when omnibox not open)
 - Link insertion via omnibox
 - Hot swap internal navigation
@@ -23,10 +14,10 @@
 - Need to handle invalid frontmatter state during auto save
 - Ignore system files in search
 - DB Migration strategy
-- Tune clone performance, goal <2ms per file, baseline 4.5ms per file
 
 # Future
 
+- Tune clone performance, goal <2ms per file, baseline 4.5ms per file
 - Load keybinding from synced storage
 - Link insertion via autocomplete
 - Add search unit tests
