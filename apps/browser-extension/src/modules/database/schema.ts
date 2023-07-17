@@ -7,6 +7,8 @@ export interface DbWritableFileV2 {
 
 export interface DbReadableFileV2 {
   path: string;
+  local: string | null;
+  remote: string | null;
 
   /* Derived */
   content: string | null;

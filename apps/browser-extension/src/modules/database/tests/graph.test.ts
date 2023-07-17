@@ -3,10 +3,9 @@ import {
   clone,
   commit,
   fetch,
+  getDirtyFiles,
   getFile,
-  getRawAheadFiles,
   getRecentFiles,
-  listDirtyFiles,
   merge,
   push,
   remove,
@@ -309,13 +308,7 @@ export async function testPushFiles() {
   assertEqual(getFile(db, "file4.md")!.localAction, DbFileAction.Add);
 
   // push
-
-  push(db, [
-    { path: "file1.md", content: "hello world", updatedAt: 2 },
-    { path: "file2.md", content: null, updatedAt: 2 },
-    { path: "file3.md", content: "modified", updatedAt: 2 },
-    { path: "file4.md", content: "new", updatedAt: 2 },
-  ]);
+  push(db, { paths: ["file1.md", "file2.md", "file3.md", "file4.md"] });
 
   assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
   assertEqual(getFile(db, "file1.md")!.localAction, DbFileAction.None);
@@ -352,12 +345,7 @@ export async function testMergeFiles() {
   assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.Add);
 
   // merge
-  merge(db, [
-    { path: "file1.md", content: "hello world", updatedAt: 2 },
-    { path: "file2.md", content: null, updatedAt: 2 },
-    { path: "file3.md", content: "modified", updatedAt: 2 },
-    { path: "file4.md", content: "new", updatedAt: 2 },
-  ]);
+  merge(db, { paths: ["file1.md", "file2.md", "file3.md", "file4.md"] });
 
   assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
   assertEqual(getFile(db, "file1.md")!.remoteAction, DbFileAction.None);
@@ -456,7 +444,7 @@ export async function testGetDirtyFiles() {
     { path: "file-7.md", content: "", updatedAt: 7 },
   ]);
 
-  const dirtyFiles = listDirtyFiles(db).ahead;
+  const dirtyFiles = getDirtyFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-3.md"]);
 }
 
@@ -472,7 +460,7 @@ export async function testGetDirtyFilesWithIgnore() {
     { path: "dir-2/file.md", content: "", updatedAt: 9 },
   ]);
 
-  const dirtyFiles = listDirtyFiles(db).ahead;
+  const dirtyFiles = getDirtyFiles(db);
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), [
     "dir-1/file.md",
     "dir-1/subdir/file.md",
@@ -481,7 +469,7 @@ export async function testGetDirtyFilesWithIgnore() {
     "file-2.md",
   ]);
 
-  const dirtyFilesWithIgnore = getRawAheadFiles(db, ["file-2.md*", "dir-1/subdir*", "dir-2*"]);
+  const dirtyFilesWithIgnore = getDirtyFiles(db, { ignore: ["file-2.md*", "dir-1/subdir*", "dir-2*"] });
   assertDeepEqual(dirtyFilesWithIgnore.map((f) => f.path).sort(), ["dir-1/file.md", "file-1.md"]);
 }
 
@@ -526,7 +514,7 @@ export async function testMetaCRUD() {
   assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
   assertEqual(recentFiles.find((f) => f.path === "file-3.md")!.meta.title, "title 3", "title 3");
 
-  const dirtyFiles = listDirtyFiles(db).ahead.map(decodeMeta);
+  const dirtyFiles = getDirtyFiles(db).map(decodeMeta);
   assertEqual(dirtyFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
 }
 

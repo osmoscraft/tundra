@@ -1,7 +1,7 @@
 import { array } from "@tinykb/fp-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
-import { DbFileV2Status, type DbReadableFileV2, type DbWritableFileV2 } from "./schema";
+import { DbFileV2Status, type DbWritableFileV2 } from "./schema";
 
 export interface GraphWritableSource {
   path: string;
@@ -39,14 +39,40 @@ export function clone(db: Sqlite3.DB, files: GraphWritableSource | GraphWritable
   );
 }
 
-export function merge(db: Sqlite3.DB, input: GraphWritableSource | GraphWritableSource[]) {
-  const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Behind);
-  clone(db, changes);
+export interface MergeInput {
+  paths?: string[];
+  ignore?: string[];
+}
+export function merge(db: Sqlite3.DB, input: MergeInput) {
+  const files = fileApi.listFiles(db, {
+    paths: input.paths,
+    ignore: input.ignore,
+    filters: [["status", "=", DbFileV2Status.Behind]],
+  });
+
+  // move remote into synced
+  fileApi.upsertFiles(
+    db,
+    files.map((file) => ({ path: file.path, synced: file.remote }))
+  );
 }
 
-export function push(db: Sqlite3.DB, input: GraphWritableSource | GraphWritableSource[]) {
-  const changes = array(input).filter((file) => fileApi.selectFile(db, file.path)?.status === DbFileV2Status.Ahead);
-  clone(db, changes);
+export interface PushInput {
+  paths?: string[];
+  ignore?: string[];
+}
+export function push(db: Sqlite3.DB, input: PushInput) {
+  const files = fileApi.listFiles(db, {
+    paths: input.paths,
+    ignore: input.ignore,
+    filters: [["status", "=", DbFileV2Status.Ahead]],
+  });
+
+  // move local into synced
+  fileApi.upsertFiles(
+    db,
+    files.map((file) => ({ path: file.path, synced: file.local }))
+  );
 }
 
 export function remove(db: Sqlite3.DB, patterns: string[]) {
@@ -75,41 +101,48 @@ export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   return files.map(decodeMeta);
 }
 
-export function getRawAheadFiles(db: Sqlite3.DB, ignore: string[] = []) {
+export interface GetDirtyFilesInput {
+  paths?: string[];
+  ignore?: string[];
+}
+
+export function getDirtyFiles(db: Sqlite3.DB, input?: GetDirtyFilesInput) {
   return fileApi.listFiles(db, {
-    ignore,
-    filters: [["status", "=", DbFileV2Status.Ahead]],
+    filters: [["status", "!=", DbFileV2Status.Synced]],
+    paths: input?.paths,
+    ignore: input?.ignore,
   });
 }
 
-export interface FilesByStatus {
-  ahead: DbReadableFileV2[];
-  behind: DbReadableFileV2[];
-  conflict: DbReadableFileV2[];
+export interface GetStatusSummaryInput {
+  paths?: string[];
+  ignore?: string[];
 }
 
-export function listDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
-  const results: FilesByStatus = {
-    ahead: [],
-    behind: [],
-    conflict: [],
-  };
+export interface StatusSummary {
+  ahead: number;
+  behind: number;
+  conflict: number;
+}
 
-  return fileApi
-    .listFiles(db, {
-      ignore,
-      filters: [["status", "!=", DbFileV2Status.Synced]],
-    })
-    .reduce((acc, file) => {
+export function getStatusSummary(db: Sqlite3.DB, input?: GetStatusSummaryInput): StatusSummary {
+  return getDirtyFiles(db, input).reduce(
+    (acc, file) => {
       if (file.status === DbFileV2Status.Ahead) {
-        acc.ahead.push(file);
+        acc.ahead++;
       } else if (file.status === DbFileV2Status.Behind) {
-        acc.behind.push(file);
+        acc.behind++;
       } else if (file.status === DbFileV2Status.Conflict) {
-        acc.conflict.push(file);
+        acc.conflict++;
       }
       return acc;
-    }, results);
+    },
+    {
+      ahead: 0,
+      behind: 0,
+      conflict: 0,
+    }
+  );
 }
 
 export interface SearchFilesInput {
@@ -128,8 +161,6 @@ export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
   return files.map(decodeMeta);
 }
 
-// conversions
-
 export function serializeGraphSourceToDbFile(
   graphSource: GraphWritableSource,
   now: number,
@@ -142,20 +173,5 @@ export function serializeGraphSourceToDbFile(
       meta: encodeMeta(graphSource),
       updatedAt: graphSource.updatedAt === undefined ? now : graphSource.updatedAt,
     }),
-  };
-}
-
-export function parseDbFileToGraphSource(file: DbReadableFileV2): GraphReadableSource {
-  return {
-    path: file.path,
-    content: file.content,
-    updatedAt: file.updatedAt,
-  };
-}
-
-export function setUpdatedAt(updatedAt: number, source: GraphReadableSource): GraphReadableSource {
-  return {
-    ...source,
-    updatedAt,
   };
 }

@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce, drainGenerator, pipe } from "@tinykb/fp-utils";
+import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -36,8 +36,8 @@ const routes = {
   getRecentFiles: async () => searchRecentNotes(await dbInit(), 10),
   getStatus: async () => {
     const db = await dbInit();
-    const dirtyFiles = dbApi.listDirtyFiles(db, sync.getUserIgnores(db));
-    return formatStatus(dirtyFiles.ahead.length, dirtyFiles.behind.length, dirtyFiles.conflict.length);
+    const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getUserIgnores(db) });
+    return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
   },
   clone: async () => {
     const db = await dbInit();
@@ -60,22 +60,18 @@ const routes = {
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
   },
   merge: async () => {
-    debugger;
     const db = await dbInit();
-    const files = dbApi.listDirtyFiles(db, sync.getUserIgnores(db)).behind;
-    const graphSources = files.map(dbApi.parseDbFileToGraphSource);
-    dbApi.merge(db, graphSources);
+    dbApi.merge(db, { paths: dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) }).map((file) => file.path) });
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = dbApi.listDirtyFiles(db, sync.getUserIgnores(db)).ahead;
+    const files = dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) });
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushTime = Date.now();
     const pushResult = await updateContentBulk(connection, fileChanges);
-    const graphSources = files.map(pipe(dbApi.parseDbFileToGraphSource, dbApi.setUpdatedAt.bind(null, pushTime)));
     db.transaction(() => {
-      dbApi.push(db, graphSources);
+      dbApi.push(db, { paths: files.map((file) => file.path) });
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
   },

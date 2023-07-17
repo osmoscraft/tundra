@@ -64,7 +64,7 @@ export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFileV
           ].join("\n,"),
         ]
       : []),
-    `SELECT meta,path,content,localAction,remoteAction,status,updatedAt FROM File`,
+    `SELECT * FROM File`,
     ...(options.filters?.length || options.paths?.length || options.ignore?.length
       ? [
           "WHERE",
