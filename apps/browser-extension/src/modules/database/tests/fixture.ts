@@ -1,6 +1,6 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
-import { selectFile, upsertFile } from "../file";
+import { getFile, updateFile } from "../file";
 import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
 import type { ColumnSpec } from "./spec-gen";
 
@@ -31,7 +31,7 @@ export function mockFile(time: number, content: string | null, meta: string | nu
   return JSON.stringify(snapshot);
 }
 
-const selectTestFile = selectFile as (db: Sqlite3.DB, path: string) => DbInternalFileV2 | undefined;
+const selectTestFile = getFile as (db: Sqlite3.DB, path: string) => DbInternalFileV2 | undefined;
 
 export function assertFileUpdatedAt(db: Sqlite3.DB, path: string, version: number) {
   const source = selectTestFile(db, path)?.source;
@@ -147,7 +147,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     };
 
     if (options.verbose) console.log("[fsm] from", fromState);
-    upsertFile(db, fromState);
+    updateFile(db, fromState);
   };
 
   const act = () => {
@@ -171,7 +171,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
 
     if (options.verbose) console.log("[fsm] action", actionState);
 
-    upsertFile(db, actionState);
+    updateFile(db, actionState);
   };
 
   const assert = (act: () => any) => {
@@ -309,7 +309,7 @@ export const assertColumnSpec: AssertColumnSpec = ((
     };
 
     if (options?.verbose) console.log("[column specs] from", fromState);
-    upsertFile(db, fromState);
+    updateFile(db, fromState);
   };
 
   const assert = () => {

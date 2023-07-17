@@ -17,7 +17,7 @@ export interface GraphReadableSource {
 
 export function commit(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
-  fileApi.upsertFiles(
+  fileApi.updateFiles(
     db,
     array(files).map((file) => serializeGraphSourceToDbFile(file, now, "local"))
   );
@@ -25,7 +25,7 @@ export function commit(db: Sqlite3.DB, files: GraphWritableSource | GraphWritabl
 
 export function fetch(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
-  fileApi.upsertFiles(
+  fileApi.updateFiles(
     db,
     array(files).map((file) => serializeGraphSourceToDbFile(file, now, "remote"))
   );
@@ -33,7 +33,7 @@ export function fetch(db: Sqlite3.DB, files: GraphWritableSource | GraphWritable
 
 export function clone(db: Sqlite3.DB, files: GraphWritableSource | GraphWritableSource[]) {
   const now = Date.now();
-  fileApi.upsertFiles(
+  fileApi.updateFiles(
     db,
     array(files).map((file) => serializeGraphSourceToDbFile(file, now, "synced"))
   );
@@ -51,7 +51,7 @@ export function merge(db: Sqlite3.DB, input: MergeInput) {
   });
 
   // move remote into synced
-  fileApi.upsertFiles(
+  fileApi.updateFiles(
     db,
     files.map((file) => ({ path: file.path, synced: file.remote }))
   );
@@ -69,18 +69,18 @@ export function push(db: Sqlite3.DB, input: PushInput) {
   });
 
   // move local into synced
-  fileApi.upsertFiles(
+  fileApi.updateFiles(
     db,
     files.map((file) => ({ path: file.path, synced: file.local }))
   );
 }
 
-export function remove(db: Sqlite3.DB, patterns: string[]) {
+export function untrack(db: Sqlite3.DB, patterns: string[]) {
   fileApi.deleteFiles(db, patterns);
 }
 
 export function getFile(db: Sqlite3.DB, path: string) {
-  const file = fileApi.selectFile(db, path);
+  const file = fileApi.getFile(db, path);
   if (!file) return undefined;
 
   return decodeMeta(file);

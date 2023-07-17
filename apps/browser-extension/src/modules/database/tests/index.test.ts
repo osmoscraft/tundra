@@ -7,7 +7,6 @@ import {
 } from "./db.test";
 import {
   testBulkOperations,
-  testDeleteFiles,
   testGetDirtyFiles,
   testGetDirtyFilesWithIgnore,
   testGetRecentFiles,
@@ -23,6 +22,7 @@ import {
   testSearchFileContent,
   testSearchMeta,
   testSyncOverrideLocal,
+  testUntrackFiles,
 } from "./graph.test";
 
 export async function testDatabase() {
@@ -33,7 +33,7 @@ export async function testDatabase() {
     testRemoteFirstSync,
     testSyncOverrideLocal,
     testLocalOverrideSync,
-    testDeleteFiles,
+    testUntrackFiles,
     testPushFiles,
     testMergeFiles,
     testGetRecentFiles,

@@ -14,6 +14,7 @@
 - Need to handle invalid frontmatter state during auto save
 - Ignore system files in search
 - DB Migration strategy
+- implement soft delete for individual files
 
 # Future
 

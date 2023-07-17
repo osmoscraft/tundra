@@ -1,20 +1,20 @@
 import { deleteMany, paramsToBindings, selectMany, upsertMany } from "@tinykb/sqlite-utils";
 import type { DbReadableFileV2, DbWritableFileV2 } from "./schema";
 
-export function upsertFiles(db: Sqlite3.DB, files: DbWritableFileV2[]) {
+export function updateFiles(db: Sqlite3.DB, files: DbWritableFileV2[]) {
   return upsertMany<DbWritableFileV2>(db, { table: "File", key: "path", rows: files });
 }
 
-export function upsertFile(db: Sqlite3.DB, file: DbWritableFileV2) {
-  return upsertFiles(db, [file]);
+export function updateFile(db: Sqlite3.DB, file: DbWritableFileV2) {
+  return updateFiles(db, [file]);
 }
 
-export function selectFiles(db: Sqlite3.DB, paths: string[]) {
+export function getFiles(db: Sqlite3.DB, paths: string[]) {
   return selectMany<DbReadableFileV2>(db, { table: "File", key: "path", value: paths });
 }
 
-export function selectFile(db: Sqlite3.DB, path: string) {
-  return selectFiles(db, [path])[0];
+export function getFile(db: Sqlite3.DB, path: string) {
+  return getFiles(db, [path])[0];
 }
 
 export function deleteFiles(db: Sqlite3.DB, paths: string[]) {

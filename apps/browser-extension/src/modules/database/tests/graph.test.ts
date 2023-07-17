@@ -8,8 +8,8 @@ import {
   getRecentFiles,
   merge,
   push,
-  remove,
   searchFiles,
+  untrack,
 } from "../graph";
 import { decodeMeta } from "../meta";
 import { DbFileAction, DbFileV2Status } from "../schema";
@@ -51,7 +51,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete
-  remove(db, ["/test.md"]);
+  untrack(db, ["/test.md"]);
 
   assertUndefined(getFile(db, "/test.md"), "After all files deleted");
 }
@@ -127,7 +127,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 }
 
-export async function testDeleteFiles() {
+export async function testUntrackFiles() {
   const db = await createTestDb(SCHEMA);
 
   commit(db, [
@@ -138,17 +138,17 @@ export async function testDeleteFiles() {
   ]);
 
   assertEqual(getFile(db, "file-1.md")?.path, "file-1.md", "file-1.md");
-  remove(db, ["file-1.md"]);
+  untrack(db, ["file-1.md"]);
   assertEqual(getFile(db, "file-1.md"), undefined, "file-1.md");
 
   assertEqual(getFile(db, "dir1/file-2.md")?.path, "dir1/file-2.md", "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md")?.path, "dir1/file-3.md", "dir1/file-3.md");
-  remove(db, ["dir1*"]);
+  untrack(db, ["dir1*"]);
   assertEqual(getFile(db, "dir1/file-2.md"), undefined, "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md"), undefined, "dir1/file-3.md");
 
   assertEqual(getFile(db, "dir2/subdir/file-4.md")?.path, "dir2/subdir/file-4.md", "dir2/subdir/file-4.md");
-  remove(db, ["dir2/*"]);
+  untrack(db, ["dir2/*"]);
   assertEqual(getFile(db, "dir2/subdir/file-4.md"), undefined, "dir2/subdir/file-4.md");
 }
 
