@@ -12,7 +12,7 @@ import {
   type Command,
   type KeyBinding,
 } from "@codemirror/view";
-import { client, dedicatedWorkerHostPort, server, type AsyncProxy } from "@tinykb/rpc-utils";
+import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-utils";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
@@ -39,16 +39,8 @@ customElements.define("omnimenu-element", OmnimenuElement);
 customElements.define("system-bar-element", SystemBarElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
-
-const statusEvents = new EventTarget();
-
-export type NotebookRoutes = typeof routes;
-const routes = {
-  setStatus: (text: string) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: text })),
-};
-
-server({ routes, port: dedicatedWorkerHostPort(worker) });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
+const statusEvents = new EventTarget();
 
 function main() {
   const systemBarElement = document
@@ -59,7 +51,7 @@ function main() {
   const menu = systemBarElement.querySelector<OmnimenuElement>("omnimenu-element")!;
 
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
-  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox) };
+  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox, statusBar) };
   const bindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
@@ -83,6 +75,12 @@ function initSystemBar(
   bindings: CommandKeyBinding[],
   library: CommandLibrary
 ) {
+  // request initial status
+  proxy
+    .fetch()
+    .then(proxy.getStatus)
+    .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
+
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
   omnibox.addEventListener("omnibox-input", async (e) => {

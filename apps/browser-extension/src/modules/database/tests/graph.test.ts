@@ -6,11 +6,13 @@ import {
   getFile,
   getRawAheadFiles,
   getRecentFiles,
+  listDirtyFiles,
   merge,
   push,
   remove,
   searchFiles,
 } from "../graph";
+import { decodeMeta } from "../meta";
 import { DbFileAction, DbFileV2Status } from "../schema";
 import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
@@ -454,7 +456,7 @@ export async function testGetDirtyFiles() {
     { path: "file-7.md", content: "", updatedAt: 7 },
   ]);
 
-  const dirtyFiles = getRawAheadFiles(db);
+  const dirtyFiles = listDirtyFiles(db).ahead;
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-3.md"]);
 }
 
@@ -470,7 +472,7 @@ export async function testGetDirtyFilesWithIgnore() {
     { path: "dir-2/file.md", content: "", updatedAt: 9 },
   ]);
 
-  const dirtyFiles = getRawAheadFiles(db);
+  const dirtyFiles = listDirtyFiles(db).ahead;
   assertDeepEqual(dirtyFiles.map((f) => f.path).sort(), [
     "dir-1/file.md",
     "dir-1/subdir/file.md",
@@ -524,7 +526,7 @@ export async function testMetaCRUD() {
   assertEqual(recentFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
   assertEqual(recentFiles.find((f) => f.path === "file-3.md")!.meta.title, "title 3", "title 3");
 
-  const dirtyFiles = getRawAheadFiles(db);
+  const dirtyFiles = listDirtyFiles(db).ahead.map(decodeMeta);
   assertEqual(dirtyFiles.find((f) => f.path === "file-2.md")!.meta.title, "title 2", "title 2");
 }
 

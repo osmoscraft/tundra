@@ -65,7 +65,19 @@
     },
     {
       "name": "Sync",
-      "run": "file.syncAll"
+      "run": "repo.sync"
+    },
+    {
+      "name": "Pull",
+      "run": "repo.pull"
+    },
+    {
+      "name": "Push",
+      "run": "repo.push"
+    },
+    {
+      "name": "Fetch",
+      "run": "repo.fetch"
     }
   ]
 }

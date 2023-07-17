@@ -14,6 +14,7 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./omnibox/omnibox-element";
 
 import { save } from "./save";
+import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface CommandKeyBinding {
   name: string;
@@ -64,7 +65,13 @@ export function editorCommands(): CommandLibrary {
   };
 }
 
-export function extendedCommands(proxy: AsyncProxy<DataWorkerRoutes>, omnibox: OmniboxElement): CommandLibrary {
+export function extendedCommands(
+  proxy: AsyncProxy<DataWorkerRoutes>,
+  omnibox: OmniboxElement,
+  statusBar: StatusBarElement
+): CommandLibrary {
+  const updateStatus = () => proxy.getStatus().then((status) => statusBar.setText(status));
+
   return {
     shell: {
       openOptions: () => {
@@ -86,11 +93,25 @@ export function extendedCommands(proxy: AsyncProxy<DataWorkerRoutes>, omnibox: O
         return true;
       },
       save: (view) => {
-        save(() => view.state.doc.toString(), proxy);
+        save(() => view.state.doc.toString(), proxy).then(updateStatus);
         return true;
       },
-      syncAll: () => {
-        proxy.pull().then(() => proxy.push());
+    },
+    repo: {
+      pull: () => {
+        proxy.fetch().then(proxy.merge).then(updateStatus);
+        return true;
+      },
+      fetch: () => {
+        proxy.fetch().then(updateStatus);
+        return true;
+      },
+      push: () => {
+        proxy.push().then(updateStatus);
+        return true;
+      },
+      sync: () => {
+        proxy.fetch().then(proxy.merge).then(proxy.push).then(updateStatus);
         return true;
       },
     },

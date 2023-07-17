@@ -82,11 +82,34 @@ export function getRawAheadFiles(db: Sqlite3.DB, ignore: string[] = []) {
   });
 }
 
-export function getRawBehindFiles(db: Sqlite3.DB, ignore: string[] = []) {
-  return fileApi.listFiles(db, {
-    ignore,
-    filters: [["status", "=", DbFileV2Status.Behind]],
-  });
+export interface FilesByStatus {
+  ahead: DbReadableFileV2[];
+  behind: DbReadableFileV2[];
+  conflict: DbReadableFileV2[];
+}
+
+export function listDirtyFiles(db: Sqlite3.DB, ignore: string[] = []) {
+  const results: FilesByStatus = {
+    ahead: [],
+    behind: [],
+    conflict: [],
+  };
+
+  return fileApi
+    .listFiles(db, {
+      ignore,
+      filters: [["status", "!=", DbFileV2Status.Synced]],
+    })
+    .reduce((acc, file) => {
+      if (file.status === DbFileV2Status.Ahead) {
+        acc.ahead.push(file);
+      } else if (file.status === DbFileV2Status.Behind) {
+        acc.behind.push(file);
+      } else if (file.status === DbFileV2Status.Conflict) {
+        acc.conflict.push(file);
+      }
+      return acc;
+    }, results);
 }
 
 export interface SearchFilesInput {

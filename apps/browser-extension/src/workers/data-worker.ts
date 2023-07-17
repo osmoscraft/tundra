@@ -1,5 +1,5 @@
 import { asyncPipe, callOnce, drainGenerator, pipe } from "@tinykb/fp-utils";
-import { client, dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
+import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
 import { searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
@@ -9,13 +9,10 @@ import { updateContentBulk } from "../modules/sync/github/operations/update-cont
 import { ensurePushParameters } from "../modules/sync/push";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
-import type { NotebookRoutes } from "../pages/notebook";
 
 export type DataWorkerRoutes = typeof routes;
 
 const DB_PATH = "/tinykb-db.sqlite3";
-
-const { proxy } = client<NotebookRoutes>({ port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
 
 const dbInit = callOnce(() => dbApi.init(DB_PATH));
 const getDbFile = () => getOpfsFileByPath(DB_PATH);
@@ -37,6 +34,11 @@ const routes = {
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
   getRecentFiles: async () => searchRecentNotes(await dbInit(), 10),
+  getStatus: async () => {
+    const db = await dbInit();
+    const dirtyFiles = dbApi.listDirtyFiles(db, sync.getUserIgnores(db));
+    return formatStatus(dirtyFiles.ahead.length, dirtyFiles.behind.length, dirtyFiles.conflict.length);
+  },
   clone: async () => {
     const db = await dbInit();
     await routes.destoryData();
@@ -52,25 +54,22 @@ const routes = {
     const db = await dbInit();
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
     const items = await drainGenerator(generator);
-    db.transaction(() => dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange)));
+    db.transaction(() => {
+      dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange));
+    });
     sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
-    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   merge: async () => {
+    debugger;
     const db = await dbInit();
-    const files = dbApi.getRawBehindFiles(db, sync.getUserIgnores(db));
+    const files = dbApi.listDirtyFiles(db, sync.getUserIgnores(db)).behind;
     const graphSources = files.map(dbApi.parseDbFileToGraphSource);
     dbApi.merge(db, graphSources);
-    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
-  },
-  pull: async () => {
-    await routes.fetch();
-    await routes.merge();
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = dbApi.getRawAheadFiles(db, sync.getUserIgnores(db));
+    const files = dbApi.listDirtyFiles(db, sync.getUserIgnores(db)).ahead;
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushTime = Date.now();
     const pushResult = await updateContentBulk(connection, fileChanges);
@@ -79,8 +78,6 @@ const routes = {
       dbApi.push(db, graphSources);
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
-
-    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
   search: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
@@ -88,18 +85,8 @@ const routes = {
   writeFile: async (path: string, content: string) => {
     const db = await dbInit();
     dbApi.commit(db, { path, content });
-    await proxy.setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))));
   },
 };
 
 dbInit(); // start db init early to reduce response time
 server({ routes, port: dedicatedWorkerPort(self as DedicatedWorkerGlobalScope) });
-
-(async function init() {
-  const db = await dbInit();
-  // FIXME this does not work for options page
-  proxy
-    .setStatus(formatStatus(dbApi.getRawAheadFiles(db, sync.getUserIgnores(db))))
-    .catch((e) => console.log(e))
-    .finally(() => console.log("working init done"));
-})();
