@@ -1,15 +1,15 @@
-<div class="c-systembar">
+<div class="c-top-panel">
   <slot name="prompt"></slot>
   <slot name="menu"></slot>
   <slot name="status"></slot>
 </div>
 <link rel="stylesheet" href="./styles/reset.css" />
 <style>
-  .c-systembar {
+  .c-top-panel {
     display: grid;
     grid-template:
-      "menu menu" 1fr
-      "prompt status" auto / 1fr auto;
+      "prompt status" auto
+      "menu menu" 1fr/1fr auto;
   }
 
   ::slotted([slot="menu"]) {

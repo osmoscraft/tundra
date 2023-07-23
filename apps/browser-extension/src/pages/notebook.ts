@@ -16,7 +16,7 @@ import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-ut
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
-import { systemBar } from "../modules/editor/code-mirror-ext/system-bar";
+import { topPanel } from "../modules/editor/code-mirror-ext/top-panel";
 import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
@@ -29,26 +29,26 @@ import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { OmnimenuElement } from "../modules/editor/suggestion-list/omnimenu-element";
 import userConfig from "../modules/editor/user-config.json";
-import { SystemBarElement } from "../modules/system-bar/system-bar-element";
+import { TopPanelElement } from "../modules/panels/top-panel-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
-customElements.define("system-bar-element", SystemBarElement);
+customElements.define("top-panel-element", TopPanelElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 const statusEvents = new EventTarget();
 
 function main() {
-  const systemBarElement = document
-    .querySelector<HTMLTemplateElement>("#system-bar-template")!
-    .content.querySelector<SystemBarElement>("system-bar-element")!;
-  const statusBar = systemBarElement.querySelector<StatusBarElement>("status-bar-element")!;
-  const omnibox = systemBarElement.querySelector<OmniboxElement>("omnibox-element")!;
-  const menu = systemBarElement.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const topPanelElement = document
+    .querySelector<HTMLTemplateElement>("#top-panel-template")!
+    .content.querySelector<TopPanelElement>("top-panel-element")!;
+  const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
+  const omnibox = topPanelElement.querySelector<OmniboxElement>("omnibox-element")!;
+  const menu = topPanelElement.querySelector<OmnimenuElement>("omnimenu-element")!;
 
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox, statusBar) };
@@ -59,14 +59,14 @@ function main() {
     window.history.replaceState(null, "", `${location.pathname}?path=${encodeURIComponent(`data/notes/draft.md`)}`);
   }
 
-  const editoView = initEditor(systemBarElement, bindings);
-  initSystemBar(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
+  const editoView = initEditor(topPanelElement, bindings);
+  initTopPanel(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
   initContent(proxy, editoView);
 }
 
 main();
 
-function initSystemBar(
+function initTopPanel(
   proxy: AsyncProxy<DataWorkerRoutes>,
   view: EditorView,
   omnibox: OmniboxElement,
@@ -137,7 +137,7 @@ function initSystemBar(
   });
 }
 
-function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[]) {
+function initEditor(topBarElement: TopPanelElement, keyBindings: KeyBinding[]) {
   const path = new URLSearchParams(location.search).get("path");
   const dotPos = path?.lastIndexOf(".");
   const ext = dotPos ? path?.slice(dotPos) : undefined;
@@ -152,7 +152,7 @@ function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[
       dropCursor(),
       EditorView.lineWrapping,
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
-      systemBar(systemBarElement),
+      topPanel(topBarElement),
       oneDark,
       keymap.of(keyBindings),
     ]);
@@ -164,7 +164,7 @@ function initEditor(systemBarElement: SystemBarElement, keyBindings: KeyBinding[
       dropCursor(),
       EditorView.lineWrapping,
       json(),
-      systemBar(systemBarElement),
+      topPanel(topBarElement),
       oneDark,
       keymap.of(keyBindings),
     ]);

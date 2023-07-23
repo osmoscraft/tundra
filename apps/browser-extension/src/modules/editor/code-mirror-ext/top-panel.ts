@@ -1,9 +1,10 @@
 import { type Extension } from "@codemirror/state";
 import { EditorView, showPanel, type Panel } from "@codemirror/view";
 
-function systemBarPanel(dom: HTMLElement, _view: EditorView): Panel {
+function getTopPanel(dom: HTMLElement, _view: EditorView): Panel {
   return {
     dom,
+    top: true,
   };
 }
 
@@ -12,6 +13,6 @@ export interface SystemBarProps {
   prompt: HTMLElement;
   statusBar: HTMLElement;
 }
-export function systemBar(dom: HTMLElement): Extension {
-  return showPanel.of(systemBarPanel.bind(null, dom));
+export function topPanel(dom: HTMLElement): Extension {
+  return showPanel.of(getTopPanel.bind(null, dom));
 }

@@ -1,6 +1,6 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
-import template from "./system-bar-element.html";
+import template from "./top-panel-element.html";
 
-export class SystemBarElement extends HTMLElement {
+export class TopPanelElement extends HTMLElement {
   shadowRoot = attachShadowHtml(template, this);
 }
