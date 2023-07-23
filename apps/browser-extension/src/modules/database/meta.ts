@@ -1,3 +1,5 @@
+import yaml from "yaml";
+
 export type Meta = Record<string, any>;
 export interface WithEncodedMeta {
   meta: string | null;
@@ -38,11 +40,9 @@ export function extractMarkdownMeta(rawFile: string): NoteMeta {
   return frontmatter;
 }
 
-const TITLE_PATTERN = /^title: (.*)$/m;
 function parseFrontmatter(frontmatterText: string): NoteMeta {
-  const [_, title] = TITLE_PATTERN.exec(frontmatterText) ?? [];
-
-  return { title };
+  const result = yaml.parse(frontmatterText) as NoteMeta;
+  return result;
 }
 
 export interface IgnoreNeta {
