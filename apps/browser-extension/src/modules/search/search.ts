@@ -18,6 +18,22 @@ export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
   return files;
 }
 
+export interface SearchBacklinkInput {
+  path: string;
+  limit: number;
+}
+export function searchBacklinkNotes(db: Sqlite3.DB, input: SearchBacklinkInput) {
+  const files = dbApi
+    .searchFiles(db, {
+      query: `"${input.path}"`,
+      limit: input.limit,
+      paths: ["data/notes*"],
+      ignore: getUserIgnores(db),
+    })
+    .filter((file) => file.path !== input.path);
+  return files;
+}
+
 export function searchRecentNotes(db: Sqlite3.DB, limit: number) {
   const files = dbApi.getRecentFiles(db, { limit, paths: ["data/notes*"], ignore: getUserIgnores(db) });
   return files;
@@ -28,6 +44,6 @@ function consecutiveWordPrefixQuery(query: string) {
     .replace(/[\'"]/g, "")
     .replace(/\s+/g, " ")
     .split(" ")
-    .map((word) => `"${word}"*`)
+    .map((word) => `"${word}"*`) // turn it into a prefix query
     .join(" ");
 }

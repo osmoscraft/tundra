@@ -2,7 +2,7 @@ import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
-import { searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
+import { searchBacklinkNotes, searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
@@ -30,14 +30,14 @@ const routes = {
     }
   },
   destoryAll,
-  getBacklinks: async (path: string) => {
-    return [
-      {
-        path: "123.md",
-        title: "Hello world",
-      },
-    ];
-  },
+  getBacklinks: async (path: string) =>
+    searchBacklinkNotes(await dbInit(), {
+      path,
+      limit: 100,
+    }).map((file) => ({
+      path: file.path,
+      title: file.meta.title,
+    })),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),

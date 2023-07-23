@@ -25,8 +25,12 @@ export class BacklinksElement extends HTMLElement {
   }
 
   setBacklinks(items: Backlink[]) {
-    this.backlinkList.innerHTML = [
-      ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
-    ].join("");
+    if (!items.length) {
+      this.backlinkList.innerHTML = `<li>No backlinks</li>`;
+    } else {
+      this.backlinkList.innerHTML = [
+        ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
+      ].join("");
+    }
   }
 }
