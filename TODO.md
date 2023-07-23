@@ -1,20 +1,20 @@
 # Alpha must have
 
+- Backlink display in bottom panel suggestion bar (when omnibox not open)
+- Link insertion via omnibox
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Automerge with higher timestamp
 - Decide json vs. yaml for persistence and editing
-- Use node.js for testing (need sqlite 3.43)
 - Better system files scaffolding
-- Auto generate built-in gitignore
-- Regenerate system files after clone
-- Backlink display in bottom panel suggestion bar (when omnibox not open)
-- Link insertion via omnibox
+  - Auto generate built-in gitignore
+  - Regenerate system files after clone
 - Hot swap internal navigation
 - Autosave edits
 - Need to handle invalid frontmatter state during auto save
 - Ignore system files in search
 - DB Migration strategy
 - implement soft delete for individual files
+- Use node.js for testing (need sqlite 3.43)
 
 # Future
 
