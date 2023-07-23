@@ -1,3 +1,8 @@
 <ul id="backlink-list" class="backlink-list"></ul>
 <link rel="stylesheet" href="./styles/reset.css" />
-<style></style>
+<style>
+  .backlink-list {
+    max-height: min(20rem, calc((100vh - 2rem) / 2)); /* roughly half of viewport minus the top panel */
+    overflow-y: auto;
+  }
+</style>
