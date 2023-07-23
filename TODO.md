@@ -4,7 +4,6 @@
 - Link insertion via omnibox
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Automerge with higher timestamp
-- Decide json vs. yaml for persistence and editing
 - Better system files scaffolding
   - Auto generate built-in gitignore
   - Regenerate system files after clone
