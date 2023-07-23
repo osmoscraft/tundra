@@ -32,6 +32,7 @@ import { OmnimenuElement } from "../modules/editor/suggestion-list/omnimenu-elem
 import userConfig from "../modules/editor/user-config.json";
 import { BottomPanelElement } from "../modules/panels/bottom-panel-element";
 import { TopPanelElement } from "../modules/panels/top-panel-element";
+import { timestampToNotePath } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
@@ -61,7 +62,11 @@ function main() {
 
   // ensure url
   if (!new URLSearchParams(location.search).get("path")) {
-    window.history.replaceState(null, "", `${location.pathname}?path=${encodeURIComponent(`data/notes/draft.md`)}`);
+    window.history.replaceState(
+      null,
+      "",
+      `${location.pathname}?draft&path=${encodeURIComponent(timestampToNotePath(new Date()))}`
+    );
   }
 
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
@@ -153,10 +158,6 @@ function initBottomPanel(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: Backlin
       backlinks.setBacklinks(links);
     });
   }
-
-  backlinks.addEventListener("backlink-click", (e) => {
-    // todo
-  });
 }
 
 interface InitEdidorConfig {

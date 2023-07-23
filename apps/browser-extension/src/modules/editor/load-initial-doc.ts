@@ -3,29 +3,31 @@ import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 
 export async function loadInitialDoc(view: EditorView, proxy: AsyncProxy<DataWorkerRoutes>) {
-  const path = new URLSearchParams(location.search).get("path");
-  if (!path) throw new Error("No path specified");
+  const searchParams = new URLSearchParams(location.search);
+  const isDraft = searchParams.has("draft");
+  const path = searchParams.get("path");
 
-  if (path?.endsWith("draft.md")) {
+  if (isDraft) {
     view.dispatch({
       changes: {
         from: 0,
-        insert: `---
+        insert: `
+---
 title: New note
 ---
 
-- New item`,
+- New item`.trim(),
       },
     });
     return;
+  } else if (path) {
+    const file = await proxy.getFile(path);
+    if (!file) return;
+    view.dispatch({
+      changes: {
+        from: 0,
+        insert: file.content ?? "",
+      },
+    });
   }
-  const file = await proxy.getFile(path);
-  if (!file) return;
-
-  view.dispatch({
-    changes: {
-      from: 0,
-      insert: file.content ?? "",
-    },
-  });
 }

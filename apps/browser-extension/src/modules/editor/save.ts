@@ -1,21 +1,17 @@
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
-import { timestampToNotePath } from "../sync/path";
 
 export async function save(getContent: () => string, proxy: AsyncProxy<DataWorkerRoutes>) {
-  const path = new URLSearchParams(location.search).get("path");
-  if (!path) throw new Error("No path specified");
+  const searchParams = new URLSearchParams(location.search);
+  const isDraft = searchParams.has("draft");
+  const path = searchParams.get("path");
+  if (!path) throw new Error("Path is required for saving");
 
-  if (path.endsWith("draft.md")) {
-    // save new draft
-    const path = timestampToNotePath(new Date());
+  await proxy.writeFile(path, getContent());
 
-    await proxy.writeFile(path, getContent());
+  if (isDraft) {
     const mutableUrl = new URL(location.href);
-    mutableUrl.searchParams.set("path", path);
+    mutableUrl.searchParams.delete("draft");
     history.replaceState(null, "", mutableUrl.toString());
-  } else {
-    // update existing file
-    await proxy.writeFile(path, getContent());
   }
 }

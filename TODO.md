@@ -1,8 +1,8 @@
 # Alpha must have
 
-- Backlink display in bottom panel suggestion bar (when omnibox not open)
 - Link insertion via omnibox
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
+- Rethink where to use id vs. path
 - Automerge with higher timestamp
 - Better system files scaffolding
   - Auto generate built-in gitignore
