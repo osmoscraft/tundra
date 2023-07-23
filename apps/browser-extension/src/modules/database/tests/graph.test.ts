@@ -505,7 +505,14 @@ export async function testMetaCRUD() {
     content: "---\nhello: 42\nworld: true\n---\n",
     updatedAt: 1,
   });
-  assertDeepEqual(getFile(db, "/meta-extended.md")!.meta, {}, "extended meta is ignored");
+  assertDeepEqual(
+    getFile(db, "/meta-extended.md")!.meta,
+    {
+      hello: 42,
+      world: true,
+    },
+    "extended meta is allowed"
+  );
 
   commit(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
   clone(db, [{ path: "file-3.md", content: "---\ntitle: title 3\n---", updatedAt: 1 }]);
