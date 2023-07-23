@@ -16,7 +16,7 @@ import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-ut
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
-import { topPanel } from "../modules/editor/code-mirror-ext/top-panel";
+import { bottomPanel, topPanel } from "../modules/editor/code-mirror-ext/panels";
 import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
@@ -29,6 +29,7 @@ import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { OmnimenuElement } from "../modules/editor/suggestion-list/omnimenu-element";
 import userConfig from "../modules/editor/user-config.json";
+import { BottomPanelElement } from "../modules/panels/bottom-panel-element";
 import { TopPanelElement } from "../modules/panels/top-panel-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
@@ -37,29 +38,31 @@ customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
 customElements.define("top-panel-element", TopPanelElement);
+customElements.define("bottom-panel-element", BottomPanelElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 const statusEvents = new EventTarget();
 
 function main() {
-  const topPanelElement = document
-    .querySelector<HTMLTemplateElement>("#top-panel-template")!
-    .content.querySelector<TopPanelElement>("top-panel-element")!;
+  const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
+  const topPanelElement = panelTemplates.content.querySelector<TopPanelElement>("top-panel-element")!;
+  const bottomPanelElement = panelTemplates.content.querySelector<BottomPanelElement>("bottom-panel-element")!;
+
   const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = topPanelElement.querySelector<OmniboxElement>("omnibox-element")!;
   const menu = topPanelElement.querySelector<OmnimenuElement>("omnimenu-element")!;
 
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox, statusBar) };
-  const bindings = getEditorKeyBindings(configKeyBindings, library);
+  const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
   if (!new URLSearchParams(location.search).get("path")) {
     window.history.replaceState(null, "", `${location.pathname}?path=${encodeURIComponent(`data/notes/draft.md`)}`);
   }
 
-  const editoView = initEditor(topPanelElement, bindings);
+  const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
   initTopPanel(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
   initContent(proxy, editoView);
 }
@@ -137,7 +140,14 @@ function initTopPanel(
   });
 }
 
-function initEditor(topBarElement: TopPanelElement, keyBindings: KeyBinding[]) {
+interface InitEdidorConfig {
+  topPanelElement: TopPanelElement;
+  bottomPanelElement: BottomPanelElement;
+  keyBindings: KeyBinding[];
+}
+
+function initEditor(config: InitEdidorConfig) {
+  const { topPanelElement, bottomPanelElement, keyBindings } = config;
   const path = new URLSearchParams(location.search).get("path");
   const dotPos = path?.lastIndexOf(".");
   const ext = dotPos ? path?.slice(dotPos) : undefined;
@@ -152,7 +162,8 @@ function initEditor(topBarElement: TopPanelElement, keyBindings: KeyBinding[]) {
       dropCursor(),
       EditorView.lineWrapping,
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
-      topPanel(topBarElement),
+      topPanel(topPanelElement),
+      bottomPanel(bottomPanelElement),
       oneDark,
       keymap.of(keyBindings),
     ]);
@@ -164,7 +175,7 @@ function initEditor(topBarElement: TopPanelElement, keyBindings: KeyBinding[]) {
       dropCursor(),
       EditorView.lineWrapping,
       json(),
-      topPanel(topBarElement),
+      topPanel(topPanelElement),
       oneDark,
       keymap.of(keyBindings),
     ]);
