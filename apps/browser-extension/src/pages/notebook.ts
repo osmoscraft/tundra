@@ -50,10 +50,10 @@ function main() {
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
   const topPanelElement = panelTemplates.content.querySelector<TopPanelElement>("top-panel-element")!;
   const bottomPanelElement = panelTemplates.content.querySelector<BottomPanelElement>("bottom-panel-element")!;
-
   const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = topPanelElement.querySelector<OmniboxElement>("omnibox-element")!;
   const menu = topPanelElement.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
 
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox, statusBar) };
@@ -66,6 +66,7 @@ function main() {
 
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
   initTopPanel(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
+  initBottomPanel(proxy, backlinks);
   initContent(proxy, editoView);
 }
 
@@ -139,6 +140,12 @@ function initTopPanel(
     omnibox.clear();
     menu.clear();
     view.focus();
+  });
+}
+
+function initBottomPanel(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: BacklinksElement) {
+  backlinks.addEventListener("backlink-click", (e) => {
+    // todo
   });
 }
 
