@@ -15,3 +15,7 @@ export function timestampToNotePath(timestamp: Date) {
 export function noteIdToPath(id: string) {
   return `data/notes/${id}.md`;
 }
+
+export function nodePathToId(path: string) {
+  return path.match(/data\/notes\/(.*)\.md/)![1];
+}

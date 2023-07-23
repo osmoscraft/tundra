@@ -24,35 +24,45 @@ import {
   testSyncOverrideLocal,
   testUntrackFiles,
 } from "../database/tests/graph.test";
+import { testBacklinkSearch, testBasicSearch } from "../search/tests/search.test";
 
 export async function runLiveTests() {
-  const suites = [
-    // file
-    testLocalFileEditLifecycle,
-    testLocalFirstSync,
-    testRemoteFirstSync,
-    testSyncOverrideLocal,
-    testLocalOverrideSync,
-    testUntrackFiles,
-    testPushFiles,
-    testMergeFiles,
-    testGetRecentFiles,
-    testGetRecentFilesWithScope,
-    testGetRecentFilesWithIgnore,
-    testGetDirtyFiles,
-    testGetDirtyFilesWithIgnore,
-    testBulkOperations,
-    testMetaCRUD,
-    testSearchMeta,
-    testSearchFileContent,
+  // Add tests here for debugging
+  const activeSuites: any[] = [];
 
-    // db v2
-    testDbCreation,
-    testSchemaTriggerFsmSink,
-    testSchemaTriggerFsmDeterminism,
-    testSchemaCanonicalStates,
-    testSchemaDerivedColumns,
-  ];
+  const suites = activeSuites.length
+    ? activeSuites
+    : [
+        // db v2
+        testDbCreation,
+        testSchemaTriggerFsmSink,
+        testSchemaTriggerFsmDeterminism,
+        testSchemaCanonicalStates,
+        testSchemaDerivedColumns,
+
+        // file
+        testLocalFileEditLifecycle,
+        testLocalFirstSync,
+        testRemoteFirstSync,
+        testSyncOverrideLocal,
+        testLocalOverrideSync,
+        testUntrackFiles,
+        testPushFiles,
+        testMergeFiles,
+        testGetRecentFiles,
+        testGetRecentFilesWithScope,
+        testGetRecentFilesWithIgnore,
+        testGetDirtyFiles,
+        testGetDirtyFilesWithIgnore,
+        testBulkOperations,
+        testMetaCRUD,
+        testSearchMeta,
+        testSearchFileContent,
+
+        // search
+        testBasicSearch,
+        testBacklinkSearch,
+      ];
 
   for (const suite of suites) {
     console.log(`[test] ${suite.name}`);
