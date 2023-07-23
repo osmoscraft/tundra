@@ -30,6 +30,14 @@ const routes = {
     }
   },
   destoryAll,
+  getBacklinks: async (path: string) => {
+    return [
+      {
+        path: "123.md",
+        title: "Hello world",
+      },
+    ];
+  },
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),

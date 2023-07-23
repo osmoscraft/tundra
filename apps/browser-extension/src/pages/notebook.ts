@@ -144,6 +144,16 @@ function initTopPanel(
 }
 
 function initBottomPanel(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: BacklinksElement) {
+  const path = new URLSearchParams(location.search).get("path");
+
+  if (!path) {
+    backlinks.setBacklinks([]);
+  } else {
+    proxy.getBacklinks(path).then((links) => {
+      backlinks.setBacklinks(links);
+    });
+  }
+
   backlinks.addEventListener("backlink-click", (e) => {
     // todo
   });
