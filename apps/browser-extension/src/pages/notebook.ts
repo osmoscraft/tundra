@@ -13,6 +13,7 @@ import {
   type KeyBinding,
 } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-utils";
+import { BacklinksElement } from "../modules/editor/backlinks/backlinks-element";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
 import { liveLink } from "../modules/editor/code-mirror-ext/live-link";
@@ -38,6 +39,7 @@ customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
 customElements.define("top-panel-element", TopPanelElement);
+customElements.define("backlinks-element", BacklinksElement);
 customElements.define("bottom-panel-element", BottomPanelElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
