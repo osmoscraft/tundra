@@ -4,7 +4,7 @@ import {
   testSchemaDerivedColumns,
   testSchemaTriggerFsmDeterminism,
   testSchemaTriggerFsmSink,
-} from "./db.test";
+} from "../database/tests/db.test";
 import {
   testBulkOperations,
   testGetDirtyFiles,
@@ -23,9 +23,9 @@ import {
   testSearchMeta,
   testSyncOverrideLocal,
   testUntrackFiles,
-} from "./graph.test";
+} from "../database/tests/graph.test";
 
-export async function testDatabase() {
+export async function runLiveTests() {
   const suites = [
     // file
     testLocalFileEditLifecycle,

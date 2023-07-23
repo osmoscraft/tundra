@@ -2,6 +2,7 @@ import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
 import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
+import { runLiveTests } from "../modules/live-test/run-live-tests";
 import { searchBacklinkNotes, searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
@@ -19,7 +20,7 @@ const getDbFile = () => getOpfsFileByPath(DB_PATH);
 const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
 const routes = {
-  checkHealth: async () => dbInit().finally(() => dbApi.testDatabase()), // in case test code cause db init to timeout
+  checkHealth: async () => dbInit().finally(() => runLiveTests()), // in case test code cause db init to timeout
   destoryData: async () => {
     const db = await dbInit();
     const connection = sync.getConnection(db);
