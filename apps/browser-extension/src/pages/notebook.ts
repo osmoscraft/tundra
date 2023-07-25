@@ -141,6 +141,7 @@ function initTopPanel(
   omnimenu.addEventListener("omnimenu-run-directive", (e) =>
     runDirective(
       {
+        proxy,
         omnibox,
         omnimenu,
         view,

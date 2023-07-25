@@ -1,4 +1,7 @@
 import type { Command, EditorView } from "@codemirror/view";
+import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { DataWorkerRoutes } from "../../workers/data-worker";
+import { nodePathToId } from "../sync/path";
 import type { CommandLibrary } from "./commands";
 import type { OmniboxElement } from "./omnibox/omnibox-element";
 import type { OmnimenuElement } from "./suggestion-list/omnimenu-element";
@@ -26,6 +29,7 @@ export interface Directive {
 }
 
 export interface RunDirectiveContext {
+  proxy: AsyncProxy<DataWorkerRoutes>;
   omnibox: OmniboxElement;
   omnimenu: OmnimenuElement;
   view: EditorView;
@@ -33,23 +37,40 @@ export interface RunDirectiveContext {
 }
 
 export function runDirective(context: RunDirectiveContext, directive: Directive) {
-  const { omnibox, omnimenu, view, library } = context;
+  const { omnibox, omnimenu, proxy, view, library } = context;
 
   const { operator, operand } = directive;
   switch (operator) {
     case Operator.InsertLink:
-      console.log("insertLink", operand);
+      proxy.getFile(operand).then((file) => {
+        if (!file) return;
+
+        const tx = view.state.replaceSelection(`[${file.meta.title}](${nodePathToId(file.path)})`);
+        view.dispatch(tx);
+        omnibox.clear();
+        omnimenu.clear();
+        view.focus();
+      });
       break;
-    case "insertLinkWithText":
-      console.log("insertLinkWithText", operand);
+    case Operator.InsertLinkWithText:
+      proxy.getFile(operand).then((file) => {
+        if (!file) return;
+
+        const selectedText = view.state.sliceDoc(view.state.selection.main.from, view.state.selection.main.to);
+        const tx = view.state.replaceSelection(`[${selectedText}](${nodePathToId(file.path)})`);
+        view.dispatch(tx);
+        omnibox.clear();
+        omnimenu.clear();
+        view.focus();
+      });
       break;
-    case "open":
+    case Operator.Open:
       window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_self");
       break;
-    case "openInNew":
+    case Operator.OpenInNew:
       window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_blank");
       break;
-    case "command":
+    case Operator.Command:
       const [namespace, commandName] = operand.split(".");
       const command = library[namespace]?.[commandName] as Command | undefined;
 
