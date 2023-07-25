@@ -101,23 +101,23 @@ function initTopPanel(
       const matchedCommands = bindings.filter((cmd) =>
         cmd.name.toLocaleLowerCase().startsWith(command.toLocaleLowerCase())
       );
-      menu.setSuggestions(
+      menu.setMenuItems(
         matchedCommands.map((command) => ({
           path: "TBD",
           title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
         }))
       );
-    } else if (q.length) {
+    } else {
       const searchTerms = q.startsWith(":") ? q.slice(1).trim() : q.trim();
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
-        menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+        menu.setMenuItems(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
       } else {
         performance.mark("load-recent-start");
         const files = await proxy.getRecentFiles();
-        menu.setSuggestions(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+        menu.setMenuItems(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
         console.log(
           `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
         );

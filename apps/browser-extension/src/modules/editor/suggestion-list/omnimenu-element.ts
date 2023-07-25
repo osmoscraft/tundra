@@ -6,6 +6,12 @@ export interface OmnimenuSuggestion {
   title: string;
 }
 
+export interface MenuItem {
+  title: string;
+  path?: string;
+  command?: string;
+}
+
 export type QueryEventDetail = string;
 
 declare global {
@@ -30,9 +36,26 @@ export class OmnimenuElement extends HTMLElement {
     this.nodeList.innerHTML = "";
   }
 
-  setSuggestions(items: OmnimenuSuggestion[]) {
-    this.nodeList.innerHTML = [
-      ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
-    ].join("");
+  setMenuItems(items: MenuItem[]) {
+    const newMenuItems = document.createDocumentFragment();
+    items.forEach((item) => {
+      const listItem = document.createElement("li");
+      const anchor = document.createElement("a");
+      anchor.textContent = item.title;
+      if (item.path) {
+        anchor.href = `?path=${encodeURIComponent(item.path)}`;
+      }
+
+      if (item.command) {
+        anchor.setAttribute("data-command", item.command);
+      }
+
+      listItem.appendChild(anchor);
+      newMenuItems.appendChild(listItem);
+    });
+
+    // set nodeList children to be the links
+    this.nodeList.innerHTML = "";
+    this.nodeList.appendChild(newMenuItems);
   }
 }
