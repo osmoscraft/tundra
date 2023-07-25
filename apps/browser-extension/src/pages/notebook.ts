@@ -108,16 +108,21 @@ function initTopPanel(
         }))
       );
     } else {
-      const searchTerms = q.startsWith(":") ? q.slice(1).trim() : q.trim();
+      const isLinking = q.startsWith(":");
+      const searchTerms = isLinking ? q.slice(1).trim() : q.trim();
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
-        menu.setMenuItems(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+        menu.setMenuItems(
+          files.map((file) => ({ [isLinking ? "linkTo" : "open"]: file.path, title: file.meta.title ?? "Untitled" }))
+        );
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
       } else {
         performance.mark("load-recent-start");
         const files = await proxy.getRecentFiles();
-        menu.setMenuItems(files.map((file) => ({ path: file.path, title: file.meta.title ?? "Untitled" })));
+        menu.setMenuItems(
+          files.map((file) => ({ [isLinking ? "linkTo" : "open"]: file.path, title: file.meta.title ?? "Untitled" }))
+        );
         console.log(
           `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
         );
@@ -129,6 +134,12 @@ function initTopPanel(
     const directive = e.detail;
     const [operator, operand] = directive.split(":");
     switch (operator) {
+      case "insertLink":
+        console.log("insertLink", operand);
+        break;
+      case "insertLinkWithText":
+        console.log("insertLinkWithText", operand);
+        break;
       case "open":
         window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_self");
         break;

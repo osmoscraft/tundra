@@ -3,7 +3,8 @@ import template from "./omnimenu-element.html";
 
 export interface MenuItem {
   title: string;
-  path?: string;
+  open?: string;
+  linkTo?: string;
   command?: string;
 }
 
@@ -19,10 +20,18 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      const path = (e.target as HTMLElement).closest("[data-path]")?.getAttribute("data-path");
+      const path = (e.target as HTMLElement).closest("[data-open]")?.getAttribute("data-open");
       if (path) {
         const operator = e.ctrlKey ? "openInNew" : "open";
         this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `${operator}:${path}` }));
+        e.preventDefault();
+        return;
+      }
+
+      const linkTo = (e.target as HTMLElement).closest("[data-link-to]")?.getAttribute("data-link-to");
+      if (linkTo) {
+        const operator = e.ctrlKey ? "insertLinkWithText" : "insertLink";
+        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `${operator}:${linkTo}` }));
         e.preventDefault();
         return;
       }
@@ -44,11 +53,17 @@ export class OmnimenuElement extends HTMLElement {
     const newMenuItems = document.createDocumentFragment();
     items.forEach((item) => {
       const listItem = document.createElement("li");
-      if (item.path) {
+      if (item.open) {
         const anchor = document.createElement("a");
-        anchor.setAttribute("data-path", item.path);
+        anchor.setAttribute("data-open", item.open);
         anchor.textContent = item.title;
-        anchor.href = `?path=${encodeURIComponent(item.path)}`;
+        anchor.href = `?path=${encodeURIComponent(item.open)}`;
+        listItem.appendChild(anchor);
+      } else if (item.linkTo) {
+        const anchor = document.createElement("a");
+        anchor.setAttribute("data-link-to", item.linkTo);
+        anchor.textContent = item.title;
+        anchor.href = `?path=${encodeURIComponent(item.linkTo)}`;
         listItem.appendChild(anchor);
       } else if (item.command) {
         const button = document.createElement("button");
