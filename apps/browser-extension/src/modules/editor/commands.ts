@@ -13,6 +13,7 @@ import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./omnibox/omnibox-element";
 
+import { getSelectedText } from "./reducers";
 import { save } from "./save";
 import type { StatusBarElement } from "./status/status-bar-element";
 
@@ -74,20 +75,22 @@ export function extendedCommands(
 
   return {
     shell: {
-      addLink: () => {
-        omnibox.open(":");
+      addLink: (view) => {
+        const selectedText = getSelectedText(view);
+        omnibox.open(`:${selectedText}`);
         return true;
       },
       openOptions: () => {
         location.assign("./options.html");
         return true;
       },
-      startSearch: () => {
-        omnibox.open();
+      startSearch: (view) => {
+        const selectedText = getSelectedText(view);
+        omnibox.open(selectedText);
         return true;
       },
       startCommand: () => {
-        omnibox.open(">");
+        omnibox.open(`>`);
         return true;
       },
     },

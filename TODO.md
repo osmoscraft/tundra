@@ -1,22 +1,22 @@
 # Alpha must have
 
-- Link insertion via omnibox
+- Router: draft url handling
+- Router: Hot swap internal navigation
+- Router: Rethink where to use id vs. path
+- Omnibox: add option to create blank files
+- Omnibox: Escape to close menu when not focusing on input box
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
-- Rethink where to use id vs. path
-- Automerge with higher timestamp
-- Better system files scaffolding
-  - Auto generate built-in gitignore
-  - Regenerate system files after clone
-- Hot swap internal navigation
-- Autosave edits
-- Need to handle invalid frontmatter state during auto save
-- Ignore system files in search
+- Sync: Automerge with higher timestamp
+- System files: auto generate built-in gitignore
+- System files: regenerate system files after clone
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
 
 # Future
 
+- Autosave edits
+- Need to handle invalid frontmatter state during auto save
 - Tune clone performance, goal <2ms per file, baseline 4.5ms per file
 - Load keybinding from synced storage
 - Link insertion via autocomplete

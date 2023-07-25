@@ -20,7 +20,7 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      if (this.submitItem(e.target as HTMLElement, e.ctrlKey)) {
+      if (this.submitItem(e.target as HTMLElement, !e.ctrlKey)) {
         e.preventDefault();
       }
     });
