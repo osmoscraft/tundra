@@ -103,8 +103,8 @@ function initTopPanel(
       );
       menu.setMenuItems(
         matchedCommands.map((command) => ({
-          path: "TBD",
           title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
+          command: command.run,
         }))
       );
     } else {
@@ -122,6 +122,28 @@ function initTopPanel(
           `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
         );
       }
+    }
+  });
+
+  menu.addEventListener("omnimenu-submit", (e) => {
+    const directive = e.detail;
+    const [operator, operand] = directive.split(":");
+    switch (operator) {
+      case "open":
+        window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_self");
+        break;
+      case "openInNew":
+        window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_blank");
+        break;
+      case "command":
+        const [namespace, commandName] = operand.split(".");
+        const command = library[namespace]?.[commandName] as Command | undefined;
+
+        omnibox.clear();
+        menu.clear();
+        view.focus();
+        command?.(view);
+        break;
     }
   });
 

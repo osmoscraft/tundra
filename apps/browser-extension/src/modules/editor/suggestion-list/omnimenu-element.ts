@@ -1,22 +1,15 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
 import template from "./omnimenu-element.html";
 
-export interface OmnimenuSuggestion {
-  path: string;
-  title: string;
-}
-
 export interface MenuItem {
   title: string;
   path?: string;
   command?: string;
 }
 
-export type QueryEventDetail = string;
-
 declare global {
   interface HTMLElementEventMap {
-    "omnimenu-open": CustomEvent<QueryEventDetail>;
+    "omnimenu-submit": CustomEvent<string>;
   }
 }
 
@@ -26,9 +19,20 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      const path = (e.target as HTMLButtonElement).closest("[data-path]")?.getAttribute("data-path");
-      if (!path) return;
-      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnimenu-open", { detail: path }));
+      const path = (e.target as HTMLElement).closest("[data-path]")?.getAttribute("data-path");
+      if (path) {
+        const operator = e.ctrlKey ? "openInNew" : "open";
+        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `${operator}:${path}` }));
+        e.preventDefault();
+        return;
+      }
+
+      const command = (e.target as HTMLElement).closest("button")?.getAttribute("data-command");
+      if (command) {
+        e.preventDefault();
+        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `command:${command}` }));
+        return;
+      }
     });
   }
 
@@ -40,17 +44,19 @@ export class OmnimenuElement extends HTMLElement {
     const newMenuItems = document.createDocumentFragment();
     items.forEach((item) => {
       const listItem = document.createElement("li");
-      const anchor = document.createElement("a");
-      anchor.textContent = item.title;
       if (item.path) {
+        const anchor = document.createElement("a");
+        anchor.setAttribute("data-path", item.path);
+        anchor.textContent = item.title;
         anchor.href = `?path=${encodeURIComponent(item.path)}`;
+        listItem.appendChild(anchor);
+      } else if (item.command) {
+        const button = document.createElement("button");
+        button.textContent = item.title;
+        button.setAttribute("data-command", item.command);
+        listItem.appendChild(button);
       }
 
-      if (item.command) {
-        anchor.setAttribute("data-command", item.command);
-      }
-
-      listItem.appendChild(anchor);
       newMenuItems.appendChild(listItem);
     });
 
