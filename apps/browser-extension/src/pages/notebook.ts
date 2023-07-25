@@ -3,15 +3,7 @@ import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
-import {
-  EditorView,
-  drawSelection,
-  dropCursor,
-  highlightActiveLine,
-  keymap,
-  type Command,
-  type KeyBinding,
-} from "@codemirror/view";
+import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-utils";
 import { BacklinksElement } from "../modules/editor/backlinks/backlinks-element";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
@@ -25,6 +17,7 @@ import {
   type CommandKeyBinding,
   type CommandLibrary,
 } from "../modules/editor/commands";
+import { Operator, parseDirective, runDirective, stringifyDirective } from "../modules/editor/directive";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
@@ -81,7 +74,7 @@ function initTopPanel(
   proxy: AsyncProxy<DataWorkerRoutes>,
   view: EditorView,
   omnibox: OmniboxElement,
-  menu: OmnimenuElement,
+  omnimenu: OmnimenuElement,
   statusBar: StatusBarElement,
   bindings: CommandKeyBinding[],
   library: CommandLibrary
@@ -101,27 +94,42 @@ function initTopPanel(
       const matchedCommands = bindings.filter((cmd) =>
         cmd.name.toLocaleLowerCase().startsWith(command.toLocaleLowerCase())
       );
-      menu.setMenuItems(
+      omnimenu.setMenuItems(
         matchedCommands.map((command) => ({
           title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
-          command: command.run,
+          primaryDirective: stringifyDirective({ operator: Operator.Command, operand: command.run }),
         }))
       );
     } else {
       const isLinking = q.startsWith(":");
       const searchTerms = isLinking ? q.slice(1).trim() : q.trim();
+      const getDirectives = (path: string) => ({
+        primaryDirective: stringifyDirective({
+          operator: isLinking ? Operator.InsertLink : Operator.Open,
+          operand: path,
+        }),
+        secondaryDirective: stringifyDirective({
+          operator: isLinking ? Operator.InsertLinkWithText : Operator.OpenInNew,
+          operand: path,
+        }),
+      });
+
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
-        menu.setMenuItems(
-          files.map((file) => ({ [isLinking ? "linkTo" : "open"]: file.path, title: file.meta.title ?? "Untitled" }))
+
+        omnimenu.setMenuItems(
+          files.map((file) => ({
+            ...getDirectives(file.path),
+            title: file.meta.title ?? "Untitled",
+          }))
         );
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
       } else {
         performance.mark("load-recent-start");
         const files = await proxy.getRecentFiles();
-        menu.setMenuItems(
-          files.map((file) => ({ [isLinking ? "linkTo" : "open"]: file.path, title: file.meta.title ?? "Untitled" }))
+        omnimenu.setMenuItems(
+          files.map((file) => ({ ...getDirectives(file.path), title: file.meta.title ?? "Untitled" }))
         );
         console.log(
           `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
@@ -130,56 +138,25 @@ function initTopPanel(
     }
   });
 
-  menu.addEventListener("omnimenu-submit", (e) => {
-    const directive = e.detail;
-    const [operator, operand] = directive.split(":");
-    switch (operator) {
-      case "insertLink":
-        console.log("insertLink", operand);
-        break;
-      case "insertLinkWithText":
-        console.log("insertLinkWithText", operand);
-        break;
-      case "open":
-        window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_self");
-        break;
-      case "openInNew":
-        window.open(`/notebook.html?path=${encodeURIComponent(operand)}`, "_blank");
-        break;
-      case "command":
-        const [namespace, commandName] = operand.split(".");
-        const command = library[namespace]?.[commandName] as Command | undefined;
-
-        omnibox.clear();
-        menu.clear();
-        view.focus();
-        command?.(view);
-        break;
-    }
-  });
+  omnimenu.addEventListener("omnimenu-run-directive", (e) =>
+    runDirective(
+      {
+        omnibox,
+        omnimenu,
+        view,
+        library,
+      },
+      parseDirective(e.detail)
+    )
+  );
 
   omnibox.addEventListener("omnibox-submit", (e) => {
-    // TODO delegate execution using active selection from suggestion list
-    const q = e.detail;
-    if (q.startsWith(">")) {
-      const commandQ = q.slice(1).trim();
-      const matchedCommand = bindings.filter((cmd) =>
-        cmd.name.toLocaleLowerCase().startsWith(commandQ.toLocaleLowerCase())
-      )[0];
-
-      const [namespace, commandName] = matchedCommand.run.split(".");
-      const command = library[namespace]?.[commandName] as Command | undefined;
-
-      omnibox.clear();
-      menu.clear();
-      view.focus();
-      command?.(view);
-    }
+    omnimenu.submitFirst(e.detail.ctrlKey);
   });
 
   omnibox.addEventListener("omnibox-exit", () => {
     omnibox.clear();
-    menu.clear();
+    omnimenu.clear();
     view.focus();
   });
 }

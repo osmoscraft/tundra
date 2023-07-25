@@ -5,10 +5,15 @@ export type QueryEventDetail = string;
 
 declare global {
   interface HTMLElementEventMap {
-    "omnibox-input": CustomEvent<QueryEventDetail>;
+    "omnibox-input": CustomEvent<string>;
     "omnibox-exit": Event;
-    "omnibox-submit": CustomEvent<QueryEventDetail>;
+    "omnibox-submit": CustomEvent<OmniboxSubmitEvent>;
   }
+}
+
+export interface OmniboxSubmitEvent {
+  value: string;
+  ctrlKey?: boolean;
 }
 
 export class OmniboxElement extends HTMLElement {
@@ -18,13 +23,10 @@ export class OmniboxElement extends HTMLElement {
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => {
+      // handled by keydown
       e.preventDefault();
-      this.dispatchEvent(
-        new CustomEvent<QueryEventDetail>("omnibox-submit", {
-          detail: this.input.value.trim(),
-        })
-      );
     });
+
     this.input.addEventListener("input", (e) => {
       this.dispatchEvent(
         new CustomEvent<QueryEventDetail>("omnibox-input", {
@@ -41,6 +43,17 @@ export class OmniboxElement extends HTMLElement {
       if (e.key === "Escape") {
         e.preventDefault();
         this.dispatchEvent(new Event("omnibox-exit"));
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.dispatchEvent(
+          new CustomEvent<OmniboxSubmitEvent>("omnibox-submit", {
+            detail: {
+              value: this.input.value.trim(),
+              ctrlKey: e.ctrlKey,
+            },
+          })
+        );
       }
     });
   }

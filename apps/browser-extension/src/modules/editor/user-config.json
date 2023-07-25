@@ -3,32 +3,32 @@
     {
       "name": "Move line up",
       "run": "editor.moveLineUp",
-      "key": "Alt-ArrowUp"
+      "key": "Alt-k"
     },
     {
       "name": "Move line down",
       "run": "editor.moveLineDown",
-      "key": "Alt-ArrowDown"
+      "key": "Alt-j"
     },
     {
       "name": "Copy line up",
       "run": "editor.copyLineUp",
-      "key": "Alt-Shift-ArrowUp"
+      "key": "Alt-Shift-k"
     },
     {
       "name": "Copy line down",
       "run": "editor.copyLineDown",
-      "key": "Alt-Shift-ArrowDown"
+      "key": "Alt-Shift-j"
     },
     {
       "name": "Indent less",
       "run": "editor.indentLess",
-      "key": "Alt-ArrowLeft"
+      "key": "Alt-h"
     },
     {
       "name": "Indent more",
       "run": "editor.indentMore",
-      "key": "Alt-ArrowRight"
+      "key": "Alt-l"
     },
     {
       "name": "Undo",

@@ -1,16 +1,16 @@
 import { attachShadowHtml } from "@tinykb/dom-utils";
+import { Operator, parseDirective, stringifyDirective, type Directive } from "../directive";
 import template from "./omnimenu-element.html";
 
 export interface MenuItem {
   title: string;
-  open?: string;
-  linkTo?: string;
-  command?: string;
+  primaryDirective: string;
+  secondaryDirective?: string;
 }
 
 declare global {
   interface HTMLElementEventMap {
-    "omnimenu-submit": CustomEvent<string>;
+    "omnimenu-run-directive": CustomEvent<string>;
   }
 }
 
@@ -20,27 +20,8 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      const path = (e.target as HTMLElement).closest("[data-open]")?.getAttribute("data-open");
-      if (path) {
-        const operator = e.ctrlKey ? "openInNew" : "open";
-        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `${operator}:${path}` }));
+      if (this.submitItem(e.target as HTMLElement, e.ctrlKey)) {
         e.preventDefault();
-        return;
-      }
-
-      const linkTo = (e.target as HTMLElement).closest("[data-link-to]")?.getAttribute("data-link-to");
-      if (linkTo) {
-        const operator = e.ctrlKey ? "insertLinkWithText" : "insertLink";
-        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `${operator}:${linkTo}` }));
-        e.preventDefault();
-        return;
-      }
-
-      const command = (e.target as HTMLElement).closest("button")?.getAttribute("data-command");
-      if (command) {
-        e.preventDefault();
-        this.dispatchEvent(new CustomEvent<string>("omnimenu-submit", { detail: `command:${command}` }));
-        return;
       }
     });
   }
@@ -49,28 +30,33 @@ export class OmnimenuElement extends HTMLElement {
     this.nodeList.innerHTML = "";
   }
 
+  submitFirst(secondary?: boolean) {
+    const firstItem = this.nodeList.querySelector("[data-primary-directive], [data-secondary-directive]");
+    this.submitItem(firstItem as HTMLElement, secondary);
+  }
+
+  private submitItem(element: HTMLElement, secondary?: boolean) {
+    const directiveSelector = secondary ? "[data-secondary-directive]" : "[data-primary-directive]";
+    const directiveAttr = secondary ? "data-secondary-directive" : "data-primary-directive";
+    const directive = element.closest(directiveSelector)?.getAttribute(directiveAttr);
+    if (directive) {
+      this.dispatchEvent(new CustomEvent<string>("omnimenu-run-directive", { detail: directive }));
+      return true;
+    }
+
+    return false;
+  }
+
   setMenuItems(items: MenuItem[]) {
     const newMenuItems = document.createDocumentFragment();
     items.forEach((item) => {
       const listItem = document.createElement("li");
-      if (item.open) {
-        const anchor = document.createElement("a");
-        anchor.setAttribute("data-open", item.open);
-        anchor.textContent = item.title;
-        anchor.href = `?path=${encodeURIComponent(item.open)}`;
-        listItem.appendChild(anchor);
-      } else if (item.linkTo) {
-        const anchor = document.createElement("a");
-        anchor.setAttribute("data-link-to", item.linkTo);
-        anchor.textContent = item.title;
-        anchor.href = `?path=${encodeURIComponent(item.linkTo)}`;
-        listItem.appendChild(anchor);
-      } else if (item.command) {
-        const button = document.createElement("button");
-        button.textContent = item.title;
-        button.setAttribute("data-command", item.command);
-        listItem.appendChild(button);
-      }
+      const triggerElement = this.getDirectiveTrigger(
+        item.title,
+        parseDirective(item.primaryDirective),
+        item.secondaryDirective ? parseDirective(item.secondaryDirective) : undefined
+      );
+      listItem.appendChild(triggerElement);
 
       newMenuItems.appendChild(listItem);
     });
@@ -78,5 +64,24 @@ export class OmnimenuElement extends HTMLElement {
     // set nodeList children to be the links
     this.nodeList.innerHTML = "";
     this.nodeList.appendChild(newMenuItems);
+  }
+
+  private getDirectiveTrigger(title: string, primary: Directive, secondary?: Directive): HTMLElement {
+    if (
+      [Operator.InsertLink, Operator.InsertLinkWithText, Operator.Open, Operator.OpenInNew].includes(primary.operator)
+    ) {
+      const link = document.createElement("a");
+      link.setAttribute("data-primary-directive", stringifyDirective(primary));
+      secondary && link.setAttribute("data-secondary-directive", stringifyDirective(secondary));
+      link.href = `?path=${encodeURIComponent(primary.operand)}`;
+      link.textContent = title;
+      return link;
+    } else {
+      const button = document.createElement("button");
+      button.setAttribute("data-primary-directive", stringifyDirective(primary));
+      secondary && button.setAttribute("data-secondary-directive", stringifyDirective(secondary));
+      button.textContent = title;
+      return button;
+    }
   }
 }
