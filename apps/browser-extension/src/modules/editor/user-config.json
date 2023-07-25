@@ -45,13 +45,18 @@
       "run": "shell.openOptions"
     },
     {
-      "name": "Omnibox search",
-      "run": "shell.openSearch",
+      "name": "Add link",
+      "run": "shell.addLink",
+      "key": "Mod-k"
+    },
+    {
+      "name": "Search",
+      "run": "shell.startSearch",
       "key": "Mod-p"
     },
     {
-      "name": "Omnibox command",
-      "run": "shell.openCommand",
+      "name": "Command",
+      "run": "shell.startCommand",
       "key": "Mod-Shift-p"
     },
     {

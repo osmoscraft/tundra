@@ -74,15 +74,19 @@ export function extendedCommands(
 
   return {
     shell: {
+      addLink: () => {
+        omnibox.open(":");
+        return true;
+      },
       openOptions: () => {
         location.assign("./options.html");
         return true;
       },
-      openSearch: () => {
+      startSearch: () => {
         omnibox.open();
         return true;
       },
-      openCommand: () => {
+      startCommand: () => {
         omnibox.open(">");
         return true;
       },
