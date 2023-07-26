@@ -3,6 +3,7 @@
 - Router: draft url handling
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
+- Omnibox: Replace directive system with URLSearchParams
 - Omnibox: add option to create blank files
 - Omnibox: Escape to close menu when not focusing on input box
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
@@ -22,10 +23,11 @@
 - Link insertion via autocomplete
 - Add search unit tests
 - Add a web hook that pushes haiku into markdown repo
-- Improve color theme
+- Improve color themet
 - Line item text wrap
 - Heading level based indentation
 - Heading level based colorization
 - Hierarchical note directory path support
 - Allow undo to rewind local timestamp
 - Fallback to full import when history is too long to catch up
+- RxJS stream like search input handling

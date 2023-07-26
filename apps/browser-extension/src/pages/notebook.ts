@@ -118,12 +118,19 @@ function initTopPanel(
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
 
-        omnimenu.setMenuItems(
-          files.map((file) => ({
+        omnimenu.setMenuItems([
+          {
+            title: `Create "${searchTerms}"`,
+            primaryDirective: stringifyDirective({
+              operator: isLinking ? Operator.InsertLink : Operator.Open,
+              operand: timestampToNotePath(new Date()),
+            }),
+          },
+          ...files.map((file) => ({
             ...getDirectives(file.path),
             title: file.meta.title ?? "Untitled",
-          }))
-        );
+          })),
+        ]);
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
       } else {
         performance.mark("load-recent-start");
