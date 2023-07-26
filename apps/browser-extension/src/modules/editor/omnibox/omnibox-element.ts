@@ -6,7 +6,7 @@ export type QueryEventDetail = string;
 declare global {
   interface HTMLElementEventMap {
     "omnibox-input": CustomEvent<string>;
-    "omnibox-exit": Event;
+    "omnibox-close": Event;
     "omnibox-submit": CustomEvent<OmniboxSubmitEvent>;
   }
 }
@@ -42,7 +42,7 @@ export class OmniboxElement extends HTMLElement {
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        this.dispatchEvent(new Event("omnibox-exit"));
+        this.dispatchEvent(new Event("omnibox-close"));
       }
       if (e.key === "Enter") {
         e.preventDefault();
@@ -64,6 +64,10 @@ export class OmniboxElement extends HTMLElement {
 
   open(initialValue?: string) {
     if (initialValue !== undefined) this.input.value = initialValue;
+    this.input.focus();
+  }
+
+  focus() {
     this.input.focus();
   }
 }

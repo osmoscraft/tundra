@@ -153,11 +153,15 @@ function initTopPanel(
     )
   );
 
+  omnimenu.addEventListener("omnimenu-close", () => {
+    omnibox.focus();
+  });
+
   omnibox.addEventListener("omnibox-submit", (e) => {
     omnimenu.submitFirst(e.detail.ctrlKey);
   });
 
-  omnibox.addEventListener("omnibox-exit", () => {
+  omnibox.addEventListener("omnibox-close", () => {
     omnibox.clear();
     omnimenu.clear();
     view.focus();

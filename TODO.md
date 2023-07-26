@@ -1,9 +1,10 @@
 # Alpha must have
 
+- Omnibox: create new link to blank files
+- Omnibox: close when focus leave
+- Omnibox: circular focus trap
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
-- Omnibox: create new link to blank files
-- Omnibox: Escape to close menu when not focusing on input box
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Sync: Automerge with higher timestamp
 - System files: auto generate built-in gitignore
