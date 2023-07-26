@@ -1,10 +1,8 @@
 # Alpha must have
 
-- Router: draft url handling
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
-- Omnibox: Replace directive system with URLSearchParams
-- Omnibox: add option to create blank files
+- Omnibox: create new link to blank files
 - Omnibox: Escape to close menu when not focusing on input box
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Sync: Automerge with higher timestamp
@@ -16,6 +14,7 @@
 
 # Future
 
+- Omnibox: auto update reference when newly created file is renamed
 - Autosave edits
 - Need to handle invalid frontmatter state during auto save
 - Tune clone performance, goal <2ms per file, baseline 4.5ms per file

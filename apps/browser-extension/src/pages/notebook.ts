@@ -17,11 +17,11 @@ import {
   type CommandKeyBinding,
   type CommandLibrary,
 } from "../modules/editor/commands";
-import { Operator, parseDirective, runDirective, stringifyDirective } from "../modules/editor/directive";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
+import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action";
+import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
-import { OmnimenuElement } from "../modules/editor/suggestion-list/omnimenu-element";
 import userConfig from "../modules/editor/user-config.json";
 import { BottomPanelElement } from "../modules/panels/bottom-panel-element";
 import { TopPanelElement } from "../modules/panels/top-panel-element";
@@ -58,7 +58,7 @@ function main() {
     window.history.replaceState(
       null,
       "",
-      `${location.pathname}?draft&path=${encodeURIComponent(timestampToNotePath(new Date()))}`
+      `${location.pathname}?path=${encodeURIComponent(timestampToNotePath(new Date()))}`
     );
   }
 
@@ -97,38 +97,31 @@ function initTopPanel(
       omnimenu.setMenuItems(
         matchedCommands.map((command) => ({
           title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
-          primaryDirective: stringifyDirective({ operator: Operator.Command, operand: command.run }),
+          state: { command: command.run },
         }))
       );
     } else {
       const isLinking = q.startsWith(":");
       const searchTerms = isLinking ? q.slice(1).trim() : q.trim();
-      const getDirectives = (path: string) => ({
-        primaryDirective: stringifyDirective({
-          operator: isLinking ? Operator.InsertLink : Operator.Open,
-          operand: path,
-        }),
-        secondaryDirective: stringifyDirective({
-          operator: isLinking ? Operator.InsertLinkWithText : Operator.OpenInNew,
-          operand: path,
-        }),
-      });
 
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
 
+        const newNotePath = timestampToNotePath(new Date());
+
         omnimenu.setMenuItems([
           {
             title: `Create "${searchTerms}"`,
-            primaryDirective: stringifyDirective({
-              operator: isLinking ? Operator.InsertLink : Operator.Open,
-              operand: timestampToNotePath(new Date()),
-            }),
+            state: { path: newNotePath, draft: true, title: searchTerms, linkTo: isLinking ? newNotePath : undefined },
           },
           ...files.map((file) => ({
-            ...getDirectives(file.path),
             title: file.meta.title ?? "Untitled",
+            state: {
+              title: file.meta.title ?? "Untitled",
+              path: file.path,
+              linkTo: isLinking ? file.path : undefined,
+            },
           })),
         ]);
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
@@ -136,7 +129,10 @@ function initTopPanel(
         performance.mark("load-recent-start");
         const files = await proxy.getRecentFiles();
         omnimenu.setMenuItems(
-          files.map((file) => ({ ...getDirectives(file.path), title: file.meta.title ?? "Untitled" }))
+          files.map((file) => ({
+            title: file.meta.title ?? "Untitled",
+            state: { path: file.path, title: file.meta.title ?? "Untitled" },
+          }))
         );
         console.log(
           `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
@@ -145,16 +141,15 @@ function initTopPanel(
     }
   });
 
-  omnimenu.addEventListener("omnimenu-run-directive", (e) =>
-    runDirective(
+  omnimenu.addEventListener("omnimenu-action", (e) =>
+    handleOmnimenuAction(
       {
-        proxy,
         omnibox,
         omnimenu,
         view,
         library,
       },
-      parseDirective(e.detail)
+      e.detail
     )
   );
 
