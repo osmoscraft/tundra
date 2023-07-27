@@ -1,5 +1,5 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
 import { paramsToRouteState, stateToParams, type RouteState } from "../../router/route-state";
+import "./omnimenu-element.css";
 import template from "./omnimenu-element.html";
 
 export interface MenuItem {
@@ -20,8 +20,13 @@ export interface OmnimenuAction {
 }
 
 export class OmnimenuElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(template, this);
-  private nodeList = this.shadowRoot.getElementById("node-list") as HTMLUListElement;
+  private nodeList: HTMLUListElement;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.nodeList = this.querySelector("#node-list") as HTMLUListElement;
+  }
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {

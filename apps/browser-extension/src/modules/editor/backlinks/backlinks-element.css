@@ -1,0 +1,4 @@
+c-backlinks-element .backlink-list {
+  max-height: min(20rem, calc((100vh - 2rem) / 2)); /* roughly half of viewport minus the top panel */
+  overflow-y: auto;
+}

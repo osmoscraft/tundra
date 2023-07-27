@@ -1,4 +1,3 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
 import template from "./omnibox-element.html";
 
 export type QueryEventDetail = string;
@@ -17,9 +16,16 @@ export interface OmniboxSubmitEvent {
 }
 
 export class OmniboxElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(template, this);
-  private form = this.shadowRoot.querySelector("form")!;
-  private input = this.form.querySelector(`input[type="search"]`) as HTMLInputElement;
+  // shadowRoot = attachShadowHtml(template, this);
+  private form: HTMLFormElement;
+  private input: HTMLInputElement;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.form = this.querySelector("form")!;
+    this.input = this.form.querySelector(`input[type="search"]`) as HTMLInputElement;
+  }
 
   connectedCallback() {
     this.form.addEventListener("submit", (e) => {

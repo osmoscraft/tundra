@@ -1,4 +1,4 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
+import "./backlinks-element.css";
 import template from "./backlinks-element.html";
 
 declare global {
@@ -13,8 +13,13 @@ export interface Backlink {
 }
 
 export class BacklinksElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(template, this);
-  private backlinkList = this.shadowRoot.getElementById("backlink-list") as HTMLUListElement;
+  private backlinkList: HTMLUListElement;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.backlinkList = this.querySelector("#backlink-list") as HTMLUListElement;
+  }
 
   connectedCallback() {
     this.backlinkList.addEventListener("click", (e) => {
