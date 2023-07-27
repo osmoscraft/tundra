@@ -14,24 +14,26 @@ body {
   }
 }
 
-.c-shell {
-  height: 100%;
-  display: grid;
-  grid-template:
-    "main aside" 1fr
-    "bar bar" auto / 1fr auto;
-}
-
-.c-shell__main {
-  grid-area: main;
-}
-.c-shell__aside {
-  grid-area: aside;
-}
-.c-shell__bar {
-  grid-area: bar;
-}
-
 .cm-editor {
   height: 100%;
+}
+
+.c-top-panel {
+  display: grid;
+  grid-template:
+    "prompt status" auto
+    "menu menu" 1fr/1fr auto;
+}
+.c-top-panel__menu {
+  grid-area: menu;
+}
+.c-top-panel__prompt {
+  grid-area: prompt;
+}
+.c-top-panel__status {
+  grid-area: status;
+}
+
+.c-bottom-panel {
+  display: grid;
 }

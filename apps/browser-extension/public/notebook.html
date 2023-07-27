@@ -11,14 +11,14 @@
   <body>
     <div id="editor-root" class="c-codemirror-container c-shell__main"></div>
     <template id="panel-templates">
-      <top-panel-element>
-        <omnibox-element slot="prompt"></omnibox-element>
-        <omnimenu-element slot="menu"></omnimenu-element>
-        <status-bar-element slot="status"></status-bar-element>
-      </top-panel-element>
-      <bottom-panel-element>
+      <div id="top-panel" class="c-top-panel">
+        <omnibox-element class="c-top-panel__prompt"></omnibox-element>
+        <omnimenu-element class="c-top-panel__menu"></omnimenu-element>
+        <status-bar-element class="c-top-panel__status"></status-bar-element>
+      </div>
+      <div id="bottom-panel" class="c-bottom-panel">
         <backlinks-element></backlinks-element>
-      </bottom-panel-element>
+      </div>
     </template>
     <script type="module" src="./notebook.js"></script>
   </body>

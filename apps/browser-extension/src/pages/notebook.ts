@@ -18,23 +18,21 @@ import {
   type CommandLibrary,
 } from "../modules/editor/commands";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
+import { FocusTrapElement } from "../modules/editor/omnibox/focus-trap-element";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action";
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
-import { BottomPanelElement } from "../modules/panels/bottom-panel-element";
-import { TopPanelElement } from "../modules/panels/top-panel-element";
 import { timestampToNotePath } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+customElements.define("focus-trap-element", FocusTrapElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
-customElements.define("top-panel-element", TopPanelElement);
 customElements.define("backlinks-element", BacklinksElement);
-customElements.define("bottom-panel-element", BottomPanelElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
@@ -42,8 +40,8 @@ const statusEvents = new EventTarget();
 
 function main() {
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
-  const topPanelElement = panelTemplates.content.querySelector<TopPanelElement>("top-panel-element")!;
-  const bottomPanelElement = panelTemplates.content.querySelector<BottomPanelElement>("bottom-panel-element")!;
+  const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
+  const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
   const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = topPanelElement.querySelector<OmniboxElement>("omnibox-element")!;
   const menu = topPanelElement.querySelector<OmnimenuElement>("omnimenu-element")!;
@@ -181,8 +179,8 @@ function initBottomPanel(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: Backlin
 }
 
 interface InitEdidorConfig {
-  topPanelElement: TopPanelElement;
-  bottomPanelElement: BottomPanelElement;
+  topPanelElement: HTMLElement;
+  bottomPanelElement: HTMLElement;
   keyBindings: KeyBinding[];
 }
 
