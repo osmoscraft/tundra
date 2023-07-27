@@ -4,6 +4,7 @@
 - Omnibox: when focus leaves (omnibox, omnimenu), collapse the menu
 - Omnibox: Tab key should have a single stop on each of top, main, and bottom panel
 - Omnibox: Use arrow or j,k keys to navigate omnibox menu and backlink menu
+- Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
