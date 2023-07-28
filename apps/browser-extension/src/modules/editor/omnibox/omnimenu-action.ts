@@ -5,6 +5,7 @@ import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
 import type { OmniboxElement } from "./omnibox-element";
 import type { OmnimenuAction, OmnimenuElement } from "./omnimenu-element";
+import { SubmitMode } from "./submit-mode";
 
 export interface OmnimenuActionContext {
   omnibox: OmniboxElement;
@@ -15,11 +16,11 @@ export interface OmnimenuActionContext {
 
 export function handleOmnimenuAction(context: OmnimenuActionContext, action: OmnimenuAction) {
   const { omnibox, omnimenu, view, library } = context;
-  const { state, isSecondary } = action;
+  const { state, mode } = action;
 
   switch (true) {
     case !!state.linkTo:
-      const linkTitle = isSecondary ? state.title : getSelectedText(view);
+      const linkTitle = mode === SubmitMode.secondary ? state.title : getSelectedText(view);
       const tx = view.state.replaceSelection(`[${linkTitle}](${nodePathToId(state.linkTo!)})`);
       view.dispatch(tx);
       omnibox.clear();
@@ -27,7 +28,7 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       view.focus();
       break;
     case !!state.path:
-      window.open(`?${stateToParams(state)}`, isSecondary ? "_blank" : "_self");
+      window.open(`?${stateToParams(state)}`, mode === SubmitMode.secondary ? "_blank" : "_self");
       break;
     case !!state.command:
       const [namespace, commandName] = state.command!.split(".");

@@ -172,7 +172,7 @@ function initPanels(
   });
 
   omnibox.addEventListener("omnibox.submit", (e) => {
-    omnimenu.submitFirst(e.detail.ctrlKey);
+    omnimenu.submitFirst(e.detail.submitMode);
   });
 
   omnibox.addEventListener("omnibox.close", () => {

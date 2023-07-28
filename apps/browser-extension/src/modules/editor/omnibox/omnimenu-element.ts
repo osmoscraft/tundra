@@ -1,6 +1,7 @@
 import { paramsToRouteState, stateToParams, type RouteState } from "../../router/route-state";
 import "./omnimenu-element.css";
 import template from "./omnimenu-element.html";
+import { SubmitMode, getEventMode } from "./submit-mode";
 
 export interface MenuItem {
   title: string;
@@ -16,7 +17,7 @@ declare global {
 
 export interface OmnimenuAction {
   state: RouteState;
-  isSecondary?: boolean;
+  mode: SubmitMode;
 }
 
 export class OmnimenuElement extends HTMLElement {
@@ -30,7 +31,7 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      if (this.submitItem(e.target as HTMLElement, e.ctrlKey)) {
+      if (this.submitItem(e.target as HTMLElement, getEventMode(e))) {
         e.preventDefault();
       }
     });
@@ -46,17 +47,17 @@ export class OmnimenuElement extends HTMLElement {
     this.nodeList.innerHTML = "";
   }
 
-  submitFirst(secondary?: boolean) {
+  submitFirst(submitMode: SubmitMode) {
     const firstItem = this.nodeList.querySelector("[data-state]");
-    this.submitItem(firstItem as HTMLElement, secondary);
+    this.submitItem(firstItem as HTMLElement, submitMode);
   }
 
-  private submitItem(element: HTMLElement, secondary?: boolean) {
+  private submitItem(element: HTMLElement, mode: SubmitMode = SubmitMode.primary) {
     const stateText = element.closest("[data-state]")?.getAttribute("data-state");
     if (stateText) {
       this.dispatchEvent(
         new CustomEvent<OmnimenuAction>("omnimenu.action", {
-          detail: { state: paramsToRouteState(new URLSearchParams(stateText)), isSecondary: secondary },
+          detail: { state: paramsToRouteState(new URLSearchParams(stateText)), mode },
         })
       );
       return true;
