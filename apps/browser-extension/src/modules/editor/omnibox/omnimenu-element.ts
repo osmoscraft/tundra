@@ -43,10 +43,6 @@ export class OmnimenuElement extends HTMLElement {
     });
   }
 
-  clear() {
-    this.nodeList.innerHTML = "";
-  }
-
   submitFirst(submitMode: SubmitMode) {
     const firstItem = this.nodeList.querySelector("[data-state]");
     this.submitItem(firstItem as HTMLElement, submitMode);

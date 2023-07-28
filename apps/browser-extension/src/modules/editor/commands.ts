@@ -81,7 +81,7 @@ export function extendedCommands(
       addLink: (view) => {
         const selectedText = getSelectedText(view);
         omnibox.setValue(`:${selectedText}`);
-        dialog.show();
+        dialog.showModal();
         return true;
       },
       openOptions: () => {
@@ -91,12 +91,12 @@ export function extendedCommands(
       startSearch: (view) => {
         const selectedText = getSelectedText(view);
         omnibox.setValue(selectedText);
-        dialog.show();
+        dialog.showModal();
         return true;
       },
       startCommand: () => {
         omnibox.setValue(`>`);
-        dialog.show();
+        dialog.showModal();
         return true;
       },
     },

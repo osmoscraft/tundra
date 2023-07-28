@@ -45,10 +45,7 @@ export class OmniboxElement extends HTMLElement {
       if (e.key === "Escape") {
         if (this.input.value) {
           e.preventDefault();
-          this.input.value = "";
-        } else {
-          e.preventDefault();
-          this.dispatchEvent(new Event("omnibox.close"));
+          this.setValue("");
         }
       }
       if (e.key === "Enter") {
@@ -65,13 +62,13 @@ export class OmniboxElement extends HTMLElement {
     });
   }
 
-  clear() {
-    this.input.value = "";
-  }
-
   setValue(value: string) {
     this.input.value = value;
     this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox.input", { detail: this.input.value.trim() }));
+  }
+
+  getValue() {
+    return this.input.value.trim();
   }
 
   focus() {

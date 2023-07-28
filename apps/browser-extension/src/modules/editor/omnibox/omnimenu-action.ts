@@ -8,6 +8,7 @@ import type { OmnimenuAction, OmnimenuElement } from "./omnimenu-element";
 import { SubmitMode } from "./submit-mode";
 
 export interface OmnimenuActionContext {
+  dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
   omnimenu: OmnimenuElement;
   view: EditorView;
@@ -15,18 +16,23 @@ export interface OmnimenuActionContext {
 }
 
 export function handleOmnimenuAction(context: OmnimenuActionContext, action: OmnimenuAction) {
-  const { omnibox, omnimenu, view, library } = context;
+  const { dialog, omnibox, omnimenu, view, library } = context;
   const { state, mode } = action;
 
   switch (true) {
     case !!state.linkTo:
+      const selectedText = getSelectedText(view);
+      const primaryTitle = selectedText.length ? selectedText : state.title;
+
       const linkTitle =
-        mode === SubmitMode.secondary ? state.title : SubmitMode.tertiary ? "......." : getSelectedText(view);
+        mode === SubmitMode.secondary
+          ? state.title
+          : mode === SubmitMode.tertiary
+          ? omnibox.getValue().slice(1).trim() // remove ":" prefix
+          : primaryTitle;
       const tx = view.state.replaceSelection(`[${linkTitle}](${nodePathToId(state.linkTo!)})`);
       view.dispatch(tx);
-      omnibox.clear();
-      omnimenu.clear();
-      view.focus();
+      dialog.close();
       break;
     case !!state.path:
       window.open(`?${stateToParams(state)}`, mode === SubmitMode.secondary ? "_blank" : "_self");
@@ -35,9 +41,7 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       const [namespace, commandName] = state.command!.split(".");
       const command = library[namespace]?.[commandName] as Command | undefined;
 
-      omnibox.clear();
-      omnimenu.clear();
-      view.focus();
+      dialog.close();
       command?.(view);
       break;
     default:

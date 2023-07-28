@@ -46,12 +46,15 @@ function main() {
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
   const statusBarElement = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omniboxElement = document.querySelector<OmniboxElement>("omnibox-element")!;
-  const menuElement = document.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const omnimenuElement = document.querySelector<OmnimenuElement>("omnimenu-element")!;
   const backlinksElement = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
   const dialogElement = document.querySelector<HTMLDialogElement>("#app-dialog")!;
   const dialogFocusObserverElement = document.querySelector<FocusObserverElement>("focus-observer-element")!;
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
-  const library = { ...nativeCommands(), ...extendedCommands(proxy, dialogElement, omniboxElement, statusBarElement) };
+  const library = {
+    ...nativeCommands(),
+    ...extendedCommands(proxy, dialogElement, omniboxElement, omnimenuElement, statusBarElement),
+  };
   const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
@@ -70,7 +73,7 @@ function main() {
     dialogElement,
     dialogFocusObserverElement,
     omniboxElement,
-    menuElement,
+    omnimenuElement,
     statusBarElement,
     configKeyBindings,
     library,
@@ -121,7 +124,6 @@ function initPanels(
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
-
         const newNotePath = timestampToNotePath(new Date());
 
         omnimenu.setMenuItems([
@@ -145,7 +147,7 @@ function initPanels(
         omnimenu.setMenuItems(
           files.map((file) => ({
             title: file.meta.title ?? "Untitled",
-            state: { path: file.path, title: file.meta.title ?? "Untitled" },
+            state: { path: file.path, title: file.meta.title ?? "Untitled", linkTo: isLinking ? file.path : undefined },
           }))
         );
         console.log(
@@ -158,6 +160,7 @@ function initPanels(
   omnimenu.addEventListener("omnimenu.action", (e) =>
     handleOmnimenuAction(
       {
+        dialog,
         omnibox,
         omnimenu,
         view,
@@ -173,28 +176,6 @@ function initPanels(
 
   omnibox.addEventListener("omnibox.submit", (e) => {
     omnimenu.submitFirst(e.detail.submitMode);
-  });
-
-  omnibox.addEventListener("omnibox.close", () => {
-    omnibox.clear();
-    omnimenu.clear();
-    dialog.close();
-    view.focus();
-  });
-
-  dialogFocusObserverElement.addEventListener("focus-observer.blur", (e) => {
-    if (e.detail.reason === "window-blurred") return;
-
-    if (e.detail.relatedTarget === null || !dialog.contains(e.detail.relatedTarget)) {
-      // outside click or dismiss should be honored
-      omnibox.clear();
-      omnimenu.clear();
-      dialog.close();
-      view.focus();
-    } else if (dialog.contains(e.detail.relatedTarget)) {
-      // inside click should bring focus back to input
-      omnibox.focus();
-    }
   });
 
   const path = new URLSearchParams(location.search).get("path");

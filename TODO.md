@@ -1,8 +1,6 @@
 # Alpha must have
 
 - Omnibox: create new link to blank files
-- Modal: consolidate dialog, trap, observer into a web component
-- Modal: explore built-in inert
 - Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus
 - Keyboard: wrap entire app with focus trap
 - Router: Hot swap internal navigation
@@ -14,6 +12,7 @@
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
+- LiveLink: Enter key on the right edge should not open url
 
 # Future
 
