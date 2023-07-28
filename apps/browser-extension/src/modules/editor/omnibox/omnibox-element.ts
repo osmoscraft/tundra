@@ -41,10 +41,6 @@ export class OmniboxElement extends HTMLElement {
       );
     });
 
-    this.input.addEventListener("focus", (e) => {
-      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox.input", { detail: this.input.value.trim() }));
-    });
-
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         if (this.input.value) {
@@ -73,9 +69,9 @@ export class OmniboxElement extends HTMLElement {
     this.input.value = "";
   }
 
-  open(initialValue?: string) {
-    if (initialValue !== undefined) this.input.value = initialValue;
-    this.input.focus();
+  setValue(value: string) {
+    this.input.value = value;
+    this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox.input", { detail: this.input.value.trim() }));
   }
 
   focus() {

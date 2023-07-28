@@ -1,8 +1,8 @@
 # Alpha must have
 
-- Omnibox: not loading initial search results
 - Omnibox: create new link to blank files
 - Modal: consolidate dialog, trap, observer into a web component
+- Modal: explore built-in inert
 - Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus
 - Keyboard: wrap entire app with focus trap
 - Router: Hot swap internal navigation
