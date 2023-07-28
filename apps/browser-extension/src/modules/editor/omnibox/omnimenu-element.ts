@@ -38,6 +38,7 @@ export class OmnimenuElement extends HTMLElement {
 
     this.nodeList.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         this.dispatchEvent(new Event("omnimenu.close"));
       }
     });
