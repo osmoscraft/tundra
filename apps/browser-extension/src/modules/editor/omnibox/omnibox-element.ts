@@ -16,7 +16,6 @@ export interface OmniboxSubmitEvent {
 }
 
 export class OmniboxElement extends HTMLElement {
-  // shadowRoot = attachShadowHtml(template, this);
   private form: HTMLFormElement;
   private input: HTMLInputElement;
 
@@ -47,8 +46,13 @@ export class OmniboxElement extends HTMLElement {
 
     this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        e.preventDefault();
-        this.dispatchEvent(new Event("omnibox-close"));
+        if (this.input.value) {
+          e.preventDefault();
+          this.input.value = "";
+        } else {
+          e.preventDefault();
+          this.dispatchEvent(new Event("omnibox-close"));
+        }
       }
       if (e.key === "Enter") {
         e.preventDefault();

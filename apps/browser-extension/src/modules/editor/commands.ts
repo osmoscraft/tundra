@@ -70,6 +70,7 @@ export function editorCommands(): CommandLibrary {
 
 export function extendedCommands(
   proxy: AsyncProxy<DataWorkerRoutes>,
+  dialog: HTMLDialogElement,
   omnibox: OmniboxElement,
   statusBar: StatusBarElement
 ): CommandLibrary {
@@ -79,6 +80,7 @@ export function extendedCommands(
     shell: {
       addLink: (view) => {
         const selectedText = getSelectedText(view);
+        dialog.show();
         omnibox.open(`:${selectedText}`);
         return true;
       },
@@ -88,10 +90,12 @@ export function extendedCommands(
       },
       startSearch: (view) => {
         const selectedText = getSelectedText(view);
+        dialog.show();
         omnibox.open(selectedText);
         return true;
       },
       startCommand: () => {
+        dialog.show();
         omnibox.open(`>`);
         return true;
       },

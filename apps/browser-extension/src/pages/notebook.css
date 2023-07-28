@@ -18,6 +18,12 @@ body {
   height: 100%;
 }
 
+.c-shell__dialog {
+  top: 0;
+  width: min(80vw, 40rem);
+  margin: auto;
+}
+
 .c-top-panel {
   display: grid;
   grid-template:

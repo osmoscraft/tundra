@@ -18,7 +18,8 @@ import {
   type CommandLibrary,
 } from "../modules/editor/commands";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
-import { FocusTrapElement } from "../modules/editor/omnibox/focus-trap-element";
+import { FocusObserverElement } from "../modules/editor/omnibox/modal/focus-observer-element";
+import { FocusTrapElement } from "../modules/editor/omnibox/modal/focus-trap-element";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action";
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
@@ -28,6 +29,7 @@ import { timestampToNotePath } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+customElements.define("focus-observer-element", FocusObserverElement);
 customElements.define("focus-trap-element", FocusTrapElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
@@ -43,12 +45,12 @@ function main() {
   const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
   const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
-  const omnibox = topPanelElement.querySelector<OmniboxElement>("omnibox-element")!;
-  const menu = topPanelElement.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
+  const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
   const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
-
+  const dialog = document.querySelector<HTMLDialogElement>("#app-dialog")!;
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
-  const library = { ...nativeCommands(), ...extendedCommands(proxy, omnibox, statusBar) };
+  const library = { ...nativeCommands(), ...extendedCommands(proxy, dialog, omnibox, statusBar) };
   const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
@@ -61,21 +63,22 @@ function main() {
   }
 
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
-  initTopPanel(proxy, editoView, omnibox, menu, statusBar, configKeyBindings, library);
-  initBottomPanel(proxy, backlinks);
+  initPanels(proxy, editoView, dialog, omnibox, menu, statusBar, configKeyBindings, library, backlinks);
   initContent(proxy, editoView);
 }
 
 main();
 
-function initTopPanel(
+function initPanels(
   proxy: AsyncProxy<DataWorkerRoutes>,
   view: EditorView,
+  dialog: HTMLDialogElement,
   omnibox: OmniboxElement,
   omnimenu: OmnimenuElement,
   statusBar: StatusBarElement,
   bindings: CommandKeyBinding[],
-  library: CommandLibrary
+  library: CommandLibrary,
+  backlinks: BacklinksElement
 ) {
   // request initial status
   proxy
@@ -162,11 +165,10 @@ function initTopPanel(
   omnibox.addEventListener("omnibox-close", () => {
     omnibox.clear();
     omnimenu.clear();
+    dialog.close();
     view.focus();
   });
-}
 
-function initBottomPanel(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: BacklinksElement) {
   const path = new URLSearchParams(location.search).get("path");
 
   if (!path) {
