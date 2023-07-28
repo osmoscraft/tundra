@@ -1,8 +1,7 @@
 # Alpha must have
 
 - Omnibox: create new link to blank files
-- Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus
-- Keyboard: wrap entire app with focus trap
+- Keyboard: wrap entire app with focus trap, handle codemirror focusability
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
@@ -16,6 +15,7 @@
 
 # Future
 
+- When linking, the default option should be first matched link, rather than create new
 - Omnibox: auto update reference when newly created file is renamed
 - Autosave edits
 - Need to handle invalid frontmatter state during auto save

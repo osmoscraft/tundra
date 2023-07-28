@@ -18,8 +18,6 @@ import {
   type CommandLibrary,
 } from "../modules/editor/commands";
 import { loadInitialDoc } from "../modules/editor/load-initial-doc";
-import { FocusObserverElement } from "../modules/editor/omnibox/modal/focus-observer-element";
-import { FocusTrapElement } from "../modules/editor/omnibox/modal/focus-trap-element";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action";
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
@@ -29,8 +27,6 @@ import { timestampToNotePath } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
-customElements.define("focus-observer-element", FocusObserverElement);
-customElements.define("focus-trap-element", FocusTrapElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
@@ -49,11 +45,10 @@ function main() {
   const omnimenuElement = document.querySelector<OmnimenuElement>("omnimenu-element")!;
   const backlinksElement = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
   const dialogElement = document.querySelector<HTMLDialogElement>("#app-dialog")!;
-  const dialogFocusObserverElement = document.querySelector<FocusObserverElement>("focus-observer-element")!;
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = {
     ...nativeCommands(),
-    ...extendedCommands(proxy, dialogElement, omniboxElement, omnimenuElement, statusBarElement),
+    ...extendedCommands(proxy, dialogElement, omniboxElement, statusBarElement),
   };
   const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
@@ -71,7 +66,6 @@ function main() {
     proxy,
     editoView,
     dialogElement,
-    dialogFocusObserverElement,
     omniboxElement,
     omnimenuElement,
     statusBarElement,
@@ -88,7 +82,6 @@ function initPanels(
   proxy: AsyncProxy<DataWorkerRoutes>,
   view: EditorView,
   dialog: HTMLDialogElement,
-  dialogFocusObserverElement: FocusObserverElement,
   omnibox: OmniboxElement,
   omnimenu: OmnimenuElement,
   statusBar: StatusBarElement,
