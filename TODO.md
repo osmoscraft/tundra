@@ -1,9 +1,7 @@
 # Alpha must have
 
 - Omnibox: create new link to blank files
-- Omnibox: when focus leaves (omnibox, omnimenu), collapse the menu
-- Omnibox: Tab key should have a single stop on each of top, main, and bottom panel
-- Omnibox: Use arrow or j,k keys to navigate omnibox menu and backlink menu
+- Modal: consolidate dialog, trap, observer into a web component
 - Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus
 - Keyboard: wrap entire app with focus trap
 - Router: Hot swap internal navigation
