@@ -44,13 +44,14 @@ function main() {
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
   const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
-  const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
-  const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
-  const menu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
-  const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
-  const dialog = document.querySelector<HTMLDialogElement>("#app-dialog")!;
+  const statusBarElement = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
+  const omniboxElement = document.querySelector<OmniboxElement>("omnibox-element")!;
+  const menuElement = document.querySelector<OmnimenuElement>("omnimenu-element")!;
+  const backlinksElement = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
+  const dialogElement = document.querySelector<HTMLDialogElement>("#app-dialog")!;
+  const dialogFocusObserverElement = document.querySelector<FocusObserverElement>("focus-observer-element")!;
   const configKeyBindings = userConfig.keyBindings as CommandKeyBinding[];
-  const library = { ...nativeCommands(), ...extendedCommands(proxy, dialog, omnibox, statusBar) };
+  const library = { ...nativeCommands(), ...extendedCommands(proxy, dialogElement, omniboxElement, statusBarElement) };
   const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
@@ -63,7 +64,18 @@ function main() {
   }
 
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
-  initPanels(proxy, editoView, dialog, omnibox, menu, statusBar, configKeyBindings, library, backlinks);
+  initPanels(
+    proxy,
+    editoView,
+    dialogElement,
+    dialogFocusObserverElement,
+    omniboxElement,
+    menuElement,
+    statusBarElement,
+    configKeyBindings,
+    library,
+    backlinksElement
+  );
   initContent(proxy, editoView);
 }
 
@@ -73,6 +85,7 @@ function initPanels(
   proxy: AsyncProxy<DataWorkerRoutes>,
   view: EditorView,
   dialog: HTMLDialogElement,
+  dialogFocusObserverElement: FocusObserverElement,
   omnibox: OmniboxElement,
   omnimenu: OmnimenuElement,
   statusBar: StatusBarElement,
@@ -167,6 +180,21 @@ function initPanels(
     omnimenu.clear();
     dialog.close();
     view.focus();
+  });
+
+  dialogFocusObserverElement.addEventListener("focus-observer-blur", (e) => {
+    if (e.detail.reason === "window-blurred") return;
+
+    if (e.detail.relatedTarget === null || !dialog.contains(e.detail.relatedTarget)) {
+      // outside click or dismiss should be honored
+      omnibox.clear();
+      omnimenu.clear();
+      dialog.close();
+      view.focus();
+    } else if (dialog.contains(e.detail.relatedTarget)) {
+      // inside click should bring focus back to input
+      omnibox.focus();
+    }
   });
 
   const path = new URLSearchParams(location.search).get("path");

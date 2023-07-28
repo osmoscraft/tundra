@@ -1,36 +1,66 @@
+declare global {
+  interface HTMLElementEventMap {
+    "focus-observer-blur": CustomEvent<FocusObserverBlurEvent>;
+  }
+}
+
+export interface FocusObserverBlurEvent {
+  relatedTarget: Node | null; // null when dismissed or window-blurred
+  reason: "window-blurred" | "dismissed" | "outside-focused";
+}
+
+export enum BlurReason {
+  /* User switches app or opens dev tool */
+  WindowBlurred = "window-blurred",
+  /* User clicks non-interactive element */
+  Dismissed = "dismissed",
+  /* User clicks interactive element outside of the observer */
+  OutsideFocused = "outside-focused",
+}
+
+/**
+ * Upon first focusin, prevent focus from moving outside of the trap
+ * This behavior is decoupled from closing of a modal
+ * So a separate logic should decide whether to close a modal when user clicks outside
+ *
+ *          Trigger by | relatedTaget | activeElement
+ * Click space outside | null         | body
+ *  Click space inside | null*        | body
+ *  Click elem outside | that elem    | body
+ *   Click elem inside | that elem    | body
+ *  Tab to elem inside | that elem    | body
+ *    Blur browser tab | null         | current elem
+ *
+ * (*) Click space inside a dialog will set dialog as relatedTarget because dialog is considered interactive
+ */
 export class FocusObserverElement extends HTMLElement {
   connectedCallback() {
-    /**
-		 * Upon first focusin, prevent focus from moving outside of the trap
-		 * This behavior is decoupled from closing of a modal
-		 * So a separate logic should decide whether to close a modal when user clicks outside
-		 * 
-		 |          Trigger by | relatedTaget | activeElement | Need to bring focus back |
-		 | Click space outside | null         | body          | Y                        |
-		 |  Click elem outside | that elem    | body          | Y                        |
-		 |  Click space inside | main elem    | body          | Y                        |
-		 |   Click elem inside | that elem    | body          | N                        |
-		 |  Tab to elem inside | that elem    | body          | N                        |
-		 |    Blur browser tab | null         | current elem  | N                        |
-		 */
-    this.addEventListener("focusin", this.handleFocusIn);
+    this.addEventListener("focusout", this.handleFocusout);
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener("focusout", this.handleFocusout);
   }
 
   private handleFocusout = ((e: FocusEvent) => {
-    console.log("focus out detected", e);
-    // Click space outside or inside
-    if (e.relatedTarget === null && document.activeElement === document.body) {
-      console.log("clicked on non-interactive element", e);
-    }
-
-    // Click elem outside
     if (e.relatedTarget !== null && !this.contains(e.relatedTarget as Node)) {
-      console.log("clicked on interactive element outside", e);
+      this.dispatchEvent(
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+          detail: { relatedTarget: e.relatedTarget as Node, reason: BlurReason.OutsideFocused },
+        })
+      );
+    } else if (e.relatedTarget === null && document.activeElement === document.body) {
+      this.dispatchEvent(
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+          detail: { relatedTarget: null, reason: BlurReason.Dismissed },
+        })
+      );
+    } else if (e.relatedTarget === null && document.activeElement !== document.body) {
+      this.dispatchEvent(
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+          detail: { relatedTarget: null, reason: BlurReason.WindowBlurred },
+        })
+      );
     }
-  }).bind(this);
-
-  private handleFocusIn = ((e: FocusEvent) => {
-    this.addEventListener("focusout", this.handleFocusout);
-    this.removeEventListener("focusin", this.handleFocusIn);
   }).bind(this);
 }
