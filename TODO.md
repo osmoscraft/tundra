@@ -1,5 +1,6 @@
 # Alpha must have
 
+- Omnibox: not loading initial search results
 - Omnibox: create new link to blank files
 - Modal: consolidate dialog, trap, observer into a web component
 - Keyboard: adapt focus trap to support outside click dismiss, inside click retain focus

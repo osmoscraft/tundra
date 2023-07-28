@@ -7,7 +7,7 @@ export enum SubmitMode {
 
 export function getEventMode(event: KeyboardEvent | MouseEvent) {
   if (event.ctrlKey) {
-    if (!event.shiftKey) {
+    if (event.shiftKey) {
       return SubmitMode.tertiary;
     } else {
       return SubmitMode.secondary;

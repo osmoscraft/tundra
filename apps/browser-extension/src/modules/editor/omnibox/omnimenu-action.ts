@@ -20,7 +20,8 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
 
   switch (true) {
     case !!state.linkTo:
-      const linkTitle = mode === SubmitMode.secondary ? state.title : getSelectedText(view);
+      const linkTitle =
+        mode === SubmitMode.secondary ? state.title : SubmitMode.tertiary ? "......." : getSelectedText(view);
       const tx = view.state.replaceSelection(`[${linkTitle}](${nodePathToId(state.linkTo!)})`);
       view.dispatch(tx);
       omnibox.clear();
