@@ -9,8 +9,8 @@ export interface MenuItem {
 
 declare global {
   interface HTMLElementEventMap {
-    "omnimenu-action": CustomEvent<OmnimenuAction>;
-    "omnimenu-close": Event;
+    "omnimenu.action": CustomEvent<OmnimenuAction>;
+    "omnimenu.close": Event;
   }
 }
 
@@ -37,7 +37,7 @@ export class OmnimenuElement extends HTMLElement {
 
     this.nodeList.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        this.dispatchEvent(new Event("omnimenu-close"));
+        this.dispatchEvent(new Event("omnimenu.close"));
       }
     });
   }
@@ -55,7 +55,7 @@ export class OmnimenuElement extends HTMLElement {
     const stateText = element.closest("[data-state]")?.getAttribute("data-state");
     if (stateText) {
       this.dispatchEvent(
-        new CustomEvent<OmnimenuAction>("omnimenu-action", {
+        new CustomEvent<OmnimenuAction>("omnimenu.action", {
           detail: { state: paramsToRouteState(new URLSearchParams(stateText)), isSecondary: secondary },
         })
       );

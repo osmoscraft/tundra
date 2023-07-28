@@ -4,9 +4,9 @@ export type QueryEventDetail = string;
 
 declare global {
   interface HTMLElementEventMap {
-    "omnibox-input": CustomEvent<string>;
-    "omnibox-close": Event;
-    "omnibox-submit": CustomEvent<OmniboxSubmitEvent>;
+    "omnibox.input": CustomEvent<string>;
+    "omnibox.close": Event;
+    "omnibox.submit": CustomEvent<OmniboxSubmitEvent>;
   }
 }
 
@@ -34,14 +34,14 @@ export class OmniboxElement extends HTMLElement {
 
     this.input.addEventListener("input", (e) => {
       this.dispatchEvent(
-        new CustomEvent<QueryEventDetail>("omnibox-input", {
+        new CustomEvent<QueryEventDetail>("omnibox.input", {
           detail: this.input.value.trim(),
         })
       );
     });
 
     this.input.addEventListener("focus", (e) => {
-      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox-input", { detail: this.input.value.trim() }));
+      this.dispatchEvent(new CustomEvent<QueryEventDetail>("omnibox.input", { detail: this.input.value.trim() }));
     });
 
     this.input.addEventListener("keydown", (e) => {
@@ -51,13 +51,13 @@ export class OmniboxElement extends HTMLElement {
           this.input.value = "";
         } else {
           e.preventDefault();
-          this.dispatchEvent(new Event("omnibox-close"));
+          this.dispatchEvent(new Event("omnibox.close"));
         }
       }
       if (e.key === "Enter") {
         e.preventDefault();
         this.dispatchEvent(
-          new CustomEvent<OmniboxSubmitEvent>("omnibox-submit", {
+          new CustomEvent<OmniboxSubmitEvent>("omnibox.submit", {
             detail: {
               value: this.input.value.trim(),
               ctrlKey: e.ctrlKey,

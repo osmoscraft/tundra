@@ -1,6 +1,6 @@
 declare global {
   interface HTMLElementEventMap {
-    "focus-observer-blur": CustomEvent<FocusObserverBlurEvent>;
+    "focus-observer.blur": CustomEvent<FocusObserverBlurEvent>;
   }
 }
 
@@ -45,19 +45,19 @@ export class FocusObserverElement extends HTMLElement {
   private handleFocusout = ((e: FocusEvent) => {
     if (e.relatedTarget !== null && !this.contains(e.relatedTarget as Node)) {
       this.dispatchEvent(
-        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer.blur", {
           detail: { relatedTarget: e.relatedTarget as Node, reason: BlurReason.OutsideFocused },
         })
       );
     } else if (e.relatedTarget === null && document.activeElement === document.body) {
       this.dispatchEvent(
-        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer.blur", {
           detail: { relatedTarget: null, reason: BlurReason.Dismissed },
         })
       );
     } else if (e.relatedTarget === null && document.activeElement !== document.body) {
       this.dispatchEvent(
-        new CustomEvent<FocusObserverBlurEvent>("focus-observer-blur", {
+        new CustomEvent<FocusObserverBlurEvent>("focus-observer.blur", {
           detail: { relatedTarget: null, reason: BlurReason.WindowBlurred },
         })
       );

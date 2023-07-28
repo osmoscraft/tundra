@@ -101,7 +101,7 @@ function initPanels(
 
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
-  omnibox.addEventListener("omnibox-input", async (e) => {
+  omnibox.addEventListener("omnibox.input", async (e) => {
     const q = e.detail;
     if (q.startsWith(">")) {
       const command = q.slice(1).trim();
@@ -155,7 +155,7 @@ function initPanels(
     }
   });
 
-  omnimenu.addEventListener("omnimenu-action", (e) =>
+  omnimenu.addEventListener("omnimenu.action", (e) =>
     handleOmnimenuAction(
       {
         omnibox,
@@ -167,22 +167,22 @@ function initPanels(
     )
   );
 
-  omnimenu.addEventListener("omnimenu-close", () => {
+  omnimenu.addEventListener("omnimenu.close", () => {
     omnibox.focus();
   });
 
-  omnibox.addEventListener("omnibox-submit", (e) => {
+  omnibox.addEventListener("omnibox.submit", (e) => {
     omnimenu.submitFirst(e.detail.ctrlKey);
   });
 
-  omnibox.addEventListener("omnibox-close", () => {
+  omnibox.addEventListener("omnibox.close", () => {
     omnibox.clear();
     omnimenu.clear();
     dialog.close();
     view.focus();
   });
 
-  dialogFocusObserverElement.addEventListener("focus-observer-blur", (e) => {
+  dialogFocusObserverElement.addEventListener("focus-observer.blur", (e) => {
     if (e.detail.reason === "window-blurred") return;
 
     if (e.detail.relatedTarget === null || !dialog.contains(e.detail.relatedTarget)) {

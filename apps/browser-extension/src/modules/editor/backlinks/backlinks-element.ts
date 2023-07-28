@@ -3,7 +3,7 @@ import template from "./backlinks-element.html";
 
 declare global {
   interface HTMLElementEventMap {
-    "backlinks-open": CustomEvent<string>;
+    "backlinks.open": CustomEvent<string>;
   }
 }
 
