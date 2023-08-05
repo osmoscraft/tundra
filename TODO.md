@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Omnibox: create new link to blank files
 - Keyboard: wrap entire app with focus trap, handle codemirror focusability
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
