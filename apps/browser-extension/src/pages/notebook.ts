@@ -122,7 +122,7 @@ function initPanels(
         omnimenu.setMenuItems([
           {
             title: `(New) ${searchTerms}`,
-            state: { path: newNotePath, draft: true, title: searchTerms, linkTo: isLinking ? newNotePath : undefined },
+            state: { path: newNotePath, title: searchTerms, linkTo: isLinking ? newNotePath : undefined },
           },
           ...files.map((file) => ({
             title: file.meta.title ?? "Untitled",

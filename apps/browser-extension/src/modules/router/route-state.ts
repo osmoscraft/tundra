@@ -1,6 +1,5 @@
 export interface RouteState {
   path?: string;
-  draft?: boolean;
   title?: string;
   command?: string;
   linkTo?: string;
