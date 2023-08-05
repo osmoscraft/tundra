@@ -15,6 +15,8 @@
 
 # Future
 
+- Live link should not handle entery keydown when cursor is at the edge
+- Initial clone progress reporting
 - Keyboard: entire app should have two tab stops: editor and panel
 - When linking, the default option should be first matched link, rather than create new
 - Omnibox: auto update reference when newly created file is renamed

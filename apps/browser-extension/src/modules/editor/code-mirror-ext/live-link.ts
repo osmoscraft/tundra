@@ -71,12 +71,14 @@ class MarkdownLinkView implements PluginValue {
       regexp: TITLED_LINK_PATTERN,
       decoration: (match, view) => {
         // TODO handle non-id links
-        const url = match[2];
+        const [_, title, url] = match;
         const isInternal = isInternalUrl(url);
         return Decoration.mark({
           tagName: "a",
           attributes: {
-            href: isInternal ? `?path=${encodeURIComponent(noteIdToPath(url))}` : url,
+            href: isInternal
+              ? `?title=${encodeURIComponent(title)}&path=${encodeURIComponent(noteIdToPath(url))}`
+              : url,
             rel: "nofollow",
             class: "cm-live-link",
           },
