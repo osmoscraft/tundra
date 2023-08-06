@@ -1,7 +1,5 @@
 # Alpha must have
 
-- Menu: Combine LinkToId with Id
-- Router: switch from get/write/search-File layer to get/write/search-Note layer in proxy to hide path<->id conversion
 - Router: Hot swap internal navigation
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Sync: Automerge with higher timestamp
