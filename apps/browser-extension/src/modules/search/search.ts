@@ -16,7 +16,7 @@ export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
     paths: ["data/notes*"],
     ignore: getUserIgnores(db),
   });
-  return files;
+  return files.map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
 }
 
 export interface SearchBacklinkInput {
@@ -32,7 +32,9 @@ export function searchBacklinkNotes(db: Sqlite3.DB, input: SearchBacklinkInput) 
       paths: ["data/notes*"],
       ignore: getUserIgnores(db),
     })
-    .filter((file) => file.path !== notePath);
+    .filter((file) => file.path !== notePath)
+    .map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
+
   return files;
 }
 

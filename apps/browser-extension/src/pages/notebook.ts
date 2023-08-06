@@ -24,7 +24,7 @@ import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action"
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
-import { noteIdToPath, notePathToId, timestampToId } from "../modules/sync/path";
+import { noteIdToPath, timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
@@ -114,7 +114,7 @@ function initPanels(
 
       if (searchTerms.length) {
         performance.mark("search-start");
-        const files = await proxy.search({ query: searchTerms, limit: 20 });
+        const notes = await proxy.searchNotes({ query: searchTerms, limit: 20 });
         const newNoteId = timestampToId(new Date());
 
         omnimenu.setMenuItems([
@@ -122,12 +122,12 @@ function initPanels(
             title: `(New) ${searchTerms}`,
             state: { id: newNoteId, title: searchTerms, linkToId: isLinking ? newNoteId : undefined },
           },
-          ...files.map((file) => ({
+          ...notes.map((file) => ({
             title: file.meta.title ?? "Untitled",
             state: {
               title: file.meta.title ?? "Untitled",
-              id: notePathToId(file.path),
-              linkToId: isLinking ? notePathToId(file.path) : undefined,
+              id: file.id,
+              linkToId: isLinking ? file.id : undefined,
             },
           })),
         ]);
@@ -193,6 +193,7 @@ interface InitEdidorConfig {
 function initEditor(config: InitEdidorConfig) {
   const { topPanelElement, bottomPanelElement, keyBindings } = config;
   const id = new URLSearchParams(location.search).get("id");
+  // HACK, path only works for note files. JSON files requires different detection
   const path = id ? noteIdToPath(id) : undefined;
   const dotPos = path?.lastIndexOf(".");
   const ext = dotPos ? path?.slice(dotPos) : undefined;

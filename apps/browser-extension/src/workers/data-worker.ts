@@ -13,7 +13,7 @@ import {
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
-import { noteIdToPath, notePathToId } from "../modules/sync/path";
+import { noteIdToPath } from "../modules/sync/path";
 import { ensurePushParameters } from "../modules/sync/push";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
@@ -42,9 +42,9 @@ const routes = {
     searchBacklinkNotes(await dbInit(), {
       id,
       limit: 100,
-    }).map((file) => ({
-      id: notePathToId(file.path),
-      title: file.meta.title,
+    }).map((note) => ({
+      id: note.id,
+      title: note.meta.title,
     })),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getNote: async (id: string) => dbApi.getFile(await dbInit(), noteIdToPath(id)),
@@ -93,13 +93,10 @@ const routes = {
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
   },
-  search: async (input: SearchInput) => searchNotes(await dbInit(), input),
+  searchNotes: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),
-  writeFile: async (path: string, content: string) => {
-    const db = await dbInit();
-    dbApi.commit(db, { path, content });
-  },
+  writeNote: async (id: string, content: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content }),
 };
 
 dbInit(); // start db init early to reduce response time

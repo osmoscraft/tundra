@@ -18,7 +18,7 @@ export async function testBasicSearch() {
   });
 
   assertEqual(results.length, 1);
-  assertEqual(results[0].path, "data/notes/1.md");
+  assertEqual(results[0].id, "1");
 }
 
 export async function testBacklinkSearch() {
@@ -35,5 +35,5 @@ export async function testBacklinkSearch() {
   });
 
   assertEqual(results.length, 1);
-  assertEqual(results[0].path, "data/notes/1000.md");
+  assertEqual(results[0].id, "1000");
 }
