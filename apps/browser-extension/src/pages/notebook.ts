@@ -5,6 +5,7 @@ import type { Extension } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import { client, dedicatedWorkerHostPort, type AsyncProxy } from "@tinykb/rpc-utils";
+import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-element";
 import { BacklinksElement } from "../modules/editor/backlinks/backlinks-element";
 import { defineYamlNodes } from "../modules/editor/code-mirror-ext/custom-tags";
 import { frontmatterParser } from "../modules/editor/code-mirror-ext/frontmatter-parser";
@@ -31,6 +32,7 @@ customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
 customElements.define("backlinks-element", BacklinksElement);
+customElements.define("focus-trap-element", FocusTrapElement);
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });

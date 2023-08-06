@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Keyboard: wrap entire app with focus trap, handle codemirror focusability
 - Router: Hot swap internal navigation
 - Router: Rethink where to use id vs. path
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
@@ -14,6 +13,7 @@
 
 # Future
 
+- Fine-tune ESC behavior in omnibox
 - Live link should not handle entery keydown when cursor is at the edge
 - Initial clone progress reporting
 - Keyboard: entire app should have two tab stops: editor and panel
