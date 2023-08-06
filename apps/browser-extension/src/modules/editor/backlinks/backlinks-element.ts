@@ -8,7 +8,7 @@ declare global {
 }
 
 export interface Backlink {
-  path: string;
+  id: string;
   title: string;
 }
 
@@ -34,7 +34,7 @@ export class BacklinksElement extends HTMLElement {
       this.backlinkList.innerHTML = `<li>No backlinks</li>`;
     } else {
       this.backlinkList.innerHTML = [
-        ...items.map((item) => `<li><a href="?path=${encodeURIComponent(item.path)}">${item.title}</a></li>`).join(""),
+        ...items.map((item) => `<li><a href="?id=${item.id}">${item.title}</a></li>`).join(""),
       ].join("");
     }
   }

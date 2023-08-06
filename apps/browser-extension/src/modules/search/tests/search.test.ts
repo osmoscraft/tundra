@@ -30,7 +30,7 @@ export async function testBacklinkSearch() {
   });
 
   const results = searchBacklinkNotes(db, {
-    path: "data/notes/2000.md",
+    id: "2000",
     limit: 10,
   });
 

@@ -134,14 +134,14 @@ function initPanels(
         console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
       } else {
         performance.mark("load-recent-start");
-        const files = await proxy.getRecentFiles();
+        const notes = await proxy.getRecentNotes();
         omnimenu.setMenuItems(
-          files.map((file) => ({
-            title: file.meta.title ?? "Untitled",
+          notes.map((note) => ({
+            title: note.meta.title ?? "Untitled",
             state: {
-              id: notePathToId(file.path),
-              title: file.meta.title ?? "Untitled",
-              linkToId: isLinking ? notePathToId(file.path) : undefined,
+              id: note.id,
+              title: note.meta.title ?? "Untitled",
+              linkToId: isLinking ? note.id : undefined,
             },
           }))
         );
@@ -178,7 +178,7 @@ function initPanels(
   if (!id) {
     backlinks.setBacklinks([]);
   } else {
-    proxy.getBacklinks(noteIdToPath(id)).then((links) => {
+    proxy.getBacklinks(id).then((links) => {
       backlinks.setBacklinks(links);
     });
   }

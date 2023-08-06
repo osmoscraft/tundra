@@ -3,10 +3,17 @@ import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
 import * as dbApi from "../modules/database";
 import { runLiveTests } from "../modules/live-test/run-live-tests";
-import { searchBacklinkNotes, searchNotes, searchRecentNotes, type SearchInput } from "../modules/search/search";
+import {
+  searchBacklinkNotes,
+  searchNotes,
+  searchRecentFiles,
+  searchRecentNotes,
+  type SearchInput,
+} from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
+import { noteIdToPath, notePathToId } from "../modules/sync/path";
 import { ensurePushParameters } from "../modules/sync/push";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
@@ -31,18 +38,20 @@ const routes = {
     }
   },
   destoryAll,
-  getBacklinks: async (path: string) =>
+  getBacklinks: async (id: string) =>
     searchBacklinkNotes(await dbInit(), {
-      path,
+      id,
       limit: 100,
     }).map((file) => ({
-      path: file.path,
+      id: notePathToId(file.path),
       title: file.meta.title,
     })),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
+  getNote: async (id: string) => dbApi.getFile(await dbInit(), noteIdToPath(id)),
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
-  getRecentFiles: async () => searchRecentNotes(await dbInit(), 10),
+  getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
+  getRecentNotes: async () => searchRecentNotes(await dbInit(), 10),
   getStatus: async () => {
     const db = await dbInit();
     const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getUserIgnores(db) });

@@ -1,6 +1,6 @@
 import * as dbApi from "../database";
 import { getUserIgnores } from "../sync";
-import { notePathToId } from "../sync/path";
+import { noteIdToPath, notePathToId } from "../sync/path";
 
 export interface SearchInput {
   query: string;
@@ -20,25 +20,30 @@ export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
 }
 
 export interface SearchBacklinkInput {
-  path: string;
+  id: string;
   limit: number;
 }
 export function searchBacklinkNotes(db: Sqlite3.DB, input: SearchBacklinkInput) {
-  const nodeId = notePathToId(input.path);
+  const notePath = noteIdToPath(input.id);
   const files = dbApi
     .searchFiles(db, {
-      query: `"(${nodeId})"`,
+      query: `"(${input.id})"`,
       limit: input.limit,
       paths: ["data/notes*"],
       ignore: getUserIgnores(db),
     })
-    .filter((file) => file.path !== input.path);
+    .filter((file) => file.path !== notePath);
   return files;
+}
+
+export function searchRecentFiles(db: Sqlite3.DB, limit: number) {
+  return dbApi.getRecentFiles(db, { limit });
 }
 
 export function searchRecentNotes(db: Sqlite3.DB, limit: number) {
   const files = dbApi.getRecentFiles(db, { limit, paths: ["data/notes*"], ignore: getUserIgnores(db) });
-  return files;
+  const filesWithIds = files.map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
+  return filesWithIds;
 }
 
 function consecutiveWordPrefixQuery(query: string) {
