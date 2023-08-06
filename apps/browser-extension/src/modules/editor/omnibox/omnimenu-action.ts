@@ -1,6 +1,5 @@
 import type { Command, EditorView } from "@codemirror/view";
 import { stateToParams } from "../../router/route-state";
-import { nodePathToId } from "../../sync/path";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
 import type { OmniboxElement } from "./omnibox-element";
@@ -20,7 +19,7 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
   const { state, mode } = action;
 
   switch (true) {
-    case !!state.linkTo:
+    case !!state.linkToId:
       const selectedText = getSelectedText(view);
       const primaryTitle = selectedText.length ? selectedText : state.title;
 
@@ -30,11 +29,11 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
           : mode === SubmitMode.tertiary
           ? omnibox.getValue().slice(1).trim() // remove ":" prefix
           : primaryTitle;
-      const tx = view.state.replaceSelection(`[${linkTitle}](${nodePathToId(state.linkTo!)})`);
+      const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
       view.dispatch(tx);
       dialog.close();
       break;
-    case !!state.path:
+    case !!state.id:
       window.open(`?${stateToParams(state)}`, mode === SubmitMode.secondary ? "_blank" : "_self");
       break;
     case !!state.command:

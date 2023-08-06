@@ -4,18 +4,17 @@ export function archivePathToGithubFilePath(archivePath: string) {
   return archivePath.slice(archivePath.indexOf("/") + 1);
 }
 
-export function timestampToNotePath(timestamp: Date) {
-  const timestampString = timestamp
+export function timestampToId(timestamp: Date) {
+  return timestamp
     .toISOString()
     .split(".")[0]
     .replaceAll(/(-|:|T)/g, "");
-  return noteIdToPath(timestampString);
 }
 
 export function noteIdToPath(id: string) {
   return `data/notes/${id}.md`;
 }
 
-export function nodePathToId(path: string) {
+export function notePathToId(path: string) {
   return path.match(/data\/notes\/(.*)\.md/)![1];
 }

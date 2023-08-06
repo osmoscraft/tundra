@@ -1,8 +1,8 @@
 export interface RouteState {
-  path?: string;
+  id?: string;
   title?: string;
   command?: string;
-  linkTo?: string;
+  linkToId?: string;
 }
 
 export function stateToParams(state: RouteState) {

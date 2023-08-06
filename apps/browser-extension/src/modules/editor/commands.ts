@@ -14,7 +14,7 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./omnibox/omnibox-element";
 
 import { stateToParams } from "../router/route-state";
-import { timestampToNotePath } from "../sync/path";
+import { timestampToId } from "../sync/path";
 import { getSelectedText } from "./reducers";
 import { save } from "./save";
 import type { StatusBarElement } from "./status/status-bar-element";
@@ -102,7 +102,7 @@ export function extendedCommands(
     },
     file: {
       new: (view) => {
-        location.assign(`?${stateToParams({ path: timestampToNotePath(new Date()) })}`);
+        location.assign(`?${stateToParams({ id: timestampToId(new Date()) })}`);
         return true;
       },
       save: (view) => {

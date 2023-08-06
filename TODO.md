@@ -1,6 +1,6 @@
 # Alpha must have
 
-- Router: replace path with id + path resolver in URL
+- Router: split write file into by id and by path apis
 - Router: Hot swap internal navigation
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Sync: Automerge with higher timestamp

@@ -24,7 +24,7 @@ import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action"
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
-import { timestampToNotePath } from "../modules/sync/path";
+import { noteIdToPath, notePathToId, timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
@@ -55,12 +55,8 @@ function main() {
   const keyBindings = getEditorKeyBindings(configKeyBindings, library);
 
   // ensure url
-  if (!new URLSearchParams(location.search).get("path")) {
-    window.history.replaceState(
-      null,
-      "",
-      `${location.pathname}?path=${encodeURIComponent(timestampToNotePath(new Date()))}`
-    );
+  if (!new URLSearchParams(location.search).get("id")) {
+    window.history.replaceState(null, "", `${location.pathname}?id=${encodeURIComponent(timestampToId(new Date()))}`);
   }
 
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
@@ -119,19 +115,19 @@ function initPanels(
       if (searchTerms.length) {
         performance.mark("search-start");
         const files = await proxy.search({ query: searchTerms, limit: 20 });
-        const newNotePath = timestampToNotePath(new Date());
+        const newNoteId = timestampToId(new Date());
 
         omnimenu.setMenuItems([
           {
             title: `(New) ${searchTerms}`,
-            state: { path: newNotePath, title: searchTerms, linkTo: isLinking ? newNotePath : undefined },
+            state: { id: newNoteId, title: searchTerms, linkToId: isLinking ? newNoteId : undefined },
           },
           ...files.map((file) => ({
             title: file.meta.title ?? "Untitled",
             state: {
               title: file.meta.title ?? "Untitled",
-              path: file.path,
-              linkTo: isLinking ? file.path : undefined,
+              id: notePathToId(file.path),
+              linkToId: isLinking ? notePathToId(file.path) : undefined,
             },
           })),
         ]);
@@ -142,7 +138,11 @@ function initPanels(
         omnimenu.setMenuItems(
           files.map((file) => ({
             title: file.meta.title ?? "Untitled",
-            state: { path: file.path, title: file.meta.title ?? "Untitled", linkTo: isLinking ? file.path : undefined },
+            state: {
+              id: notePathToId(file.path),
+              title: file.meta.title ?? "Untitled",
+              linkToId: isLinking ? notePathToId(file.path) : undefined,
+            },
           }))
         );
         console.log(
@@ -173,12 +173,12 @@ function initPanels(
     omnimenu.submitFirst(e.detail.submitMode);
   });
 
-  const path = new URLSearchParams(location.search).get("path");
+  const id = new URLSearchParams(location.search).get("id");
 
-  if (!path) {
+  if (!id) {
     backlinks.setBacklinks([]);
   } else {
-    proxy.getBacklinks(path).then((links) => {
+    proxy.getBacklinks(noteIdToPath(id)).then((links) => {
       backlinks.setBacklinks(links);
     });
   }
@@ -192,7 +192,8 @@ interface InitEdidorConfig {
 
 function initEditor(config: InitEdidorConfig) {
   const { topPanelElement, bottomPanelElement, keyBindings } = config;
-  const path = new URLSearchParams(location.search).get("path");
+  const id = new URLSearchParams(location.search).get("id");
+  const path = id ? noteIdToPath(id) : undefined;
   const dotPos = path?.lastIndexOf(".");
   const ext = dotPos ? path?.slice(dotPos) : undefined;
   const extensions: Extension[] = [];

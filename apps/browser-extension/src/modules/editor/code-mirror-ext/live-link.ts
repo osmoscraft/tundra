@@ -10,7 +10,6 @@ import {
   type PluginValue,
 } from "@codemirror/view";
 import { EditorView } from "codemirror";
-import { noteIdToPath } from "../../sync/path";
 import "./live-link.css";
 
 const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
@@ -71,14 +70,12 @@ class MarkdownLinkView implements PluginValue {
       regexp: TITLED_LINK_PATTERN,
       decoration: (match, view) => {
         // TODO handle non-id links
-        const [_, title, url] = match;
-        const isInternal = isInternalUrl(url);
+        const [_, title, idOrUrl] = match;
+        const isInternal = isInternalUrl(idOrUrl);
         return Decoration.mark({
           tagName: "a",
           attributes: {
-            href: isInternal
-              ? `?title=${encodeURIComponent(title)}&path=${encodeURIComponent(noteIdToPath(url))}`
-              : url,
+            href: isInternal ? `?title=${encodeURIComponent(title)}&id=${idOrUrl}` : idOrUrl,
             rel: "nofollow",
             class: "cm-live-link",
           },

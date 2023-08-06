@@ -81,7 +81,7 @@ export class OmnimenuElement extends HTMLElement {
   private getTriggerElement(title: string, state: RouteState): HTMLElement {
     let triggerElement: HTMLElement;
 
-    if (state.path) {
+    if (state.id) {
       const link = document.createElement("a");
       link.href = `?${stateToParams(state)}}`;
       triggerElement = link;

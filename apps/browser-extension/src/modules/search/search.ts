@@ -1,6 +1,6 @@
 import * as dbApi from "../database";
 import { getUserIgnores } from "../sync";
-import { nodePathToId } from "../sync/path";
+import { notePathToId } from "../sync/path";
 
 export interface SearchInput {
   query: string;
@@ -24,7 +24,7 @@ export interface SearchBacklinkInput {
   limit: number;
 }
 export function searchBacklinkNotes(db: Sqlite3.DB, input: SearchBacklinkInput) {
-  const nodeId = nodePathToId(input.path);
+  const nodeId = notePathToId(input.path);
   const files = dbApi
     .searchFiles(db, {
       query: `"(${nodeId})"`,

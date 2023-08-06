@@ -2,13 +2,14 @@ import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { paramsToRouteState } from "../router/route-state";
+import { noteIdToPath } from "../sync/path";
 
 export async function loadInitialDoc(view: EditorView, proxy: AsyncProxy<DataWorkerRoutes>) {
   const searchParams = new URLSearchParams(location.search);
   const state = paramsToRouteState(searchParams);
-  const { path, title } = state;
+  const { id, title } = state;
 
-  const file = path ? await proxy.getFile(path) : null;
+  const file = id ? await proxy.getFile(noteIdToPath(id)) : null;
   view.dispatch({
     changes: {
       from: 0,
