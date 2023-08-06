@@ -18,3 +18,7 @@ export function noteIdToPath(id: string) {
 export function notePathToId(path: string) {
   return path.match(/data\/notes\/(.*)\.md/)![1];
 }
+
+export function addIdByPath<T extends { path: string }>(withPath: T) {
+  return { ...withPath, id: notePathToId(withPath.path) };
+}

@@ -13,7 +13,7 @@ import {
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
-import { noteIdToPath } from "../modules/sync/path";
+import { addIdByPath, noteIdToPath } from "../modules/sync/path";
 import { ensurePushParameters } from "../modules/sync/push";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
@@ -47,7 +47,10 @@ const routes = {
       title: note.meta.title,
     })),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
-  getNote: async (id: string) => dbApi.getFile(await dbInit(), noteIdToPath(id)),
+  getNote: async (id: string) => {
+    const file = dbApi.getFile(await dbInit(), noteIdToPath(id));
+    return file ? addIdByPath(file) : undefined;
+  },
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
   getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
