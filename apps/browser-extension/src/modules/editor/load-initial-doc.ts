@@ -12,6 +12,7 @@ export async function loadInitialDoc(view: EditorView, proxy: AsyncProxy<DataWor
   view.dispatch({
     changes: {
       from: 0,
+      to: view.state.doc.length,
       insert: file?.content ?? getDraftContent(title),
     },
   });

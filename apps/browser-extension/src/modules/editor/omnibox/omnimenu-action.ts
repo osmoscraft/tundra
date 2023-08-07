@@ -1,22 +1,22 @@
 import type { Command, EditorView } from "@codemirror/view";
 import { stateToParams } from "../../router/route-state";
-import { navigate } from "../../router/router-element";
+import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
 import type { OmniboxElement } from "./omnibox-element";
-import type { OmnimenuAction, OmnimenuElement } from "./omnimenu-element";
+import type { OmnimenuAction } from "./omnimenu-element";
 import { SubmitMode } from "./submit-mode";
 
 export interface OmnimenuActionContext {
   dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
-  omnimenu: OmnimenuElement;
   view: EditorView;
   library: CommandLibrary;
+  router: RouterElement;
 }
 
 export function handleOmnimenuAction(context: OmnimenuActionContext, action: OmnimenuAction) {
-  const { dialog, omnibox, omnimenu, view, library } = context;
+  const { dialog, omnibox, view, library, router } = context;
   const { state, mode } = action;
 
   switch (true) {
@@ -38,7 +38,7 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       if (mode === SubmitMode.secondary) {
         window.open(`?${stateToParams(state)}`, "_blank");
       } else {
-        navigate(omnibox, { url: `?${stateToParams(state)}` });
+        router.push(`?${stateToParams(state)}`);
       }
 
       break;

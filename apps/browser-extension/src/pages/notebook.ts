@@ -41,6 +41,7 @@ const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worke
 const statusEvents = new EventTarget();
 
 function main() {
+  const routerElement = document.querySelector<RouterElement>("router-element")!;
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
   const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
@@ -61,6 +62,7 @@ function main() {
     window.history.replaceState(null, "", `${location.pathname}?id=${encodeURIComponent(timestampToId(new Date()))}`);
   }
 
+  // one-time setup per session
   const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
   initPanels(
     proxy,
@@ -71,9 +73,15 @@ function main() {
     statusBarElement,
     configKeyBindings,
     library,
-    backlinksElement
+    backlinksElement,
+    routerElement
   );
   initContent(proxy, editoView);
+
+  // route specific data loading
+  routerElement.addEventListener("router.change", (e) => {
+    initContent(proxy, editoView);
+  });
 }
 
 main();
@@ -87,7 +95,8 @@ function initPanels(
   statusBar: StatusBarElement,
   bindings: CommandKeyBinding[],
   library: CommandLibrary,
-  backlinks: BacklinksElement
+  backlinks: BacklinksElement,
+  router: RouterElement
 ) {
   // request initial status
   proxy
@@ -159,9 +168,9 @@ function initPanels(
       {
         dialog,
         omnibox,
-        omnimenu,
         view,
         library,
+        router,
       },
       e.detail
     )
