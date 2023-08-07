@@ -1,5 +1,5 @@
 import { paramsToRouteState, stateToParams, type RouteState } from "../../router/route-state";
-import { MenuActionMode, getMenuActionMode } from "./action-mode";
+import { MenuActionMode, getMenuActionMode, type MenuAction } from "./menu-action";
 import "./omnimenu-element.css";
 import template from "./omnimenu-element.html";
 
@@ -10,14 +10,9 @@ export interface MenuItem {
 
 declare global {
   interface HTMLElementEventMap {
-    "omnimenu.action": CustomEvent<OmnimenuAction>;
+    "omnimenu.action": CustomEvent<MenuAction>;
     "omnimenu.close": Event;
   }
-}
-
-export interface OmnimenuAction {
-  state: RouteState;
-  mode: MenuActionMode;
 }
 
 export class OmnimenuElement extends HTMLElement {
@@ -53,7 +48,7 @@ export class OmnimenuElement extends HTMLElement {
     const stateText = element.closest("[data-state]")?.getAttribute("data-state");
     if (stateText) {
       this.dispatchEvent(
-        new CustomEvent<OmnimenuAction>("omnimenu.action", {
+        new CustomEvent<MenuAction>("omnimenu.action", {
           detail: { state: paramsToRouteState(new URLSearchParams(stateText)), mode },
         })
       );

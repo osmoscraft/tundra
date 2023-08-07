@@ -1,17 +1,11 @@
-import type { RouteState } from "../../router/route-state";
-import type { MenuActionMode } from "./action-mode";
 import "./backlinks-element.css";
 import template from "./backlinks-element.html";
+import { MenuActionMode, type MenuAction } from "./menu-action";
 
 declare global {
   interface HTMLElementEventMap {
-    "backlinks.open": CustomEvent<string>;
+    "backlinks.open": CustomEvent<MenuAction>;
   }
-}
-
-export interface BacklinkAction {
-  state: RouteState;
-  mode: MenuActionMode;
 }
 
 export interface Backlink {
@@ -32,7 +26,10 @@ export class BacklinksElement extends HTMLElement {
     this.backlinkList.addEventListener("click", (e) => {
       const id = (e.target as HTMLButtonElement).closest("[data-id]")?.getAttribute("data-id");
       if (!id) return;
-      this.dispatchEvent(new CustomEvent<any>("backlinks.open", { detail: id }));
+
+      const mode = e.ctrlKey ? MenuActionMode.secondary : MenuActionMode.primary;
+
+      this.dispatchEvent(new CustomEvent<MenuAction>("backlinks.open", { detail: { state: { id }, mode } }));
       e.preventDefault();
     });
   }

@@ -1,11 +1,33 @@
 import type { Command, EditorView } from "@codemirror/view";
-import { stateToParams } from "../../router/route-state";
+import { stateToParams, type RouteState } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
-import { MenuActionMode } from "./action-mode";
 import type { OmniboxElement } from "./omnibox-element";
-import type { OmnimenuAction } from "./omnimenu-element";
+
+export interface MenuAction {
+  state: RouteState;
+  mode: MenuActionMode;
+}
+
+export enum MenuActionMode {
+  None = 0,
+  primary = 1,
+  secondary = 2,
+  tertiary = 3,
+}
+
+export function getMenuActionMode(event: KeyboardEvent | MouseEvent) {
+  if (event.ctrlKey) {
+    if (event.shiftKey) {
+      return MenuActionMode.tertiary;
+    } else {
+      return MenuActionMode.secondary;
+    }
+  } else {
+    return MenuActionMode.primary;
+  }
+}
 
 export interface OmnimenuActionContext {
   dialog: HTMLDialogElement;
@@ -15,7 +37,7 @@ export interface OmnimenuActionContext {
   router: RouterElement;
 }
 
-export function handleOmnimenuAction(context: OmnimenuActionContext, action: OmnimenuAction) {
+export function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
   const { dialog, omnibox, view, library, router } = context;
   const { state, mode } = action;
 

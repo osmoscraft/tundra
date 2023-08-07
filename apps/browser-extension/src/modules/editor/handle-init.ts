@@ -15,8 +15,8 @@ import { liveLink } from "./code-mirror-ext/live-link";
 import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
+import { handleMenuAction, type MenuAction } from "./menus/menu-action";
 import type { OmniboxElement } from "./menus/omnibox-element";
-import { handleOmnimenuAction } from "./menus/omnimenu-action";
 import type { OmnimenuElement } from "./menus/omnimenu-element";
 import type { StatusBarElement } from "./status/status-bar-element";
 
@@ -168,22 +168,15 @@ export function handleInitPanels({
     }
   });
 
-  omnimenu.addEventListener("omnimenu.action", (e) =>
-    handleOmnimenuAction(
-      {
-        dialog,
-        omnibox,
-        view: editorView,
-        library,
-        router,
-      },
-      e.detail
-    )
-  );
-
   omnimenu.addEventListener("omnimenu.close", () => {
     omnibox.focus();
   });
+
+  const menuActionHandler = (e: CustomEvent<MenuAction>) =>
+    handleMenuAction({ dialog, omnibox, view: editorView, library, router }, e.detail);
+
+  omnimenu.addEventListener("omnimenu.action", menuActionHandler);
+  backlinks.addEventListener("backlinks.open", menuActionHandler);
 
   omnibox.addEventListener("omnibox.submit", (e) => {
     omnimenu.submitFirst(e.detail.submitMode);

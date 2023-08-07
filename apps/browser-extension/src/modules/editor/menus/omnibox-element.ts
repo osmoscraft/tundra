@@ -1,4 +1,4 @@
-import { getMenuActionMode, type MenuActionMode } from "./action-mode";
+import { MenuActionMode, getMenuActionMode } from "./menu-action";
 import template from "./omnibox-element.html";
 
 export type QueryEventDetail = string;
