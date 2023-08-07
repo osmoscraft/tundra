@@ -63,7 +63,7 @@ function main() {
   }
 
   // one-time setup per session
-  const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings });
+  const editoView = initEditor({ topPanelElement, bottomPanelElement, keyBindings, routerElement });
   initPanels(
     proxy,
     editoView,
@@ -186,11 +186,12 @@ function initPanels(
 interface InitEdidorConfig {
   topPanelElement: HTMLElement;
   bottomPanelElement: HTMLElement;
+  routerElement: RouterElement;
   keyBindings: KeyBinding[];
 }
 
 function initEditor(config: InitEdidorConfig) {
-  const { topPanelElement, bottomPanelElement, keyBindings } = config;
+  const { topPanelElement, bottomPanelElement, routerElement, keyBindings } = config;
   const id = new URLSearchParams(location.search).get("id");
   // HACK, path only works for note files. JSON files requires different detection
   const path = id ? noteIdToPath(id) : undefined;
@@ -200,7 +201,7 @@ function initEditor(config: InitEdidorConfig) {
 
   if (ext === ".md") {
     extensions.push([
-      liveLink(),
+      liveLink(routerElement),
       history(),
       highlightActiveLine(),
       drawSelection(),

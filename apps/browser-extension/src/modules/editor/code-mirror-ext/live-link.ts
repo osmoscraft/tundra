@@ -10,6 +10,7 @@ import {
   type PluginValue,
 } from "@codemirror/view";
 import { EditorView } from "codemirror";
+import type { RouterElement } from "../../router/router-element";
 import "./live-link.css";
 
 const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
@@ -19,24 +20,17 @@ const INTENRAL_LINK_PATTERN = /\d+/;
 // Prec.high is needed to override "Enter" behavior
 // markdown link should be registered after url link to exclude the trailing ")" from the parsed url
 
-export const liveLink: () => Extension = () =>
-  Prec.high([markdownLinkPlugin, urlPlugin, keymap.of([...openLinkAtCursor])]);
+export const liveLink: (router: RouterElement) => Extension = (router) =>
+  Prec.high([markdownLinkPlugin(router), urlPlugin(router), keymap.of([...openLinkAtCursor(router)])]);
 
-export const openSelectedUrl: Command = (view: EditorView) => {
+export const openSelectedUrlInCurrentTab: (router: RouterElement) => Command = (router) => (view: EditorView) => {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
-  window.open(anchor.href, anchor.target);
+  router.push(anchor.href);
   return true;
 };
 
-export const openSelectedUrlInCurrentTab: Command = (view: EditorView) => {
-  const anchor = getAnchorFromView(view);
-  if (!anchor) return false;
-  window.open(anchor.href, "_self");
-  return true;
-};
-
-export const openSelectedUrlInNewTab: Command = (view: EditorView) => {
+export const openSelectedUrlInNewTab: () => Command = () => (view: EditorView) => {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
   window.open(anchor.href, "_blank");
@@ -50,14 +44,14 @@ function getAnchorFromView(view: EditorView) {
   return anchor;
 }
 
-export const openLinkAtCursor: KeyBinding[] = [
+export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router) => [
   {
     key: "Enter",
-    run: openSelectedUrlInCurrentTab,
+    run: openSelectedUrlInCurrentTab(router),
   },
   {
     key: "Mod-Enter",
-    run: openSelectedUrlInNewTab,
+    run: openSelectedUrlInNewTab(),
   },
 ];
 
@@ -95,12 +89,13 @@ function isInternalUrl(url: string) {
   return !!INTENRAL_LINK_PATTERN.exec(url);
 }
 
-const markdownLinkPlugin = ViewPlugin.fromClass(MarkdownLinkView, {
-  decorations: (v) => v.decorations,
-  eventHandlers: {
-    click: handleUrlClick,
-  },
-});
+const markdownLinkPlugin = (router: RouterElement) =>
+  ViewPlugin.fromClass(MarkdownLinkView, {
+    decorations: (v) => v.decorations,
+    eventHandlers: {
+      click: handleUrlClick(router),
+    },
+  });
 
 class URLView implements PluginValue {
   decorations: RangeSet<Decoration>;
@@ -130,17 +125,24 @@ class URLView implements PluginValue {
   }
 }
 
-const urlPlugin = ViewPlugin.fromClass(URLView, {
-  decorations: (v) => v.decorations,
-  eventHandlers: {
-    click: handleUrlClick,
-  },
-});
+const urlPlugin = (router: RouterElement) => {
+  return ViewPlugin.fromClass(URLView, {
+    decorations: (v) => v.decorations,
+    eventHandlers: {
+      click: handleUrlClick(router),
+    },
+  });
+};
 
-function handleUrlClick(this: URLView, e: MouseEvent, view: EditorView) {
-  if (e.ctrlKey) {
-    return openSelectedUrlInNewTab(view);
-  } else {
-    return openSelectedUrlInCurrentTab(view);
-  }
+function handleUrlClick(router: RouterElement): (this: URLView, e: MouseEvent, view: EditorView) => boolean {
+  const openInNewTab = openSelectedUrlInNewTab();
+  const openInCurrentTab = openSelectedUrlInCurrentTab(router);
+
+  return function (this, e, view) {
+    if (e.ctrlKey) {
+      return openInNewTab(view);
+    } else {
+      return openInCurrentTab(view);
+    }
+  };
 }
