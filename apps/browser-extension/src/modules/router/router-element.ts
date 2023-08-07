@@ -28,6 +28,7 @@ export class RouterElement extends HTMLElement {
     history.pushState(null, "", newUrl);
     this.dispatchEvent(new CustomEvent<RouterChangeDetails>("router.change", { detail: { url: newUrl } }));
   }
+
   replace(url: string | URL) {
     const newUrl = url.toString();
     history.replaceState(null, "", newUrl);

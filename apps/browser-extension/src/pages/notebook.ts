@@ -18,12 +18,12 @@ import {
   type CommandKeyBinding,
   type CommandLibrary,
 } from "../modules/editor/commands";
-import { loadInitialDoc } from "../modules/editor/load-initial-doc";
 import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
 import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action";
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
+import { paramsToRouteState } from "../modules/router/route-state";
 import { RouterElement } from "../modules/router/router-element";
 import { noteIdToPath, timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
@@ -73,14 +73,13 @@ function main() {
     statusBarElement,
     configKeyBindings,
     library,
-    backlinksElement,
     routerElement
   );
-  initContent(proxy, editoView);
+  initRouteContent(proxy, backlinksElement, editoView);
 
   // route specific data loading
-  routerElement.addEventListener("router.change", (e) => {
-    initContent(proxy, editoView);
+  routerElement.addEventListener("router.change", () => {
+    initRouteContent(proxy, backlinksElement, editoView);
   });
 }
 
@@ -95,7 +94,6 @@ function initPanels(
   statusBar: StatusBarElement,
   bindings: CommandKeyBinding[],
   library: CommandLibrary,
-  backlinks: BacklinksElement,
   router: RouterElement
 ) {
   // request initial status
@@ -183,16 +181,6 @@ function initPanels(
   omnibox.addEventListener("omnibox.submit", (e) => {
     omnimenu.submitFirst(e.detail.submitMode);
   });
-
-  const id = new URLSearchParams(location.search).get("id");
-
-  if (!id) {
-    backlinks.setBacklinks([]);
-  } else {
-    proxy.getBacklinks(id).then((links) => {
-      backlinks.setBacklinks(links);
-    });
-  }
 }
 
 interface InitEdidorConfig {
@@ -248,6 +236,34 @@ function initEditor(config: InitEdidorConfig) {
   return view;
 }
 
-function initContent(proxy: AsyncProxy<DataWorkerRoutes>, view: EditorView) {
-  return loadInitialDoc(view, proxy);
+async function initRouteContent(proxy: AsyncProxy<DataWorkerRoutes>, backlinks: BacklinksElement, view: EditorView) {
+  const searchParams = new URLSearchParams(location.search);
+  const state = paramsToRouteState(searchParams);
+  const { id, title } = state;
+
+  const file = id ? await proxy.getNote(id) : null;
+  view.dispatch({
+    changes: {
+      from: 0,
+      to: view.state.doc.length,
+      insert: file?.content ?? getDraftContent(title),
+    },
+  });
+
+  if (!id) {
+    backlinks.setBacklinks([]);
+  } else {
+    proxy.getBacklinks(id).then((links) => {
+      backlinks.setBacklinks(links);
+    });
+  }
+}
+
+function getDraftContent(title?: string) {
+  return `
+---
+title: ${title ?? "Untitled"}
+---
+
+- New item`.trim();
 }
