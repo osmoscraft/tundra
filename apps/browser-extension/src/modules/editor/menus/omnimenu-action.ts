@@ -5,7 +5,7 @@ import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
 import type { OmniboxElement } from "./omnibox-element";
 import type { OmnimenuAction } from "./omnimenu-element";
-import { SubmitMode } from "./submit-mode";
+import { MenuActionMode } from "./submit-mode";
 
 export interface OmnimenuActionContext {
   dialog: HTMLDialogElement;
@@ -25,9 +25,9 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       const primaryTitle = selectedText.length ? selectedText : state.title;
 
       const linkTitle =
-        mode === SubmitMode.secondary
+        mode === MenuActionMode.secondary
           ? state.title
-          : mode === SubmitMode.tertiary
+          : mode === MenuActionMode.tertiary
           ? omnibox.getValue().slice(1).trim() // remove ":" prefix
           : primaryTitle;
       const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
@@ -35,7 +35,7 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       dialog.close();
       break;
     case !!state.id:
-      if (mode === SubmitMode.secondary) {
+      if (mode === MenuActionMode.secondary) {
         window.open(`?${stateToParams(state)}`, "_blank");
       } else {
         router.push(`?${stateToParams(state)}`);

@@ -1,7 +1,7 @@
 import { paramsToRouteState, stateToParams, type RouteState } from "../../router/route-state";
 import "./omnimenu-element.css";
 import template from "./omnimenu-element.html";
-import { SubmitMode, getEventMode } from "./submit-mode";
+import { MenuActionMode, getMenuActionMode } from "./submit-mode";
 
 export interface MenuItem {
   title: string;
@@ -17,7 +17,7 @@ declare global {
 
 export interface OmnimenuAction {
   state: RouteState;
-  mode: SubmitMode;
+  mode: MenuActionMode;
 }
 
 export class OmnimenuElement extends HTMLElement {
@@ -31,7 +31,7 @@ export class OmnimenuElement extends HTMLElement {
 
   connectedCallback() {
     this.nodeList.addEventListener("click", (e) => {
-      if (this.submitItem(e.target as HTMLElement, getEventMode(e))) {
+      if (this.submitItem(e.target as HTMLElement, getMenuActionMode(e))) {
         e.preventDefault();
       }
     });
@@ -44,12 +44,12 @@ export class OmnimenuElement extends HTMLElement {
     });
   }
 
-  submitFirst(submitMode: SubmitMode) {
+  submitFirst(submitMode: MenuActionMode) {
     const firstItem = this.nodeList.querySelector("[data-state]");
     this.submitItem(firstItem as HTMLElement, submitMode);
   }
 
-  private submitItem(element: HTMLElement, mode: SubmitMode = SubmitMode.primary) {
+  private submitItem(element: HTMLElement, mode: MenuActionMode = MenuActionMode.primary) {
     const stateText = element.closest("[data-state]")?.getAttribute("data-state");
     if (stateText) {
       this.dispatchEvent(

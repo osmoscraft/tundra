@@ -1,5 +1,5 @@
 import template from "./omnibox-element.html";
-import { getEventMode, type SubmitMode } from "./submit-mode";
+import { getMenuActionMode, type MenuActionMode } from "./submit-mode";
 
 export type QueryEventDetail = string;
 
@@ -13,7 +13,7 @@ declare global {
 
 export interface OmniboxSubmitEvent {
   value: string;
-  submitMode: SubmitMode;
+  submitMode: MenuActionMode;
 }
 
 export class OmniboxElement extends HTMLElement {
@@ -54,7 +54,7 @@ export class OmniboxElement extends HTMLElement {
           new CustomEvent<OmniboxSubmitEvent>("omnibox.submit", {
             detail: {
               value: this.input.value.trim(),
-              submitMode: getEventMode(e),
+              submitMode: getMenuActionMode(e),
             },
           })
         );

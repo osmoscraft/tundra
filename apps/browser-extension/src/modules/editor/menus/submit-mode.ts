@@ -1,18 +1,18 @@
-export enum SubmitMode {
+export enum MenuActionMode {
   None = 0,
   primary = 1,
   secondary = 2,
   tertiary = 3,
 }
 
-export function getEventMode(event: KeyboardEvent | MouseEvent) {
+export function getMenuActionMode(event: KeyboardEvent | MouseEvent) {
   if (event.ctrlKey) {
     if (event.shiftKey) {
-      return SubmitMode.tertiary;
+      return MenuActionMode.tertiary;
     } else {
-      return SubmitMode.secondary;
+      return MenuActionMode.secondary;
     }
   } else {
-    return SubmitMode.primary;
+    return MenuActionMode.primary;
   }
 }

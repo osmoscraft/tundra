@@ -1,7 +1,7 @@
 import type { RouteState } from "../../router/route-state";
 import "./backlinks-element.css";
 import template from "./backlinks-element.html";
-import type { SubmitMode } from "./submit-mode";
+import type { MenuActionMode } from "./submit-mode";
 
 declare global {
   interface HTMLElementEventMap {
@@ -11,7 +11,7 @@ declare global {
 
 export interface BacklinkAction {
   state: RouteState;
-  mode: SubmitMode;
+  mode: MenuActionMode;
 }
 
 export interface Backlink {
