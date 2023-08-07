@@ -15,9 +15,9 @@ import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
 import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
-import type { OmniboxElement } from "./omnibox/omnibox-element";
-import { handleOmnimenuAction } from "./omnibox/omnimenu-action";
-import type { OmnimenuElement } from "./omnibox/omnimenu-element";
+import type { OmniboxElement } from "./menus/omnibox-element";
+import { handleOmnimenuAction } from "./menus/omnimenu-action";
+import type { OmnimenuElement } from "./menus/omnimenu-element";
 import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface InitEdidorConfig {

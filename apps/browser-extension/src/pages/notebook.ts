@@ -10,8 +10,8 @@ import {
 } from "../modules/editor/commands";
 import { handleInitPanels, initEditor } from "../modules/editor/handle-init";
 import { handleUpdate } from "../modules/editor/handle-update";
-import { OmniboxElement } from "../modules/editor/omnibox/omnibox-element";
-import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
+import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
+import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
 import { RouterElement } from "../modules/router/router-element";
