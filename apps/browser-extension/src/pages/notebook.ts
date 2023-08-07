@@ -1,6 +1,6 @@
 import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
 import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-element";
-import { BacklinksElement } from "../modules/editor/backlinks/backlinks-element";
+import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
 import {
   extendedCommands,

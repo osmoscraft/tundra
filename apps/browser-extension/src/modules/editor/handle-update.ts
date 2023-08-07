@@ -2,7 +2,7 @@ import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { paramsToRouteState } from "../router/route-state";
-import type { BacklinksElement } from "./backlinks/backlinks-element";
+import type { BacklinksElement } from "./menus/backlinks-element";
 
 export interface RouteContentConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
