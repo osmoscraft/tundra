@@ -11,7 +11,7 @@ export interface MenuItem {
 declare global {
   interface HTMLElementEventMap {
     "omnimenu.action": CustomEvent<MenuAction>;
-    "omnimenu.close": Event;
+    "omnimenu.back": Event; // go back to input
   }
 }
 
@@ -34,7 +34,7 @@ export class OmnimenuElement extends HTMLElement {
     this.nodeList.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        this.dispatchEvent(new Event("omnimenu.close"));
+        this.dispatchEvent(new Event("omnimenu.back"));
       }
     });
   }

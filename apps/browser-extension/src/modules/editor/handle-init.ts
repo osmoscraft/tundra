@@ -168,7 +168,7 @@ export function handleInitPanels({
     }
   });
 
-  omnimenu.addEventListener("omnimenu.close", () => {
+  omnimenu.addEventListener("omnimenu.back", () => {
     omnibox.focus();
   });
 
@@ -176,6 +176,8 @@ export function handleInitPanels({
     handleMenuAction({ dialog, omnibox, view: editorView, library, router }, e.detail);
 
   omnimenu.addEventListener("omnimenu.action", menuActionHandler);
+  omnimenu.addEventListener("omnimenu.action", () => dialog.close());
+
   backlinks.addEventListener("backlinks.open", menuActionHandler);
 
   omnibox.addEventListener("omnibox.submit", (e) => {
