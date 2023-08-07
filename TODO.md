@@ -7,7 +7,6 @@
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
-- LiveLink: Enter key on the right edge should not open url
 - Omnibox: layout clean up
 
 # Future

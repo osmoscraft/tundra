@@ -13,6 +13,7 @@ import { EditorView } from "codemirror";
 import type { RouterElement } from "../../router/router-element";
 import "./live-link.css";
 
+const URL_OR_MARKDOWN_LINK_PATTERN = /(https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*)|(\[([^\[\]]+?)\]\((.+?)\))/gi;
 const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
 const MARKDOWN_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
 const INTENRAL_ID_PATTERN = /\d+/;
@@ -21,7 +22,7 @@ const INTENRAL_ID_PATTERN = /\d+/;
 // markdown link should be registered after url link to exclude the trailing ")" from the parsed url
 
 export const liveLink: (router: RouterElement) => Extension = (router) =>
-  Prec.high([markdownLinkPlugin(router), urlPlugin(router), keymap.of([...openLinkAtCursor(router)])]);
+  Prec.high([liveLinkPlugin(router), keymap.of([...openLinkAtCursor(router)])]);
 
 export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router) => [
   {
@@ -32,17 +33,20 @@ export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router
     key: "Mod-Enter",
     run: openLinkOnEnter(router, "_blank"),
   },
+  {
+    key: "Mod-Shift-Enter", // browser seems to automatically focus the new tab when shift is pressed
+    run: openLinkOnEnter(router, "_blank"),
+  },
 ];
 
 function openLinkOnEnter(router: RouterElement, target: "_self" | "_blank"): Command {
   return (view: EditorView) => {
     // determine type of link
     const anchor = getAnchorFromView(view)!;
-    const isInternal = isInternalAnchor(anchor);
-    if (isInternal) {
-      return openInternalLink(view, router, target);
-    } else {
+    if (isExternalAnchor(anchor)) {
       return openExternalLink(view, target);
+    } else {
+      return openInternalLink(view, router, target);
     }
   };
 }
@@ -95,9 +99,9 @@ function isEdgeOfUrlLink(view: EditorView) {
 
   const joinedText = externalUrlMatch + textAfterSelection;
   const fullUrlMatch = joinedText.match(ABSOLUTE_URL_PATTERN)![0];
-
   const cursorInsideUrl = joinedText.indexOf(fullUrlMatch) === 0;
-  if (cursorAfterUrl && !cursorInsideUrl) return true;
+
+  return cursorAfterUrl && !cursorInsideUrl;
 }
 
 function getAnchorFromView(view: EditorView) {
@@ -107,37 +111,30 @@ function getAnchorFromView(view: EditorView) {
   return anchor;
 }
 
-const markdownLinkPlugin = (router: RouterElement) =>
-  ViewPlugin.fromClass(MarkdownLinkView, {
+const liveLinkPlugin = (router: RouterElement) =>
+  ViewPlugin.fromClass(LiveLinkView, {
     decorations: (v) => v.decorations,
     eventHandlers: {
       click: handleLinkClick(router),
     },
   });
 
-const urlPlugin = (router: RouterElement) => {
-  return ViewPlugin.fromClass(URLView, {
-    decorations: (v) => v.decorations,
-    eventHandlers: {
-      click: handleLinkClick(router),
-    },
-  });
-};
-
-class MarkdownLinkView implements PluginValue {
+class LiveLinkView implements PluginValue {
   decorations: RangeSet<Decoration>;
   decorator: MatchDecorator;
 
   constructor(view: EditorView) {
     this.decorator = new MatchDecorator({
-      regexp: MARKDOWN_LINK_PATTERN,
+      regexp: URL_OR_MARKDOWN_LINK_PATTERN,
       decoration: (match, view) => {
-        const [_, title, idOrUrl] = match;
-        const isInternal = isInternalId(idOrUrl);
+        const [_, fullUrl, _bracket, bracketTitle, bracketIdOrUrl] = match;
+        const isInternal = bracketIdOrUrl && isInternalId(bracketIdOrUrl);
         return Decoration.mark({
           tagName: "a",
           attributes: {
-            href: isInternal ? `?title=${encodeURIComponent(title)}&id=${idOrUrl}` : idOrUrl,
+            href: isInternal
+              ? `?title=${encodeURIComponent(bracketTitle)}&id=${bracketIdOrUrl}`
+              : bracketIdOrUrl ?? fullUrl,
             rel: isInternal ? "" : "external noopener noreferrer",
             class: "cm-live-link",
           },
@@ -153,35 +150,7 @@ class MarkdownLinkView implements PluginValue {
   }
 }
 
-class URLView implements PluginValue {
-  decorations: RangeSet<Decoration>;
-  decorator: MatchDecorator;
-
-  constructor(view: EditorView) {
-    this.decorator = new MatchDecorator({
-      regexp: ABSOLUTE_URL_PATTERN,
-      decoration: (match, view) => {
-        const url = match[0];
-        return Decoration.mark({
-          tagName: "a",
-          attributes: {
-            href: url,
-            rel: "external noopener noreferrer",
-            class: "cm-live-link",
-          },
-        });
-      },
-    });
-    this.decorations = this.decorator.createDeco(view);
-  }
-  update(update: ViewUpdate) {
-    if (update.docChanged || update.viewportChanged) {
-      this.decorations = this.decorator.updateDeco(update, this.decorations);
-    }
-  }
-}
-
-function handleLinkClick(router: RouterElement): (this: URLView, e: MouseEvent, view: EditorView) => boolean {
+function handleLinkClick(router: RouterElement): (this: LiveLinkView, e: MouseEvent, view: EditorView) => boolean {
   return function (this, e, view) {
     // only handle internal live link clicks
     const target = e.target as HTMLAnchorElement;
@@ -189,18 +158,18 @@ function handleLinkClick(router: RouterElement): (this: URLView, e: MouseEvent, 
 
     const openTarget = e.ctrlKey ? "_blank" : "_self";
 
-    if (isInternalAnchor(target)) {
-      return openInternalLink(view, router, openTarget);
-    } else {
+    if (isExternalAnchor(target)) {
       return openExternalLink(view, openTarget);
+    } else {
+      return openInternalLink(view, router, openTarget);
     }
   };
 }
 
-function isInternalAnchor(anchor: HTMLAnchorElement) {
-  return !anchor.rel.includes("external");
+function isExternalAnchor(anchor: HTMLAnchorElement) {
+  return anchor.rel.includes("external");
 }
 
 function isInternalId(idOrUrl: string) {
-  return !!INTENRAL_ID_PATTERN.exec(idOrUrl);
+  return !ABSOLUTE_URL_PATTERN.exec(idOrUrl) && !!INTENRAL_ID_PATTERN.exec(idOrUrl);
 }
