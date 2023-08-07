@@ -1,5 +1,5 @@
 import { paramsToRouteState, stateToParams, type RouteState } from "../../router/route-state";
-import { MenuActionMode, getMenuActionMode } from "./menu-action";
+import { MenuActionMode, getMenuActionMode } from "./action-mode";
 import "./omnimenu-element.css";
 import template from "./omnimenu-element.html";
 

@@ -3,7 +3,7 @@ import { stateToParams } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
-import { MenuActionMode } from "./menu-action";
+import { MenuActionMode } from "./action-mode";
 import type { OmniboxElement } from "./omnibox-element";
 import type { OmnimenuAction } from "./omnimenu-element";
 
