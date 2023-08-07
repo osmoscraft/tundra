@@ -1,5 +1,6 @@
 import type { Command, EditorView } from "@codemirror/view";
 import { stateToParams } from "../../router/route-state";
+import { navigate } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
 import type { OmniboxElement } from "./omnibox-element";
@@ -34,7 +35,12 @@ export function handleOmnimenuAction(context: OmnimenuActionContext, action: Omn
       dialog.close();
       break;
     case !!state.id:
-      window.open(`?${stateToParams(state)}`, mode === SubmitMode.secondary ? "_blank" : "_self");
+      if (mode === SubmitMode.secondary) {
+        window.open(`?${stateToParams(state)}`, "_blank");
+      } else {
+        navigate(omnibox, { url: `?${stateToParams(state)}` });
+      }
+
       break;
     case !!state.command:
       const [namespace, commandName] = state.command!.split(".");

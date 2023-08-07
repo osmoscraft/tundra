@@ -24,10 +24,12 @@ import { handleOmnimenuAction } from "../modules/editor/omnibox/omnimenu-action"
 import { OmnimenuElement } from "../modules/editor/omnibox/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import userConfig from "../modules/editor/user-config.json";
+import { RouterElement } from "../modules/router/router-element";
 import { noteIdToPath, timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+customElements.define("router-element", RouterElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
 customElements.define("omnimenu-element", OmnimenuElement);
