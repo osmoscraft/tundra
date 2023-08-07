@@ -14,8 +14,8 @@ import type { RouterElement } from "../../router/router-element";
 import "./live-link.css";
 
 const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
-const TITLED_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
-const INTENRAL_LINK_PATTERN = /\d+/;
+const MARKDOWN_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
+const INTENRAL_ID_PATTERN = /\d+/;
 
 // Prec.high is needed to override "Enter" behavior
 // markdown link should be registered after url link to exclude the trailing ")" from the parsed url
@@ -23,26 +23,82 @@ const INTENRAL_LINK_PATTERN = /\d+/;
 export const liveLink: (router: RouterElement) => Extension = (router) =>
   Prec.high([markdownLinkPlugin(router), urlPlugin(router), keymap.of([...openLinkAtCursor(router)])]);
 
-export const openExternalUrl = (view: EditorView, target?: "_self" | "_blank") => {
+export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router) => [
+  {
+    key: "Enter",
+    run: openLinkOnEnter(router, "_self"),
+  },
+  {
+    key: "Mod-Enter",
+    run: openLinkOnEnter(router, "_blank"),
+  },
+];
+
+function openLinkOnEnter(router: RouterElement, target: "_self" | "_blank"): Command {
+  return (view: EditorView) => {
+    // determine type of link
+    const anchor = getAnchorFromView(view)!;
+    const isInternal = isInternalAnchor(anchor);
+    if (isInternal) {
+      return openInternalLink(view, router, target);
+    } else {
+      return openExternalLink(view, target);
+    }
+  };
+}
+
+export const openExternalLink = (view: EditorView, target?: "_self" | "_blank") => {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
+
+  if (isEdgeOfUrlLink(view)) return false;
+  if (isEdgeOfMarkdownLink(view)) return false;
+
   window.open(anchor.href, anchor.target ? anchor.target : target);
   return true;
 };
 
-export const openInternalUrlInCurrentTab: (router: RouterElement) => Command = (router) => (view: EditorView) => {
+export function openInternalLink(view: EditorView, router: RouterElement, target: "_self" | "_blank") {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
-  router.push(anchor.href);
-  return true;
-};
 
-export const openInternalUrlInNewTab: () => Command = () => (view: EditorView) => {
-  const anchor = getAnchorFromView(view);
-  if (!anchor) return false;
-  window.open(anchor.href, "_blank");
+  if (isEdgeOfMarkdownLink(view)) return false;
+
+  if (target === "_blank") {
+    window.open(anchor.href, "_blank");
+  } else {
+    router.push(anchor.href);
+  }
   return true;
-};
+}
+
+function isEdgeOfMarkdownLink(view: EditorView) {
+  const selectionLine = view.state.doc.lineAt(view.state.selection.main.from);
+  const textBeforeSelection = selectionLine.text.slice(0, view.state.selection.main.from - selectionLine.from);
+  const markdownLinkMatch = [...textBeforeSelection.matchAll(MARKDOWN_LINK_PATTERN)].pop()?.[0];
+  if (markdownLinkMatch && markdownLinkMatch === textBeforeSelection.slice(-markdownLinkMatch.length)) return true;
+
+  return false;
+}
+
+function isEdgeOfUrlLink(view: EditorView) {
+  // check if text before selection ends with a url
+  // also check if the text after selection joined with the text before selection is a url
+  const selectionLine = view.state.doc.lineAt(view.state.selection.main.from);
+  const textBeforeSelection = selectionLine.text.slice(0, view.state.selection.main.from - selectionLine.from);
+  const externalUrlMatch = [...textBeforeSelection.matchAll(ABSOLUTE_URL_PATTERN)].pop()?.[0];
+  if (!externalUrlMatch) return false;
+
+  const cursorAfterUrl = externalUrlMatch === textBeforeSelection.slice(-externalUrlMatch.length);
+  const textAfterSelection = selectionLine.text.slice(view.state.selection.main.to - selectionLine.from);
+  if (!textAfterSelection) return true;
+
+  const joinedText = externalUrlMatch + textAfterSelection;
+  const fullUrlMatch = joinedText.match(ABSOLUTE_URL_PATTERN)![0];
+
+  const cursorInsideUrl = joinedText.indexOf(fullUrlMatch) === 0;
+  if (cursorAfterUrl && !cursorInsideUrl) return true;
+}
 
 function getAnchorFromView(view: EditorView) {
   const { to } = view.state.selection.main;
@@ -51,22 +107,11 @@ function getAnchorFromView(view: EditorView) {
   return anchor;
 }
 
-export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router) => [
-  {
-    key: "Enter",
-    run: openInternalUrlInCurrentTab(router),
-  },
-  {
-    key: "Mod-Enter",
-    run: openInternalUrlInNewTab(),
-  },
-];
-
 const markdownLinkPlugin = (router: RouterElement) =>
   ViewPlugin.fromClass(MarkdownLinkView, {
     decorations: (v) => v.decorations,
     eventHandlers: {
-      click: handleUrlClick(router),
+      click: handleLinkClick(router),
     },
   });
 
@@ -74,7 +119,7 @@ const urlPlugin = (router: RouterElement) => {
   return ViewPlugin.fromClass(URLView, {
     decorations: (v) => v.decorations,
     eventHandlers: {
-      click: handleUrlClick(router),
+      click: handleLinkClick(router),
     },
   });
 };
@@ -85,11 +130,10 @@ class MarkdownLinkView implements PluginValue {
 
   constructor(view: EditorView) {
     this.decorator = new MatchDecorator({
-      regexp: TITLED_LINK_PATTERN,
+      regexp: MARKDOWN_LINK_PATTERN,
       decoration: (match, view) => {
-        // TODO handle non-id links
         const [_, title, idOrUrl] = match;
-        const isInternal = isInternalUrl(idOrUrl);
+        const isInternal = isInternalId(idOrUrl);
         return Decoration.mark({
           tagName: "a",
           attributes: {
@@ -137,29 +181,26 @@ class URLView implements PluginValue {
   }
 }
 
-function handleUrlClick(router: RouterElement): (this: URLView, e: MouseEvent, view: EditorView) => boolean {
-  const openInNewTab = openInternalUrlInNewTab();
-  const openInCurrentTab = openInternalUrlInCurrentTab(router);
-
+function handleLinkClick(router: RouterElement): (this: URLView, e: MouseEvent, view: EditorView) => boolean {
   return function (this, e, view) {
     // only handle internal live link clicks
     const target = e.target as HTMLAnchorElement;
     if (!target?.classList.contains("cm-live-link")) return false;
 
-    // external
-    if (target.rel.includes("external")) {
-      return openExternalUrl(view, e.ctrlKey ? "_blank" : "_self");
-    }
+    const openTarget = e.ctrlKey ? "_blank" : "_self";
 
-    // internal
-    if (e.ctrlKey) {
-      return openInNewTab(view);
+    if (isInternalAnchor(target)) {
+      return openInternalLink(view, router, openTarget);
     } else {
-      return openInCurrentTab(view);
+      return openExternalLink(view, openTarget);
     }
   };
 }
 
-function isInternalUrl(url: string) {
-  return !!INTENRAL_LINK_PATTERN.exec(url);
+function isInternalAnchor(anchor: HTMLAnchorElement) {
+  return !anchor.rel.includes("external");
+}
+
+function isInternalId(idOrUrl: string) {
+  return !!INTENRAL_ID_PATTERN.exec(idOrUrl);
 }
