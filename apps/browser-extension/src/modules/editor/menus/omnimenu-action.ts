@@ -3,9 +3,9 @@ import { stateToParams } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
+import { MenuActionMode } from "./menu-action";
 import type { OmniboxElement } from "./omnibox-element";
 import type { OmnimenuAction } from "./omnimenu-element";
-import { MenuActionMode } from "./submit-mode";
 
 export interface OmnimenuActionContext {
   dialog: HTMLDialogElement;
