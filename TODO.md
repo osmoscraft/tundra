@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Router: Hot swap internal navigation
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Sync: Automerge with higher timestamp
 - System files: auto generate built-in gitignore

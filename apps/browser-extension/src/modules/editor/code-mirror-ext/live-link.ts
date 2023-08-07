@@ -23,14 +23,21 @@ const INTENRAL_LINK_PATTERN = /\d+/;
 export const liveLink: (router: RouterElement) => Extension = (router) =>
   Prec.high([markdownLinkPlugin(router), urlPlugin(router), keymap.of([...openLinkAtCursor(router)])]);
 
-export const openSelectedUrlInCurrentTab: (router: RouterElement) => Command = (router) => (view: EditorView) => {
+export const openExternalUrl = (view: EditorView, target?: "_self" | "_blank") => {
+  const anchor = getAnchorFromView(view);
+  if (!anchor) return false;
+  window.open(anchor.href, anchor.target ? anchor.target : target);
+  return true;
+};
+
+export const openInternalUrlInCurrentTab: (router: RouterElement) => Command = (router) => (view: EditorView) => {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
   router.push(anchor.href);
   return true;
 };
 
-export const openSelectedUrlInNewTab: () => Command = () => (view: EditorView) => {
+export const openInternalUrlInNewTab: () => Command = () => (view: EditorView) => {
   const anchor = getAnchorFromView(view);
   if (!anchor) return false;
   window.open(anchor.href, "_blank");
@@ -47,13 +54,30 @@ function getAnchorFromView(view: EditorView) {
 export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router) => [
   {
     key: "Enter",
-    run: openSelectedUrlInCurrentTab(router),
+    run: openInternalUrlInCurrentTab(router),
   },
   {
     key: "Mod-Enter",
-    run: openSelectedUrlInNewTab(),
+    run: openInternalUrlInNewTab(),
   },
 ];
+
+const markdownLinkPlugin = (router: RouterElement) =>
+  ViewPlugin.fromClass(MarkdownLinkView, {
+    decorations: (v) => v.decorations,
+    eventHandlers: {
+      click: handleUrlClick(router),
+    },
+  });
+
+const urlPlugin = (router: RouterElement) => {
+  return ViewPlugin.fromClass(URLView, {
+    decorations: (v) => v.decorations,
+    eventHandlers: {
+      click: handleUrlClick(router),
+    },
+  });
+};
 
 class MarkdownLinkView implements PluginValue {
   decorations: RangeSet<Decoration>;
@@ -70,7 +94,7 @@ class MarkdownLinkView implements PluginValue {
           tagName: "a",
           attributes: {
             href: isInternal ? `?title=${encodeURIComponent(title)}&id=${idOrUrl}` : idOrUrl,
-            rel: "nofollow",
+            rel: isInternal ? "" : "external noopener noreferrer",
             class: "cm-live-link",
           },
         });
@@ -84,18 +108,6 @@ class MarkdownLinkView implements PluginValue {
     }
   }
 }
-
-function isInternalUrl(url: string) {
-  return !!INTENRAL_LINK_PATTERN.exec(url);
-}
-
-const markdownLinkPlugin = (router: RouterElement) =>
-  ViewPlugin.fromClass(MarkdownLinkView, {
-    decorations: (v) => v.decorations,
-    eventHandlers: {
-      click: handleUrlClick(router),
-    },
-  });
 
 class URLView implements PluginValue {
   decorations: RangeSet<Decoration>;
@@ -110,7 +122,7 @@ class URLView implements PluginValue {
           tagName: "a",
           attributes: {
             href: url,
-            rel: "nofollow",
+            rel: "external noopener noreferrer",
             class: "cm-live-link",
           },
         });
@@ -125,24 +137,29 @@ class URLView implements PluginValue {
   }
 }
 
-const urlPlugin = (router: RouterElement) => {
-  return ViewPlugin.fromClass(URLView, {
-    decorations: (v) => v.decorations,
-    eventHandlers: {
-      click: handleUrlClick(router),
-    },
-  });
-};
-
 function handleUrlClick(router: RouterElement): (this: URLView, e: MouseEvent, view: EditorView) => boolean {
-  const openInNewTab = openSelectedUrlInNewTab();
-  const openInCurrentTab = openSelectedUrlInCurrentTab(router);
+  const openInNewTab = openInternalUrlInNewTab();
+  const openInCurrentTab = openInternalUrlInCurrentTab(router);
 
   return function (this, e, view) {
+    // only handle internal live link clicks
+    const target = e.target as HTMLAnchorElement;
+    if (!target?.classList.contains("cm-live-link")) return false;
+
+    // external
+    if (target.rel.includes("external")) {
+      return openExternalUrl(view, e.ctrlKey ? "_blank" : "_self");
+    }
+
+    // internal
     if (e.ctrlKey) {
       return openInNewTab(view);
     } else {
       return openInCurrentTab(view);
     }
   };
+}
+
+function isInternalUrl(url: string) {
+  return !!INTENRAL_LINK_PATTERN.exec(url);
 }
