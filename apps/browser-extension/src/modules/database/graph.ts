@@ -1,4 +1,5 @@
 import { array } from "@tinykb/fp-utils";
+import { paramsToBindings } from "@tinykb/sqlite-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
 import { DbFileV2Status, type DbWritableFileV2 } from "./schema";
@@ -73,6 +74,41 @@ export function push(db: Sqlite3.DB, input: PushInput) {
     db,
     files.map((file) => ({ path: file.path, synced: file.local }))
   );
+}
+
+export interface ResolveInput {
+  paths?: string[];
+  ignore?: string[];
+}
+export function resolve(db: Sqlite3.DB, input: ResolveInput) {
+  const files = fileApi.listFiles(db, {
+    paths: input.paths,
+    ignore: input.ignore,
+    filters: [["status", "=", DbFileV2Status.Conflict]],
+  });
+
+  // Goal: acknowledge older version as synced, and newer version as change on top of it
+  // For each conflict file (guaranteed to have both local and remote):
+  // set synced to remote if local.updatedAt >= remote.updatedAt
+  // set synced to local if remote.content if local.updatedAt < remote.updatedAt
+
+  const sql = `
+WITH ConflictList(value) AS (
+  SELECT json_each.value FROM json_each(json(:filePaths))
+)
+UPDATE File
+SET synced = CASE
+  WHEN (local ->> '$.updatedAt') >= (remote ->> '$.updatedAt') THEN remote ELSE local
+END
+WHERE EXISTS (
+  SELECT 1
+  FROM ConflictList
+  WHERE File.Path = ConflictList.value
+);
+  `;
+
+  const bind = paramsToBindings(sql, { filePaths: JSON.stringify(files.map((f) => f.path)) });
+  db.exec(sql, { bind });
 }
 
 export function untrack(db: Sqlite3.DB, patterns: string[]) {

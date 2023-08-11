@@ -123,6 +123,10 @@ export function extendedCommands(
         proxy.push().then(updateStatus);
         return true;
       },
+      resolve: () => {
+        proxy.resolve().then(updateStatus);
+        return true;
+      },
       sync: () => {
         proxy.fetch().then(proxy.merge).then(proxy.push).then(updateStatus);
         return true;

@@ -8,6 +8,7 @@ import {
   getRecentFiles,
   merge,
   push,
+  resolve,
   searchFiles,
   untrack,
 } from "../graph";
@@ -356,7 +357,45 @@ export async function testMergeFiles() {
   assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.None);
 }
 
-export async function testMerge() {}
+export async function testResolveConflict() {
+  const db = await createTestDb(SCHEMA);
+
+  // clone
+  clone(db, [
+    { path: "file1.md", content: "hello world", updatedAt: 1 },
+    { path: "file2.md", content: "hello world", updatedAt: 1 },
+    { path: "file3.md", content: "hello world", updatedAt: 1 }, // to be unchanged
+  ]);
+
+  // setup conflict file 1: local > remote
+  fetch(db, [{ path: "file1.md", content: "hello world remote", updatedAt: 2 }]);
+
+  commit(db, [{ path: "file1.md", content: "hello world local", updatedAt: 3 }]);
+
+  // setup conflict file 2: remote > local
+  commit(db, [{ path: "file2.md", content: "hello world local", updatedAt: 2 }]);
+
+  fetch(db, [{ path: "file2.md", content: "hello world remote", updatedAt: 3 }]);
+
+  // assert conflicts
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Conflict);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Conflict);
+
+  // resolve
+  resolve(db, { paths: ["file1.md", "file2.md"] });
+
+  // assert file 1 resolved resolved to local
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.content, "hello world local");
+
+  // assert file 2 resolved resolved to remote
+  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file2.md")!.content, "hello world remote");
+
+  // assert file 3 unchanged
+  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.content, "hello world");
+}
 
 export async function testGetRecentFiles() {
   const db = await createTestDb(SCHEMA);

@@ -1,16 +1,18 @@
 # Alpha must have
 
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
-- Sync: Automerge with higher timestamp
 - System files: auto generate built-in gitignore
 - System files: regenerate system files after clone
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
 - Omnibox: layout clean up
+- Determine frontmatter fields to support: created? updated? tags? title?
 
 # Future
 
+- Manual merge during conflict resolution
+- Maintain static test specs and a static spec generator
 - Fine-tune ESC behavior in omnibox
 - Live link should not handle entery keydown when cursor is at the edge
 - Initial clone progress reporting

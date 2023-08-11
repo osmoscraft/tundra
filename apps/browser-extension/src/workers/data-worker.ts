@@ -96,6 +96,10 @@ const routes = {
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
   },
+  resolve: async () => {
+    const db = await dbInit();
+    dbApi.resolve(db, { paths: dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) }).map((file) => file.path) });
+  },
   searchNotes: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
   testGithubConnection: asyncPipe(dbInit, sync.testConnection),

@@ -65,12 +65,12 @@
       "key": "Mod-s"
     },
     {
-      "name": "New",
-      "run": "file.new"
+      "name": "Fetch",
+      "run": "repo.fetch"
     },
     {
-      "name": "Sync",
-      "run": "repo.sync"
+      "name": "New",
+      "run": "file.new"
     },
     {
       "name": "Pull",
@@ -81,8 +81,12 @@
       "run": "repo.push"
     },
     {
-      "name": "Fetch",
-      "run": "repo.fetch"
+      "name": "Resolve",
+      "run": "repo.resolve"
+    },
+    {
+      "name": "Sync",
+      "run": "repo.sync"
     }
   ]
 }
