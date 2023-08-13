@@ -81,6 +81,10 @@
       "run": "repo.push"
     },
     {
+      "name": "Merge",
+      "run": "repo.merge"
+    },
+    {
       "name": "Delete",
       "run": "file.delete"
     },

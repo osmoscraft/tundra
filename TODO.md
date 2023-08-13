@@ -1,6 +1,6 @@
 # Alpha must have
 
-- Load keyboard config from DB
+- Enter on new item results in TypeError: Cannot read properties of null (reading 'rel')
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - DB Migration strategy
 - Use node.js for testing (need sqlite 3.43)

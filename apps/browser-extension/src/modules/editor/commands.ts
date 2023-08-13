@@ -18,7 +18,6 @@ import { timestampToId } from "../sync/path";
 import { deleteCurrentNote } from "./delete";
 import { getSelectedText } from "./reducers";
 import { saveCurrentNote } from "./save";
-import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface CommandKeyBinding {
   name: string;
@@ -69,14 +68,14 @@ export function editorCommands(): CommandLibrary {
   };
 }
 
-export function extendedCommands(
-  proxy: AsyncProxy<DataWorkerRoutes>,
-  dialog: HTMLDialogElement,
-  omnibox: OmniboxElement,
-  statusBar: StatusBarElement
-): CommandLibrary {
-  const updateStatus = () => proxy.getStatus().then((status) => statusBar.setText(status));
+export interface ExtendedCommandsConfig {
+  proxy: AsyncProxy<DataWorkerRoutes>;
+  dialog: HTMLDialogElement;
+  omnibox: OmniboxElement;
+  onFilesChanged: () => void;
+}
 
+export function extendedCommands({ proxy, dialog, omnibox, onFilesChanged }: ExtendedCommandsConfig): CommandLibrary {
   return {
     shell: {
       addLink: (view) => {
@@ -107,33 +106,37 @@ export function extendedCommands(
         return true;
       },
       delete: () => {
-        deleteCurrentNote(proxy).then(updateStatus);
+        deleteCurrentNote(proxy).then(onFilesChanged);
         return true;
       },
       save: (view) => {
-        saveCurrentNote(() => view.state.doc.toString(), proxy).then(updateStatus);
+        saveCurrentNote(() => view.state.doc.toString(), proxy).then(onFilesChanged);
         return true;
       },
     },
     repo: {
       pull: () => {
-        proxy.fetch().then(proxy.merge).then(updateStatus);
+        proxy.fetch().then(proxy.merge).then(onFilesChanged);
         return true;
       },
       fetch: () => {
-        proxy.fetch().then(updateStatus);
+        proxy.fetch().then(onFilesChanged);
+        return true;
+      },
+      merge: () => {
+        proxy.merge().then(onFilesChanged);
         return true;
       },
       push: () => {
-        proxy.push().then(updateStatus);
+        proxy.push().then(onFilesChanged);
         return true;
       },
       resolve: () => {
-        proxy.resolve().then(updateStatus);
+        proxy.resolve().then(onFilesChanged);
         return true;
       },
       sync: () => {
-        proxy.fetch().then(proxy.merge).then(proxy.push).then(updateStatus);
+        proxy.fetch().then(proxy.merge).then(proxy.push).then(onFilesChanged);
         return true;
       },
     },
