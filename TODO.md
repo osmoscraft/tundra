@@ -8,6 +8,7 @@
 
 # Future
 
+- Repo: Add convenience command to open github repo
 - Status: multi-lines history
 - Status: detailed sync progress
 - Status: actionable messages
