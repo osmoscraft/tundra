@@ -19,7 +19,7 @@
 - Manual merge during conflict resolution
 - Maintain static test specs and a static spec generator
 - Fine-tune ESC behavior in omnibox
-- Live link should not handle entery keydown when cursor is at the edge
+- Live link: mouse click in text portion should not open the link
 - Initial clone progress reporting
 - Keyboard: entire app should have two tab stops: editor and panel
 - When linking, the default option should be first matched link, rather than create new
