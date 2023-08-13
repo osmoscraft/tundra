@@ -42,7 +42,9 @@ export const openLinkAtCursor: (router: RouterElement) => KeyBinding[] = (router
 function openLinkOnEnter(router: RouterElement, target: "_self" | "_blank"): Command {
   return (view: EditorView) => {
     // determine type of link
-    const anchor = getAnchorFromView(view)!;
+    const anchor = getAnchorFromView(view);
+    if (!anchor) return false;
+
     if (isExternalAnchor(anchor)) {
       return openExternalLink(view, target);
     } else {

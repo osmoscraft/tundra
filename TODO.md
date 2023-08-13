@@ -1,14 +1,15 @@
 # Alpha must have
 
-- Enter on new item results in TypeError: Cannot read properties of null (reading 'rel')
+- Prevent bottom URL from covering UI
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - DB Migration strategy
 - Use node.js for testing (need sqlite 3.43)
 - Determine frontmatter fields to support: created? updated? tags? title?
-- Prevent bottom URL from covering UI
 
 # Future
 
+- Status display: multi-lines history
+- Status display: actionable messages
 - Handle virtual nodes: files that are deleted but still referenced by other files
 - Investigate Firefox compatibility
 - Restore cursor between SPA navigations
