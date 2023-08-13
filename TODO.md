@@ -9,6 +9,7 @@
 
 # Future
 
+- Handle virtual nodes: files that are deleted but still referenced by other files
 - Investigate Firefox compatibility
 - Restore cursor between SPA navigations
 - Local first: create local workspace
