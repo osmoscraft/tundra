@@ -2,3 +2,25 @@ backlinks-element .c-backlink-list {
   max-height: min(20rem, calc((100vh - 2rem) / 3)); /* roughly a third of viewport minus the top panel */
   overflow-y: auto;
 }
+
+backlinks-element li {
+  list-style: none;
+  display: grid;
+}
+
+backlinks-element li > *:where(a, button) {
+  display: grid;
+  border: none;
+  padding: 4px 8px;
+  background-color: #282c34;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: start;
+  color: inherit;
+  outline: none;
+
+  &:where(:hover, :focus) {
+    color: #282c34;
+    background-color: #61afef;
+  }
+}
