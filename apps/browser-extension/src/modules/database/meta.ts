@@ -4,7 +4,7 @@ export type Meta = Record<string, any>;
 export interface WithEncodedMeta {
   meta: string | null;
 }
-export type WithDecodedMeta<T extends WithEncodedMeta> = Omit<T, "meta"> & { meta: Meta };
+export type WithDecodedMeta<T extends WithEncodedMeta> = Omit<T, "meta"> & { meta: Meta | null };
 export function decodeMeta<T extends WithEncodedMeta>(withEncodedMeta: T): WithDecodedMeta<T> {
   return {
     ...withEncodedMeta,

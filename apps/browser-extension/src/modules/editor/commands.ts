@@ -15,8 +15,9 @@ import type { OmniboxElement } from "./menus/omnibox-element";
 
 import { stateToParams } from "../router/route-state";
 import { timestampToId } from "../sync/path";
+import { deleteCurrentNote } from "./delete";
 import { getSelectedText } from "./reducers";
-import { save } from "./save";
+import { saveCurrentNote } from "./save";
 import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface CommandKeyBinding {
@@ -101,12 +102,16 @@ export function extendedCommands(
       },
     },
     file: {
-      new: (view) => {
+      new: () => {
         location.assign(`?${stateToParams({ id: timestampToId(new Date()) })}`);
         return true;
       },
+      delete: () => {
+        deleteCurrentNote(proxy).then(updateStatus);
+        return true;
+      },
       save: (view) => {
-        save(() => view.state.doc.toString(), proxy).then(updateStatus);
+        saveCurrentNote(() => view.state.doc.toString(), proxy).then(updateStatus);
         return true;
       },
     },

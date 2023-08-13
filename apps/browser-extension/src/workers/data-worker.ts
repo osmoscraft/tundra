@@ -44,7 +44,7 @@ const routes = {
       limit: 100,
     }).map((note) => ({
       id: note.id,
-      title: note.meta.title,
+      title: note.meta?.title,
     })),
   getFile: async (path: string) => dbApi.getFile(await dbInit(), path),
   getNote: async (id: string) => {
@@ -60,7 +60,7 @@ const routes = {
     const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getUserIgnores(db) });
     return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
   },
-  removeNote: async (id: string) => dbApi.remove(await dbInit(), [noteIdToPath(id)]),
+  deleteNote: async (id: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content: null }),
   clone: async () => {
     const db = await dbInit();
     await routes.destoryData();

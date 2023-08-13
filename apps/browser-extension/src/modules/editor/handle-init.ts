@@ -139,9 +139,9 @@ export function handleInitPanels({
             state: { id: newNoteId, title: searchTerms, linkToId: isLinking ? newNoteId : undefined },
           },
           ...notes.map((file) => ({
-            title: file.meta.title ?? "Untitled",
+            title: file.meta?.title ?? "Untitled",
             state: {
-              title: file.meta.title ?? "Untitled",
+              title: file.meta?.title ?? "Untitled",
               id: file.id,
               linkToId: isLinking ? file.id : undefined,
             },
@@ -153,10 +153,10 @@ export function handleInitPanels({
         const notes = await proxy.getRecentNotes();
         omnimenu.setMenuItems(
           notes.map((note) => ({
-            title: note.meta.title ?? "Untitled",
+            title: note.meta?.title ?? "Untitled",
             state: {
               id: note.id,
-              title: note.meta.title ?? "Untitled",
+              title: note.meta?.title ?? "Untitled",
               linkToId: isLinking ? note.id : undefined,
             },
           }))

@@ -81,6 +81,10 @@
       "run": "repo.push"
     },
     {
+      "name": "Delete",
+      "run": "file.delete"
+    },
+    {
       "name": "Resolve",
       "run": "repo.resolve"
     },
