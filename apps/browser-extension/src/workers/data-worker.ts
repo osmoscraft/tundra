@@ -57,7 +57,7 @@ const routes = {
   getRecentNotes: async () => searchRecentNotes(await dbInit(), 10),
   getStatus: async () => {
     const db = await dbInit();
-    const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getUserIgnores(db) });
+    const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getIgnorePatterns(db) });
     return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
   },
   deleteNote: async (id: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content: null }),
@@ -83,12 +83,14 @@ const routes = {
   },
   merge: async () => {
     const db = await dbInit();
-    dbApi.merge(db, { paths: dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) }).map((file) => file.path) });
+    dbApi.merge(db, {
+      paths: dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) }).map((file) => file.path),
+    });
   },
   push: async () => {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
-    const files = dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) });
+    const files = dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) });
     const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
     const pushTime = Date.now();
     const pushResult = await updateContentBulk(connection, fileChanges);
@@ -99,7 +101,9 @@ const routes = {
   },
   resolve: async () => {
     const db = await dbInit();
-    dbApi.resolve(db, { paths: dbApi.getDirtyFiles(db, { ignore: sync.getUserIgnores(db) }).map((file) => file.path) });
+    dbApi.resolve(db, {
+      paths: dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) }).map((file) => file.path),
+    });
   },
   searchNotes: async (input: SearchInput) => searchNotes(await dbInit(), input),
   setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),

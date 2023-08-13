@@ -6,15 +6,14 @@ import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
   editorCommands as nativeCommands,
-  type CommandKeyBinding,
 } from "../modules/editor/commands";
 import { handleInitPanels, initEditor } from "../modules/editor/handle-init";
 import { handleUpdate } from "../modules/editor/handle-update";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
-import userConfig from "../modules/editor/user-config.json";
 import { RouterElement } from "../modules/router/router-element";
+import { loadKeyBindings } from "../modules/settings/key-bindings";
 import { timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
@@ -40,11 +39,11 @@ function main() {
   const omnimenu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
   const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
   const dialog = document.querySelector<HTMLDialogElement>("#app-dialog")!;
-  const commandBindings = userConfig.keyBindings as CommandKeyBinding[];
   const library = {
     ...nativeCommands(),
     ...extendedCommands(proxy, dialog, omnibox, statusBar),
   };
+  const commandBindings = loadKeyBindings(proxy, () => {});
   const editorBindings = getEditorKeyBindings(commandBindings, library);
 
   // ensure url

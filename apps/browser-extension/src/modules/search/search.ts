@@ -1,5 +1,5 @@
 import * as dbApi from "../database";
-import { getUserIgnores } from "../sync";
+import { getIgnorePatterns } from "../sync";
 import { noteIdToPath, notePathToId } from "../sync/path";
 
 export interface SearchInput {
@@ -14,7 +14,7 @@ export function searchNotes(db: Sqlite3.DB, input: SearchInput) {
     query,
     limit: input.limit,
     paths: ["data/notes*"],
-    ignore: getUserIgnores(db),
+    ignore: getIgnorePatterns(db),
   });
   return files.map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
 }
@@ -30,7 +30,7 @@ export function searchBacklinkNotes(db: Sqlite3.DB, input: SearchBacklinkInput) 
       query: `"(${input.id})"`,
       limit: input.limit,
       paths: ["data/notes*"],
-      ignore: getUserIgnores(db),
+      ignore: getIgnorePatterns(db),
     })
     .filter((file) => file.path !== notePath)
     .map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
@@ -43,7 +43,7 @@ export function searchRecentFiles(db: Sqlite3.DB, limit: number) {
 }
 
 export function searchRecentNotes(db: Sqlite3.DB, limit: number) {
-  const files = dbApi.getRecentFiles(db, { limit, paths: ["data/notes*"], ignore: getUserIgnores(db) });
+  const files = dbApi.getRecentFiles(db, { limit, paths: ["data/notes*"], ignore: getIgnorePatterns(db) });
   const filesWithIds = files.map(({ path, ...file }) => ({ ...file, id: notePathToId(path) }));
   return filesWithIds;
 }
