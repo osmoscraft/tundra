@@ -19,11 +19,11 @@ import {
   testMetaCRUD,
   testPushFiles,
   testRemoteFirstSync,
+  testRemoveFiles,
   testResolveConflict,
   testSearchFileContent,
   testSearchMeta,
   testSyncOverrideLocal,
-  testUntrackFiles,
 } from "../database/tests/graph.test";
 import { testBacklinkSearch, testBasicSearch } from "../search/tests/search.test";
 
@@ -47,7 +47,7 @@ export async function runLiveTests() {
         testRemoteFirstSync,
         testSyncOverrideLocal,
         testLocalOverrideSync,
-        testUntrackFiles,
+        testRemoveFiles,
         testPushFiles,
         testMergeFiles,
         testResolveConflict,

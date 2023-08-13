@@ -60,6 +60,7 @@ const routes = {
     const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getUserIgnores(db) });
     return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
   },
+  removeNote: async (id: string) => dbApi.remove(await dbInit(), [noteIdToPath(id)]),
   clone: async () => {
     const db = await dbInit();
     await routes.destoryData();

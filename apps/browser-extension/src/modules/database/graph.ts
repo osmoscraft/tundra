@@ -111,7 +111,7 @@ WHERE EXISTS (
   db.exec(sql, { bind });
 }
 
-export function untrack(db: Sqlite3.DB, patterns: string[]) {
+export function remove(db: Sqlite3.DB, patterns: string[]) {
   fileApi.deleteFiles(db, patterns);
 }
 

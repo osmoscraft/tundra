@@ -8,9 +8,9 @@ import {
   getRecentFiles,
   merge,
   push,
+  remove,
   resolve,
   searchFiles,
-  untrack,
 } from "../graph";
 import { decodeMeta } from "../meta";
 import { DbFileAction, DbFileV2Status } from "../schema";
@@ -52,7 +52,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
 
   // delete
-  untrack(db, ["/test.md"]);
+  remove(db, ["/test.md"]);
 
   assertUndefined(getFile(db, "/test.md"), "After all files deleted");
 }
@@ -128,7 +128,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.status, DbFileV2Status.Synced, "is synced");
 }
 
-export async function testUntrackFiles() {
+export async function testRemoveFiles() {
   const db = await createTestDb(SCHEMA);
 
   commit(db, [
@@ -139,17 +139,17 @@ export async function testUntrackFiles() {
   ]);
 
   assertEqual(getFile(db, "file-1.md")?.path, "file-1.md", "file-1.md");
-  untrack(db, ["file-1.md"]);
+  remove(db, ["file-1.md"]);
   assertEqual(getFile(db, "file-1.md"), undefined, "file-1.md");
 
   assertEqual(getFile(db, "dir1/file-2.md")?.path, "dir1/file-2.md", "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md")?.path, "dir1/file-3.md", "dir1/file-3.md");
-  untrack(db, ["dir1*"]);
+  remove(db, ["dir1*"]);
   assertEqual(getFile(db, "dir1/file-2.md"), undefined, "dir1/file-2.md");
   assertEqual(getFile(db, "dir1/file-3.md"), undefined, "dir1/file-3.md");
 
   assertEqual(getFile(db, "dir2/subdir/file-4.md")?.path, "dir2/subdir/file-4.md", "dir2/subdir/file-4.md");
-  untrack(db, ["dir2/*"]);
+  remove(db, ["dir2/*"]);
   assertEqual(getFile(db, "dir2/subdir/file-4.md"), undefined, "dir2/subdir/file-4.md");
 }
 
@@ -385,12 +385,12 @@ export async function testResolveConflict() {
   resolve(db, { paths: ["file1.md", "file2.md"] });
 
   // assert file 1 resolved resolved to local
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Ahead);
   assertEqual(getFile(db, "file1.md")!.content, "hello world local");
 
   // assert file 2 resolved resolved to remote
-  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Synced);
-  assertEqual(getFile(db, "file2.md")!.content, "hello world remote");
+  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file2.md")!.content, "hello world local");
 
   // assert file 3 unchanged
   assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
