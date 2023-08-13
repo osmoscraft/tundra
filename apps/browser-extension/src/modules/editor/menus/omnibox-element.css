@@ -1,0 +1,16 @@
+omnibox-element .c-omnibox-container {
+  display: grid;
+}
+
+omnibox-element .c-omnibox-input {
+  padding: 8px 8px;
+  border: none;
+  outline: none;
+  color: #abb2bf;
+  background-color: #282c34;
+
+  &:where(:hover, :focus) {
+    color: white;
+    background-color: black;
+  }
+}

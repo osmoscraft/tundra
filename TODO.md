@@ -1,15 +1,17 @@
 # Alpha must have
 
+- Backlinks style cleanup
 - Load keyboard config from DB
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
-- Omnibox: layout clean up
 - Determine frontmatter fields to support: created? updated? tags? title?
 
 # Future
 
+- Investigate Firefox compatibility
+- Restore cursor between SPA navigations
 - Local first: create local workspace
 - Local first: auto generate built-in gitignore
 - Local first: create remote from local state

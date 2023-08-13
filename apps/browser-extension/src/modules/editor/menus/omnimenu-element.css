@@ -6,3 +6,25 @@ omnimenu-element .c-node-list {
   max-height: min(20rem, calc((100vh - 2rem) / 2)); /* roughly half of viewport minus the top panel */
   overflow-y: auto;
 }
+
+omnimenu-element li {
+  list-style: none;
+  display: grid;
+}
+
+omnimenu-element li > *:where(a, button) {
+  display: grid;
+  border: none;
+  padding: 4px 8px;
+  background-color: #282c34;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: start;
+  color: inherit;
+  outline: none;
+
+  &:where(:hover, :focus) {
+    color: #282c34;
+    background-color: #61afef;
+  }
+}
