@@ -8,8 +8,9 @@
 
 # Future
 
-- Status display: multi-lines history
-- Status display: actionable messages
+- Status: multi-lines history
+- Status: detailed sync progress
+- Status: actionable messages
 - Handle virtual nodes: files that are deleted but still referenced by other files
 - Investigate Firefox compatibility
 - Restore cursor between SPA navigations
@@ -20,7 +21,8 @@
 - Maintain static test specs and a static spec generator
 - Fine-tune ESC behavior in omnibox
 - Live link: mouse click in text portion should not open the link
-- Initial clone progress reporting
+- First run: initial clone progress reporting
+- Sync: allow clone by command
 - Keyboard: entire app should have two tab stops: editor and panel
 - When linking, the default option should be first matched link, rather than create new
 - Omnibox: auto update reference when newly created file is renamed
