@@ -1,12 +1,12 @@
 # Alpha must have
 
-- Backlinks style cleanup
 - Load keyboard config from DB
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - DB Migration strategy
 - implement soft delete for individual files
 - Use node.js for testing (need sqlite 3.43)
 - Determine frontmatter fields to support: created? updated? tags? title?
+- Prevent bottom URL from covering UI
 
 # Future
 
