@@ -1,0 +1,14 @@
+devtool-element {
+  fieldset {
+    display: grid;
+    padding-inline: 16px;
+  }
+  menu {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+}

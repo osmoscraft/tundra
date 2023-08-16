@@ -1,0 +1,28 @@
+file-system-readonly-explorer-element {
+  & ul {
+    display: grid;
+    border-right: 1px solid ButtonBorder;
+    align-content: start;
+  }
+  & ul button {
+    background: none;
+    border: none;
+    text-align: start;
+    cursor: pointer;
+  }
+  & ul button:hover {
+    text-decoration: underline;
+  }
+
+  & ul .empty-placeholder {
+    padding: 4px;
+  }
+
+  .master-details-layout {
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+  & pre {
+    padding: 4px;
+  }
+}

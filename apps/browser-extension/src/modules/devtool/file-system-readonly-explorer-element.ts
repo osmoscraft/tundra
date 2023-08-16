@@ -1,6 +1,6 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
+import "./file-system-readonly-explorer-element.css";
 import template from "./file-system-readonly-explorer-element.html";
 
 export class FileSystemReadonlyExplorerElement extends HTMLElement {
@@ -8,10 +8,16 @@ export class FileSystemReadonlyExplorerElement extends HTMLElement {
     proxy: AsyncProxy<DataWorkerRoutes>;
   };
 
-  shadowRoot = attachShadowHtml(template, this);
-  private fileList = this.shadowRoot.querySelector("ul")!;
-  private code = this.shadowRoot.querySelector("code")!;
+  private fileList: HTMLUListElement;
+  private code: HTMLElement;
   private proxy = FileSystemReadonlyExplorerElement.dependencies.proxy;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.fileList = this.querySelector("ul")!;
+    this.code = this.querySelector("code")!;
+  }
 
   connectedCallback() {
     this.proxy.getRecentFiles().then((fileList) => {

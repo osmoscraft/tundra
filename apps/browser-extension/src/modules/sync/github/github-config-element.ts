@@ -1,7 +1,7 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { GithubConnection } from "..";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
+import "./github-config-element.css";
 import template from "./github-config-element.html";
 
 export class GithubConfigElement extends HTMLElement {
@@ -9,10 +9,16 @@ export class GithubConfigElement extends HTMLElement {
     proxy: AsyncProxy<DataWorkerRoutes>;
   };
 
-  shadowRoot = attachShadowHtml(template, this);
-  private form = this.shadowRoot.querySelector("form")!;
-  private menu = this.shadowRoot.querySelector("menu")!;
+  private form: HTMLFormElement;
+  private menu: HTMLMenuElement;
   private proxy = GithubConfigElement.dependencies.proxy;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.form = this.querySelector("form")!;
+    this.menu = this.querySelector("menu")!;
+  }
 
   connectedCallback() {
     this.load();
@@ -48,9 +54,9 @@ export class GithubConfigElement extends HTMLElement {
     const respondGithubConnection = await this.proxy.getGithubConnection();
     if (!respondGithubConnection) return;
 
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = respondGithubConnection.repo;
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = respondGithubConnection.owner;
-    this.shadowRoot.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = respondGithubConnection.token;
+    this.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = respondGithubConnection.repo;
+    this.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = respondGithubConnection.owner;
+    this.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = respondGithubConnection.token;
   }
 
   private save() {

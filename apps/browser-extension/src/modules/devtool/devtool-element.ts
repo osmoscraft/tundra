@@ -1,4 +1,3 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import template from "./devtool-element.html";
@@ -9,9 +8,14 @@ export class DevtoolElement extends HTMLElement {
     proxy: AsyncProxy<DataWorkerRoutes>;
   };
 
-  shadowRoot = attachShadowHtml(template, this);
-  private menu = this.shadowRoot.querySelector("menu")!;
+  private menu: HTMLMenuElement;
   private proxy = DevtoolElement.dependencies.proxy;
+
+  constructor() {
+    super();
+    this.innerHTML = template;
+    this.menu = this.querySelector("menu")!;
+  }
 
   connectedCallback() {
     if (new URLSearchParams(location.search).get("checkhealth") === "true") {
