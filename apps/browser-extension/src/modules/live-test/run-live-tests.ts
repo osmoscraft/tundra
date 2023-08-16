@@ -25,6 +25,7 @@ import {
   testSyncOverrideLocal,
   testUntrackFiles,
 } from "../database/tests/graph.test";
+import { testMigrate } from "../database/tests/migrate.test";
 import { testBacklinkSearch, testBasicSearch } from "../search/tests/search.test";
 
 export async function runLiveTests() {
@@ -34,12 +35,8 @@ export async function runLiveTests() {
   const suites = activeSuites.length
     ? activeSuites
     : [
-        // db v2
-        testDbCreation,
-        testSchemaTriggerFsmSink,
-        testSchemaTriggerFsmDeterminism,
-        testSchemaCanonicalStates,
-        testSchemaDerivedColumns,
+        // migration
+        testMigrate,
 
         // file
         testLocalFileEditLifecycle,
@@ -64,6 +61,13 @@ export async function runLiveTests() {
         // search
         testBasicSearch,
         testBacklinkSearch,
+
+        // db v2
+        testDbCreation,
+        testSchemaTriggerFsmSink,
+        testSchemaTriggerFsmDeterminism,
+        testSchemaCanonicalStates,
+        testSchemaDerivedColumns,
       ];
 
   for (const suite of suites) {

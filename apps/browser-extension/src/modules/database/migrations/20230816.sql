@@ -117,5 +117,3 @@ CREATE TRIGGER FileFtsAfterUpdateTrigger AFTER UPDATE ON File BEGIN
   INSERT INTO FileFts(rowid, path, content, meta)
   VALUES (new.rowid, new.path, new.content, new.meta);
 END;
-
-PRAGMA user_version = 1;
