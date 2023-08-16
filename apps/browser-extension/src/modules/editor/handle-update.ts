@@ -1,3 +1,4 @@
+import { Transaction } from "@codemirror/state";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
@@ -16,6 +17,7 @@ export async function handleUpdate({ proxy, backlinks, editorView }: RouteConten
 
   const file = id ? await proxy.getNote(id) : null;
   editorView.dispatch({
+    annotations: Transaction.addToHistory.of(false), // do not track programatic update as history
     changes: {
       from: 0,
       to: editorView.state.doc.length,

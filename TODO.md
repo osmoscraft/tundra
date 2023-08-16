@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Initial doc loading pollutes history
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - DB Migration strategy
 - Use node.js for testing (need sqlite 3.43)
