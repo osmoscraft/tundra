@@ -12,7 +12,7 @@ import { noteIdToPath, timestampToId } from "../sync/path";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
-import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
+import { bottomPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import { handleMenuAction, type MenuAction } from "./menus/menu-action";
@@ -21,14 +21,13 @@ import type { OmnimenuElement } from "./menus/omnimenu-element";
 import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface InitEdidorConfig {
-  topPanel: HTMLElement;
   bottomPanel: HTMLElement;
   router: RouterElement;
   editorBindings: KeyBinding[];
 }
 
 export function initEditor(config: InitEdidorConfig) {
-  const { topPanel: topPanelElement, bottomPanel: bottomPanelElement, router: routerElement, editorBindings } = config;
+  const { bottomPanel: bottomPanelElement, router: routerElement, editorBindings } = config;
   const id = new URLSearchParams(location.search).get("id");
   // HACK, path only works for note files. JSON files requires different detection
   const path = id ? noteIdToPath(id) : undefined;
@@ -45,7 +44,6 @@ export function initEditor(config: InitEdidorConfig) {
       dropCursor(),
       EditorView.lineWrapping,
       markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
-      topPanel(topPanelElement),
       bottomPanel(bottomPanelElement),
       oneDark,
       keymap.of(editorBindings),
@@ -58,7 +56,6 @@ export function initEditor(config: InitEdidorConfig) {
       dropCursor(),
       EditorView.lineWrapping,
       json(),
-      topPanel(topPanelElement),
       oneDark,
       keymap.of(editorBindings),
     ]);

@@ -16,15 +16,15 @@ omnimenu-element li > *:where(a, button) {
   display: grid;
   border: none;
   padding: 4px 8px;
-  background-color: #282c34;
   text-decoration: none;
   cursor: pointer;
   text-align: start;
-  color: inherit;
+  color: var(--fg-base);
+  background-color: var(--bg-base);
   outline: none;
 
   &:where(:hover, :focus) {
-    color: #282c34;
-    background-color: #61afef;
+    color: var(--fg-active);
+    background-color: var(--bg-active);
   }
 }

@@ -1,15 +1,18 @@
-import { attachShadowHtml } from "@tinykb/dom-utils";
+import "./status-bar-element.css";
 import template from "./status-bar-element.html";
 
 export class StatusBarElement extends HTMLElement {
-  shadowRoot = attachShadowHtml(template, this);
+  constructor() {
+    super();
+    this.innerHTML = template;
+  }
 
   connectedCallback() {
     this.setText("Loading...");
   }
 
   setText(text: string) {
-    this.shadowRoot.getElementById("message")!.textContent = text;
-    this.shadowRoot.getElementById("time")!.textContent = new Date().toLocaleTimeString();
+    this.querySelector("#status__message")!.textContent = text;
+    this.querySelector("#status__time")!.textContent = new Date().toLocaleTimeString();
   }
 }

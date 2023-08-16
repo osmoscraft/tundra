@@ -36,7 +36,7 @@ export class BacklinksElement extends HTMLElement {
 
   setBacklinks(items: Backlink[]) {
     if (!items.length) {
-      this.backlinkList.innerHTML = `<li>No backlinks</li>`;
+      this.backlinkList.innerHTML = ``;
     } else {
       this.backlinkList.innerHTML = [
         ...items.map((item) => `<li><a href="?id=${item.id}" data-id="${item.id}">${item.title}</a></li>`).join(""),

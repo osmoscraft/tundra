@@ -8,9 +8,9 @@
     "dev:pages": "npm run build:pages -- --watch",
     "dev:assets": "npm run build:assets -- --watch",
     "dev:worker": "npm run build:worker -- --watch",
-    "build:pages": "esbuild src/pages/*.ts --loader:.html=text --bundle --outdir=dist/unpacked",
+    "build:pages": "esbuild src/pages/*.ts --sourcemap --loader:.html=text --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
-    "build:worker": "esbuild src/workers/*.ts --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
+    "build:worker": "esbuild src/workers/*.ts --sourcemap --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked",
     "test": "tsx ./src/index.test.ts"
   },
@@ -19,7 +19,7 @@
     "@types/chrome": "^0.0.231",
     "@types/node": "^20.2.5",
     "concurrently": "^8.0.1",
-    "esbuild": "^0.17.16",
+    "esbuild": "^0.19.2",
     "tsx": "^3.12.7"
   },
   "dependencies": {

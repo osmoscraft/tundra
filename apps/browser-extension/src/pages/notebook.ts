@@ -32,9 +32,8 @@ const statusEvents = new EventTarget();
 function main() {
   const router = document.querySelector<RouterElement>("router-element")!;
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
-  const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
-  const statusBar = topPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
+  const statusBar = bottomPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
   const omnimenu = document.querySelector<OmnimenuElement>("omnimenu-element")!;
   const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
@@ -59,7 +58,6 @@ function main() {
 
   // one-time setup per session
   const editorView = initEditor({
-    topPanel: topPanelElement,
     bottomPanel: bottomPanelElement,
     editorBindings: editorBindings,
     router,

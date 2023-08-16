@@ -1,0 +1,8 @@
+@layer theme {
+  :root {
+    --bg-base: #282c34;
+    --fg-base: #abb2bf;
+    --bg-active: #61afef;
+    --fg-active: #282c34;
+  }
+}

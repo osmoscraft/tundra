@@ -1,3 +1,9 @@
+@layer reset, theme;
+@import "../styles/reset.css" layer(reset);
+@import "../styles/theme.css" layer(theme);
+
+@import "../styles/override.css";
+
 html,
 body {
   height: 100%;
@@ -24,22 +30,8 @@ body {
   margin: auto;
 }
 
-.c-top-panel {
-  display: grid;
-  grid-template:
-    "prompt status" auto
-    "menu menu" 1fr/1fr auto;
-}
-.c-top-panel__menu {
-  grid-area: menu;
-}
-.c-top-panel__prompt {
-  grid-area: prompt;
-}
-.c-top-panel__status {
-  grid-area: status;
-}
-
 .c-bottom-panel {
   display: grid;
+  gap: 2px;
+  background-color: black;
 }

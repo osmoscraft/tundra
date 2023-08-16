@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TinyKB</title>
     <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
-    <link rel="stylesheet" href="./styles/reset.css" />
     <link rel="stylesheet" href="./notebook.css" />
   </head>
   <body>
@@ -20,11 +19,9 @@
         </focus-trap-element></dialog
     ></router-element>
     <template id="panel-templates">
-      <div id="top-panel" class="c-top-panel">
-        <status-bar-element class="c-top-panel__status"></status-bar-element>
-      </div>
       <div id="bottom-panel" class="c-bottom-panel">
         <backlinks-element></backlinks-element>
+        <status-bar-element class="c-top-panel__status"></status-bar-element>
       </div>
     </template>
     <script type="module" src="./notebook.js"></script>

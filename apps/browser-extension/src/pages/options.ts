@@ -4,6 +4,7 @@ import { DevtoolElement } from "../modules/devtool/devtool-element";
 import { FileSystemReadonlyExplorerElement } from "../modules/devtool/file-system-readonly-explorer-element";
 import { GithubConfigElement } from "../modules/sync/github/github-config-element";
 import type { DataWorkerRoutes } from "../workers/data-worker";
+import "./options.css";
 
 const worker = new Worker("./data-worker.js", { type: "module" });
 
