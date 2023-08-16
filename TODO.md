@@ -15,9 +15,9 @@
 - Handle virtual nodes: files that are deleted but still referenced by other files
 - Investigate Firefox compatibility
 - Restore cursor between SPA navigations
-- Local first: create local workspace
+- Local first: bootstrap app without remote
+- Local first: push locally bootstrapped app to remote
 - Local first: auto generate built-in gitignore
-- Local first: create remote from local state
 - Manual merge during conflict resolution
 - Maintain static test specs and a static spec generator
 - Fine-tune ESC behavior in omnibox
