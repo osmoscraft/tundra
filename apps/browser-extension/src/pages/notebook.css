@@ -1,6 +1,7 @@
-@layer reset, theme;
+@layer reset, theme, elements;
 @import "../styles/reset.css" layer(reset);
 @import "../styles/theme.css" layer(theme);
+@import "../styles/elements.css" layer(elements);
 
 @import "../styles/override.css";
 
@@ -32,6 +33,10 @@ body {
 
 .c-bottom-panel {
   display: grid;
-  gap: 2px;
-  background-color: black;
+  gap: 1px;
+  background-color: var(--fg-mm);
+}
+
+.cm-panels.cm-panels-bottom {
+  border-top: 1px solid var(--fg-mm) !important;
 }

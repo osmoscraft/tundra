@@ -6,10 +6,10 @@ omnibox-element .c-omnibox-input {
   padding: 8px 8px;
   border: none;
   outline: none;
-  color: var(--fg-base);
-  background-color: var(--bg-base);
+  color: var(--fg-mm);
+  background-color: black;
 
   &:where(:hover, :focus) {
-    background-color: black;
+    color: var(--fg);
   }
 }

@@ -20,8 +20,8 @@ backlinks-element li > *:where(a, button) {
   text-decoration: none;
   cursor: pointer;
   text-align: start;
-  color: var(--fg-base);
-  background-color: var(--bg-base);
+  color: var(--fg);
+  background-color: var(--bg);
   outline: none;
 
   &:where(:hover, :focus) {
