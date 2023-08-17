@@ -1,5 +1,5 @@
 import { getConnection } from ".";
-import { DbFileAction, type DbReadableFileV2 } from "../database/schema";
+import { DbFileAction, type DbReadableFile } from "../database/schema";
 import type { GithubConnection } from "./github";
 import { ChangeType, type BulkFileChangeItem } from "./github/operations/update-content-bulk";
 
@@ -17,7 +17,7 @@ export function ensurePushParameters(db: Sqlite3.DB): PushParameters {
 
 // WIP
 export type PushFile = Pick<
-  DbReadableFileV2,
+  DbReadableFile,
   "path" | "content" | "status" | "updatedAt" | "localAction" | "remoteAction"
 >;
 export function dbFileToPushChangeType(file: PushFile): ChangeType {

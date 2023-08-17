@@ -1,4 +1,5 @@
 import { assertDefined, assertEqual } from "../../live-test";
+import { migrations } from "../migrations";
 import { assertColumnSpec, assertFsm, createTestDb } from "./fixture";
 import {
   generateFsmCanonicalSpecs,
@@ -8,12 +9,12 @@ import {
 } from "./spec-gen";
 
 export async function testDbCreation() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
   assertDefined(db, "db is defined");
 }
 
 export async function testSchemaTriggerFsmDeterminism() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   const specs = generateFsmDeterminismSpecs();
   assertEqual(specs.length, 399, "number of total transitions should be 399");
@@ -25,7 +26,7 @@ export async function testSchemaTriggerFsmDeterminism() {
 }
 
 export async function testSchemaTriggerFsmSink() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // all Fsm output states must be sink
   const specs = generateFsmSinkSpecs();
@@ -37,7 +38,7 @@ export async function testSchemaTriggerFsmSink() {
 }
 
 export async function testSchemaCanonicalStates() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   const specs = generateFsmCanonicalSpecs();
   assertEqual(specs.length, 54, "number of canonical specs should be 54");
@@ -49,7 +50,7 @@ export async function testSchemaCanonicalStates() {
 }
 
 export async function testSchemaDerivedColumns() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   const specs = generateFsmDerivedColumnSpecs();
   assertEqual(specs.length, 53, "number of derivable specs should be 53"); // 54 - 1 (empty)

@@ -13,11 +13,12 @@ import {
   untrack,
 } from "../graph";
 import { decodeMeta } from "../meta";
-import { DbFileAction, DbFileV2Status } from "../schema";
+import { migrations } from "../migrations";
+import { DbFileAction, DbFileStatus } from "../schema";
 import { createTestDb } from "./fixture";
 
 export async function testLocalFileEditLifecycle() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   assertUndefined(getFile(db, "/test.md"), "Before file created");
 
@@ -34,7 +35,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.updatedAt, 1, "Latest time");
   assertEqual(file.localAction, DbFileAction.Add, "local add");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
+  assertEqual(file.status, DbFileStatus.Ahead, "is ahead");
 
   // edit
   commit(db, {
@@ -48,7 +49,7 @@ export async function testLocalFileEditLifecycle() {
   assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.localAction, DbFileAction.Add, "local add");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
+  assertEqual(file.status, DbFileStatus.Ahead, "is ahead");
 
   // delete
   untrack(db, ["/test.md"]);
@@ -57,7 +58,7 @@ export async function testLocalFileEditLifecycle() {
 }
 
 export async function testLocalFirstSync() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // create
   commit(db, {
@@ -79,7 +80,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Synced, "is synced");
+  assertEqual(file.status, DbFileStatus.Synced, "is synced");
 
   // edit after push
   commit(db, {
@@ -94,7 +95,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.localAction, DbFileAction.Modify, "local modify");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
+  assertEqual(file.status, DbFileStatus.Ahead, "is ahead");
 
   // delete after push
   commit(db, {
@@ -109,7 +110,7 @@ export async function testLocalFirstSync() {
   assertEqual(file.updatedAt, 4, "Latest time");
   assertEqual(file.localAction, DbFileAction.Remove, "local remove");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
+  assertEqual(file.status, DbFileStatus.Ahead, "is ahead");
 
   // undo all changes after push
   commit(db, {
@@ -124,11 +125,11 @@ export async function testLocalFirstSync() {
   assertEqual(file.updatedAt, 2, "Latest time"); // clock rewind
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Synced, "is synced");
+  assertEqual(file.status, DbFileStatus.Synced, "is synced");
 }
 
 export async function testUntrackFiles() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, [
     { path: "file-1.md", content: "", updatedAt: 4 },
@@ -153,7 +154,7 @@ export async function testUntrackFiles() {
 }
 
 export async function testRemoteFirstSync() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // remote create
   fetch(db, {
@@ -167,7 +168,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.updatedAt, null, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.Add, "remote add");
-  assertEqual(file.status, DbFileV2Status.Behind, "is behind");
+  assertEqual(file.status, DbFileStatus.Behind, "is behind");
 
   // pull
   clone(db, {
@@ -181,7 +182,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Synced, "is synced");
+  assertEqual(file.status, DbFileStatus.Synced, "is synced");
 
   // remote edit
   fetch(db, {
@@ -195,7 +196,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.updatedAt, 2, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.Modify, "remote modify");
-  assertEqual(file.status, DbFileV2Status.Behind, "is behind");
+  assertEqual(file.status, DbFileStatus.Behind, "is behind");
 
   // pull edit
   clone(db, {
@@ -209,7 +210,7 @@ export async function testRemoteFirstSync() {
   assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Synced, "is synced");
+  assertEqual(file.status, DbFileStatus.Synced, "is synced");
 
   // remote delete
   clone(db, {
@@ -223,7 +224,7 @@ export async function testRemoteFirstSync() {
 }
 
 export async function testSyncOverrideLocal() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // remote time >= local
   commit(db, {
@@ -249,11 +250,11 @@ export async function testSyncOverrideLocal() {
   assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.localAction, DbFileAction.None, "local none");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Synced, "is synced");
+  assertEqual(file.status, DbFileStatus.Synced, "is synced");
 }
 
 export async function testLocalOverrideSync() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // remote time < local
   commit(db, {
@@ -279,11 +280,11 @@ export async function testLocalOverrideSync() {
   assertEqual(file.updatedAt, 3, "Latest time");
   assertEqual(file.localAction, DbFileAction.Modify, "local modify");
   assertEqual(file.remoteAction, DbFileAction.None, "remote none");
-  assertEqual(file.status, DbFileV2Status.Ahead, "is ahead");
+  assertEqual(file.status, DbFileStatus.Ahead, "is ahead");
 }
 
 export async function testPushFiles() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // setup
   clone(db, [
@@ -298,29 +299,29 @@ export async function testPushFiles() {
     { path: "file4.md", content: "new", updatedAt: 2 }, // new
   ]);
 
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file1.md")!.localAction, DbFileAction.None);
-  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileStatus.Ahead);
   assertEqual(getFile(db, "file2.md")!.localAction, DbFileAction.Remove);
-  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileStatus.Ahead);
   assertEqual(getFile(db, "file3.md")!.localAction, DbFileAction.Modify);
-  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileStatus.Ahead);
   assertEqual(getFile(db, "file4.md")!.localAction, DbFileAction.Add);
 
   // push
   push(db, { paths: ["file1.md", "file2.md", "file3.md", "file4.md"] });
 
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file1.md")!.localAction, DbFileAction.None);
   assertUndefined(getFile(db, "file2.md"));
-  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file3.md")!.localAction, DbFileAction.None);
-  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file4.md")!.localAction, DbFileAction.None);
 }
 
 export async function testMergeFiles() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // setup
   clone(db, [
@@ -335,29 +336,29 @@ export async function testMergeFiles() {
     { path: "file4.md", content: "new", updatedAt: 2 }, // new
   ]);
 
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file1.md")!.remoteAction, DbFileAction.None);
-  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileStatus.Behind);
   assertEqual(getFile(db, "file2.md")!.remoteAction, DbFileAction.Remove);
-  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileStatus.Behind);
   assertEqual(getFile(db, "file3.md")!.remoteAction, DbFileAction.Modify);
-  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileStatus.Behind);
   assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.Add);
 
   // merge
   merge(db, { paths: ["file1.md", "file2.md", "file3.md", "file4.md"] });
 
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file1.md")!.remoteAction, DbFileAction.None);
   assertUndefined(getFile(db, "file2.md"));
-  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file3.md")!.remoteAction, DbFileAction.None);
-  assertEqual(getFile(db, "file4.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file4.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file4.md")!.remoteAction, DbFileAction.None);
 }
 
 export async function testResolveConflict() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // clone
   clone(db, [
@@ -377,27 +378,27 @@ export async function testResolveConflict() {
   fetch(db, [{ path: "file2.md", content: "hello world remote", updatedAt: 3 }]);
 
   // assert conflicts
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Conflict);
-  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Conflict);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Conflict);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileStatus.Conflict);
 
   // resolve
   resolve(db, { paths: ["file1.md", "file2.md"] });
 
   // assert file 1 resolved resolved to local
-  assertEqual(getFile(db, "file1.md")!.status, DbFileV2Status.Ahead);
+  assertEqual(getFile(db, "file1.md")!.status, DbFileStatus.Ahead);
   assertEqual(getFile(db, "file1.md")!.content, "hello world local");
 
   // assert file 2 resolved resolved to remote
-  assertEqual(getFile(db, "file2.md")!.status, DbFileV2Status.Behind);
+  assertEqual(getFile(db, "file2.md")!.status, DbFileStatus.Behind);
   assertEqual(getFile(db, "file2.md")!.content, "hello world local");
 
   // assert file 3 unchanged
-  assertEqual(getFile(db, "file3.md")!.status, DbFileV2Status.Synced);
+  assertEqual(getFile(db, "file3.md")!.status, DbFileStatus.Synced);
   assertEqual(getFile(db, "file3.md")!.content, "hello world");
 }
 
 export async function testGetRecentFiles() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -419,7 +420,7 @@ export async function testGetRecentFiles() {
 }
 
 export async function testGetRecentFilesWithScope() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -437,7 +438,7 @@ export async function testGetRecentFilesWithScope() {
 }
 
 export async function testGetRecentFilesWithIgnore() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -455,7 +456,7 @@ export async function testGetRecentFilesWithIgnore() {
 }
 
 export async function testGetDirtyFiles() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   clone(db, [
     { path: "file-2.md", content: "", updatedAt: 3 },
@@ -487,7 +488,7 @@ export async function testGetDirtyFiles() {
 }
 
 export async function testGetDirtyFilesWithIgnore() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -512,14 +513,14 @@ export async function testGetDirtyFilesWithIgnore() {
 }
 
 export async function testBulkOperations() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, []); // empty
   clone(db, []); // empty
 }
 
 export async function testMetaCRUD() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   clone(db, { path: "/no-content-meta.md", content: "", updatedAt: 1 });
   commit(db, { path: "/no-content-meta.md", content: null, updatedAt: 2 });
@@ -564,7 +565,7 @@ export async function testMetaCRUD() {
 }
 
 export async function testSearchMeta() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, [
     { path: "node-1.md", content: "---\ntitle: hello world\n---", updatedAt: 1 },
@@ -589,7 +590,7 @@ export async function testSearchMeta() {
 }
 
 export async function testSearchFileContent() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, [
     { path: "file-1.md", content: "hello world", updatedAt: 1 },

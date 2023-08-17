@@ -1,4 +1,4 @@
-import { DbFileAction, type DbInternalFileV2 } from "../schema";
+import { DbFileAction, type DbInternalFile } from "../schema";
 import { encodeParsedState, parseState, type ParsedState } from "./fixture";
 
 export function generateFsmDeterminismSpecs(): { input: string; output: string }[] {
@@ -24,11 +24,11 @@ export function generateFsmCanonicalSpecs(): string[] {
 
 export interface ColumnSpec {
   input: string;
-  cols: { key: keyof DbInternalFileV2; value: any }[];
+  cols: { key: keyof DbInternalFile; value: any }[];
 }
 export function generateFsmDerivedColumnSpecs(): {
   input: string;
-  cols: { key: keyof DbInternalFileV2; value: any }[];
+  cols: { key: keyof DbInternalFile; value: any }[];
 }[] {
   const canonicalSpecs = generateFsmCanonicalSpecs();
   const parsedSinkSpecs = canonicalSpecs

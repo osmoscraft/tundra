@@ -1,13 +1,12 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
 import { getFile, updateFile } from "../file";
-import { migrate } from "../migrate";
-import { migrations } from "../migrations";
-import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
+import { migrate, type Migration } from "../migrate";
+import type { DbFileParsedSource, DbFileStatus, DbInternalFile, DbWritableFile } from "../schema";
 import type { ColumnSpec } from "./spec-gen";
 
 let db: Sqlite3.DB | undefined;
-export async function createTestDb() {
+export async function createTestDb(migrations: Migration[]) {
   db ??= await createEmptyDb();
   db.exec(`
   DROP TABLE IF EXISTS File;
@@ -31,16 +30,16 @@ export async function createEmptyDb() {
 
 // test utils
 export function mockFile(time: number, content: string | null, meta: string | null = null) {
-  const snapshot: DbFileV2ParsedSource = { updatedAt: time, content, meta };
+  const snapshot: DbFileParsedSource = { updatedAt: time, content, meta };
   return JSON.stringify(snapshot);
 }
 
-const selectTestFile = getFile as (db: Sqlite3.DB, path: string) => DbInternalFileV2 | undefined;
+const selectTestFile = getFile as (db: Sqlite3.DB, path: string) => DbInternalFile | undefined;
 
 export function assertFileUpdatedAt(db: Sqlite3.DB, path: string, version: number) {
   const source = selectTestFile(db, path)?.source;
   if (!source) throw new Error(`File version assertion error: ${path} has no source`);
-  assertEqual((JSON.parse(source) as DbFileV2ParsedSource).updatedAt, version);
+  assertEqual((JSON.parse(source) as DbFileParsedSource).updatedAt, version);
 }
 
 export function assertFileSourceless(db: Sqlite3.DB, path: string) {
@@ -51,7 +50,7 @@ export function assertFileUntracked(db: Sqlite3.DB, path: string) {
   assertEqual(selectTestFile(db, path), undefined);
 }
 
-export function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileV2Status) {
+export function assertFileStatus(db: Sqlite3.DB, path: string, status: DbFileStatus) {
   assertEqual(selectTestFile(db, path)?.status, status);
 }
 
@@ -143,7 +142,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
       return;
     }
 
-    const fromState: DbWritableFileV2 = {
+    const fromState: DbWritableFile = {
       path: filename,
       ...(parsedFrom.local ? { local: mockFile(parsedFrom.local.updatedAt, parsedFrom.local.content) } : undefined),
       ...(parsedFrom.remote ? { remote: mockFile(parsedFrom.remote.updatedAt, parsedFrom.remote.content) } : undefined),
@@ -160,7 +159,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
       return;
     }
 
-    const actionState: DbWritableFileV2 = {
+    const actionState: DbWritableFile = {
       path: filename,
       ...(parsedAction.local
         ? { local: mockFile(parsedAction.local.updatedAt, parsedAction.local.content) }
@@ -194,7 +193,7 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     assertEqual(actualTo, to, `expected ${to}, got ${actualTo}`);
   };
 
-  function encodeFile(file?: DbInternalFileV2) {
+  function encodeFile(file?: DbInternalFile) {
     if (!file) return ".. .. ..";
     const encoding = `${encodeFileStateItem(file.local)} ${encodeFileStateItem(file.remote)} ${encodeFileStateItem(
       file.synced
@@ -203,10 +202,10 @@ function assertFSM(db: Sqlite3.DB, spec: string, options: FsmOptions) {
     return encoding;
   }
 
-  function encodeFileStateItem(fileStateString: DbInternalFileV2["local" | "remote" | "synced" | "source"]) {
+  function encodeFileStateItem(fileStateString: DbInternalFile["local" | "remote" | "synced" | "source"]) {
     if (!fileStateString) return "..";
 
-    const fileStateItem = JSON.parse(fileStateString!) as DbFileV2ParsedSource;
+    const fileStateItem = JSON.parse(fileStateString!) as DbFileParsedSource;
     return `${fileStateItem.updatedAt}${fileStateItem.content ?? "."}`;
   }
 
@@ -305,7 +304,7 @@ export const assertColumnSpec: AssertColumnSpec = ((
   const filename = newFile();
 
   const act = () => {
-    const fromState: DbWritableFileV2 = {
+    const fromState: DbWritableFile = {
       path: filename,
       ...(parsedFrom.local ? { local: mockFile(parsedFrom.local.updatedAt, parsedFrom.local.content) } : undefined),
       ...(parsedFrom.remote ? { remote: mockFile(parsedFrom.remote.updatedAt, parsedFrom.remote.content) } : undefined),

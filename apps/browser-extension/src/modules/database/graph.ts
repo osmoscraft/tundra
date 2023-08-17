@@ -2,7 +2,7 @@ import { array } from "@tinykb/fp-utils";
 import { paramsToBindings } from "@tinykb/sqlite-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
-import { DbFileV2Status, type DbWritableFileV2 } from "./schema";
+import { DbFileStatus, type DbWritableFile } from "./schema";
 
 export interface GraphWritableSource {
   path: string;
@@ -48,7 +48,7 @@ export function merge(db: Sqlite3.DB, input: MergeInput) {
   const files = fileApi.listFiles(db, {
     paths: input.paths,
     ignore: input.ignore,
-    filters: [["status", "=", DbFileV2Status.Behind]],
+    filters: [["status", "=", DbFileStatus.Behind]],
   });
 
   // move remote into synced
@@ -66,7 +66,7 @@ export function push(db: Sqlite3.DB, input: PushInput) {
   const files = fileApi.listFiles(db, {
     paths: input.paths,
     ignore: input.ignore,
-    filters: [["status", "=", DbFileV2Status.Ahead]],
+    filters: [["status", "=", DbFileStatus.Ahead]],
   });
 
   // move local into synced
@@ -84,7 +84,7 @@ export function resolve(db: Sqlite3.DB, input: ResolveInput) {
   const files = fileApi.listFiles(db, {
     paths: input.paths,
     ignore: input.ignore,
-    filters: [["status", "=", DbFileV2Status.Conflict]],
+    filters: [["status", "=", DbFileStatus.Conflict]],
   });
 
   // Goal: acknowledge older version as synced, and newer version as change on top of it
@@ -144,7 +144,7 @@ export interface GetDirtyFilesInput {
 
 export function getDirtyFiles(db: Sqlite3.DB, input?: GetDirtyFilesInput) {
   return fileApi.listFiles(db, {
-    filters: [["status", "!=", DbFileV2Status.Synced]],
+    filters: [["status", "!=", DbFileStatus.Synced]],
     paths: input?.paths,
     ignore: input?.ignore,
   });
@@ -164,11 +164,11 @@ export interface StatusSummary {
 export function getStatusSummary(db: Sqlite3.DB, input?: GetStatusSummaryInput): StatusSummary {
   return getDirtyFiles(db, input).reduce(
     (acc, file) => {
-      if (file.status === DbFileV2Status.Ahead) {
+      if (file.status === DbFileStatus.Ahead) {
         acc.ahead++;
-      } else if (file.status === DbFileV2Status.Behind) {
+      } else if (file.status === DbFileStatus.Behind) {
         acc.behind++;
-      } else if (file.status === DbFileV2Status.Conflict) {
+      } else if (file.status === DbFileStatus.Conflict) {
         acc.conflict++;
       }
       return acc;
@@ -201,7 +201,7 @@ export function serializeGraphSourceToDbFile(
   graphSource: GraphWritableSource,
   now: number,
   dbSourceType: "local" | "remote" | "synced"
-): DbWritableFileV2 {
+): DbWritableFile {
   return {
     path: graphSource.path,
     [dbSourceType]: JSON.stringify({

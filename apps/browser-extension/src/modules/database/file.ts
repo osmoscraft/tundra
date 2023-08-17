@@ -1,16 +1,16 @@
 import { deleteMany, paramsToBindings, selectMany, upsertMany } from "@tinykb/sqlite-utils";
-import type { DbReadableFileV2, DbWritableFileV2 } from "./schema";
+import type { DbReadableFile, DbWritableFile } from "./schema";
 
-export function updateFiles(db: Sqlite3.DB, files: DbWritableFileV2[]) {
-  return upsertMany<DbWritableFileV2>(db, { table: "File", key: "path", rows: files });
+export function updateFiles(db: Sqlite3.DB, files: DbWritableFile[]) {
+  return upsertMany<DbWritableFile>(db, { table: "File", key: "path", rows: files });
 }
 
-export function updateFile(db: Sqlite3.DB, file: DbWritableFileV2) {
+export function updateFile(db: Sqlite3.DB, file: DbWritableFile) {
   return updateFiles(db, [file]);
 }
 
 export function getFiles(db: Sqlite3.DB, paths: string[]) {
-  return selectMany<DbReadableFileV2>(db, { table: "File", key: "path", value: paths });
+  return selectMany<DbReadableFile>(db, { table: "File", key: "path", value: paths });
 }
 
 export function getFile(db: Sqlite3.DB, path: string) {
@@ -41,15 +41,15 @@ export interface ListOptions {
   ignore?: string[];
 }
 
-export type OrderBy = [col: keyof DbReadableFileV2, dir: "ASC" | "DESC"];
+export type OrderBy = [col: keyof DbReadableFile, dir: "ASC" | "DESC"];
 
 export type Filter = [
-  col: keyof DbReadableFileV2,
+  col: keyof DbReadableFile,
   operator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "IS" | "IS NOT",
   value: string | number
 ];
 
-export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFileV2[] {
+export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFile[] {
   const clauses = [
     ...(options.paths?.length || options.ignore?.length
       ? [
@@ -90,7 +90,7 @@ export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFileV
 
   const sql = clauses.join("\n");
   const bind = paramsToBindings(sql, dict);
-  return db.selectObjects<DbReadableFileV2>(sql, bind);
+  return db.selectObjects<DbReadableFile>(sql, bind);
 }
 
 export interface SearchOptions {
@@ -101,7 +101,7 @@ export interface SearchOptions {
   ignore?: string[];
 }
 
-export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableFileV2[] {
+export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableFile[] {
   const clauses = [
     ...(options.paths?.length || options.ignore?.length
       ? [
@@ -142,5 +142,5 @@ export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableF
 
   const bind = paramsToBindings(sql, dict);
 
-  return db.selectObjects<DbReadableFileV2>(sql, bind);
+  return db.selectObjects<DbReadableFile>(sql, bind);
 }

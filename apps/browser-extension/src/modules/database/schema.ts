@@ -1,11 +1,11 @@
-export interface DbWritableFileV2 {
+export interface DbWritableFile {
   path: string;
   local?: string | null;
   remote?: string | null;
   synced?: string | null;
 }
 
-export interface DbReadableFileV2 {
+export interface DbReadableFile {
   path: string;
   local: string | null;
   remote: string | null;
@@ -13,13 +13,13 @@ export interface DbReadableFileV2 {
   /* Derived */
   content: string | null;
   meta: string | null;
-  status: DbFileV2Status;
+  status: DbFileStatus;
   updatedAt: number | null;
   localAction: DbFileAction;
   remoteAction: DbFileAction;
 }
 
-export interface DbInternalFileV2 {
+export interface DbInternalFile {
   path: string;
   local: string | null;
   remote: string | null;
@@ -29,20 +29,20 @@ export interface DbInternalFileV2 {
   content: string | null;
   meta: string | null;
   source: string | null;
-  status: DbFileV2Status;
+  status: DbFileStatus;
   updatedAt: number | null;
   localAction: DbFileAction;
   remoteAction: DbFileAction;
 }
 
 /** The deserialized representation of local, remote, or synced field data */
-export interface DbFileV2ParsedSource {
+export interface DbFileParsedSource {
   updatedAt: number;
   content: string | null;
   meta: string | null;
 }
 
-export enum DbFileV2Status {
+export enum DbFileStatus {
   Synced = 0,
   Behind = 1,
   Ahead = 2,

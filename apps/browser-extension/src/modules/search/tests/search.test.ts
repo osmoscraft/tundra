@@ -1,10 +1,11 @@
 import { commit } from "../../database";
+import { migrations } from "../../database/migrations";
 import { createTestDb } from "../../database/tests/fixture";
 import { assertEqual } from "../../live-test";
 import { searchBacklinkNotes, searchNotes } from "../search";
 
 export async function testBasicSearch() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, {
     path: "data/notes/1.md",
@@ -21,7 +22,7 @@ export async function testBasicSearch() {
 }
 
 export async function testBacklinkSearch() {
-  const db = await createTestDb();
+  const db = await createTestDb(migrations);
 
   commit(db, {
     path: "data/notes/1000.md",
