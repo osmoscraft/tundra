@@ -1,11 +1,13 @@
 import { sqlite3Mem } from "@tinykb/sqlite-utils";
 import { assertEqual } from "../../live-test";
 import { getFile, updateFile } from "../file";
+import { migrate } from "../migrate";
+import { migrations } from "../migrations";
 import type { DbFileV2ParsedSource, DbFileV2Status, DbInternalFileV2, DbWritableFileV2 } from "../schema";
 import type { ColumnSpec } from "./spec-gen";
 
 let db: Sqlite3.DB | undefined;
-export async function createTestDb(schema: string) {
+export async function createTestDb() {
   db ??= await createEmptyDb();
   db.exec(`
   DROP TABLE IF EXISTS File;
@@ -14,9 +16,11 @@ export async function createTestDb(schema: string) {
   DROP INDEX IF EXISTS LocalActionIdx;
   DROP INDEX IF EXISTS RemoteActionIdx;
   DROP TABLE IF EXISTS FileFts;
-  `);
-  db.exec(schema);
 
+  PRAGMA user_version = 0;
+  `);
+
+  migrate(migrations, db);
   return db;
 }
 

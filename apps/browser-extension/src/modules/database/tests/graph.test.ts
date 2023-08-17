@@ -14,11 +14,10 @@ import {
 } from "../graph";
 import { decodeMeta } from "../meta";
 import { DbFileAction, DbFileV2Status } from "../schema";
-import SCHEMA from "../schema.sql";
 import { createTestDb } from "./fixture";
 
 export async function testLocalFileEditLifecycle() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   assertUndefined(getFile(db, "/test.md"), "Before file created");
 
@@ -58,7 +57,7 @@ export async function testLocalFileEditLifecycle() {
 }
 
 export async function testLocalFirstSync() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // create
   commit(db, {
@@ -129,7 +128,7 @@ export async function testLocalFirstSync() {
 }
 
 export async function testUntrackFiles() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   commit(db, [
     { path: "file-1.md", content: "", updatedAt: 4 },
@@ -154,7 +153,7 @@ export async function testUntrackFiles() {
 }
 
 export async function testRemoteFirstSync() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // remote create
   fetch(db, {
@@ -224,7 +223,7 @@ export async function testRemoteFirstSync() {
 }
 
 export async function testSyncOverrideLocal() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // remote time >= local
   commit(db, {
@@ -254,7 +253,7 @@ export async function testSyncOverrideLocal() {
 }
 
 export async function testLocalOverrideSync() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // remote time < local
   commit(db, {
@@ -284,7 +283,7 @@ export async function testLocalOverrideSync() {
 }
 
 export async function testPushFiles() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // setup
   clone(db, [
@@ -321,7 +320,7 @@ export async function testPushFiles() {
 }
 
 export async function testMergeFiles() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // setup
   clone(db, [
@@ -358,7 +357,7 @@ export async function testMergeFiles() {
 }
 
 export async function testResolveConflict() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // clone
   clone(db, [
@@ -398,7 +397,7 @@ export async function testResolveConflict() {
 }
 
 export async function testGetRecentFiles() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -420,7 +419,7 @@ export async function testGetRecentFiles() {
 }
 
 export async function testGetRecentFilesWithScope() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -438,7 +437,7 @@ export async function testGetRecentFilesWithScope() {
 }
 
 export async function testGetRecentFilesWithIgnore() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -456,7 +455,7 @@ export async function testGetRecentFilesWithIgnore() {
 }
 
 export async function testGetDirtyFiles() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   clone(db, [
     { path: "file-2.md", content: "", updatedAt: 3 },
@@ -488,7 +487,7 @@ export async function testGetDirtyFiles() {
 }
 
 export async function testGetDirtyFilesWithIgnore() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   // prepare files with various sources and timestamps
   commit(db, [
@@ -513,14 +512,14 @@ export async function testGetDirtyFilesWithIgnore() {
 }
 
 export async function testBulkOperations() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   commit(db, []); // empty
   clone(db, []); // empty
 }
 
 export async function testMetaCRUD() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   clone(db, { path: "/no-content-meta.md", content: "", updatedAt: 1 });
   commit(db, { path: "/no-content-meta.md", content: null, updatedAt: 2 });
@@ -565,7 +564,7 @@ export async function testMetaCRUD() {
 }
 
 export async function testSearchMeta() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   commit(db, [
     { path: "node-1.md", content: "---\ntitle: hello world\n---", updatedAt: 1 },
@@ -590,7 +589,7 @@ export async function testSearchMeta() {
 }
 
 export async function testSearchFileContent() {
-  const db = await createTestDb(SCHEMA);
+  const db = await createTestDb();
 
   commit(db, [
     { path: "file-1.md", content: "hello world", updatedAt: 1 },
