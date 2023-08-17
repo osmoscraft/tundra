@@ -25,10 +25,21 @@ export function migrate(migrations: Migration[], db: Sqlite3.DB) {
   // execute migration scripts from x+1 to latest
   const pendingMigrations = migrations.filter((m) => m.version > currentVersion);
 
+  if (pendingMigrations.length) {
+    console.log(`[db] will migrate from v${currentVersion} to v${pendingMigrations.at(-1)!.version}`);
+  }
+
   for (const migration of pendingMigrations) {
     db.transaction(() => {
       db.exec(migration.script);
       db.exec(`PRAGMA user_version = ${migration.version}`);
+      const updatedVersion = db.selectValue<number>("PRAGMA user_version")!;
+
+      if (updatedVersion !== migration.version) {
+        throw new Error(`[db] migration to v${migration.version} failed`);
+      }
+
+      console.log(`[db] migrated to v${updatedVersion}`);
     });
   }
 }
