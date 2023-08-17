@@ -4,15 +4,12 @@ export interface Migration {
   script: string;
 }
 
-export interface CreateDbOptions {
-  sqliteWasmPath: string;
-  migrations: Migration[];
-  inMemory?: boolean;
-  opfs?: {
-    path: string;
-  };
+export interface MigrateConfig {
+  onWillMigrate?: (fromVersion: number, toVersion: number) => void;
+  onDidMigrate?: (fromVersion: number, toVersion: number) => void;
 }
-export function migrate(migrations: Migration[], db: Sqlite3.DB) {
+
+export function migrate(migrations: Migration[], db: Sqlite3.DB, config?: MigrateConfig) {
   /**
    * Assumptions:
    * - db is created with version = 0
@@ -26,7 +23,7 @@ export function migrate(migrations: Migration[], db: Sqlite3.DB) {
   const pendingMigrations = migrations.filter((m) => m.version > currentVersion);
 
   if (pendingMigrations.length) {
-    console.log(`[db] will migrate from v${currentVersion} to v${pendingMigrations.at(-1)!.version}`);
+    config?.onWillMigrate?.(currentVersion, pendingMigrations.at(-1)!.version);
   }
 
   for (const migration of pendingMigrations) {
@@ -39,7 +36,7 @@ export function migrate(migrations: Migration[], db: Sqlite3.DB) {
         throw new Error(`[db] migration to v${migration.version} failed`);
       }
 
-      console.log(`[db] migrated to v${updatedVersion}`);
+      config?.onDidMigrate?.(updatedVersion - 1, updatedVersion);
     });
   }
 }
