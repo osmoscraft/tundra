@@ -17,12 +17,12 @@ export function getFile(db: Sqlite3.DB, path: string) {
   return getFiles(db, [path])[0];
 }
 
-export function deleteFiles(db: Sqlite3.DB, paths: string[]) {
+export function removeFiles(db: Sqlite3.DB, paths: string[]) {
   return deleteMany(db, { table: "File", key: "path", value: paths, comparator: "GLOB" });
 }
 
-export function deleteFile(db: Sqlite3.DB, path: string) {
-  return deleteFiles(db, [path]);
+export function removeFile(db: Sqlite3.DB, path: string) {
+  return removeFiles(db, [path]);
 }
 
 export interface CopyFileSourceInput {

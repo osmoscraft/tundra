@@ -112,7 +112,7 @@ WHERE EXISTS (
 }
 
 export function untrack(db: Sqlite3.DB, patterns: string[]) {
-  fileApi.deleteFiles(db, patterns);
+  fileApi.removeFiles(db, patterns);
 }
 
 export function getFile(db: Sqlite3.DB, path: string) {

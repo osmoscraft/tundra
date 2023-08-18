@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
 - Determine frontmatter fields to support: created? updated? tags? title?
 
 # Future

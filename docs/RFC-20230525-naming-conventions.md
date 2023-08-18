@@ -1,15 +1,12 @@
-## Timestamp
-
-- Prefer "CreatedTime" to "TimeCreated", "CreatedOn", "CreatedAt", "CreatedTimestamp", "ctime"
-- Prefer "UpdatedTime"
-- Prefer "DeletedTime"
-
 ## Status
 
-- Prefer "Created" to "Added", "New"
-- Prefer "Updated" to "Modified", "Changed"
-- Prefer "Deleted" to "Removed"
-- Git diff status is an exception to the above rules
+- Try use github's diff status as source of truth
+  - Ref: https://stackoverflow.com/questions/10804476/what-are-the-status-types-for-files-in-the-github-api-v3/72849078#72849078
+- Prefer "Added" to "Created" or "New"
+- Prefer "Modified" to "Updated" or "Changed".
+- Prefer "Removed" to "Deleted"
+  - Due to javascript reserved keyword
+- "Update" indicates any of: add/remove/modify
 
 ## Audit
 
@@ -20,7 +17,6 @@
 - git/remote-change-record.ts
   - added/modified/removed
 - db/file.ts
-  - update/get/delete/sync/list/search
+  - update/get/remove/sync/list/search
 - db/graph.ts
   - commit/fetch/clone/merge/push/resolve/untrack/get
--
