@@ -1,11 +1,11 @@
 # Alpha must have
 
 - Clean up the naming inconsistency: add vs create, remove vs delete, modify vs update
-- Use node.js for testing (need sqlite 3.43)
 - Determine frontmatter fields to support: created? updated? tags? title?
 
 # Future
 
+- Use node.js for testing (need sqlite 3.43)
 - Repo: Add convenience command to open github repo
 - Status: multi-lines history
 - Status: detailed sync progress
