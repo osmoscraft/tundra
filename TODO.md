@@ -1,6 +1,7 @@
 # Alpha must have
 
-- Determine frontmatter fields to support: created? updated? tags? title?
+- Capture current page on click from browser
+- Prevent unloading when thers are unsaved changes
 
 # Future
 
