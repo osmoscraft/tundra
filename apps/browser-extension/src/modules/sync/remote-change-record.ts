@@ -6,7 +6,7 @@ export interface RemoteChangeRecord {
 }
 
 export enum RemoteChangeStatus {
-  Created = 1,
-  Updated = 2,
-  Deleted = 3,
+  Added = 1,
+  Modified = 2,
+  Removed = 3,
 }

@@ -85,11 +85,11 @@ async function* iterateGitHubDiffs(
 function gitDiffStatusToRemoteChangeStatus(gitDiffStatus: GitDiffStatus): RemoteChangeStatus {
   switch (gitDiffStatus) {
     case "removed":
-      return RemoteChangeStatus.Deleted;
+      return RemoteChangeStatus.Removed;
     case "added":
     case "changed":
     case "modified":
-      return RemoteChangeStatus.Updated;
+      return RemoteChangeStatus.Modified;
     default:
       throw new Error(`Unknown supported git diff status: ${gitDiffStatus}`);
   }

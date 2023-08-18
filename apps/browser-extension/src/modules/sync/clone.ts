@@ -73,7 +73,7 @@ async function* iterateGithubArchive(tarballUrl: string): AsyncGenerator<RemoteC
     yield {
       path: notePath,
       timestamp: now,
-      status: RemoteChangeStatus.Created,
+      status: RemoteChangeStatus.Added,
       text: item.text,
     };
   }
