@@ -46,22 +46,25 @@ function main() {
 
   const {
     extension: bufferChangeManagerExtension,
-    setBufferChangeBase,
+    setBufferValue,
+    updateBufferValue,
     handleBeforeunload,
-  } = bufferChangeManager({
-    onChange: (base, head) => {
-      if (hud.isTrackableChange(base, head)) hud.setIsChanged(base !== head);
-    },
-  });
+  } = bufferChangeManager({ onChange: (base, head) => hud.trackChange(base, head) });
 
   router.addEventListener("router.beforeunload", handleBeforeunload);
   window.addEventListener("beforeunload", handleBeforeunload);
 
-  const onGraphChanged = () => {
+  // TODO call this on route load
+  const onGraphChanged = async () => {
     proxy.getStatus().then((status) => statusBar.setText(status));
     updateKeyBindings(proxy, () => window.alert("New key bindings available. Reload to apply."));
 
-    // TODO rebase buffer change manager
+    const currentNote = await proxy.getNote(new URLSearchParams(location.search).get("id")!);
+    updateBufferValue((prev) => ({
+      ...prev,
+      base: currentNote?.content ?? null,
+    }));
+    hud.setIsExisting(!!currentNote);
   };
 
   const library = {
@@ -105,7 +108,7 @@ function main() {
     hud,
     editorView,
     url: location.href,
-    setBufferChangeBase,
+    setBufferValue,
   });
 
   // route specific data loading
@@ -114,10 +117,10 @@ function main() {
     initRoute({
       proxy,
       backlinks,
-      hud: hud,
+      hud,
       editorView,
       url: location.href,
-      setBufferChangeBase,
+      setBufferValue,
     });
   });
 }

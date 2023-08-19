@@ -13,9 +13,16 @@ export interface LoadRouteDataConfig {
   backlinks: BacklinksElement;
   editorView: EditorView;
   url: string;
-  setBufferChangeBase: (value: string) => void;
+  setBufferValue: (baseValue: string | null, headValue: string | null) => void;
 }
-export async function initRoute({ proxy, backlinks, hud, editorView, url, setBufferChangeBase }: LoadRouteDataConfig) {
+export async function initRoute({
+  proxy,
+  backlinks,
+  hud,
+  editorView,
+  url,
+  setBufferValue: setBufferValue,
+}: LoadRouteDataConfig) {
   const resolvedSearchParams = await resolveSearchParams({ proxy, searchParams: new URL(url).searchParams });
   replaceSearchParams(resolvedSearchParams);
   const state = paramsToRouteState(resolvedSearchParams);
@@ -37,7 +44,7 @@ export async function initRoute({ proxy, backlinks, hud, editorView, url, setBuf
 
   editorView.focus();
 
-  setBufferChangeBase(editorView.state.doc.toString());
+  setBufferValue(editorView.state.doc.toString(), null);
 
   if (!id) {
     backlinks.setBacklinks([]);

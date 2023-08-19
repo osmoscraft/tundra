@@ -1,12 +1,16 @@
 # Alpha must have
 
-- Update change detection after save
+- Hide deleted files from CRUD api
+- Wire up graph change handler to route change callback
+- Hub indicator to handle deleted state
 - Minimum color adjustment for readability
 - Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
 
 # Future
 
+- Lifecycle: enter read-only mode after note is deleted
+- Status: Track graph change status in HUD
 - Error handling: use indicator color
 - Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
 - Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date

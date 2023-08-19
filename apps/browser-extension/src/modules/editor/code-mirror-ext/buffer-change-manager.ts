@@ -1,6 +1,11 @@
 import type { ViewUpdate } from "@codemirror/view";
 import { EditorView } from "codemirror";
 
+export interface BufferState {
+  base: string | null;
+  head: string | null;
+}
+
 export interface BufferChangeManagerConfig {
   onChange: (baseState: null | string, headState: null | string) => void;
 }
@@ -18,10 +23,15 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
     }
   }
 
-  function setBufferChangeBase(value: string) {
-    baseState = value;
-    headState = null;
+  function setBufferValue(baseValue: string | null, headValue: string | null) {
+    baseState = baseValue;
+    headState = headValue;
     reportChange();
+  }
+
+  function updateBufferValue(updateFn: (prev: BufferState) => BufferState) {
+    const { base, head } = updateFn({ base: baseState, head: headState });
+    setBufferValue(base, head);
   }
 
   function reportChange() {
@@ -48,7 +58,8 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
 
   return {
     handleBeforeunload,
-    setBufferChangeBase,
+    setBufferValue,
+    updateBufferValue,
     extension,
   };
 }

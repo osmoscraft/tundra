@@ -6,6 +6,7 @@ export enum HudStatus {
   Clean = "clean",
   Add = "add",
   Modify = "modify",
+  Removed = "removed",
 }
 
 export class HudElement extends HTMLElement {
@@ -27,12 +28,10 @@ export class HudElement extends HTMLElement {
     this.changeIndicator.dataset.status = this.resolveStatus();
   }
 
-  isTrackableChange(base: string | null, head: string | null) {
-    return base !== null && head !== null;
-  }
+  trackChange(base: string | null, head: string | null) {
+    if (head === null) return;
 
-  setIsChanged(isChanged: boolean) {
-    this.isChanged = isChanged;
+    this.isChanged = base !== head;
     this.changeIndicator.dataset.status = this.resolveStatus();
   }
 
