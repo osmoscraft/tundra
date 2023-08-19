@@ -90,12 +90,6 @@ export function initPanels({
   statusBar,
   statusEvents,
 }: InitPanelsConfig) {
-  // request initial status
-  proxy
-    .fetch()
-    .then(proxy.getStatus)
-    .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
-
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
   omnibox.addEventListener("omnibox.input", (e) => handleMenuInput({ commandBindings, omnimenu, proxy }, e));

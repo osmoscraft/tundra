@@ -1,8 +1,6 @@
 # Alpha must have
 
 - Hide deleted files from CRUD api
-- Wire up graph change handler to route change callback
-- Hub indicator to handle deleted state
 - Minimum color adjustment for readability
 - Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue

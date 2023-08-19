@@ -4,6 +4,7 @@ import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";
 import { paramsToRouteState, replaceSearchParams } from "../router/route-state";
+import { checkKeyBindingsUpdate } from "../settings/key-bindings";
 import type { BufferState } from "./code-mirror-ext/buffer-change-manager";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import type { HudElement } from "./status/hud-element";
@@ -14,9 +15,18 @@ export interface LoadRouteDataConfig {
   backlinks: BacklinksElement;
   editorView: EditorView;
   url: string;
+  statusEvents: EventTarget;
   trackBufferChange: (updateFn: (prev: BufferState) => BufferState) => void;
 }
-export async function initRoute({ proxy, backlinks, hud, editorView, url, trackBufferChange }: LoadRouteDataConfig) {
+export async function initRoute({
+  proxy,
+  backlinks,
+  hud,
+  editorView,
+  url,
+  statusEvents,
+  trackBufferChange,
+}: LoadRouteDataConfig) {
   const resolvedSearchParams = await resolveSearchParams({ proxy, searchParams: new URL(url).searchParams });
   replaceSearchParams(resolvedSearchParams);
   const state = paramsToRouteState(resolvedSearchParams);
@@ -24,21 +34,34 @@ export async function initRoute({ proxy, backlinks, hud, editorView, url, trackB
 
   const file = id ? await proxy.getNote(id) : null;
 
+  proxy
+    .fetch()
+    .then(proxy.getStatus)
+    .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
+
+  trackBufferChange(() => ({ base: file?.content ?? null, head: editorView.state.doc.toString() }));
   hud.setIsExisting(!!file);
   const initialContent = file?.content ?? getDraftContent(title, metaUrl);
 
-  editorView.dispatch({
-    annotations: Transaction.addToHistory.of(false), // do not track programatic update as history
-    changes: {
-      from: 0,
-      to: editorView.state.doc.length,
-      insert: initialContent,
-    },
+  checkKeyBindingsUpdate(proxy, () => {
+    if (window.confirm("Key bindings changed by the remote. Reload now to apply?")) {
+      window.location.reload();
+    }
   });
 
-  editorView.focus();
+  // Diff check to prevent unwanted change that disrupts cursor state
+  if (editorView.state.doc.toString() !== initialContent) {
+    editorView.dispatch({
+      annotations: Transaction.addToHistory.of(false), // do not track programatic update as history
+      changes: {
+        from: 0,
+        to: editorView.state.doc.length,
+        insert: initialContent,
+      },
+    });
+  }
 
-  trackBufferChange(() => ({ base: editorView.state.doc.toString(), head: null }));
+  editorView.focus();
 
   if (!id) {
     backlinks.setBacklinks([]);

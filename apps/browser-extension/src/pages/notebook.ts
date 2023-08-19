@@ -16,7 +16,7 @@ import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { HudElement } from "../modules/editor/status/hud-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { RouterElement } from "../modules/router/router-element";
-import { getKeyBindings, updateKeyBindings } from "../modules/settings/key-bindings";
+import { getKeyBindings } from "../modules/settings/key-bindings";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
@@ -53,22 +53,9 @@ function main() {
   router.addEventListener("router.beforeunload", handleBeforeunload);
   window.addEventListener("beforeunload", handleBeforeunload);
 
-  // TODO call this on route load
-  const onGraphChanged = async () => {
-    proxy.getStatus().then((status) => statusBar.setText(status));
-    updateKeyBindings(proxy, () => window.alert("New key bindings available. Reload to apply."));
-
-    const currentNote = await proxy.getNote(new URLSearchParams(location.search).get("id")!);
-    trackBufferChange((prev) => ({
-      ...prev,
-      base: currentNote?.content ?? null,
-    }));
-    hud.setIsExisting(!!currentNote);
-  };
-
   const library = {
     ...nativeCommands(),
-    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged }),
+    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload() }),
   };
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
@@ -100,28 +87,23 @@ function main() {
   });
 
   // Init steps above this point must not depend on the URL
-
-  const initialRouteLoad = initRoute({
-    proxy,
-    backlinks,
-    hud,
-    editorView,
-    url: location.href,
-    trackBufferChange,
-  });
-
-  // route specific data loading
-  router.addEventListener("router.change", async () => {
-    await initialRouteLoad;
-    initRoute({
+  const handleRouteChange = () => {
+    return initRoute({
       proxy,
       backlinks,
       hud,
       editorView,
       url: location.href,
+      statusEvents,
       trackBufferChange,
     });
+  };
+
+  router.addEventListener("router.change", async () => {
+    await initialRouteLoad;
+    handleRouteChange();
   });
+  const initialRouteLoad = handleRouteChange();
 }
 
 main();

@@ -11,7 +11,7 @@ export function getKeyBindings(): CommandKeyBinding[] {
   return initial;
 }
 
-export function updateKeyBindings(proxy: AsyncProxy<DataWorkerRoutes>, onChange?: () => void) {
+export function checkKeyBindingsUpdate(proxy: AsyncProxy<DataWorkerRoutes>, onUpdateNeeded?: () => void) {
   const cachedRawFile = localStorage.getItem(CACHE_KEY);
 
   return proxy.getFile(KEY_BINDINGS_FILE_PATH).then((file) => {
@@ -22,7 +22,7 @@ export function updateKeyBindings(proxy: AsyncProxy<DataWorkerRoutes>, onChange?
     if (!parsed) return;
 
     localStorage.setItem(CACHE_KEY, file.content);
-    onChange?.();
+    onUpdateNeeded?.();
   });
 }
 

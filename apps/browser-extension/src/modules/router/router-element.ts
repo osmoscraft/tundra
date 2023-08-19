@@ -29,6 +29,10 @@ export class RouterElement extends HTMLElement {
     });
   }
 
+  reload() {
+    this.dispatchEvent(new CustomEvent<RouterChangeDetails>("router.change", { detail: { url: location.href } }));
+  }
+
   push(url: string | URL) {
     if (!this.canNavigate()) return;
     const newUrl = url.toString();
