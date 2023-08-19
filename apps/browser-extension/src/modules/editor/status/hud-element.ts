@@ -12,6 +12,7 @@ export class HudElement extends HTMLElement {
   private changeIndicator: HTMLElement;
   private isChanged: null | boolean = null;
   private isExisting: null | boolean = null;
+  private isFocused: boolean = false;
 
   constructor() {
     super();
@@ -20,6 +21,11 @@ export class HudElement extends HTMLElement {
   }
 
   connectedCallback() {}
+
+  setIsFocused(isFocused: boolean) {
+    this.isFocused = isFocused;
+    this.changeIndicator.dataset.status = this.resolveStatus();
+  }
 
   setIsChanged(isChanged: boolean) {
     this.isChanged = isChanged;
@@ -33,6 +39,8 @@ export class HudElement extends HTMLElement {
 
   resolveStatus() {
     switch (true) {
+      case this.isFocused === false:
+        return HudStatus.Unknown;
       case this.isChanged === null || this.isExisting === null:
         return HudStatus.Unknown;
       case this.isExisting === false:

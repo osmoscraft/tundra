@@ -3,6 +3,7 @@ import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-ele
 import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
 import { bufferChangeManager } from "../modules/editor/code-mirror-ext/buffer-change-manager";
+import { focusWatcher } from "../modules/editor/code-mirror-ext/focus-watcher";
 import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
@@ -70,14 +71,20 @@ function main() {
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
 
+  const { extension: focusWatcherExtension } = focusWatcher({ onChange: (isFocused) => hud.setIsFocused(isFocused) });
+
   // one-time setup per session
   const editorView = initEditor({
     bufferChangeManagerExtension,
+    focusWatcherExtension,
     topPanel: topPanelElement,
     bottomPanel: bottomPanelElement,
     editorBindings,
     router,
   });
+
+  window.addEventListener("blur", () => hud.setIsFocused(true));
+  window.addEventListener("focus", () => hud.setIsFocused(false));
 
   initPanels({
     backlinks,

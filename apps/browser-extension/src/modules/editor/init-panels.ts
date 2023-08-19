@@ -25,6 +25,7 @@ export interface InitEdidorConfig {
   router: RouterElement;
   editorBindings: KeyBinding[];
   bufferChangeManagerExtension: Extension;
+  focusWatcherExtension: Extension;
 }
 
 export function initEditor(config: InitEdidorConfig) {
@@ -34,9 +35,11 @@ export function initEditor(config: InitEdidorConfig) {
     router: routerElement,
     editorBindings,
     bufferChangeManagerExtension,
+    focusWatcherExtension,
   } = config;
   const extensions: Extension[] = [
     bufferChangeManagerExtension,
+    focusWatcherExtension,
     liveLink(routerElement),
     history(),
     highlightActiveLine(),

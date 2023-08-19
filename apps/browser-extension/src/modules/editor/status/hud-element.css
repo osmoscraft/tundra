@@ -9,7 +9,7 @@ hud-element {
     }
 
     &[data-status="clean"] {
-      background-color: #282c34;
+      background-color: #61afef;
     }
 
     &[data-status="add"] {
