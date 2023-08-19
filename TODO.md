@@ -5,6 +5,7 @@
 
 # Future
 
+- Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
 - Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date
 - Respectful crawling: push visited pages' title and url to temp storage for link insertion. (with just current tab permission)
 - Theming: CSS variable based theme definition
