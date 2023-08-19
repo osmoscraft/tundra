@@ -42,7 +42,6 @@ export function getMenuActionMode(event: KeyboardEvent | MouseEvent) {
 }
 
 export interface OmnimenuActionContext {
-  dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
   view: EditorView;
   library: CommandLibrary;
@@ -50,7 +49,7 @@ export interface OmnimenuActionContext {
 }
 
 export function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
-  const { dialog, omnibox, view, library, router } = context;
+  const { omnibox, view, library, router } = context;
   const { state, mode } = action;
 
   switch (true) {
@@ -66,7 +65,6 @@ export function handleMenuAction(context: OmnimenuActionContext, action: MenuAct
           : primaryTitle;
       const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
       view.dispatch(tx);
-      dialog.close();
       break;
     case !!state.linkToUrl:
       // TBD
@@ -83,7 +81,6 @@ export function handleMenuAction(context: OmnimenuActionContext, action: MenuAct
       const [namespace, commandName] = state.command!.split(".");
       const command = library[namespace]?.[commandName] as Command | undefined;
 
-      dialog.close();
       command?.(view);
       break;
     default:
