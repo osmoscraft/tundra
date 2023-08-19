@@ -32,12 +32,17 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
     if (viewUpdate.docChanged) {
       const now = performance.now();
 
-      requestIdleCallback(() => {
-        const latency = performance.now() - now;
-        console.log(`[perf] change detection latency`, latency);
-        headState = viewUpdate.state.doc.toString();
-        reportChange();
-      });
+      requestIdleCallback(
+        () => {
+          const latency = performance.now() - now;
+          if (latency > 100) {
+            console.warn(`[perf] long change detection latency ${latency}ms`);
+          }
+          headState = viewUpdate.state.doc.toString();
+          reportChange();
+        },
+        { timeout: 1000 }
+      );
     }
   });
 
