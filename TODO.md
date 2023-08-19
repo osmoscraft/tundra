@@ -8,6 +8,7 @@
 
 # Future
 
+- Respectful crawling: push visited pages' title and url to temp storage for link insertion. (with just current tab permission)
 - Theming: CSS variable based theme definition
 - Resolve URL to canonical URL
 - Use node.js for testing (need sqlite 3.43)
