@@ -1,5 +1,6 @@
 # Alpha must have
 
+- Update change detection after save
 - Minimum color adjustment for readability
 - Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
