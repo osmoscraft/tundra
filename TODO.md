@@ -11,6 +11,7 @@
 - Status: detailed sync progress
 - Status: actionable messages
 - Status: semantic color-coding
+- Persist last used github connection in local storage in case of DB error
 - Handle virtual nodes: files that are deleted but still referenced by other files
 - Investigate Firefox compatibility
 - Restore cursor between SPA navigations
