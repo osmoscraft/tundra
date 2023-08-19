@@ -33,15 +33,16 @@ export async function initRoute({
   const { id, title, url: metaUrl } = state;
 
   const file = id ? await proxy.getNote(id) : null;
+  const existingContent = file?.content ?? null;
 
   proxy
     .fetch()
     .then(proxy.getStatus)
     .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
 
-  trackBufferChange(() => ({ base: file?.content ?? null, head: editorView.state.doc.toString() }));
-  hud.setIsExisting(!!file);
-  const initialContent = file?.content ?? getDraftContent(title, metaUrl);
+  trackBufferChange(() => ({ base: existingContent, head: editorView.state.doc.toString() }));
+  hud.setIsExisting(!!existingContent);
+  const initialContent = existingContent ?? getDraftContent(title, metaUrl);
 
   checkKeyBindingsUpdate(proxy, () => {
     if (window.confirm("Key bindings changed by the remote. Reload now to apply?")) {

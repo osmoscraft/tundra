@@ -1,12 +1,12 @@
 # Alpha must have
 
-- Hide deleted files from CRUD api
 - Minimum color adjustment for readability
 - Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
 
 # Future
 
+- Lifecycle: a command to undo changed for the current file
 - Lifecycle: enter read-only mode after note is deleted
 - Status: Track graph change status in HUD
 - Error handling: use indicator color
