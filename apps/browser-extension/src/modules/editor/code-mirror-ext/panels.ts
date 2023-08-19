@@ -1,15 +1,10 @@
 import { type Extension } from "@codemirror/state";
-import { EditorView, showPanel, type Panel } from "@codemirror/view";
+import { showPanel } from "@codemirror/view";
 
-function getBottomPanel(dom: HTMLElement, _view: EditorView): Panel {
-  return {
-    dom,
-  };
+export function topPanel(dom: HTMLElement): Extension {
+  return showPanel.of(() => ({ dom, top: true }));
 }
 
-export interface TopPanelProps {
-  referenceCard: HTMLElement;
-}
 export function bottomPanel(dom: HTMLElement): Extension {
-  return showPanel.of(getBottomPanel.bind(null, dom));
+  return showPanel.of(() => ({ dom }));
 }

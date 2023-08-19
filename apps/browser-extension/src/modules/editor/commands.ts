@@ -72,10 +72,10 @@ export interface ExtendedCommandsConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
   dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
-  onFilesChanged: () => void;
+  onGraphChanged: () => void;
 }
 
-export function extendedCommands({ proxy, dialog, omnibox, onFilesChanged }: ExtendedCommandsConfig): CommandLibrary {
+export function extendedCommands({ proxy, dialog, omnibox, onGraphChanged }: ExtendedCommandsConfig): CommandLibrary {
   return {
     shell: {
       addLink: (view) => {
@@ -106,37 +106,37 @@ export function extendedCommands({ proxy, dialog, omnibox, onFilesChanged }: Ext
         return true;
       },
       delete: () => {
-        deleteCurrentNote(proxy).then(onFilesChanged);
+        deleteCurrentNote(proxy).then(onGraphChanged);
         return true;
       },
       save: (view) => {
-        saveCurrentNote(() => view.state.doc.toString(), proxy).then(onFilesChanged);
+        saveCurrentNote(() => view.state.doc.toString(), proxy).then(onGraphChanged);
         return true;
       },
     },
     repo: {
       pull: () => {
-        proxy.fetch().then(proxy.merge).then(onFilesChanged);
+        proxy.fetch().then(proxy.merge).then(onGraphChanged);
         return true;
       },
       fetch: () => {
-        proxy.fetch().then(onFilesChanged);
+        proxy.fetch().then(onGraphChanged);
         return true;
       },
       merge: () => {
-        proxy.merge().then(onFilesChanged);
+        proxy.merge().then(onGraphChanged);
         return true;
       },
       push: () => {
-        proxy.push().then(onFilesChanged);
+        proxy.push().then(onGraphChanged);
         return true;
       },
       resolve: () => {
-        proxy.resolve().then(onFilesChanged);
+        proxy.resolve().then(onGraphChanged);
         return true;
       },
       sync: () => {
-        proxy.fetch().then(proxy.merge).then(proxy.push).then(onFilesChanged);
+        proxy.fetch().then(proxy.merge).then(proxy.push).then(onGraphChanged);
         return true;
       },
     },

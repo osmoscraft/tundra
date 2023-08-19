@@ -1,0 +1,23 @@
+change-indicator-element {
+  .c-change-indicator {
+    display: block;
+    height: 1px;
+    width: 100%;
+
+    &[data-status="unknown"] {
+      background-color: grey;
+    }
+
+    &[data-status="clean"] {
+      background-color: dodgerblue;
+    }
+
+    &[data-status="add"] {
+      background-color: orange;
+    }
+
+    &[data-status="modify"] {
+      background-color: orange;
+    }
+  }
+}

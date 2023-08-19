@@ -2,7 +2,7 @@ import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
 import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-element";
 import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
-import { changeManager } from "../modules/editor/code-mirror-ext/change-manager";
+import { bufferChangeManager } from "../modules/editor/code-mirror-ext/buffer-change-manager";
 import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
@@ -12,12 +12,14 @@ import { initEditor, initPanels } from "../modules/editor/init-panels";
 import { initRoute } from "../modules/editor/init-route";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
+import { ChangeIndicatorElement } from "../modules/editor/status/change-indicator-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { RouterElement } from "../modules/router/router-element";
 import { getKeyBindings, updateKeyBindings } from "../modules/settings/key-bindings";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
+customElements.define("change-indicator-element", ChangeIndicatorElement);
 customElements.define("router-element", RouterElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
@@ -32,6 +34,8 @@ const statusEvents = new EventTarget();
 function main() {
   const router = document.querySelector<RouterElement>("router-element")!;
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
+  const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
+  const changeIndicator = topPanelElement.querySelector<ChangeIndicatorElement>("change-indicator-element")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
   const statusBar = bottomPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
@@ -39,23 +43,30 @@ function main() {
   const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
   const dialog = document.querySelector<HTMLDialogElement>("#app-dialog")!;
 
-  const onFilesChanged = () => {
+  const { extension: bufferChangeManagerExtension, setBufferChangeBase } = bufferChangeManager({
+    onChange: (base, head) => {
+      if (base !== null && head !== null) changeIndicator.setIsChanged(base !== head);
+    },
+  });
+
+  const onGraphChanged = () => {
     proxy.getStatus().then((status) => statusBar.setText(status));
     updateKeyBindings(proxy, () => window.alert("New key bindings available. Reload to apply."));
+
+    // TODO rebase buffer change manager
   };
 
   const library = {
     ...nativeCommands(),
-    ...extendedCommands({ proxy, dialog, omnibox, onFilesChanged }),
+    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged }),
   };
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
 
-  const { extension: changeManagerExtension, setChangeBase } = changeManager();
-
   // one-time setup per session
   const editorView = initEditor({
-    changeManagerExtension,
+    bufferChangeManagerExtension,
+    topPanel: topPanelElement,
     bottomPanel: bottomPanelElement,
     editorBindings,
     router,
@@ -80,15 +91,23 @@ function main() {
   const initialRouteLoad = initRoute({
     proxy,
     backlinks,
+    changeIndicator,
     editorView,
     url: location.href,
-    setChangeBase,
+    setBufferChangeBase,
   });
 
   // route specific data loading
   router.addEventListener("router.change", async () => {
     await initialRouteLoad;
-    initRoute({ proxy, backlinks, editorView, url: location.href, setChangeBase });
+    initRoute({
+      proxy,
+      backlinks,
+      changeIndicator,
+      editorView,
+      url: location.href,
+      setBufferChangeBase,
+    });
   });
 }
 

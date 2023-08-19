@@ -10,7 +10,7 @@ import type { RouterElement } from "../router/router-element";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
-import { bottomPanel } from "./code-mirror-ext/panels";
+import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import { handleMenuInput } from "./menus/handle-menu-input";
@@ -20,16 +20,23 @@ import type { OmnimenuElement } from "./menus/omnimenu-element";
 import type { StatusBarElement } from "./status/status-bar-element";
 
 export interface InitEdidorConfig {
+  topPanel: HTMLElement;
   bottomPanel: HTMLElement;
   router: RouterElement;
   editorBindings: KeyBinding[];
-  changeManagerExtension: Extension;
+  bufferChangeManagerExtension: Extension;
 }
 
 export function initEditor(config: InitEdidorConfig) {
-  const { bottomPanel: bottomPanelElement, router: routerElement, editorBindings, changeManagerExtension } = config;
+  const {
+    topPanel: topPanelElement,
+    bottomPanel: bottomPanelElement,
+    router: routerElement,
+    editorBindings,
+    bufferChangeManagerExtension,
+  } = config;
   const extensions: Extension[] = [
-    changeManagerExtension,
+    bufferChangeManagerExtension,
     liveLink(routerElement),
     history(),
     highlightActiveLine(),
@@ -37,6 +44,7 @@ export function initEditor(config: InitEdidorConfig) {
     dropCursor(),
     EditorView.lineWrapping,
     markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
+    topPanel(topPanelElement),
     bottomPanel(bottomPanelElement),
     oneDark,
     keymap.of(editorBindings),
