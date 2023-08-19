@@ -1,7 +1,6 @@
 import { history } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
 import { drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import { EditorView } from "codemirror";
@@ -10,6 +9,7 @@ import type { RouterElement } from "../router/router-element";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
+import { minimalDark } from "./code-mirror-ext/minimal-dark";
 import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
@@ -49,7 +49,8 @@ export function initEditor(config: InitEdidorConfig) {
     markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
     topPanel(topPanelElement),
     bottomPanel(bottomPanelElement),
-    oneDark,
+    minimalDark(),
+    // oneDark,
     keymap.of(editorBindings),
   ];
 

@@ -60,16 +60,6 @@ export const oneDarkTheme = EditorView.theme(
       { backgroundColor: selection },
 
     ".cm-panels": { backgroundColor: darkBackground, color: ivory },
-    ".cm-panels.cm-panels-top": { borderBottom: "2px solid black" },
-    ".cm-panels.cm-panels-bottom": { borderTop: "2px solid black" },
-
-    ".cm-searchMatch": {
-      backgroundColor: "#72a1ff59",
-      outline: "1px solid #457dff",
-    },
-    ".cm-searchMatch.cm-searchMatch-selected": {
-      backgroundColor: "#6199ff2f",
-    },
 
     ".cm-activeLine": { backgroundColor: "#6699ff0b" },
     ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
@@ -82,35 +72,6 @@ export const oneDarkTheme = EditorView.theme(
       backgroundColor: background,
       color: stone,
       border: "none",
-    },
-
-    ".cm-activeLineGutter": {
-      backgroundColor: highlightBackground,
-    },
-
-    ".cm-foldPlaceholder": {
-      backgroundColor: "transparent",
-      border: "none",
-      color: "#ddd",
-    },
-
-    ".cm-tooltip": {
-      border: "none",
-      backgroundColor: tooltipBackground,
-    },
-    ".cm-tooltip .cm-tooltip-arrow:before": {
-      borderTopColor: "transparent",
-      borderBottomColor: "transparent",
-    },
-    ".cm-tooltip .cm-tooltip-arrow:after": {
-      borderTopColor: tooltipBackground,
-      borderBottomColor: tooltipBackground,
-    },
-    ".cm-tooltip-autocomplete": {
-      "& > ul > li[aria-selected]": {
-        backgroundColor: highlightBackground,
-        color: ivory,
-      },
     },
   },
   { dark: true }

@@ -37,10 +37,6 @@ body {
   background-color: var(--fg-mm);
 }
 
-.cm-panels.cm-panels-top {
-  border-bottom: none !important;
-}
-
 .cm-panels.cm-panels-bottom {
   border-top: 1px solid var(--fg-mm) !important;
 }
