@@ -68,6 +68,9 @@ export function handleMenuAction(context: OmnimenuActionContext, action: MenuAct
       view.dispatch(tx);
       dialog.close();
       break;
+    case !!state.linkToUrl:
+      // TBD
+      break;
     case !!state.id:
       if (mode === MenuActionMode.secondary) {
         window.open(`?${stateToParams(state)}`, "_blank");

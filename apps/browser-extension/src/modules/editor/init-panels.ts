@@ -10,7 +10,7 @@ import type { RouterElement } from "../router/router-element";
 import { timestampToId } from "../sync/path";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
-import { liveLink } from "./code-mirror-ext/live-link";
+import { isAbsoluteUrl, liveLink } from "./code-mirror-ext/live-link";
 import { bottomPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
@@ -103,16 +103,21 @@ export function initPanels({
     } else {
       const isLinking = q.startsWith(":");
       const searchTerms = isLinking ? q.slice(1).trim() : q.trim();
+      const searchUrl = isAbsoluteUrl(searchTerms) ? searchTerms : undefined;
 
       if (searchTerms.length) {
         performance.mark("search-start");
         const notes = await proxy.searchNotes({ query: searchTerms, limit: 20 });
         const newNoteId = timestampToId(new Date());
+        const newNoteUrl = searchUrl ? searchUrl : undefined;
+        const newNoteTitle = searchUrl ? "Untitled" : searchTerms;
+        const linkToId = isLinking && !searchUrl ? newNoteId : undefined;
+        const linkToUrl = isLinking && searchUrl ? searchUrl : undefined;
 
         omnimenu.setMenuItems([
           {
             title: `(New) ${searchTerms}`,
-            state: { id: newNoteId, title: searchTerms, linkToId: isLinking ? newNoteId : undefined },
+            state: { id: newNoteId, url: newNoteUrl, title: newNoteTitle, linkToId, linkToUrl },
           },
           ...notes.map((file) => ({
             title: file.meta?.title ?? "Untitled",

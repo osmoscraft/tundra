@@ -13,10 +13,15 @@ import { EditorView } from "codemirror";
 import type { RouterElement } from "../../router/router-element";
 import "./live-link.css";
 
-const URL_OR_MARKDOWN_LINK_PATTERN = /(https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*)|(\[([^\[\]]+?)\]\((.+?)\))/gi;
-const ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
-const MARKDOWN_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
+const GLOBAL_ABSOLUTE_URL_PATTERN = /https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*/gi;
+const URL_PATTERN = /^https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*$/i;
+const GLOBAL_URL_OR_MARKDOWN_LINK_PATTERN = /(https?:\/\/[a-z0-9\._/~%\-\+&\#\?!=\(\)@]*)|(\[([^\[\]]+?)\]\((.+?)\))/gi;
+const GLOBAL_MARKDOWN_LINK_PATTERN = /\[([^\[\]]+?)\]\((.+?)\)/gi; // `[title](target)`
 const INTENRAL_ID_PATTERN = /\d+/;
+
+export function isAbsoluteUrl(url: string) {
+  return URL_PATTERN.test(url);
+}
 
 // Prec.high is needed to override "Enter" behavior
 // markdown link should be registered after url link to exclude the trailing ")" from the parsed url
@@ -81,7 +86,7 @@ export function openInternalLink(view: EditorView, router: RouterElement, target
 function isEdgeOfMarkdownLink(view: EditorView) {
   const selectionLine = view.state.doc.lineAt(view.state.selection.main.from);
   const textBeforeSelection = selectionLine.text.slice(0, view.state.selection.main.from - selectionLine.from);
-  const markdownLinkMatch = [...textBeforeSelection.matchAll(MARKDOWN_LINK_PATTERN)].pop()?.[0];
+  const markdownLinkMatch = [...textBeforeSelection.matchAll(GLOBAL_MARKDOWN_LINK_PATTERN)].pop()?.[0];
   if (markdownLinkMatch && markdownLinkMatch === textBeforeSelection.slice(-markdownLinkMatch.length)) return true;
 
   return false;
@@ -92,7 +97,7 @@ function isEdgeOfUrlLink(view: EditorView) {
   // also check if the text after selection joined with the text before selection is a url
   const selectionLine = view.state.doc.lineAt(view.state.selection.main.from);
   const textBeforeSelection = selectionLine.text.slice(0, view.state.selection.main.from - selectionLine.from);
-  const externalUrlMatch = [...textBeforeSelection.matchAll(ABSOLUTE_URL_PATTERN)].pop()?.[0];
+  const externalUrlMatch = [...textBeforeSelection.matchAll(GLOBAL_ABSOLUTE_URL_PATTERN)].pop()?.[0];
   if (!externalUrlMatch) return false;
 
   const cursorAfterUrl = externalUrlMatch === textBeforeSelection.slice(-externalUrlMatch.length);
@@ -100,7 +105,7 @@ function isEdgeOfUrlLink(view: EditorView) {
   if (!textAfterSelection) return true;
 
   const joinedText = externalUrlMatch + textAfterSelection;
-  const fullUrlMatch = joinedText.match(ABSOLUTE_URL_PATTERN)![0];
+  const fullUrlMatch = joinedText.match(GLOBAL_ABSOLUTE_URL_PATTERN)![0];
   const cursorInsideUrl = joinedText.indexOf(fullUrlMatch) === 0;
 
   return cursorAfterUrl && !cursorInsideUrl;
@@ -127,7 +132,7 @@ class LiveLinkView implements PluginValue {
 
   constructor(view: EditorView) {
     this.decorator = new MatchDecorator({
-      regexp: URL_OR_MARKDOWN_LINK_PATTERN,
+      regexp: GLOBAL_URL_OR_MARKDOWN_LINK_PATTERN,
       decoration: (match, view) => {
         const [_, fullUrl, _bracket, bracketTitle, bracketIdOrUrl] = match;
         const isInternal = bracketIdOrUrl && isInternalId(bracketIdOrUrl);
@@ -173,5 +178,5 @@ function isExternalAnchor(anchor: HTMLAnchorElement) {
 }
 
 function isInternalId(idOrUrl: string) {
-  return !ABSOLUTE_URL_PATTERN.exec(idOrUrl) && !!INTENRAL_ID_PATTERN.exec(idOrUrl);
+  return !GLOBAL_ABSOLUTE_URL_PATTERN.exec(idOrUrl) && !!INTENRAL_ID_PATTERN.exec(idOrUrl);
 }

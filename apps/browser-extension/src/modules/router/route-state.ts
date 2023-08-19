@@ -4,6 +4,7 @@ export interface RouteState {
   url?: string;
   command?: string;
   linkToId?: string;
+  linkToUrl?: string;
 }
 
 export function stateToParams(state: RouteState) {

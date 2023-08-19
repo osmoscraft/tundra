@@ -3,7 +3,8 @@
 - Capture current page on click from browser (with extension action)
 - List captured pages from current URL. Prevent duplication
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
-- Handle URL in omnibox (open, create, linkTo), need to auto open in new tab
+- Omnibox: handle URL in omnibox (open, create, linkTo), need to auto open in new tab
+- Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date
 - Prevent unloading when thers are unsaved changes
 
 # Future
