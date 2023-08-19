@@ -23,11 +23,13 @@ export interface InitEdidorConfig {
   bottomPanel: HTMLElement;
   router: RouterElement;
   editorBindings: KeyBinding[];
+  changeManagerExtension: Extension;
 }
 
 export function initEditor(config: InitEdidorConfig) {
-  const { bottomPanel: bottomPanelElement, router: routerElement, editorBindings } = config;
+  const { bottomPanel: bottomPanelElement, router: routerElement, editorBindings, changeManagerExtension } = config;
   const extensions: Extension[] = [
+    changeManagerExtension,
     liveLink(routerElement),
     history(),
     highlightActiveLine(),
@@ -100,6 +102,6 @@ export function initPanels({
   });
 
   backlinks.addEventListener("backlinks.open", (e) => {
-    handleMenuAction({ omnibox, view: editorView, library, router }, e.detail);
+    handleMenuAction({ proxy, omnibox, view: editorView, library, router }, e.detail);
   });
 }

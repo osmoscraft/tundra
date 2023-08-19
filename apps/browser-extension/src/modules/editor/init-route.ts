@@ -11,23 +11,27 @@ export interface LoadRouteDataConfig {
   backlinks: BacklinksElement;
   editorView: EditorView;
   url: string;
+  setChangeBase: (value: string) => void;
 }
-export async function initRoute({ proxy, backlinks, editorView, url }: LoadRouteDataConfig) {
+export async function initRoute({ proxy, backlinks, editorView, url, setChangeBase }: LoadRouteDataConfig) {
   const resolvedSearchParams = await resolveSearchParams({ proxy, searchParams: new URL(url).searchParams });
   replaceSearchParams(resolvedSearchParams);
   const state = paramsToRouteState(resolvedSearchParams);
   const { id, title, url: metaUrl } = state;
 
   const file = id ? await proxy.getNote(id) : null;
+  const initialContent = file?.content ?? getDraftContent(title, metaUrl);
 
   editorView.dispatch({
     annotations: Transaction.addToHistory.of(false), // do not track programatic update as history
     changes: {
       from: 0,
       to: editorView.state.doc.length,
-      insert: file?.content ?? getDraftContent(title, metaUrl),
+      insert: initialContent,
     },
   });
+
+  setChangeBase(editorView.state.doc.toString());
 
   if (!id) {
     backlinks.setBacklinks([]);

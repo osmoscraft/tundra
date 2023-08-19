@@ -2,6 +2,7 @@ import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
 import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-element";
 import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
+import { changeManager } from "../modules/editor/code-mirror-ext/change-manager";
 import {
   extendedCommands,
   getEditorBindings as getEditorKeyBindings,
@@ -50,8 +51,11 @@ function main() {
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
 
+  const { extension: changeManagerExtension, setChangeBase } = changeManager();
+
   // one-time setup per session
   const editorView = initEditor({
+    changeManagerExtension,
     bottomPanel: bottomPanelElement,
     editorBindings,
     router,
@@ -78,12 +82,13 @@ function main() {
     backlinks,
     editorView,
     url: location.href,
+    setChangeBase,
   });
 
   // route specific data loading
   router.addEventListener("router.change", async () => {
     await initialRouteLoad;
-    initRoute({ proxy, backlinks, editorView, url: location.href });
+    initRoute({ proxy, backlinks, editorView, url: location.href, setChangeBase });
   });
 }
 
