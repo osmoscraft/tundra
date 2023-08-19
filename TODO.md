@@ -1,14 +1,14 @@
 # Alpha must have
 
-- Capture current page on click from browser (with bookmarklet)
+- Capture current page on click from browser (with extension action)
 - List captured pages from current URL. Prevent duplication
-- Trim existing date strings to ISO date granularity
-- ISO timestamp yaml syntax conflict
+- Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
+- Handle URL in omnibox (open, create, linkTo), need to auto open in new tab
 - Prevent unloading when thers are unsaved changes
-- Handle URL in omnibox
 
 # Future
 
+- Resolve URL to canonical URL
 - Use node.js for testing (need sqlite 3.43)
 - Repo: Add convenience command to open github repo
 - Status: multi-lines history
