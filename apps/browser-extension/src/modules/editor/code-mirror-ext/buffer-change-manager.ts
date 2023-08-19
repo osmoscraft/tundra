@@ -23,15 +23,11 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
     }
   }
 
-  function setBufferValue(baseValue: string | null, headValue: string | null) {
-    baseState = baseValue;
-    headState = headValue;
-    reportChange();
-  }
-
-  function updateBufferValue(updateFn: (prev: BufferState) => BufferState) {
+  function trackBufferChange(updateFn: (prev: BufferState) => BufferState) {
     const { base, head } = updateFn({ base: baseState, head: headState });
-    setBufferValue(base, head);
+    baseState = base;
+    headState = head;
+    reportChange();
   }
 
   function reportChange() {
@@ -58,8 +54,7 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
 
   return {
     handleBeforeunload,
-    setBufferValue,
-    updateBufferValue,
+    trackBufferChange,
     extension,
   };
 }

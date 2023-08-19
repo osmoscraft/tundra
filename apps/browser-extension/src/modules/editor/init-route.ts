@@ -4,6 +4,7 @@ import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";
 import { paramsToRouteState, replaceSearchParams } from "../router/route-state";
+import type { BufferState } from "./code-mirror-ext/buffer-change-manager";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import type { HudElement } from "./status/hud-element";
 
@@ -13,16 +14,9 @@ export interface LoadRouteDataConfig {
   backlinks: BacklinksElement;
   editorView: EditorView;
   url: string;
-  setBufferValue: (baseValue: string | null, headValue: string | null) => void;
+  trackBufferChange: (updateFn: (prev: BufferState) => BufferState) => void;
 }
-export async function initRoute({
-  proxy,
-  backlinks,
-  hud,
-  editorView,
-  url,
-  setBufferValue: setBufferValue,
-}: LoadRouteDataConfig) {
+export async function initRoute({ proxy, backlinks, hud, editorView, url, trackBufferChange }: LoadRouteDataConfig) {
   const resolvedSearchParams = await resolveSearchParams({ proxy, searchParams: new URL(url).searchParams });
   replaceSearchParams(resolvedSearchParams);
   const state = paramsToRouteState(resolvedSearchParams);
@@ -44,7 +38,7 @@ export async function initRoute({
 
   editorView.focus();
 
-  setBufferValue(editorView.state.doc.toString(), null);
+  trackBufferChange(() => ({ base: editorView.state.doc.toString(), head: null }));
 
   if (!id) {
     backlinks.setBacklinks([]);

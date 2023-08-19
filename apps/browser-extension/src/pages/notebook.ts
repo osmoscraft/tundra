@@ -46,8 +46,7 @@ function main() {
 
   const {
     extension: bufferChangeManagerExtension,
-    setBufferValue,
-    updateBufferValue,
+    trackBufferChange,
     handleBeforeunload,
   } = bufferChangeManager({ onChange: (base, head) => hud.trackChange(base, head) });
 
@@ -60,7 +59,7 @@ function main() {
     updateKeyBindings(proxy, () => window.alert("New key bindings available. Reload to apply."));
 
     const currentNote = await proxy.getNote(new URLSearchParams(location.search).get("id")!);
-    updateBufferValue((prev) => ({
+    trackBufferChange((prev) => ({
       ...prev,
       base: currentNote?.content ?? null,
     }));
@@ -108,7 +107,7 @@ function main() {
     hud,
     editorView,
     url: location.href,
-    setBufferValue,
+    trackBufferChange,
   });
 
   // route specific data loading
@@ -120,7 +119,7 @@ function main() {
       hud,
       editorView,
       url: location.href,
-      setBufferValue,
+      trackBufferChange,
     });
   });
 }
