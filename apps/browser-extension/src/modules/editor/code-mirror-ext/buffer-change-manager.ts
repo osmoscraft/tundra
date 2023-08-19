@@ -26,9 +26,6 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
 
   function reportChange() {
     config.onChange(baseState, headState);
-
-    if (baseState === null || headState === null) return;
-    console.log("Is dirty: ", baseState !== headState);
   }
 
   const extension = EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
