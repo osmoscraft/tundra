@@ -48,7 +48,7 @@ export const oneDarkTheme = EditorView.theme(
   {
     "&": {
       color: ivory,
-      backgroundColor: background,
+      backgroundColor: darkBackground,
     },
 
     ".cm-content": {
@@ -57,11 +57,15 @@ export const oneDarkTheme = EditorView.theme(
 
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: cursor },
     "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
-      { backgroundColor: selection },
+      { backgroundColor: chalky, color: darkBackground },
 
     ".cm-panels": { backgroundColor: darkBackground, color: ivory },
 
-    ".cm-activeLine": { backgroundColor: "#6699ff0b" },
+    ".cm-activeLine": {
+      backgroundColor: `#ffffff30`,
+      backdropFilter: `brightness(0.8)`,
+      filter: `brightness(1.25) contrast(1.25)`,
+    },
     ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
 
     "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
