@@ -1,5 +1,4 @@
 import { history } from "@codemirror/commands";
-import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -8,7 +7,7 @@ import type { AsyncProxy } from "@tinykb/rpc-utils";
 import { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { RouterElement } from "../router/router-element";
-import { noteIdToPath, timestampToId } from "../sync/path";
+import { timestampToId } from "../sync/path";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
@@ -28,38 +27,18 @@ export interface InitEdidorConfig {
 
 export function initEditor(config: InitEdidorConfig) {
   const { bottomPanel: bottomPanelElement, router: routerElement, editorBindings } = config;
-  const id = new URLSearchParams(location.search).get("id");
-  // HACK, path only works for note files. JSON files requires different detection
-  const path = id ? noteIdToPath(id) : undefined;
-  const dotPos = path?.lastIndexOf(".");
-  const ext = dotPos ? path?.slice(dotPos) : undefined;
-  const extensions: Extension[] = [];
-
-  if (ext === ".md") {
-    extensions.push([
-      liveLink(routerElement),
-      history(),
-      highlightActiveLine(),
-      drawSelection(),
-      dropCursor(),
-      EditorView.lineWrapping,
-      markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
-      bottomPanel(bottomPanelElement),
-      oneDark,
-      keymap.of(editorBindings),
-    ]);
-  } else if (ext === ".json") {
-    extensions.push([
-      history(),
-      highlightActiveLine(),
-      drawSelection(),
-      dropCursor(),
-      EditorView.lineWrapping,
-      json(),
-      oneDark,
-      keymap.of(editorBindings),
-    ]);
-  }
+  const extensions: Extension[] = [
+    liveLink(routerElement),
+    history(),
+    highlightActiveLine(),
+    drawSelection(),
+    dropCursor(),
+    EditorView.lineWrapping,
+    markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
+    bottomPanel(bottomPanelElement),
+    oneDark,
+    keymap.of(editorBindings),
+  ];
 
   const view = new EditorView({
     doc: "",
@@ -85,7 +64,7 @@ export interface InitPanelsConfig {
   statusEvents: EventTarget;
 }
 
-export function handleInitPanels({
+export function initPanels({
   backlinks,
   commandBindings,
   dialog,

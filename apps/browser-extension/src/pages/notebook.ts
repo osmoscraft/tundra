@@ -7,14 +7,13 @@ import {
   getEditorBindings as getEditorKeyBindings,
   editorCommands as nativeCommands,
 } from "../modules/editor/commands";
-import { handleInitPanels, initEditor } from "../modules/editor/handle-init";
-import { handleUpdate } from "../modules/editor/handle-update";
+import { initEditor, initPanels } from "../modules/editor/init-panels";
+import { loadRouteData } from "../modules/editor/load-route-data";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { RouterElement } from "../modules/router/router-element";
 import { getKeyBindings, updateKeyBindings } from "../modules/settings/key-bindings";
-import { timestampToId } from "../modules/sync/path";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
@@ -51,19 +50,14 @@ function main() {
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
 
-  // ensure url
-  if (!new URLSearchParams(location.search).get("id")) {
-    window.history.replaceState(null, "", `${location.pathname}?id=${encodeURIComponent(timestampToId(new Date()))}`);
-  }
-
   // one-time setup per session
   const editorView = initEditor({
     bottomPanel: bottomPanelElement,
-    editorBindings: editorBindings,
+    editorBindings,
     router,
   });
 
-  handleInitPanels({
+  initPanels({
     backlinks,
     commandBindings,
     dialog,
@@ -77,11 +71,14 @@ function main() {
     statusEvents,
   });
 
-  handleUpdate({ proxy, backlinks, editorView });
+  // Init steps above this point must not depend on the URL
+
+  const initialUpdatePromise = loadRouteData({ proxy, backlinks, editorView });
 
   // route specific data loading
-  router.addEventListener("router.change", () => {
-    handleUpdate({ proxy, backlinks, editorView });
+  router.addEventListener("router.change", async () => {
+    await initialUpdatePromise;
+    loadRouteData({ proxy, backlinks, editorView });
   });
 }
 
