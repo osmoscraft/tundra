@@ -8,6 +8,16 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
   let baseState: null | string = null;
   let headState: null | string = null;
 
+  function handleBeforeunload(e: Event | BeforeUnloadEvent) {
+    if (baseState === null || headState === null) return;
+    if (baseState === headState) return;
+
+    e.preventDefault();
+    if (e instanceof BeforeUnloadEvent) {
+      e.returnValue = "";
+    }
+  }
+
   function setBufferChangeBase(value: string) {
     baseState = value;
     headState = null;
@@ -35,6 +45,7 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
   });
 
   return {
+    handleBeforeunload,
     setBufferChangeBase,
     extension,
   };

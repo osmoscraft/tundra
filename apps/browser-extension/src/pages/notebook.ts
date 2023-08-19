@@ -43,11 +43,18 @@ function main() {
   const backlinks = bottomPanelElement.querySelector<BacklinksElement>("backlinks-element")!;
   const dialog = document.querySelector<HTMLDialogElement>("#app-dialog")!;
 
-  const { extension: bufferChangeManagerExtension, setBufferChangeBase } = bufferChangeManager({
+  const {
+    extension: bufferChangeManagerExtension,
+    setBufferChangeBase,
+    handleBeforeunload,
+  } = bufferChangeManager({
     onChange: (base, head) => {
       if (base !== null && head !== null) hud.setIsChanged(base !== head);
     },
   });
+
+  router.addEventListener("router.beforeunload", handleBeforeunload);
+  window.addEventListener("beforeunload", handleBeforeunload);
 
   const onGraphChanged = () => {
     proxy.getStatus().then((status) => statusBar.setText(status));

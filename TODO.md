@@ -2,7 +2,6 @@
 
 - Focus: gray out UI when window is blurred
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
-- Prevent unloading when thers are unsaved changes
 
 # Future
 
