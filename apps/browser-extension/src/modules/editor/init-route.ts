@@ -5,24 +5,17 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";
 import { paramsToRouteState, replaceSearchParams } from "../router/route-state";
 import type { BacklinksElement } from "./menus/backlinks-element";
-import type { ChangeIndicatorElement } from "./status/change-indicator-element";
+import type { HudElement } from "./status/hud-element";
 
 export interface LoadRouteDataConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
-  changeIndicator: ChangeIndicatorElement;
+  hud: HudElement;
   backlinks: BacklinksElement;
   editorView: EditorView;
   url: string;
   setBufferChangeBase: (value: string) => void;
 }
-export async function initRoute({
-  proxy,
-  backlinks,
-  changeIndicator,
-  editorView,
-  url,
-  setBufferChangeBase,
-}: LoadRouteDataConfig) {
+export async function initRoute({ proxy, backlinks, hud, editorView, url, setBufferChangeBase }: LoadRouteDataConfig) {
   const resolvedSearchParams = await resolveSearchParams({ proxy, searchParams: new URL(url).searchParams });
   replaceSearchParams(resolvedSearchParams);
   const state = paramsToRouteState(resolvedSearchParams);
@@ -30,7 +23,7 @@ export async function initRoute({
 
   const file = id ? await proxy.getNote(id) : null;
 
-  changeIndicator.setIsExisting(!!file);
+  hud.setIsExisting(!!file);
   const initialContent = file?.content ?? getDraftContent(title, metaUrl);
 
   editorView.dispatch({

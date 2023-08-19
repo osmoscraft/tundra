@@ -1,14 +1,14 @@
-import "./change-indicator-element.css";
-import template from "./change-indicator-element.html";
+import "./hud-element.css";
+import template from "./hud-element.html";
 
-export enum ChangeIndicatorStatus {
+export enum HudStatus {
   Unknown = "unknown",
   Clean = "clean",
   Add = "add",
   Modify = "modify",
 }
 
-export class ChangeIndicatorElement extends HTMLElement {
+export class HudElement extends HTMLElement {
   private changeIndicator: HTMLElement;
   private isChanged: null | boolean = null;
   private isExisting: null | boolean = null;
@@ -16,7 +16,7 @@ export class ChangeIndicatorElement extends HTMLElement {
   constructor() {
     super();
     this.innerHTML = template;
-    this.changeIndicator = this.querySelector<HTMLElement>(".js-change-indicator")!;
+    this.changeIndicator = this.querySelector<HTMLElement>(".js-hud-bar")!;
   }
 
   connectedCallback() {}
@@ -34,15 +34,15 @@ export class ChangeIndicatorElement extends HTMLElement {
   resolveStatus() {
     switch (true) {
       case this.isChanged === null || this.isExisting === null:
-        return ChangeIndicatorStatus.Unknown;
+        return HudStatus.Unknown;
       case this.isExisting === false:
-        return ChangeIndicatorStatus.Add;
+        return HudStatus.Add;
       case this.isChanged === true:
-        return ChangeIndicatorStatus.Modify;
+        return HudStatus.Modify;
       case this.isChanged === false:
-        return ChangeIndicatorStatus.Clean;
+        return HudStatus.Clean;
       default:
-        return ChangeIndicatorStatus.Unknown;
+        return HudStatus.Unknown;
     }
   }
 }

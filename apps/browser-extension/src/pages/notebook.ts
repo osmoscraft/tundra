@@ -12,14 +12,14 @@ import { initEditor, initPanels } from "../modules/editor/init-panels";
 import { initRoute } from "../modules/editor/init-route";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
-import { ChangeIndicatorElement } from "../modules/editor/status/change-indicator-element";
+import { HudElement } from "../modules/editor/status/hud-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
 import { RouterElement } from "../modules/router/router-element";
 import { getKeyBindings, updateKeyBindings } from "../modules/settings/key-bindings";
 import type { DataWorkerRoutes } from "../workers/data-worker";
 import "./notebook.css";
 
-customElements.define("change-indicator-element", ChangeIndicatorElement);
+customElements.define("hud-element", HudElement);
 customElements.define("router-element", RouterElement);
 customElements.define("status-bar-element", StatusBarElement);
 customElements.define("omnibox-element", OmniboxElement);
@@ -35,7 +35,7 @@ function main() {
   const router = document.querySelector<RouterElement>("router-element")!;
   const panelTemplates = document.querySelector<HTMLTemplateElement>("#panel-templates")!;
   const topPanelElement = panelTemplates.content.querySelector<HTMLElement>("#top-panel")!;
-  const changeIndicator = topPanelElement.querySelector<ChangeIndicatorElement>("change-indicator-element")!;
+  const hud = topPanelElement.querySelector<HudElement>("hud-element")!;
   const bottomPanelElement = panelTemplates.content.querySelector<HTMLElement>("#bottom-panel")!;
   const statusBar = bottomPanelElement.querySelector<StatusBarElement>("status-bar-element")!;
   const omnibox = document.querySelector<OmniboxElement>("omnibox-element")!;
@@ -45,7 +45,7 @@ function main() {
 
   const { extension: bufferChangeManagerExtension, setBufferChangeBase } = bufferChangeManager({
     onChange: (base, head) => {
-      if (base !== null && head !== null) changeIndicator.setIsChanged(base !== head);
+      if (base !== null && head !== null) hud.setIsChanged(base !== head);
     },
   });
 
@@ -91,7 +91,7 @@ function main() {
   const initialRouteLoad = initRoute({
     proxy,
     backlinks,
-    changeIndicator,
+    hud,
     editorView,
     url: location.href,
     setBufferChangeBase,
@@ -103,7 +103,7 @@ function main() {
     initRoute({
       proxy,
       backlinks,
-      changeIndicator,
+      hud: hud,
       editorView,
       url: location.href,
       setBufferChangeBase,
