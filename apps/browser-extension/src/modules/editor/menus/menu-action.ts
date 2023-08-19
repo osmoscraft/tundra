@@ -1,4 +1,6 @@
 import type { Command, EditorView } from "@codemirror/view";
+import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { DataWorkerRoutes } from "../../../workers/data-worker";
 import { stateToParams, type RouteState } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
@@ -42,48 +44,46 @@ export function getMenuActionMode(event: KeyboardEvent | MouseEvent) {
 }
 
 export interface OmnimenuActionContext {
+  proxy: AsyncProxy<DataWorkerRoutes>;
   omnibox: OmniboxElement;
   view: EditorView;
   library: CommandLibrary;
   router: RouterElement;
 }
 
-export function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
-  const { omnibox, view, library, router } = context;
+export async function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
+  const { proxy, omnibox, view, library, router } = context;
   const { state, mode } = action;
 
-  switch (true) {
-    case !!state.linkToId:
-      const selectedText = getSelectedText(view);
-      const primaryTitle = selectedText.length ? selectedText : state.title;
+  if (state.linkToId) {
+    const isNewNote = !(await proxy.getNote(state.linkToId));
+    const selectedText = getSelectedText(view);
+    const primaryTitle = selectedText.length ? selectedText : state.title;
 
-      const linkTitle =
-        mode === MenuActionMode.secondary
-          ? state.title
-          : mode === MenuActionMode.tertiary
-          ? omnibox.getValue().slice(1).trim() // remove ":" prefix
-          : primaryTitle;
-      const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
-      view.dispatch(tx);
-      break;
-    case !!state.linkToUrl:
-      // TBD
-      break;
-    case !!state.id:
-      if (mode === MenuActionMode.secondary) {
-        window.open(`?${stateToParams(state)}`, "_blank");
-      } else {
-        router.push(`?${stateToParams(state)}`);
-      }
+    const linkTitle =
+      mode === MenuActionMode.secondary
+        ? state.title
+        : mode === MenuActionMode.tertiary
+        ? omnibox.getValue().slice(1).trim() // remove ":" prefix
+        : primaryTitle;
+    const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
+    view.dispatch(tx);
 
-      break;
-    case !!state.command:
-      const [namespace, commandName] = state.command!.split(".");
-      const command = library[namespace]?.[commandName] as Command | undefined;
+    if (isNewNote) {
+      window.open(`?${stateToParams(state)}`, "_blank");
+    }
+  } else if (state.id) {
+    if (mode === MenuActionMode.secondary) {
+      window.open(`?${stateToParams(state)}`, "_blank");
+    } else {
+      router.push(`?${stateToParams(state)}`);
+    }
+  } else if (state.command) {
+    const [namespace, commandName] = state.command!.split(".");
+    const command = library[namespace]?.[commandName] as Command | undefined;
 
-      command?.(view);
-      break;
-    default:
-      console.error("Unknown directive", state);
+    command?.(view);
+  } else {
+    console.error("Unknown directive", state);
   }
 }

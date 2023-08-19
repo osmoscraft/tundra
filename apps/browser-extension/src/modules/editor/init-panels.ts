@@ -95,7 +95,7 @@ export function initPanels({
   });
 
   omnimenu.addEventListener("omnimenu.action", (e) => {
-    handleMenuAction({ omnibox, view: editorView, library, router }, e.detail);
+    handleMenuAction({ proxy, omnibox, view: editorView, library, router }, e.detail);
     dialog.close();
   });
 

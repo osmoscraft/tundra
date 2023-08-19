@@ -38,7 +38,7 @@ export async function handleMenuInput(
       const newNoteId = timestampToId(new Date());
       const newNoteUrl = searchUrl ? searchUrl : undefined;
       const newNoteTitle = searchUrl ? "Untitled" : searchTerms;
-      const linkToId = isLinking && !searchUrl ? newNoteId : undefined;
+      const linkToId = isLinking ? newNoteId : undefined;
       const linkToUrl = isLinking && searchUrl ? searchUrl : undefined;
 
       omnimenu.setMenuItems([
