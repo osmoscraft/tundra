@@ -1,6 +1,7 @@
 # Alpha must have
 
 - Capture current page on click from browser
+- List captured pages from current URL. Prevent duplication
 - Prevent unloading when thers are unsaved changes
 
 # Future
