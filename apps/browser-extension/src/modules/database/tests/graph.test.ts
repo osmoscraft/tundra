@@ -10,6 +10,7 @@ import {
   push,
   resolve,
   searchFiles,
+  searchFilesByMetaUrl,
   untrack,
 } from "../graph";
 import { decodeMeta } from "../meta";
@@ -587,6 +588,28 @@ export async function testSearchMeta() {
   const caseInsensitiveResult = searchFiles(db, { query: "oK comPUtEr", limit: 10 });
   assertEqual(caseInsensitiveResult.length, 1, "Exactly one result");
   assertEqual(caseInsensitiveResult[0].meta?.title, "OK Computer", "Title matches");
+}
+
+export async function testSearchMetaExact() {
+  const db = await createTestDb(migrations);
+  commit(db, [
+    { path: "node-2.md", content: "---\nurl: https hello world com\n---", updatedAt: 1 },
+    { path: "node-3.md", content: "---\ntitle: https://hello/world.com\n---", updatedAt: 1 },
+    { path: "node-4.md", content: "---\ntitle: https hello world com\n---", updatedAt: 1 },
+    { path: "node-5.md", content: "---\ntitle: Hello world\n---\n\nurl: https://hello/world.com", updatedAt: 1 },
+    { path: "node-6.md", content: "---\nurl: https://hello/world.com/123\n---", updatedAt: 1 },
+    { path: "node-1.md", content: "---\nurl: https://hello/world.com\n---", updatedAt: 1 }, // put the correct result last to make sure we don't stumble on it
+    { path: "node-1b.md", content: "---\nurl: https://hello/world.com\n---", updatedAt: 1 }, // put the correct result last to make sure we don't stumble on it
+  ]);
+
+  const result = searchFilesByMetaUrl(db, { url: "https://hello/world.com", limit: 10 });
+  assertEqual(result.length, 2, "Exactly 2 result");
+
+  assertDeepEqual(
+    result.map((r) => r.path),
+    ["node-1.md", "node-1b.md"],
+    "Path matches"
+  );
 }
 
 export async function testSearchFileContent() {

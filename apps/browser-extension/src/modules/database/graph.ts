@@ -211,3 +211,23 @@ export function serializeGraphSourceToDbFile(
     }),
   };
 }
+
+export interface GetFileByMetaUrlInput {
+  url: string;
+  limit: number;
+  /** Max number of matches with false positives, default to 10_000 */
+  maxPreliminaryMatch?: number;
+  paths?: string[];
+  ignore?: string[];
+}
+export function searchFilesByMetaUrl(db: Sqlite3.DB, input: GetFileByMetaUrlInput) {
+  const foundFiles = searchFiles(db, {
+    query: `"url: ${input.url}"`,
+    limit: input.maxPreliminaryMatch ?? 10_000,
+    paths: input.paths,
+    ignore: input.ignore,
+  });
+
+  const preciseMatch = foundFiles.filter((file) => file.meta?.url === input.url);
+  return preciseMatch;
+}

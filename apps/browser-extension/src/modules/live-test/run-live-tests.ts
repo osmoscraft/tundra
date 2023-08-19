@@ -22,6 +22,7 @@ import {
   testResolveConflict,
   testSearchFileContent,
   testSearchMeta,
+  testSearchMetaExact,
   testSyncOverrideLocal,
   testUntrackFiles,
 } from "../database/tests/graph.test";
@@ -56,6 +57,7 @@ export async function runLiveTests() {
         testBulkOperations,
         testMetaCRUD,
         testSearchMeta,
+        testSearchMetaExact,
         testSearchFileContent,
 
         // search
