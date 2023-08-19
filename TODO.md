@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Autofocus after nav
 - Minimum color adjustment for readability
 - Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue

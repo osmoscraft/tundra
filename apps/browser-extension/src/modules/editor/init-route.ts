@@ -35,6 +35,8 @@ export async function initRoute({ proxy, backlinks, hud, editorView, url, setBuf
     },
   });
 
+  editorView.focus();
+
   setBufferChangeBase(editorView.state.doc.toString());
 
   if (!id) {
