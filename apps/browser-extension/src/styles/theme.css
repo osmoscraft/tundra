@@ -4,4 +4,6 @@
   --fg-mm: #5c6370;
   --bg-active: #61afef;
   --fg-active: #282c34;
+  --bg-error: #e06c75;
+  --bg-warn: #e5c07b;
 }

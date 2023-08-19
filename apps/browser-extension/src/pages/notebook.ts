@@ -83,9 +83,6 @@ function main() {
     router,
   });
 
-  window.addEventListener("blur", () => hud.setIsFocused(true));
-  window.addEventListener("focus", () => hud.setIsFocused(false));
-
   initPanels({
     backlinks,
     commandBindings,

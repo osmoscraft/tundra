@@ -5,19 +5,19 @@ hud-element {
     width: 100%;
 
     &[data-status="unknown"] {
-      background-color: #282c34;
+      background-color: var(--bg);
     }
 
     &[data-status="clean"] {
-      background-color: #61afef;
+      background-color: var(--bg-active);
     }
 
     &[data-status="add"] {
-      background-color: #e5c07b;
+      background-color: var(--bg-warn);
     }
 
     &[data-status="modify"] {
-      background-color: #e5c07b;
+      background-color: var(--bg-warn);
     }
   }
 }

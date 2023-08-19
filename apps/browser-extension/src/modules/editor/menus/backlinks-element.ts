@@ -5,6 +5,7 @@ import { MenuActionMode, type MenuAction } from "./menu-action";
 declare global {
   interface HTMLElementEventMap {
     "backlinks.open": CustomEvent<MenuAction>;
+    "backlinks.back": Event;
   }
 }
 
@@ -31,6 +32,13 @@ export class BacklinksElement extends HTMLElement {
 
       this.dispatchEvent(new CustomEvent<MenuAction>("backlinks.open", { detail: { state: { id }, mode } }));
       e.preventDefault();
+    });
+
+    this.backlinkList.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.dispatchEvent(new Event("backlinks.back"));
+        e.preventDefault();
+      }
     });
   }
 

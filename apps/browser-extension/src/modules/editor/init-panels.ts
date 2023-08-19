@@ -115,4 +115,7 @@ export function initPanels({
   backlinks.addEventListener("backlinks.open", (e) => {
     handleMenuAction({ proxy, omnibox, view: editorView, library, router }, e.detail);
   });
+  backlinks.addEventListener("backlinks.back", () => {
+    editorView.focus();
+  });
 }
