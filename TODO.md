@@ -9,7 +9,10 @@
 - Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date
 - Respectful crawling: push visited pages' title and url to temp storage for link insertion. (with just current tab permission)
 - Theming: CSS variable based theme definition
-- Resolve URL to canonical URL
+- Capture: Resolve URL by canonical URL in browser action
+- Capture: scrub tracking search params in URL
+- Capture: Smart title parsing against hyphenated or colon separated title
+- Capture: capture from context menu when there is a text selection
 - Use node.js for testing (need sqlite 3.43)
 - Repo: Add convenience command to open github repo
 - Status: multi-lines history
