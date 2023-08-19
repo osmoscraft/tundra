@@ -12,8 +12,20 @@ export interface MenuAction {
 
 export enum MenuActionMode {
   None = 0,
+  /**
+   * tasks: open in current tab, insert link with current text
+   * key: Enter
+   */
   primary = 1,
+  /**
+   * tasks: open in new tab, insert link and override text
+   * key: Ctrl + Enter
+   */
   secondary = 2,
+  /**
+   * tasks: insert link and override with search text
+   * key: Ctrl + Shift + Enter
+   */
   tertiary = 3,
 }
 
