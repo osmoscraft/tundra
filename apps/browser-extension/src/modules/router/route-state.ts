@@ -22,3 +22,8 @@ export function updateRouteState(base: RouteState, patch: Partial<RouteState>): 
 export function paramsToRouteState(params: URLSearchParams): RouteState {
   return Object.fromEntries(params);
 }
+
+export function replaceSearchParams(params: URLSearchParams) {
+  window.history.replaceState(null, "", `${location.pathname}?${params}`);
+  return params;
+}

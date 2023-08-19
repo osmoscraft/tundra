@@ -8,7 +8,7 @@ import {
   editorCommands as nativeCommands,
 } from "../modules/editor/commands";
 import { initEditor, initPanels } from "../modules/editor/init-panels";
-import { loadRouteData } from "../modules/editor/load-route-data";
+import { initRoute } from "../modules/editor/init-route";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
@@ -73,12 +73,17 @@ function main() {
 
   // Init steps above this point must not depend on the URL
 
-  const initialUpdatePromise = loadRouteData({ proxy, backlinks, editorView });
+  const initialRouteLoad = initRoute({
+    proxy,
+    backlinks,
+    editorView,
+    url: location.href,
+  });
 
   // route specific data loading
   router.addEventListener("router.change", async () => {
-    await initialUpdatePromise;
-    loadRouteData({ proxy, backlinks, editorView });
+    await initialRouteLoad;
+    initRoute({ proxy, backlinks, editorView, url: location.href });
   });
 }
 
