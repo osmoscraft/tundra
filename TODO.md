@@ -1,7 +1,9 @@
 # Alpha must have
 
-- Capture current page on click from browser
+- Capture current page on click from browser (with bookmarklet)
 - List captured pages from current URL. Prevent duplication
+- Trim existing date strings to ISO date granularity
+- ISO timestamp yaml syntax conflict
 - Prevent unloading when thers are unsaved changes
 
 # Future
