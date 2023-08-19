@@ -50,7 +50,7 @@ function main() {
     handleBeforeunload,
   } = bufferChangeManager({
     onChange: (base, head) => {
-      if (base !== null && head !== null) hud.setIsChanged(base !== head);
+      if (hud.isTrackableChange(base, head)) hud.setIsChanged(base !== head);
     },
   });
 

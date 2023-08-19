@@ -27,6 +27,10 @@ export class HudElement extends HTMLElement {
     this.changeIndicator.dataset.status = this.resolveStatus();
   }
 
+  isTrackableChange(base: string | null, head: string | null) {
+    return base !== null && head !== null;
+  }
+
   setIsChanged(isChanged: boolean) {
     this.isChanged = isChanged;
     this.changeIndicator.dataset.status = this.resolveStatus();
