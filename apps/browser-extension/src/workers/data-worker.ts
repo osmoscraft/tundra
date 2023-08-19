@@ -52,7 +52,6 @@ const routes = {
     return file ? addIdByPath(file) : undefined;
   },
   getNoteByUrl: async (url: string) => {
-    // TODO use precise URL metadata match
     const file = dbApi.searchFilesByMetaUrl(await dbInit(), { url, limit: 1 })[0];
     return file ? addIdByPath(file) : undefined;
   },
