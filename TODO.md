@@ -1,6 +1,5 @@
 # Alpha must have
 
-- Capture current page on click from browser (with extension action)
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
 - Prevent unloading when thers are unsaved changes
 

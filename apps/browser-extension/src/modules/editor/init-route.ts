@@ -50,5 +50,5 @@ ${[
   .join("\n")}
 ---
 
-- New item`.trim();
+`.trimStart();
 }
