@@ -51,6 +51,11 @@ const routes = {
     const file = dbApi.getFile(await dbInit(), noteIdToPath(id));
     return file ? addIdByPath(file) : undefined;
   },
+  getNoteByUrl: async (url: string) => {
+    // TODO use precise URL metadata match
+    const file = dbApi.searchFiles(await dbInit(), { query: url, limit: 1 })[0];
+    return file ? addIdByPath(file) : undefined;
+  },
   getDbFile,
   getGithubConnection: async () => sync.getConnection(await dbInit()),
   getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),

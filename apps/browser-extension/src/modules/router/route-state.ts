@@ -1,6 +1,7 @@
 export interface RouteState {
   id?: string;
   title?: string;
+  url?: string;
   command?: string;
   linkToId?: string;
 }

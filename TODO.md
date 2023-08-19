@@ -5,6 +5,7 @@
 - Trim existing date strings to ISO date granularity
 - ISO timestamp yaml syntax conflict
 - Prevent unloading when thers are unsaved changes
+- Handle URL in omnibox
 
 # Future
 

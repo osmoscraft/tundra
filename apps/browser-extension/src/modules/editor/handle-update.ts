@@ -13,15 +13,17 @@ export interface RouteContentConfig {
 export async function handleUpdate({ proxy, backlinks, editorView }: RouteContentConfig) {
   const searchParams = new URLSearchParams(location.search);
   const state = paramsToRouteState(searchParams);
-  const { id, title } = state;
+  const { id, title, url } = state;
 
-  const file = id ? await proxy.getNote(id) : null;
+  let file = url ? await proxy.getNoteByUrl(url) : null;
+  file ??= id ? await proxy.getNote(id) : null;
+
   editorView.dispatch({
     annotations: Transaction.addToHistory.of(false), // do not track programatic update as history
     changes: {
       from: 0,
       to: editorView.state.doc.length,
-      insert: file?.content ?? getDraftContent(title),
+      insert: file?.content ?? getDraftContent(title, url),
     },
   });
 
@@ -34,10 +36,12 @@ export async function handleUpdate({ proxy, backlinks, editorView }: RouteConten
   }
 }
 
-function getDraftContent(title?: string) {
+function getDraftContent(title?: string, url?: string) {
   return `
 ---
-title: ${title ?? "Untitled"}
+${[`title: ${title ?? "Untitled"}`, `created: ${new Date().toISOString().split("T")[0]}`, url ? `url: ${url}` : ``]
+  .filter(Boolean)
+  .join("\n")}
 ---
 
 - New item`.trim();
