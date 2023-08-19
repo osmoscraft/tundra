@@ -8,6 +8,7 @@
 
 # Future
 
+- Theming: CSS variable based theme definition
 - Resolve URL to canonical URL
 - Use node.js for testing (need sqlite 3.43)
 - Repo: Add convenience command to open github repo
@@ -38,7 +39,6 @@
 - Link insertion via autocomplete
 - Add search unit tests
 - Add a web hook that pushes haiku into markdown repo
-- Improve color themet
 - Line item text wrap
 - Heading level based indentation
 - Heading level based colorization
