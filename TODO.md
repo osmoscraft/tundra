@@ -6,6 +6,7 @@
 - Capture: smart title parsing against hyphenated or colon separated title
 - Capture: use canonical URL during capture
 - Community: change announcements
+- Community: convert key RFCs into blog posts
 - Community: documentation
 - Community: sponsorship options
 - Community: support forum
