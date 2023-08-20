@@ -4,6 +4,7 @@
 
 # Future
 
+- Keyboard: Escape to cancel selection
 - Lifecycle: deleted file should not appear in search results
 - Lifecycle: a command to undo changed for the current file
 - Lifecycle: enter read-only mode after note is deleted
