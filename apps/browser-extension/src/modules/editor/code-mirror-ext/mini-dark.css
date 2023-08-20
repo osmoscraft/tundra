@@ -1,0 +1,15 @@
+.cm-minidark-list.cm-minidark-symbol {
+  color: #d19a66;
+}
+.cm-minidark-link.cm-minidark-symbol {
+  color: #7d8799;
+}
+.cm-minidark-url {
+  color: #61afef;
+}
+.cm-minidark-link.cm-minidark-url {
+  color: #7d8799;
+}
+.cm-minidark-link:not(.cm-minidark-symbol):not(.cm-minidark-url) {
+  color: #61afef;
+}

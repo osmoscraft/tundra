@@ -3,6 +3,7 @@ import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
 import { customTags } from "./custom-tags";
+import "./mini-dark.css";
 
 // Based on https://github.com/codemirror/theme-one-dark
 // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
@@ -43,7 +44,7 @@ export const color = {
   cursor,
 };
 
-export const oneDarkTheme = EditorView.theme(
+export const miniDarkTheme = EditorView.theme(
   {
     "&": {
       color: ivory,
@@ -80,7 +81,9 @@ export const oneDarkTheme = EditorView.theme(
   { dark: true }
 );
 
-export const minimalDarkHighlightStyle = HighlightStyle.define([
+// Ref: https://github.com/lezer-parser/markdown/blob/91eb10240cacac3c4c65b812dd8fd3023af8c25c/src/markdown.ts#L1862C1-L1885C3
+
+export const miniDarkHighlightStyle = HighlightStyle.define([
   { tag: t.keyword, color: whiskey, fontWeight: "bold" },
   // { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: coral },
   // { tag: [t.function(t.variableName), t.labelName], color: malibu },
@@ -101,8 +104,11 @@ export const minimalDarkHighlightStyle = HighlightStyle.define([
   { tag: t.heading5, fontWeight: "bold", color: malibu },
   { tag: t.heading6, fontWeight: "bold", color: coral },
   // { tag: [t.atom, t.bool, t.special(t.variableName)], color: whiskey },
-  // { tag: [t.processingInstruction], color: stone },
   // { tag: [t.processingInstruction, t.string, t.inserted], color: malibu },
+  { tag: t.processingInstruction, class: "cm-minidark-symbol" },
+  { tag: t.list, class: "cm-minidark-list" },
+  { tag: t.url, class: "cm-minidark-url" },
+  { tag: t.link, class: "cm-minidark-link" },
   { tag: t.invalid, color: invalid },
   // { tag: [t.link, t.url], color: malibu },
   // yaml extensions
@@ -117,4 +123,4 @@ export const minimalDarkHighlightStyle = HighlightStyle.define([
   { tag: customTags.YAMLFrontmatterPlain, color: malibu },
 ]);
 
-export const minimalDark: () => Extension = () => [oneDarkTheme, syntaxHighlighting(minimalDarkHighlightStyle)];
+export const miniDark: () => Extension = () => [miniDarkTheme, syntaxHighlighting(miniDarkHighlightStyle)];

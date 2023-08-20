@@ -9,7 +9,7 @@ import type { RouterElement } from "../router/router-element";
 import { defineYamlNodes } from "./code-mirror-ext/custom-tags";
 import { frontmatterParser } from "./code-mirror-ext/frontmatter-parser";
 import { liveLink } from "./code-mirror-ext/live-link";
-import { minimalDark } from "./code-mirror-ext/minimal-dark";
+import { miniDark } from "./code-mirror-ext/mini-dark";
 import { bottomPanel, topPanel } from "./code-mirror-ext/panels";
 import type { CommandKeyBinding, CommandLibrary } from "./commands";
 import type { BacklinksElement } from "./menus/backlinks-element";
@@ -52,7 +52,7 @@ export function initEditor(config: InitEdidorConfig) {
     }),
     topPanel(topPanelElement),
     bottomPanel(bottomPanelElement),
-    minimalDark(),
+    miniDark(),
     // oneDark,
     keymap.of(editorBindings),
   ];

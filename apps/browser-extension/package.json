@@ -24,13 +24,12 @@
   },
   "dependencies": {
     "@codemirror/commands": "^6.2.4",
-    "@codemirror/lang-json": "^6.0.1",
-    "@codemirror/lang-markdown": "^6.1.1",
-    "@codemirror/language": "^6.8.0",
-    "@codemirror/legacy-modes": "^6.3.2",
+    "@codemirror/lang-markdown": "^6.2.0",
+    "@codemirror/language": "^6.9.0",
+    "@codemirror/legacy-modes": "^6.3.3",
     "@codemirror/state": "^6.2.1",
-    "@codemirror/view": "^6.13.1",
-    "@lezer/markdown": "^1.0.2",
+    "@codemirror/view": "^6.16.0",
+    "@lezer/markdown": "^1.1.0",
     "codemirror": "^6.0.1",
     "yaml": "^2.3.1"
   }
