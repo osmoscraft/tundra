@@ -1,3 +1,7 @@
+# Bugs
+
+- When dialog is open, selection style is not applied
+
 # Beta backlog
 
 - Capture: cache visited pages' title and url to temp storage for link insertion, using only activeTab permission
