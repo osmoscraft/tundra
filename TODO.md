@@ -5,6 +5,11 @@
 - Capture: scrub tracking search params in URL
 - Capture: smart title parsing against hyphenated or colon separated title
 - Capture: use canonical URL during capture
+- Community: change announcements
+- Community: documentation
+- Community: sponsorship options
+- Community: support forum
+- Community: web site
 - First run: generate gitignore on local boostrap init
 - First run: initial clone progress reporting
 - First run: push locally bootstrapped app to remote
