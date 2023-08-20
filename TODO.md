@@ -1,55 +1,56 @@
-# Alpha must have
+# Beta backlog
+
+- Capture: cache visited pages' title and url to temp storage for link insertion, using only activeTab permission
+- Capture: capture from browser context menu when there is a text selection
+- Capture: scrub tracking search params in URL
+- Capture: smart title parsing against hyphenated or colon separated title
+- Capture: use canonical URL during capture
+- First run: generate gitignore on local boostrap init
+- First run: initial clone progress reporting
+- First run: push locally bootstrapped app to remote
+- Formatting: heading level based indentation
+- Formatting: including Line item text wrap
+- Formatting: separation between display format and storage format
+- Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
+- Keyboard: escape to cancel selection
+- Keyboard: fine-tune ESC behavior in omnibox
+- Lifecycle: allow reverting current file to last known remote state
+- Lifecycle: autosave edits
+- Lifecycle: deleted file should not appear in search results
+- Lifecycle: enter read-only mode after note is deleted
+- Lifecycle: handle files that are deleted but still referenced by other files
+- Lifecycle: prevent autosave with invalid frontmatter metadata
+- Links: auto select title after Ctrl+K returns, allowing immediate title revision
+- Links: auto update reference when newly created file is renamed
+- Links: link insertion via on-canvas autocompletion
+- Links: mouse click in text portion should allow edit
+- Links: the default option should be first matched link, rather than create new
+- Migration: Add a web hook that pushes haiku into markdown repo
+- Migration: Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
+- Omnibox: RxJS stream like search input handling with debounce and throttle
+- Packaging: support Firefox
+- Quality: Migrate live test to node.js test once sqlite 3.43 ships
+- Quality: persist FSM spec generator output as version controlled asset
+- Status: actionable messages
+- Status: detailed sync progress
+- Status: progressive discloure of multi-lines history
+- Status: reflect error state with red indicator
+- Status: reflect git graph change status in HUD (separate from buffer status)
+- Status: semantic color-coding of status bar (separate from HUD indicator)
+- Storage: Hierarchical note directory path support
+- Sync: clone command
+- Sync: fallback to full import when history is too long to catch up
+- Sync: improve clone performance, goal <2ms per file, baseline 4.5ms per file
+- Sync: manual merge during conflict resolution
+- Sync: open github command
+- Sync: persist last used github connection in local storage in case of DB error
+- Sync: support gitlab
+- Theming: CSS variable based theme definition
+- Theming: heading level based colorization
+- Theming: migrate all js color values to css class + variable
+- Theming: user stylesheet override
+- Workspace: autoupdate after inserting a link to draft note, keep the title in the source up to date
+- Workspace: multi-tab editing with conflict prevention
+- Workspace: restore cursor between SPA navigations
 
 # Future
-
-- Keyboard: Escape to cancel selection
-- Lifecycle: deleted file should not appear in search results
-- Lifecycle: a command to undo changed for the current file
-- Lifecycle: enter read-only mode after note is deleted
-- Status: Track graph change status in HUD
-- Error handling: use indicator color
-- Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
-- Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date
-- Respectful crawling: push visited pages' title and url to temp storage for link insertion. (with just current tab permission)
-- Theming: CSS variable based theme definition
-- Theming: migrate all js color values to css class + variable
-- Capture: Resolve URL by canonical URL in browser action
-- Capture: scrub tracking search params in URL
-- Capture: Smart title parsing against hyphenated or colon separated title
-- Capture: capture from context menu when there is a text selection
-- Use node.js for testing (need sqlite 3.43)
-- Repo: Add convenience command to open github repo
-- Status: multi-lines history
-- Status: detailed sync progress
-- Status: actionable messages
-- Status: semantic color-coding
-- Persist last used github connection in local storage in case of DB error
-- Handle virtual nodes: files that are deleted but still referenced by other files
-- Investigate Firefox compatibility
-- Restore cursor between SPA navigations
-- Local first: bootstrap app without remote
-- Local first: push locally bootstrapped app to remote
-- Local first: auto generate built-in gitignore
-- Manual merge during conflict resolution
-- Maintain static test specs and a static spec generator
-- Fine-tune ESC behavior in omnibox
-- Live link: mouse click in text portion should not open the link
-- First run: initial clone progress reporting
-- Sync: allow clone by command
-- Keyboard: entire app should have two tab stops: editor and panel
-- When linking, the default option should be first matched link, rather than create new
-- Omnibox: auto update reference when newly created file is renamed
-- Autosave edits
-- Need to handle invalid frontmatter state during auto save
-- Tune clone performance, goal <2ms per file, baseline 4.5ms per file
-- Load keybinding from synced storage
-- Link insertion via autocomplete
-- Add search unit tests
-- Add a web hook that pushes haiku into markdown repo
-- Line item text wrap
-- Heading level based indentation
-- Heading level based colorization
-- Hierarchical note directory path support
-- Allow undo to rewind local timestamp
-- Fallback to full import when history is too long to catch up
-- RxJS stream like search input handling
