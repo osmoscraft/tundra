@@ -1,7 +1,5 @@
 # Alpha must have
 
-- Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
-
 # Future
 
 - Keyboard: Escape to cancel selection

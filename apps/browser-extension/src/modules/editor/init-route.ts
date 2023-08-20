@@ -8,6 +8,7 @@ import { checkKeyBindingsUpdate } from "../settings/key-bindings";
 import type { BufferState } from "./code-mirror-ext/buffer-change-manager";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import type { HudElement } from "./status/hud-element";
+import { getLocalTimestamp } from "./time";
 
 export interface LoadRouteDataConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
@@ -76,11 +77,7 @@ export async function initRoute({
 function getDraftContent(title?: string, metaUrl?: string) {
   return `
 ---
-${[
-  `title: ${title ?? "Untitled"}`,
-  `created: ${new Date().toISOString().split("T")[0]}`,
-  metaUrl ? `url: ${metaUrl}` : ``,
-]
+${[`title: ${title ?? "Untitled"}`, `created: ${getLocalTimestamp(new Date())}`, metaUrl ? `url: ${metaUrl}` : ``]
   .filter(Boolean)
   .join("\n")}
 ---

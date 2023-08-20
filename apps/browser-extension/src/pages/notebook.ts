@@ -9,7 +9,8 @@ import {
   getEditorBindings as getEditorKeyBindings,
   editorCommands as nativeCommands,
 } from "../modules/editor/commands";
-import { initEditor, initPanels } from "../modules/editor/init-panels";
+import { initEditor } from "../modules/editor/init-editor";
+import { initPanels } from "../modules/editor/init-panels";
 import { initRoute } from "../modules/editor/init-route";
 import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
