@@ -14,6 +14,7 @@
 - First run: generate gitignore on local boostrap init
 - First run: initial clone progress reporting
 - First run: push locally bootstrapped app to remote
+- First run: in context help menu
 - Formatting: heading level based indentation
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
@@ -33,6 +34,7 @@
 - Links: the default option should be first matched link, rather than create new
 - Migration: Add a web hook that pushes haiku into markdown repo
 - Migration: Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
+- Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Packaging: support Firefox
 - Quality: Migrate live test to node.js test once sqlite 3.43 ships
