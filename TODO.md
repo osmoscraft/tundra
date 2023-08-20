@@ -1,7 +1,5 @@
 # Alpha must have
 
-- Minimum color adjustment for readability
-- Disable number formating in frontmatter
 - Trim existing date strings to ISO date granularity to resolve yaml syntax highlight issue
 
 # Future
@@ -15,6 +13,7 @@
 - Omnibox: autoupdate after inserting a link to draft note, keep the title in the source up to date
 - Respectful crawling: push visited pages' title and url to temp storage for link insertion. (with just current tab permission)
 - Theming: CSS variable based theme definition
+- Theming: migrate all js color values to css class + variable
 - Capture: Resolve URL by canonical URL in browser action
 - Capture: scrub tracking search params in URL
 - Capture: Smart title parsing against hyphenated or colon separated title

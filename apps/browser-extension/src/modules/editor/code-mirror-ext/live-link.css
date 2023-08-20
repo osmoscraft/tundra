@@ -1,6 +1,4 @@
-.cm-content {
-  .cm-live-link {
-    cursor: pointer;
-    color: inherit;
-  }
+.cm-live-link {
+  color: inherit;
+  cursor: pointer;
 }

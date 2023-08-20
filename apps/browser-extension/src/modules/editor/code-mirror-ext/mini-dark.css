@@ -13,3 +13,6 @@
 .cm-minidark-link:not(.cm-minidark-symbol):not(.cm-minidark-url) {
   color: #61afef;
 }
+.cm-live-link--full-url {
+  color: #61afef;
+}

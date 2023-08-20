@@ -47,6 +47,7 @@ export const color = {
 export const miniDarkTheme = EditorView.theme(
   {
     "&": {
+      // body text
       color: ivory,
       backgroundColor: darkBackground,
     },
@@ -116,11 +117,6 @@ export const miniDarkHighlightStyle = HighlightStyle.define([
   // FIXME: only start and end tags are working
   { tag: customTags.YAMLFrontmatterStart, color: stone },
   { tag: customTags.YAMLFrontmatterEnd, color: stone },
-  // { tag: customTags.YAMLFrontmatterKey, fontWeight: "bold", color: malibu },
-  // { tag: customTags.YAMLFrontmatterString, color: malibu },
-  // { tag: customTags.YAMLFrontmatterBoolean, color: malibu },
-  // { tag: customTags.YAMLFrontmatterNumber, color: malibu },
-  { tag: customTags.YAMLFrontmatterPlain, color: malibu },
 ]);
 
 export const miniDark: () => Extension = () => [miniDarkTheme, syntaxHighlighting(miniDarkHighlightStyle)];

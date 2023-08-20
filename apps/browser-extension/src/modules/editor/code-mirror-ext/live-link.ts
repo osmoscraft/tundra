@@ -143,7 +143,7 @@ class LiveLinkView implements PluginValue {
               ? `?title=${encodeURIComponent(bracketTitle)}&id=${bracketIdOrUrl}`
               : bracketIdOrUrl ?? fullUrl,
             rel: isInternal ? "" : "external noopener noreferrer",
-            class: "cm-live-link",
+            class: ["cm-live-link", fullUrl ? "cm-live-link--full-url" : null].filter(Boolean).join(" "),
           },
         });
       },
