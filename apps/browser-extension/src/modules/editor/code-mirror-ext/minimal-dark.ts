@@ -2,6 +2,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
+import { customTags } from "./custom-tags";
 
 // Based on https://github.com/codemirror/theme-one-dark
 // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
@@ -80,22 +81,40 @@ export const oneDarkTheme = EditorView.theme(
 );
 
 export const minimalDarkHighlightStyle = HighlightStyle.define([
-  { tag: t.keyword, color: violet },
-  { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: coral },
-  { tag: [t.function(t.variableName), t.labelName], color: malibu },
-  { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: whiskey },
-  { tag: [t.definition(t.name), t.separator], color: ivory },
-  { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: chalky },
-  { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: cyan },
-  { tag: [t.meta, t.comment], color: stone },
-  { tag: t.strong, fontWeight: "bold" },
-  { tag: t.emphasis, fontStyle: "italic" },
-  { tag: t.strikethrough, textDecoration: "line-through" },
-  { tag: t.link, color: stone, textDecoration: "underline" },
-  { tag: t.heading, fontWeight: "bold", color: malibu },
-  { tag: [t.atom, t.bool, t.special(t.variableName)], color: whiskey },
-  { tag: [t.processingInstruction, t.string, t.inserted], color: malibu },
+  { tag: t.keyword, color: whiskey, fontWeight: "bold" },
+  // { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: coral },
+  // { tag: [t.function(t.variableName), t.labelName], color: malibu },
+  // { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: whiskey },
+  // { tag: [t.definition(t.name), t.separator], color: stone },
+  // { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: chalky },
+  // { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: cyan },
+  // { tag: [t.meta, t.comment], color: stone },
+  // { tag: t.strong, fontWeight: "bold" },
+  // { tag: t.emphasis, fontStyle: "italic" },
+  // { tag: t.strikethrough, textDecoration: "line-through" },
+  // { tag: t.link, color: malibu, textDecoration: "underline" },
+  { tag: t.heading, fontWeight: "bold" },
+  { tag: t.heading1, fontWeight: "bold", color: sage },
+  { tag: t.heading2, fontWeight: "bold", color: violet },
+  { tag: t.heading3, fontWeight: "bold", color: chalky },
+  { tag: t.heading4, fontWeight: "bold", color: cyan },
+  { tag: t.heading5, fontWeight: "bold", color: malibu },
+  { tag: t.heading6, fontWeight: "bold", color: coral },
+  // { tag: [t.atom, t.bool, t.special(t.variableName)], color: whiskey },
+  // { tag: [t.processingInstruction], color: stone },
+  // { tag: [t.processingInstruction, t.string, t.inserted], color: malibu },
   { tag: t.invalid, color: invalid },
+  // { tag: [t.link, t.url], color: malibu },
+  // yaml extensions
+  // Styling for YAML frontmatters
+  // FIXME: only start and end tags are working
+  { tag: customTags.YAMLFrontmatterStart, color: stone },
+  { tag: customTags.YAMLFrontmatterEnd, color: stone },
+  // { tag: customTags.YAMLFrontmatterKey, fontWeight: "bold", color: malibu },
+  // { tag: customTags.YAMLFrontmatterString, color: malibu },
+  // { tag: customTags.YAMLFrontmatterBoolean, color: malibu },
+  // { tag: customTags.YAMLFrontmatterNumber, color: malibu },
+  { tag: customTags.YAMLFrontmatterPlain, color: malibu },
 ]);
 
 export const minimalDark: () => Extension = () => [oneDarkTheme, syntaxHighlighting(minimalDarkHighlightStyle)];

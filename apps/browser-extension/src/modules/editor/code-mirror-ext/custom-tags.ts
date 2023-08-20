@@ -1,6 +1,7 @@
 /**
  * Author: Hendrik Erz
  * License: GNU GPL v3
+ * Source: https://github.com/Zettlr/Zettlr/blob/develop/source/common/modules/markdown-editor/parser/markdown-parser.ts
  */
 
 import { Tag, tags } from "@lezer/highlight";

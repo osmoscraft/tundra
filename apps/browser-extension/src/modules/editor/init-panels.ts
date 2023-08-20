@@ -1,5 +1,5 @@
 import { history } from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
 import { drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import type { AsyncProxy } from "@tinykb/rpc-utils";
@@ -46,7 +46,10 @@ export function initEditor(config: InitEdidorConfig) {
     drawSelection(),
     dropCursor(),
     EditorView.lineWrapping,
-    markdown({ extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() } }),
+    markdown({
+      base: markdownLanguage,
+      extensions: { parseBlock: [frontmatterParser], defineNodes: defineYamlNodes() },
+    }),
     topPanel(topPanelElement),
     bottomPanel(bottomPanelElement),
     minimalDark(),
