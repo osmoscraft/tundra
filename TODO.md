@@ -1,5 +1,8 @@
 # Bugs
 
+New note does not have beforeunload guard
+After new note creation, cursor should focus on content start position
+
 # Alpha release checklist
 
 # Beta backlog
