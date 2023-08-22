@@ -16,16 +16,16 @@
 - Community: support forum
 - Community: web site
 - First run: generate gitignore on local boostrap init
+- First run: in context help menu
 - First run: initial clone progress reporting
 - First run: push locally bootstrapped app to remote
-- First run: in context help menu
 - Formatting: heading level based indentation
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
+- Keyboard: auto-focus first content line on opening note
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
-- Keyboard: auto-focus first content line on opening note
 - Keyboard: paragraph jumps with page up/down
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
