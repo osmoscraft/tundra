@@ -1,5 +1,7 @@
 # Bugs
 
+- Sometimes SPA routing is ignored. Need repro
+
 # Alpha release checklist
 
 - Links: auto update reference when newly created file is renamed
