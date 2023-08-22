@@ -41,9 +41,9 @@ export async function initRoute({
     .then(proxy.getStatus)
     .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
 
-  trackBufferChange(() => ({ base: existingContent, head: editorView.state.doc.toString() }));
-  hud.setIsExisting(!!existingContent);
   const initialContent = existingContent ?? getDraftContent(title, metaUrl);
+  trackBufferChange(() => ({ base: initialContent, head: editorView.state.doc.toString() }));
+  hud.setIsExisting(!!existingContent);
 
   checkKeyBindingsUpdate(proxy, () => {
     if (window.confirm("Key bindings changed by the remote. Reload now to apply?")) {
