@@ -1,8 +1,8 @@
 # Bugs
 
-- When dialog is open, selection style is not applied
-
 # Alpha release checklist
+
+- Random sampling of markdown notes
 
 # Beta backlog
 
