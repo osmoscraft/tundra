@@ -26,6 +26,7 @@
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
 - Keyboard: auto-focus first content line on opening note
+- Keyboard: paragraph jumps with page up/down
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
