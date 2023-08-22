@@ -4,8 +4,6 @@
 
 # Alpha release checklist
 
-- Random sampling of markdown notes
-
 # Beta backlog
 
 - Capture: cache visited pages' title and url to temp storage for link insertion, using only activeTab permission

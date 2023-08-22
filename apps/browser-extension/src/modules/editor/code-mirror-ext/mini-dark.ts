@@ -12,7 +12,7 @@ const chalky = "#e5c07b",
   coral = "#e06c75", // pink
   cyan = "#56b6c2",
   invalid = "#ffffff",
-  ivory = "#abb2bf", // grey
+  ivory = "#b7becb", // grey
   stone = "#7d8799", // dark grey, Brightened compared to original to increase contrast
   malibu = "#61afef", // light blue
   sage = "#98c379", // lime green
@@ -57,26 +57,14 @@ export const miniDarkTheme = EditorView.theme(
     },
 
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: cursor },
-    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
-      { backgroundColor: chalky, color: darkBackground },
-
     ".cm-panels": { backgroundColor: darkBackground, color: ivory },
 
+    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground": {
+      backgroundColor: "#61afef60",
+    },
+
     ".cm-activeLine": {
-      backgroundColor: `#ffffff30`,
-      backdropFilter: `brightness(0.8)`,
-      filter: `brightness(1.25) contrast(1.25)`,
-    },
-    ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
-
-    "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
-      backgroundColor: "#bad0f847",
-    },
-
-    ".cm-gutters": {
-      backgroundColor: background,
-      color: stone,
-      border: "none",
+      backgroundColor: `#61afef20`,
     },
   },
   { dark: true }
