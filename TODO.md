@@ -38,7 +38,6 @@
 - Lifecycle: enter read-only mode after note is deleted
 - Lifecycle: handle files that are deleted but still referenced by other files
 - Lifecycle: prevent autosave with invalid frontmatter metadata
-- Links: auto select title after Ctrl+K returns, allowing immediate title revision
 - Links: link insertion via on-canvas autocompletion
 - Links: mouse click in text portion should allow edit
 - Links: the default option should be first matched link, rather than create new
