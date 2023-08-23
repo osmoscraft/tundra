@@ -5,7 +5,7 @@
 # Alpha release checklist
 
 - Migration: fix haiku ID generator bug: YYYYMMDDhhmmlll -> YYYYMMDDhhmmss
-- Migration: detect duplicated IDs
+- Migration: detect duplicated IDs after ID generator bug fix
 
 # Beta backlog
 
