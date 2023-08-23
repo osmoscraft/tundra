@@ -6,7 +6,6 @@
 
 - Migration: fix haiku ID generator bug: YYYYMMDDhhmmlll -> YYYYMMDDhhmmss
 - Migration: detect duplicated IDs
-- Links: auto update reference when newly created file is renamed
 
 # Beta backlog
 
@@ -51,6 +50,7 @@
 - Packaging: support Firefox
 - Quality: Migrate live test to node.js test once sqlite 3.43 ships
 - Quality: persist FSM spec generator output as version controlled asset
+- Quality: unit test for broadcast utils. It is not testable in a single tab
 - Status: actionable messages
 - Status: detailed sync progress
 - Status: progressive discloure of multi-lines history
@@ -69,7 +69,6 @@
 - Theming: heading level based colorization
 - Theming: migrate all js color values to css class + variable
 - Theming: user stylesheet override
-- Workspace: autoupdate after inserting a link to draft note, keep the title in the source up to date
 - Workspace: multi-tab editing with conflict prevention
 - Workspace: restore cursor between SPA navigations
 

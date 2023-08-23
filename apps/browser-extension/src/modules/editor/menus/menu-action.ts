@@ -5,6 +5,8 @@ import { stateToParams, type RouteState } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";
 import type { CommandLibrary } from "../commands";
 import { getSelectedText } from "../reducers";
+import type { Tabset } from "../tabs/create-tabset";
+import type { TabMessage } from "../tabs/tab-message";
 import type { OmniboxElement } from "./omnibox-element";
 
 export interface MenuAction {
@@ -49,10 +51,11 @@ export interface OmnimenuActionContext {
   view: EditorView;
   library: CommandLibrary;
   router: RouterElement;
+  tabset: Tabset<TabMessage>;
 }
 
 export async function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
-  const { proxy, omnibox, view, library, router } = context;
+  const { proxy, omnibox, view, library, router, tabset } = context;
   const { state, mode } = action;
 
   if (state.linkToId) {
@@ -66,11 +69,45 @@ export async function handleMenuAction(context: OmnimenuActionContext, action: M
         : mode === MenuActionMode.tertiary
         ? omnibox.getValue().slice(1).trim() // remove ":" prefix
         : primaryTitle;
-    const tx = view.state.replaceSelection(`[${linkTitle}](${state.linkToId!})`);
-    view.dispatch(tx);
+
+    view.dispatch(view.state.replaceSelection(`[${linkTitle!}](${state.linkToId})`));
+    const titleEnd = view.state.selection.main.anchor - state.linkToId!.length - 3;
+    const titleStart = titleEnd - linkTitle!.length;
+
+    // select the title portion
+    view.dispatch({
+      selection: {
+        anchor: titleStart,
+        head: titleEnd,
+      },
+    });
 
     if (isNewNote) {
+      // open draft in new tab while watching for any rename
       window.open(`?${stateToParams(state)}`, "_blank");
+
+      tabset.until((message) => {
+        if (getSelectedText(view) !== linkTitle) return true; // stop handling if user changed selection
+        if (view.state.selection.main.anchor !== titleStart) return true; // stop handling if user moved selection start
+        if (view.state.selection.main.head !== titleEnd) return true; // stop handling if user moved selection end
+
+        const isMatchingNoteCreated = message.noteCreated?.id === state.linkToId;
+        if (!isMatchingNoteCreated) return false; // continue handling if note is not saved
+        if (!message.noteCreated?.title) return false; // continue handling if note has no valid title
+
+        // replace title with valid saved title
+        view.dispatch(view.state.replaceSelection(message.noteCreated!.title));
+
+        // select replaced title
+        view.dispatch({
+          selection: {
+            anchor: view.state.selection.main.anchor - message.noteCreated!.title!.length,
+            head: view.state.selection.main.anchor,
+          },
+        });
+
+        return true;
+      });
     }
   } else if (state.id) {
     if (mode === MenuActionMode.secondary) {

@@ -18,6 +18,8 @@ import { timestampToId } from "../sync/path";
 import { deleteCurrentNote } from "./delete";
 import { getSelectedText } from "./reducers";
 import { saveCurrentNote } from "./save";
+import type { Tabset } from "./tabs/create-tabset";
+import type { TabMessage } from "./tabs/tab-message";
 
 export interface CommandKeyBinding {
   name: string;
@@ -72,10 +74,17 @@ export interface ExtendedCommandsConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
   dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
+  tabset: Tabset<TabMessage>;
   onGraphChanged: () => void;
 }
 
-export function extendedCommands({ proxy, dialog, omnibox, onGraphChanged }: ExtendedCommandsConfig): CommandLibrary {
+export function extendedCommands({
+  proxy,
+  dialog,
+  omnibox,
+  onGraphChanged,
+  tabset,
+}: ExtendedCommandsConfig): CommandLibrary {
   return {
     shell: {
       addLink: (view) => {
@@ -110,7 +119,17 @@ export function extendedCommands({ proxy, dialog, omnibox, onGraphChanged }: Ext
         return true;
       },
       save: (view) => {
-        saveCurrentNote(() => view.state.doc.toString(), proxy).then(onGraphChanged);
+        saveCurrentNote({
+          getContent: () => view.state.doc.toString(),
+          onCreated: (note) =>
+            tabset.broadcast({
+              noteCreated: {
+                id: note.id,
+                title: note.title,
+              },
+            }),
+          proxy,
+        }).then(onGraphChanged);
         return true;
       },
     },

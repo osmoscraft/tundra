@@ -16,6 +16,8 @@ import { OmniboxElement } from "../modules/editor/menus/omnibox-element";
 import { OmnimenuElement } from "../modules/editor/menus/omnimenu-element";
 import { HudElement } from "../modules/editor/status/hud-element";
 import { StatusBarElement } from "../modules/editor/status/status-bar-element";
+import { createTabsetByChannel } from "../modules/editor/tabs/create-tabset";
+import type { TabMessage } from "../modules/editor/tabs/tab-message";
 import { RouterElement } from "../modules/router/router-element";
 import { getKeyBindings } from "../modules/settings/key-bindings";
 import type { DataWorkerRoutes } from "../workers/data-worker";
@@ -29,6 +31,8 @@ customElements.define("omnimenu-element", OmnimenuElement);
 customElements.define("backlinks-element", BacklinksElement);
 customElements.define("focus-trap-element", FocusTrapElement);
 
+// event setup
+const tabset = createTabsetByChannel<TabMessage>(new BroadcastChannel("tabset"));
 const worker = new Worker("./data-worker.js", { type: "module" });
 const { proxy } = client<DataWorkerRoutes>({ port: dedicatedWorkerHostPort(worker) });
 const statusEvents = new EventTarget();
@@ -56,7 +60,7 @@ function main() {
 
   const library = {
     ...nativeCommands(),
-    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload() }),
+    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), tabset }),
   };
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
@@ -85,6 +89,7 @@ function main() {
     router,
     statusBar,
     statusEvents,
+    tabset,
   });
 
   // Init steps above this point must not depend on the URL

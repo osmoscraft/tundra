@@ -9,6 +9,8 @@ import { handleMenuAction } from "./menus/menu-action";
 import type { OmniboxElement } from "./menus/omnibox-element";
 import type { OmnimenuElement } from "./menus/omnimenu-element";
 import type { StatusBarElement } from "./status/status-bar-element";
+import type { Tabset } from "./tabs/create-tabset";
+import type { TabMessage } from "./tabs/tab-message";
 
 export interface InitPanelsConfig {
   backlinks: BacklinksElement;
@@ -22,6 +24,7 @@ export interface InitPanelsConfig {
   router: RouterElement;
   statusBar: StatusBarElement;
   statusEvents: EventTarget;
+  tabset: Tabset<TabMessage>;
 }
 
 export function initPanels({
@@ -36,6 +39,7 @@ export function initPanels({
   router,
   statusBar,
   statusEvents,
+  tabset,
 }: InitPanelsConfig) {
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
@@ -49,12 +53,12 @@ export function initPanels({
   });
 
   omnimenu.addEventListener("omnimenu.action", (e) => {
-    handleMenuAction({ proxy, omnibox, view: editorView, library, router }, e.detail);
+    handleMenuAction({ proxy, omnibox, view: editorView, library, router, tabset }, e.detail);
     dialog.close();
   });
 
   backlinks.addEventListener("backlinks.open", (e) => {
-    handleMenuAction({ proxy, omnibox, view: editorView, library, router }, e.detail);
+    handleMenuAction({ proxy, omnibox, view: editorView, library, router, tabset }, e.detail);
   });
   backlinks.addEventListener("backlinks.back", () => {
     editorView.focus();
