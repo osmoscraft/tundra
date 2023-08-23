@@ -4,6 +4,8 @@
 
 # Alpha release checklist
 
+- Migration: fix haiku ID generator bug: YYYYMMDDhhmmlll -> YYYYMMDDhhmmss
+- Migration: detect duplicated IDs
 - Links: auto update reference when newly created file is renamed
 
 # Beta backlog
@@ -43,6 +45,7 @@
 - Links: the default option should be first matched link, rather than create new
 - Migration: Add a web hook that pushes haiku into markdown repo
 - Migration: Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
+- Omnibox: handle ctrl p and ctrl shift p while inside omnibox
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Packaging: support Firefox
