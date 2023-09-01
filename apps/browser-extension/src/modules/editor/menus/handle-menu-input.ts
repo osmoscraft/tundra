@@ -1,5 +1,6 @@
 import type { AsyncProxy } from "@tinykb/rpc-utils";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
+import { extractWebPage } from "../../extraction";
 import { timestampToId } from "../../sync/path";
 import { isAbsoluteUrl } from "../code-mirror-ext/live-link";
 import type { CommandKeyBinding } from "../commands";
@@ -41,7 +42,7 @@ export async function handleMenuInput(
       const linkToId = isLinking ? newNoteId : undefined;
       const linkToUrl = isLinking && searchUrl ? searchUrl : undefined;
 
-      omnimenu.setMenuItems([
+      const rawItems = [
         {
           title: `(New) ${searchTerms}`,
           state: { id: newNoteId, url: newNoteUrl, title: newNoteTitle, linkToId, linkToUrl },
@@ -54,7 +55,21 @@ export async function handleMenuInput(
             linkToId: isLinking ? file.id : undefined,
           },
         })),
-      ]);
+      ];
+
+      omnimenu.setMenuItems(rawItems);
+
+      if (searchUrl) {
+        extractWebPage(searchUrl).then((extraction) => {
+          if (extraction?.title) {
+            omnimenu.enrichUrlItem(searchUrl, {
+              title: `(New) ${extraction.title}`,
+              state: { title: extraction.title },
+            });
+          }
+        });
+      }
+
       console.log(`[perf] search latency ${performance.measure("search", "search-start").duration.toFixed(2)}ms`);
     } else {
       performance.mark("load-recent-start");

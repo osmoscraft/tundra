@@ -9,7 +9,6 @@
 
 # Beta backlog
 
-- Capture: cache visited pages' title and url to temp storage for link insertion, using only activeTab permission
 - Capture: capture from browser context menu when there is a text selection
 - Capture: scrub tracking search params in URL
 - Capture: smart title parsing against hyphenated or colon separated title

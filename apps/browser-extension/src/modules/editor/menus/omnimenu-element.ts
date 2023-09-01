@@ -73,6 +73,25 @@ export class OmnimenuElement extends HTMLElement {
     this.nodeList.appendChild(newMenuItems);
   }
 
+  enrichUrlItem(url: string, updatedItem: { title?: string; state?: Partial<RouteState> }) {
+    const matchingItem = [...this.nodeList.querySelectorAll("[data-state]")].find((item) => {
+      const stateText = item.getAttribute("data-state")!;
+      const state = paramsToRouteState(new URLSearchParams(stateText));
+      return state.url === url;
+    });
+
+    if (!matchingItem) return;
+
+    const stateText = matchingItem.getAttribute("data-state")!;
+    const mutableState = paramsToRouteState(new URLSearchParams(stateText));
+    Object.assign(mutableState, updatedItem.state);
+
+    const triggerElement = this.getTriggerElement(updatedItem.title ?? matchingItem.textContent!, mutableState);
+
+    matchingItem.insertAdjacentElement("afterend", triggerElement);
+    matchingItem.remove();
+  }
+
   private getTriggerElement(title: string, state: RouteState): HTMLElement {
     let triggerElement: HTMLElement;
 
