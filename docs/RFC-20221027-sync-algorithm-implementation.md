@@ -28,6 +28,8 @@
       - Prefer zip to tarball due to path ambiguity in the tarball format
       - Zip output should ideally be a byte stream to optimize unzipping performance
         - Explored in /experiments/2022-11-12-gh-clone-with-untar
+    - With chrome extension API, download can be programmatically triggered
+      - Ref: https://developer.chrome.com/docs/extensions/reference/downloads/
     - Need Web Compression API or pako.js to decompress the binary
     - Zip decompression exploration: [unzip](./RFC-20230216-unzip.md)
     - Could be a solution for manual import
