@@ -1,7 +1,8 @@
 # Alpha release checklist
 
-- First run: push locally bootstrapped app to remote
 - Quality: Persist github connection for error recovery
+- Keyboard: Ctrl+Shift+S to sync
+- First run: do not throw error when remote does not exist
 
 # Beta backlog
 
@@ -60,6 +61,7 @@
 - Sync: open github command
 - Sync: persist last used github connection in local storage in case of DB error
 - Sync: support gitlab
+- Sync: replace git tree/commit/ref operations with graphql mutation CreateCommitonBranch
 - Theming: CSS variable based theme definition
 - Theming: heading level based colorization
 - Theming: migrate all js color values to css class + variable

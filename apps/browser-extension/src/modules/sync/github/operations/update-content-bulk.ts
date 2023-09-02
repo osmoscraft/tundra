@@ -1,36 +1,31 @@
 import type { GithubConnection } from "..";
+import { DbFileAction, type DbReadableFile } from "../../../database/schema";
 import { createCommit } from "./create-commit";
 import { createTree } from "./create-tree";
 import { getRootTree } from "./get-root-tree";
 import { ObjectMode, ObjectType } from "./types";
 import { updateRef } from "./update-ref";
 
-export interface BulkFileChangeItem {
-  path: string;
-  content: string | null; // null when deleting
-  changeType: ChangeType;
-}
-
-export enum ChangeType {
-  None = 0,
-  Add = 1,
-  Modify = 2,
-  Remove = 3,
-}
-
 export interface PushResult {
   commitSha: string;
 }
 export async function updateContentBulk(
   connection: GithubConnection,
-  fileChanges: BulkFileChangeItem[]
+  fileChanges: DbReadableFile[]
 ): Promise<PushResult> {
-  const updateItems = fileChanges.filter((draft) => [ChangeType.Add, ChangeType.Modify].includes(draft.changeType));
-  const deleteItems = fileChanges.filter((draft) => ChangeType.Remove === draft.changeType);
+  const updateItems = fileChanges.filter((draft) =>
+    [DbFileAction.Add, DbFileAction.Modify].includes(draft.localAction)
+  );
+  const deleteItems = fileChanges.filter((draft) => DbFileAction.Remove === draft.localAction);
 
   console.log(`[push]`, { updateItems, deleteItems });
 
-  const { defaultBranch, rootCommit, rootTreeSha } = await getRootTree(connection);
+  const rootTree = await getRootTree(connection);
+  if (!rootTree) {
+    throw new Error("Remote repository is not initialized");
+  }
+
+  const { defaultBranch, rootCommit, rootTreeSha } = rootTree;
 
   if (!fileChanges.length) {
     return {
@@ -61,7 +56,7 @@ export async function updateContentBulk(
   console.log(`[push] root tree updated`, updatedRootTree.sha);
 
   const updatedCommit = await createCommit(connection, {
-    message: "tinykb changes",
+    message: "update",
     tree: updatedRootTree.sha,
     parents: [rootCommit],
   });

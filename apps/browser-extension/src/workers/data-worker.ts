@@ -12,6 +12,7 @@ import {
 } from "../modules/search/search";
 import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { resetContentBulk } from "../modules/sync/github/operations/reset-content-bulk";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { addIdByPath, noteIdToPath } from "../modules/sync/path";
 import { ensurePushParameters } from "../modules/sync/push";
@@ -95,11 +96,19 @@ const routes = {
     const db = await dbInit();
     const { connection } = ensurePushParameters(db);
     const files = dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) });
-    const fileChanges = files.map(sync.localChangedFileToBulkFileChangeItem);
-    const pushTime = Date.now();
-    const pushResult = await updateContentBulk(connection, fileChanges);
+    const pushResult = await updateContentBulk(connection, files);
     db.transaction(() => {
       dbApi.push(db, { paths: files.map((file) => file.path) });
+      sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
+    });
+  },
+  resetRemote: async () => {
+    const db = await dbInit();
+    const { connection } = ensurePushParameters(db);
+    const files = dbApi.getFiles(db, { ignore: sync.getIgnorePatterns(db) });
+    const pushResult = await resetContentBulk(connection, files);
+    db.transaction(() => {
+      dbApi.clone(db, files);
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
   },

@@ -42,8 +42,9 @@ export class GithubConfigElement extends HTMLElement {
           break;
         }
 
-        case "pull": {
-          throw new Error("Not implemented");
+        case "export": {
+          window.confirm("This will wipe out the entire history of the remote repo. Do you want to continue?") &&
+            this.proxy.resetRemote();
           break;
         }
       }

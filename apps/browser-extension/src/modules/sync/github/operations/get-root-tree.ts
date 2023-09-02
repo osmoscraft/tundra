@@ -9,7 +9,7 @@ export interface RootTreeVariables {
 
 export interface RootTreeOutput {
   repository: {
-    defaultBranchRef: {
+    defaultBranchRef: null | {
       name: string;
       target: {
         oid: string;
@@ -21,8 +21,17 @@ export interface RootTreeOutput {
   };
 }
 
-export async function getRootTree(connection: GithubConnection) {
+export interface RootTree {
+  defaultBranch: string;
+  rootCommit: string;
+  rootTreeSha: string;
+}
+
+export async function getRootTree(connection: GithubConnection): Promise<RootTree | null> {
   const response = await apiV4<RootTreeVariables, RootTreeOutput>(connection, ROOT_TREE, connection);
+
+  if (!response.data.repository.defaultBranchRef) return null;
+
   return {
     defaultBranch: response.data.repository.defaultBranchRef.name,
     rootCommit: response.data.repository.defaultBranchRef.target.oid,

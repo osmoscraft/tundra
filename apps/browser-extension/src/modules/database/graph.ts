@@ -137,14 +137,21 @@ export function getRecentFiles(db: Sqlite3.DB, input: RecentFilesInput) {
   return files.map(decodeMeta);
 }
 
-export interface GetDirtyFilesInput {
+export interface GetFilesInput {
   paths?: string[];
   ignore?: string[];
 }
 
-export function getDirtyFiles(db: Sqlite3.DB, input?: GetDirtyFilesInput) {
+export function getDirtyFiles(db: Sqlite3.DB, input?: GetFilesInput) {
   return fileApi.listFiles(db, {
     filters: [["status", "!=", DbFileStatus.Synced]],
+    paths: input?.paths,
+    ignore: input?.ignore,
+  });
+}
+
+export function getFiles(db: Sqlite3.DB, input?: GetFilesInput) {
+  return fileApi.listFiles(db, {
     paths: input?.paths,
     ignore: input?.ignore,
   });
