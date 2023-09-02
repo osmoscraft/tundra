@@ -1,7 +1,6 @@
 # Alpha release checklist
 
 - Quality: Persist github connection for error recovery
-- Keyboard: Ctrl+Shift+S to sync
 
 # Beta backlog
 
