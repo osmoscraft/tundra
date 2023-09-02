@@ -94,7 +94,8 @@
     },
     {
       "name": "Sync",
-      "run": "repo.sync"
+      "run": "repo.sync",
+      "key": "Mod-Shift-s"
     }
   ]
 }
