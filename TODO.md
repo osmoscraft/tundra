@@ -2,7 +2,6 @@
 
 - Quality: Persist github connection for error recovery
 - Keyboard: Ctrl+Shift+S to sync
-- First run: do not throw error when remote does not exist
 
 # Beta backlog
 

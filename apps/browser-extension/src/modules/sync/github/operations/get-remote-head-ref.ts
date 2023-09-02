@@ -8,8 +8,10 @@ export interface HeadRefVariables {
 }
 
 export interface HeadRefOutput {
-  repository: {
+  repository: null | {
+    // null for non-existing repo
     defaultBranchRef: null | {
+      // null for empty repo
       target: {
         oid: string;
       };
@@ -19,5 +21,5 @@ export interface HeadRefOutput {
 
 export async function getRemoteHeadRef(connection: GithubConnection) {
   const response = await apiV4<HeadRefVariables, HeadRefOutput>(connection, HEAD_REF, connection);
-  return response.data.repository.defaultBranchRef?.target.oid;
+  return response.data.repository?.defaultBranchRef?.target.oid;
 }
