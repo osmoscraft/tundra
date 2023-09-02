@@ -1,8 +1,6 @@
-// import { commit, getFile } from "../database";
 import * as graphApi from "../database/graph";
 import type { GithubConnection } from "./github";
 import * as github from "./github";
-
 export * from "./clone";
 export * from "./fetch";
 export type { GithubConnection } from "./github";
