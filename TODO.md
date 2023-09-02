@@ -1,11 +1,7 @@
-# Bugs
-
-- Sometimes SPA routing is ignored. Need repro
-
 # Alpha release checklist
 
-- Migration: fix haiku ID generator bug: YYYYMMDDhhmmlll -> YYYYMMDDhhmmss
-- Migration: detect duplicated IDs after ID generator bug fix
+- First run: push locally bootstrapped app to remote
+- Quality: Persist github connection for error recovery
 
 # Beta backlog
 
@@ -23,6 +19,7 @@
 - First run: in context help menu
 - First run: initial clone progress reporting
 - First run: push locally bootstrapped app to remote
+- First run:
 - Formatting: heading level based indentation
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
@@ -45,7 +42,7 @@
 - Omnibox: handle ctrl p and ctrl shift p while inside omnibox
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
-- Packaging: support Firefox
+- Packaging: support Firefox by forking background script
 - Quality: Migrate live test to node.js test once sqlite 3.43 ships
 - Quality: persist FSM spec generator output as version controlled asset
 - Quality: unit test for broadcast utils. It is not testable in a single tab
