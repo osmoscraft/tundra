@@ -15,7 +15,7 @@ export function getConnection(db: Sqlite3.DB) {
 }
 
 export function getGithubRemoteHeadCommit(db: Sqlite3.DB) {
-  return graphApi.getFile(db, "config/sync/github-head-commit.txt")?.content;
+  return graphApi.getFile(db, "config/sync/github-head-commit.txt")?.content ?? undefined;
 }
 
 export async function setConnection(db: Sqlite3.DB, connection: GithubConnection) {
@@ -28,7 +28,7 @@ export async function setConnection(db: Sqlite3.DB, connection: GithubConnection
   });
 }
 
-export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string) {
+export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string | null) {
   graphApi.commit(db, {
     path: "config/sync/github-head-commit.txt",
     content: commit,

@@ -62,8 +62,12 @@ const routes = {
   getRecentNotes: async () => searchRecentNotes(await dbInit(), 10),
   getStatus: async () => {
     const db = await dbInit();
-    const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getIgnorePatterns(db) });
-    return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
+    if (sync.getGithubRemoteHeadCommit(db)) {
+      const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getIgnorePatterns(db) });
+      return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
+    } else {
+      return "Local mode";
+    }
   },
   deleteNote: async (id: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content: null }),
   clone: async () => {
