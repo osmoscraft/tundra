@@ -30,7 +30,7 @@ export interface CommandKeyBinding {
   // when?: string;
 }
 
-export function getEditorBindings(bindings: CommandKeyBinding[], library: CommandLibrary): KeyBinding[] {
+export function getEditorKeyBindings(bindings: CommandKeyBinding[], library: CommandLibrary): KeyBinding[] {
   const keyBindings: KeyBinding[] = [];
 
   bindings.forEach((binding) => {
@@ -56,7 +56,7 @@ export interface CommandMap {
   [key: string]: Command;
 }
 
-export function editorCommands(): CommandLibrary {
+export function nativeCommands(): CommandLibrary {
   return {
     editor: {
       moveLineUp,

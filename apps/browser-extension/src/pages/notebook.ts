@@ -4,11 +4,7 @@ import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
 import { bufferChangeManager } from "../modules/editor/code-mirror-ext/buffer-change-manager";
 import { focusWatcher } from "../modules/editor/code-mirror-ext/focus-watcher";
-import {
-  extendedCommands,
-  getEditorBindings as getEditorKeyBindings,
-  editorCommands as nativeCommands,
-} from "../modules/editor/commands";
+import { extendedCommands, getEditorKeyBindings, nativeCommands } from "../modules/editor/commands";
 import { initEditor } from "../modules/editor/init-editor";
 import { initPanels } from "../modules/editor/init-panels";
 import { initRoute } from "../modules/editor/init-route";
