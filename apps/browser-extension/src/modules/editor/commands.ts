@@ -71,7 +71,7 @@ export function editorCommands(): CommandLibrary {
   };
 }
 
-export interface ExtendedCommandsConfig {
+export interface ShellCommandsConfig {
   proxy: AsyncProxy<DataWorkerRoutes>;
   dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
@@ -79,13 +79,7 @@ export interface ExtendedCommandsConfig {
   onGraphChanged: () => void;
 }
 
-export function extendedCommands({
-  proxy,
-  dialog,
-  omnibox,
-  onGraphChanged,
-  tabset,
-}: ExtendedCommandsConfig): CommandLibrary {
+export function shellCommands({ proxy, dialog, omnibox, onGraphChanged, tabset }: ShellCommandsConfig): CommandLibrary {
   return {
     shell: {
       addLink: (view) => {

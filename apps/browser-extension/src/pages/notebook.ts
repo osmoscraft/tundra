@@ -4,11 +4,7 @@ import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 
 import { bufferChangeManager } from "../modules/editor/code-mirror-ext/buffer-change-manager";
 import { focusWatcher } from "../modules/editor/code-mirror-ext/focus-watcher";
-import {
-  extendedCommands,
-  getEditorBindings as getEditorKeyBindings,
-  editorCommands as nativeCommands,
-} from "../modules/editor/commands";
+import { editorCommands, getEditorBindings as getEditorKeyBindings, shellCommands } from "../modules/editor/commands";
 import { initEditor } from "../modules/editor/init-editor";
 import { initPanels } from "../modules/editor/init-panels";
 import { initRoute } from "../modules/editor/init-route";
@@ -59,8 +55,8 @@ function main() {
   window.addEventListener("beforeunload", handleBeforeunload);
 
   const library = {
-    ...nativeCommands(),
-    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), tabset }),
+    ...editorCommands(),
+    ...shellCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), tabset }),
   };
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
