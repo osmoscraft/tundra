@@ -1,5 +1,5 @@
 {
-  "name": "TinyKB Dev Container",
+  "name": "Tundra Dev Container",
   "build": {
     "dockerfile": "Dockerfile"
   },
