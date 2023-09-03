@@ -12,7 +12,7 @@ import {
 } from "../modules/search/search";
 import * as sync from "../modules/sync";
 import { testConnection } from "../modules/sync/github";
-import type { GithubConnection } from "../modules/sync/github/github-config";
+import { type GithubConnection } from "../modules/sync/github/github-config";
 import { resetContentBulk } from "../modules/sync/github/operations/reset-content-bulk";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { addIdByPath, noteIdToPath } from "../modules/sync/path";
@@ -84,7 +84,6 @@ const routes = {
   },
   merge: async () => {
     const db = await dbInit();
-    if (!sync.isRemoteTracked(db)) return;
 
     dbApi.merge(db, {
       paths: dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) }).map((file) => file.path),

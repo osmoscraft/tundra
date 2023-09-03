@@ -4,6 +4,14 @@ export interface GithubConnection {
   token: string;
 }
 
+export function clearGithubConnection() {
+  localStorage.removeItem("config.github-connection");
+}
+
+export function hasGithubConnection() {
+  return !!localStorage.getItem("config.github-connection");
+}
+
 export function setGithubConnection(connection: GithubConnection) {
   localStorage.setItem("config.github-connection", JSON.stringify(connection));
 }
