@@ -1,7 +1,5 @@
 # Alpha release checklist
 
-- Quality: Persist github connection for error recovery
-
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection

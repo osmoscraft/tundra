@@ -52,16 +52,45 @@ export class GithubConfigElement extends HTMLElement {
   }
 
   private async load() {
-    const respondGithubConnection = await this.proxy.getGithubConnection();
-    if (!respondGithubConnection) return;
+    // use cache first, then use source of truth
+    const cachedConnection = this.getConnectionCache();
+    if (cachedConnection) {
+      this.renderConnection(cachedConnection);
+    } else {
+      const respondGithubConnection = await this.proxy.getGithubConnection();
+      if (!respondGithubConnection) return;
 
-    this.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = respondGithubConnection.repo;
-    this.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = respondGithubConnection.owner;
-    this.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = respondGithubConnection.token;
+      this.renderConnection(respondGithubConnection);
+      this.setConnectionCache(respondGithubConnection);
+    }
+  }
+
+  private renderConnection(connection: GithubConnection) {
+    this.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = connection.repo;
+    this.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = connection.owner;
+    this.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = connection.token;
   }
 
   private save() {
-    this.proxy.setGithubConnection(this.parseForm());
+    const connection = this.parseForm();
+
+    // update source of truth first, then update cache
+    this.proxy.setGithubConnection(connection).then(() => this.setConnectionCache(connection));
+  }
+
+  private setConnectionCache(connection: GithubConnection) {
+    localStorage.setItem("tinykb.cache.github-connection", JSON.stringify(connection));
+  }
+
+  private getConnectionCache(): GithubConnection | null {
+    const raw = localStorage.getItem("tinykb.cache.github-connection");
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   }
 
   private parseForm() {
