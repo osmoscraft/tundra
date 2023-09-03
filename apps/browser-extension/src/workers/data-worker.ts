@@ -73,6 +73,8 @@ const routes = {
   },
   fetch: async (connection: GithubConnection) => {
     const db = await dbInit();
+    if (!sync.isRemoteTracked(db)) return;
+
     const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
     db.transaction(() => {
@@ -82,12 +84,16 @@ const routes = {
   },
   merge: async () => {
     const db = await dbInit();
+    if (!sync.isRemoteTracked(db)) return;
+
     dbApi.merge(db, {
       paths: dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) }).map((file) => file.path),
     });
   },
   push: async (connection: GithubConnection) => {
     const db = await dbInit();
+    if (!sync.isRemoteTracked(db)) return;
+
     const files = dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) });
     const pushResult = await updateContentBulk(connection, files);
     db.transaction(() => {

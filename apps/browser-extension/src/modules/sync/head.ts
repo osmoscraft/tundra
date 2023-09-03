@@ -10,3 +10,7 @@ export function setGithubRemoteHeadCommit(db: Sqlite3.DB, commit: string | null)
     content: commit,
   });
 }
+
+export function isRemoteTracked(db: Sqlite3.DB) {
+  return !!getGithubRemoteHeadCommit(db);
+}
