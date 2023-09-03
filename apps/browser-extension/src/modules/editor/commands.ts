@@ -14,6 +14,7 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./menus/omnibox-element";
 
 import { stateToParams } from "../router/route-state";
+import { getGithubConnection } from "../sync/github/github-config";
 import { timestampToId } from "../sync/path";
 import { deleteCurrentNote } from "./delete";
 import { getSelectedText } from "./reducers";
@@ -135,11 +136,11 @@ export function extendedCommands({
     },
     repo: {
       pull: () => {
-        proxy.fetch().then(proxy.merge).then(onGraphChanged);
+        proxy.fetch(getGithubConnection()).then(proxy.merge).then(onGraphChanged);
         return true;
       },
       fetch: () => {
-        proxy.fetch().then(onGraphChanged);
+        proxy.fetch(getGithubConnection()).then(onGraphChanged);
         return true;
       },
       merge: () => {
@@ -147,7 +148,7 @@ export function extendedCommands({
         return true;
       },
       push: () => {
-        proxy.push().then(onGraphChanged);
+        proxy.push(getGithubConnection()).then(onGraphChanged);
         return true;
       },
       resolve: () => {
@@ -155,7 +156,11 @@ export function extendedCommands({
         return true;
       },
       sync: () => {
-        proxy.fetch().then(proxy.merge).then(proxy.push).then(onGraphChanged);
+        proxy
+          .fetch(getGithubConnection())
+          .then(proxy.merge)
+          .then(() => proxy.push(getGithubConnection()))
+          .then(onGraphChanged);
         return true;
       },
     },

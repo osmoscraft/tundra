@@ -1,5 +1,5 @@
-import { getConnection, getGithubRemoteHeadCommit } from ".";
-import type { GithubConnection } from "./github";
+import { getGithubRemoteHeadCommit } from ".";
+import type { GithubConnection } from "./github/github-config";
 import { compare, type CompareResultFile, type GitDiffStatus } from "./github/operations/compare";
 import { getRemoteHeadRef } from "./github/operations/get-remote-head-ref";
 import { listDeletedFilesByPaths } from "./github/proxy/list-deleted-files-by-paths";
@@ -10,33 +10,20 @@ export interface GitHubRemoteChanges {
   generator: AsyncGenerator<RemoteChangeRecord>;
   remoteHeadRefId: string | null;
 }
-export async function getGitHubRemoteChanges(db: Sqlite3.DB): Promise<GitHubRemoteChanges> {
-  const { connection, localHeadRefId, remoteHeadRefId } = await getFetchParameters(db);
+export async function getGitHubRemoteChanges(
+  db: Sqlite3.DB,
+  connection: GithubConnection
+): Promise<GitHubRemoteChanges> {
+  const localHeadRefId = getGithubRemoteHeadCommit(db);
+  const remoteHeadRefId = connection && localHeadRefId ? await getRemoteHeadRef(connection) : undefined;
 
-  if (!connection || !localHeadRefId || !remoteHeadRefId) {
+  if (!localHeadRefId || !remoteHeadRefId) {
     const emptyGenerator = async function* () {};
     return { generator: emptyGenerator(), remoteHeadRefId: null };
   }
 
   const generator = iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
   return { generator, remoteHeadRefId };
-}
-
-interface FetchParameters {
-  connection?: GithubConnection;
-  localHeadRefId?: string;
-  remoteHeadRefId?: string;
-}
-async function getFetchParameters(db: Sqlite3.DB): Promise<FetchParameters> {
-  const connection = getConnection(db);
-  const localHeadRefId = getGithubRemoteHeadCommit(db);
-  const remoteHeadRefId = connection ? await getRemoteHeadRef(connection) : undefined;
-
-  return {
-    connection,
-    localHeadRefId,
-    remoteHeadRefId,
-  };
 }
 
 async function* iterateGitHubDiffs(

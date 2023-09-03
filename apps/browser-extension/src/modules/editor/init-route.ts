@@ -5,6 +5,7 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";
 import { paramsToRouteState, replaceSearchParams } from "../router/route-state";
 import { checkKeyBindingsUpdate } from "../settings/key-bindings";
+import { getGithubConnection } from "../sync/github/github-config";
 import type { BufferState } from "./code-mirror-ext/buffer-change-manager";
 import type { BacklinksElement } from "./menus/backlinks-element";
 import type { HudElement } from "./status/hud-element";
@@ -37,7 +38,7 @@ export async function initRoute({
   const existingContent = file?.content ?? null;
 
   proxy
-    .fetch()
+    .fetch(getGithubConnection())
     .then(proxy.getStatus)
     .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
 

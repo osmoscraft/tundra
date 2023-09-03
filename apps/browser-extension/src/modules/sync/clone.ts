@@ -1,7 +1,7 @@
 import { getChunkReducer, reduceGenerator } from "@tundra/fp-utils";
-import { getConnection } from ".";
 import type { GraphWritableSource } from "../database";
 import * as github from "./github";
+import type { GithubConnection } from "./github/github-config";
 import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
@@ -33,8 +33,7 @@ export interface GithubRemote {
   generator: AsyncGenerator<RemoteChangeRecord>;
   oid: string;
 }
-export async function getGithubRemote(db: Sqlite3.DB): Promise<GithubRemote> {
-  const { connection } = await ensureCloneParameters(db);
+export async function getGithubRemote(connection: GithubConnection): Promise<GithubRemote> {
   const archive = await github.getArchive(connection);
 
   const generator = iterateGithubArchive(archive.tarballUrl);
@@ -42,18 +41,6 @@ export async function getGithubRemote(db: Sqlite3.DB): Promise<GithubRemote> {
   return {
     generator,
     oid: archive.oid,
-  };
-}
-
-interface CloneParameters {
-  connection: github.GithubConnection;
-}
-async function ensureCloneParameters(db: Sqlite3.DB): Promise<CloneParameters> {
-  const connection = getConnection(db);
-  if (!connection) throw new Error("Missing connection");
-
-  return {
-    connection,
   };
 }
 

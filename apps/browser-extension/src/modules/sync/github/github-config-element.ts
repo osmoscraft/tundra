@@ -1,6 +1,6 @@
 import type { AsyncProxy } from "@tundra/rpc-utils";
-import type { GithubConnection } from "..";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
+import { getGithubConnection, setGithubConnection, type GithubConnection } from "./github-config";
 import "./github-config-element.css";
 import template from "./github-config-element.html";
 
@@ -23,74 +23,78 @@ export class GithubConfigElement extends HTMLElement {
   connectedCallback() {
     this.load();
 
+    if (location.search.includes("import")) {
+      // remove import query param
+      const mutableUrl = new URL(location.href);
+      mutableUrl.searchParams.delete("import");
+      history.replaceState({}, "", mutableUrl.toString());
+
+      // start clone
+      const { isValid, connection } = this.ensureValidConnection();
+      if (isValid) {
+        this.proxy.clone(getGithubConnection());
+      }
+    }
+
     this.form.addEventListener("submit", (e) => e.preventDefault());
-    this.form.addEventListener("input", (e) => this.save());
+    this.form.addEventListener("input", (e) => setGithubConnection(this.parseForm()));
 
     this.menu.addEventListener("click", async (e) => {
       const action = (e.target as HTMLElement).closest("[data-action]")?.getAttribute("data-action");
       switch (action) {
         case "test": {
-          const isValid = this.form.checkValidity();
+          const { isValid, connection } = this.ensureValidConnection();
           if (!isValid) break;
 
-          this.proxy.testGithubConnection().then((res) => console.log("Is connected?", res));
+          this.proxy.testGithubConnection(connection).then((res) => console.log("Is connected?", res));
           break;
         }
 
         case "import": {
-          this.proxy.clone();
+          const { isValid } = this.ensureValidConnection();
+          if (!isValid) break;
+
+          await this.proxy.destoryDatabase();
+          const mutableUrl = new URL(location.href);
+          mutableUrl.searchParams.set("import", "true");
+          location.replace(mutableUrl.toString());
           break;
         }
 
         case "export": {
+          const { isValid, connection } = this.ensureValidConnection();
+          if (!isValid) break;
+
           window.confirm("This will wipe out the entire history of the remote repo. Do you want to continue?") &&
-            this.proxy.resetRemote();
+            this.proxy.resetRemote(connection);
           break;
         }
       }
     });
   }
 
+  private ensureValidConnection() {
+    const connection = getGithubConnection();
+    this.renderConnection(connection);
+
+    const isValid = this.form.checkValidity();
+    return {
+      connection,
+      isValid,
+    };
+  }
+
   private async load() {
-    // use cache first, then use source of truth
-    const cachedConnection = this.getConnectionCache();
+    const cachedConnection = getGithubConnection();
     if (cachedConnection) {
       this.renderConnection(cachedConnection);
-    } else {
-      const respondGithubConnection = await this.proxy.getGithubConnection();
-      if (!respondGithubConnection) return;
-
-      this.renderConnection(respondGithubConnection);
-      this.setConnectionCache(respondGithubConnection);
     }
   }
 
-  private renderConnection(connection: GithubConnection) {
-    this.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = connection.repo;
-    this.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = connection.owner;
-    this.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = connection.token;
-  }
-
-  private save() {
-    const connection = this.parseForm();
-
-    // update source of truth first, then update cache
-    this.proxy.setGithubConnection(connection).then(() => this.setConnectionCache(connection));
-  }
-
-  private setConnectionCache(connection: GithubConnection) {
-    localStorage.setItem("cache.github-connection", JSON.stringify(connection));
-  }
-
-  private getConnectionCache(): GithubConnection | null {
-    const raw = localStorage.getItem("cache.github-connection");
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
+  private renderConnection(connection?: null | GithubConnection) {
+    this.querySelector<HTMLInputElement>(`input[name="repo"]`)!.value = connection?.repo ?? "";
+    this.querySelector<HTMLInputElement>(`input[name="owner"]`)!.value = connection?.owner ?? "";
+    this.querySelector<HTMLInputElement>(`input[name="token"]`)!.value = connection?.token ?? "";
   }
 
   private parseForm() {

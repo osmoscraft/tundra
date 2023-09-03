@@ -1,4 +1,4 @@
-import type { GithubConnection } from "..";
+import type { GithubConnection } from "../github-config";
 import TEST_CONNECTION from "../queries/test-connection.graphql";
 import { apiV4, unwrap } from "./api-connection";
 

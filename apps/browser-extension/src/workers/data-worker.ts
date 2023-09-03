@@ -1,4 +1,4 @@
-import { asyncPipe, callOnce, drainGenerator } from "@tundra/fp-utils";
+import { callOnce, drainGenerator } from "@tundra/fp-utils";
 import { dedicatedWorkerPort, server } from "@tundra/rpc-utils";
 import { destoryOpfsByPath, getOpfsFileByPath } from "@tundra/sqlite-utils";
 import * as dbApi from "../modules/database";
@@ -10,35 +10,28 @@ import {
   searchRecentNotes,
   type SearchInput,
 } from "../modules/search/search";
-import type { GithubConnection } from "../modules/sync";
 import * as sync from "../modules/sync";
+import { testConnection } from "../modules/sync/github";
+import type { GithubConnection } from "../modules/sync/github/github-config";
 import { resetContentBulk } from "../modules/sync/github/operations/reset-content-bulk";
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { addIdByPath, noteIdToPath } from "../modules/sync/path";
-import { ensurePushParameters } from "../modules/sync/push";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
 
 export type DataWorkerRoutes = typeof routes;
 
-const DB_PATH = "/tundra-db.sqlite3";
+const DB_PATH = "/database.sqlite3";
 
 const dbInit = callOnce(() => dbApi.init(DB_PATH));
 const getDbFile = () => getOpfsFileByPath(DB_PATH);
-const destoryAll = () => destoryOpfsByPath(DB_PATH);
 
 const routes = {
   checkHealth: async () => dbInit().finally(() => runLiveTests()), // in case test code cause db init to timeout
-  destoryData: async () => {
-    const db = await dbInit();
-    const connection = sync.getConnection(db);
-    await destoryAll();
-    if (connection) {
-      const newDb = await dbApi.init(DB_PATH);
-      sync.setConnection(newDb, connection);
-    }
-  },
-  destoryAll,
+  destoryDatabase: async () =>
+    dbInit()
+      .then((db) => db.close())
+      .finally(() => destoryOpfsByPath(DB_PATH)),
   getBacklinks: async (id: string) =>
     searchBacklinkNotes(await dbInit(), {
       id,
@@ -57,23 +50,20 @@ const routes = {
     return file ? addIdByPath(file) : undefined;
   },
   getDbFile,
-  getGithubConnection: async () => sync.getConnection(await dbInit()),
   getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
   getRecentNotes: async () => searchRecentNotes(await dbInit(), 10),
   getStatus: async () => {
     const db = await dbInit();
-    if (sync.getGithubRemoteHeadCommit(db)) {
-      const dirtyFiles = dbApi.getStatusSummary(db, { ignore: sync.getIgnorePatterns(db) });
-      return formatStatus(dirtyFiles.ahead, dirtyFiles.behind, dirtyFiles.conflict);
-    } else {
-      return "Local mode";
-    }
+
+    return formatStatus({
+      hasRemote: !!sync.getGithubRemoteHeadCommit(db),
+      stats: dbApi.getSyncStats(db, { ignore: sync.getIgnorePatterns(db) }),
+    });
   },
   deleteNote: async (id: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content: null }),
-  clone: async () => {
+  clone: async (connection: GithubConnection) => {
     const db = await dbInit();
-    await routes.destoryData();
-    const { generator, oid } = await sync.getGithubRemote(db);
+    const { generator, oid } = await sync.getGithubRemote(connection);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) => dbApi.clone(db, chunk.map(sync.GithubChangeToLocalChange));
     performance.mark("clone-start");
@@ -81,9 +71,9 @@ const routes = {
     sync.setGithubRemoteHeadCommit(db, oid);
     console.log("[perf] clone", performance.measure("clone", "clone-start").duration);
   },
-  fetch: async () => {
+  fetch: async (connection: GithubConnection) => {
     const db = await dbInit();
-    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db);
+    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
     db.transaction(() => {
       dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange));
@@ -96,9 +86,8 @@ const routes = {
       paths: dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) }).map((file) => file.path),
     });
   },
-  push: async () => {
+  push: async (connection: GithubConnection) => {
     const db = await dbInit();
-    const { connection } = ensurePushParameters(db);
     const files = dbApi.getDirtyFiles(db, { ignore: sync.getIgnorePatterns(db) });
     const pushResult = await updateContentBulk(connection, files);
     db.transaction(() => {
@@ -106,9 +95,8 @@ const routes = {
       sync.setGithubRemoteHeadCommit(db, pushResult.commitSha);
     });
   },
-  resetRemote: async () => {
+  resetRemote: async (connection: GithubConnection) => {
     const db = await dbInit();
-    const { connection } = ensurePushParameters(db);
     const files = dbApi.getFiles(db, { ignore: sync.getIgnorePatterns(db) });
     const pushResult = await resetContentBulk(connection, files);
     db.transaction(() => {
@@ -123,8 +111,7 @@ const routes = {
     });
   },
   searchNotes: async (input: SearchInput) => searchNotes(await dbInit(), input),
-  setGithubConnection: async (connection: GithubConnection) => sync.setConnection(await dbInit(), connection),
-  testGithubConnection: asyncPipe(dbInit, sync.testConnection),
+  testGithubConnection: async (connection: GithubConnection) => testConnection(connection),
   writeNote: async (id: string, content: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content }),
 };
 

@@ -1,4 +1,4 @@
-import type { GithubConnection } from "..";
+import type { GithubConnection } from "../github-config";
 import ARCHIVE_URL from "../queries/archive-url.graphql";
 import { apiV4, unwrap } from "./api-connection";
 

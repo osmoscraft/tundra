@@ -162,13 +162,13 @@ export interface GetStatusSummaryInput {
   ignore?: string[];
 }
 
-export interface StatusSummary {
+export interface SyncStats {
   ahead: number;
   behind: number;
   conflict: number;
 }
 
-export function getStatusSummary(db: Sqlite3.DB, input?: GetStatusSummaryInput): StatusSummary {
+export function getSyncStats(db: Sqlite3.DB, input?: GetStatusSummaryInput): SyncStats {
   return getDirtyFiles(db, input).reduce(
     (acc, file) => {
       if (file.status === DbFileStatus.Ahead) {
@@ -184,6 +184,7 @@ export function getStatusSummary(db: Sqlite3.DB, input?: GetStatusSummaryInput):
       ahead: 0,
       behind: 0,
       conflict: 0,
+      synced: 0,
     }
   );
 }
