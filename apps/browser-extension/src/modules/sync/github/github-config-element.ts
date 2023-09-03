@@ -1,4 +1,4 @@
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { GithubConnection } from "..";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
 import "./github-config-element.css";
@@ -79,11 +79,11 @@ export class GithubConfigElement extends HTMLElement {
   }
 
   private setConnectionCache(connection: GithubConnection) {
-    localStorage.setItem("tinykb.cache.github-connection", JSON.stringify(connection));
+    localStorage.setItem("cache.github-connection", JSON.stringify(connection));
   }
 
   private getConnectionCache(): GithubConnection | null {
-    const raw = localStorage.getItem("tinykb.cache.github-connection");
+    const raw = localStorage.getItem("cache.github-connection");
     if (!raw) return null;
 
     try {

@@ -1,4 +1,4 @@
-import { sqlite3Mem } from "@tinykb/sqlite-utils";
+import { sqlite3Mem } from "@tundra/sqlite-utils";
 import { assertEqual } from "../../live-test";
 import { getFile, updateFile } from "../file";
 import { migrate, type Migration } from "../migrate";

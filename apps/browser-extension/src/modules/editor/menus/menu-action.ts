@@ -1,5 +1,5 @@
 import type { Command, EditorView } from "@codemirror/view";
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../../workers/data-worker";
 import { stateToParams, type RouteState } from "../../router/route-state";
 import { RouterElement } from "../../router/router-element";

@@ -1,6 +1,6 @@
-const CACHE_KEY = "tinykb.cache.key-bindings";
+const CACHE_KEY = "cache.key-bindings";
 const KEY_BINDINGS_FILE_PATH = "config/key-bindings.json";
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { CommandKeyBinding } from "../editor/commands";
 import defaultKeyBindings from "./default-key-bindings.json";

@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/osmoscraft/tinykb.git"
+    "url": "git+https://github.com/osmoscraft/tundra.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/osmoscraft/tinykb/issues"
+    "url": "https://github.com/osmoscraft/tundra/issues"
   },
-  "homepage": "https://github.com/osmoscraft/tinykb#readme",
+  "homepage": "https://github.com/osmoscraft/tundra#readme",
   "workspaces": [
     "apps/*",
     "packages/*"

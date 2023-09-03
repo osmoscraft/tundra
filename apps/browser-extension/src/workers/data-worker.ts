@@ -1,6 +1,6 @@
-import { asyncPipe, callOnce, drainGenerator } from "@tinykb/fp-utils";
-import { dedicatedWorkerPort, server } from "@tinykb/rpc-utils";
-import { destoryOpfsByPath, getOpfsFileByPath } from "@tinykb/sqlite-utils";
+import { asyncPipe, callOnce, drainGenerator } from "@tundra/fp-utils";
+import { dedicatedWorkerPort, server } from "@tundra/rpc-utils";
+import { destoryOpfsByPath, getOpfsFileByPath } from "@tundra/sqlite-utils";
 import * as dbApi from "../modules/database";
 import { runLiveTests } from "../modules/live-test/run-live-tests";
 import {
@@ -21,7 +21,7 @@ import { formatStatus } from "../modules/sync/status";
 
 export type DataWorkerRoutes = typeof routes;
 
-const DB_PATH = "/tinykb-db.sqlite3";
+const DB_PATH = "/tundra-db.sqlite3";
 
 const dbInit = callOnce(() => dbApi.init(DB_PATH));
 const getDbFile = () => getOpfsFileByPath(DB_PATH);

@@ -1,4 +1,4 @@
-import { client, dedicatedWorkerHostPort } from "@tinykb/rpc-utils";
+import { client, dedicatedWorkerHostPort } from "@tundra/rpc-utils";
 import { FocusTrapElement } from "../modules/editor/accessibility/focus-trap-element";
 import { BacklinksElement } from "../modules/editor/menus/backlinks-element";
 

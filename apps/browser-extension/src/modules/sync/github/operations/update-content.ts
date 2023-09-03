@@ -29,7 +29,7 @@ export async function updateContent(
     {
       method: "PUT",
       body: JSON.stringify({
-        message: "tinykb update",
+        message: "update",
         sha: fileChange.sha,
         content: b64EncodeUnicode(fileChange.content), // This cannot handle non-ASCII characters
       }),

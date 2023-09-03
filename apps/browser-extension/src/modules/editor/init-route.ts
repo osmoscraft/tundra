@@ -1,5 +1,5 @@
 import { Transaction } from "@codemirror/state";
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";

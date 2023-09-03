@@ -9,7 +9,7 @@ import {
   undo,
 } from "@codemirror/commands";
 import type { Command, KeyBinding } from "@codemirror/view";
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./menus/omnibox-element";
 

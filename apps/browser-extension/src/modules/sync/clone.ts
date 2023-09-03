@@ -1,4 +1,4 @@
-import { getChunkReducer, reduceGenerator } from "@tinykb/fp-utils";
+import { getChunkReducer, reduceGenerator } from "@tundra/fp-utils";
 import { getConnection } from ".";
 import type { GraphWritableSource } from "../database";
 import * as github from "./github";

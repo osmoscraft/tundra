@@ -1,4 +1,4 @@
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import { EditorView } from "codemirror";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { RouterElement } from "../router/router-element";

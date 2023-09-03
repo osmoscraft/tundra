@@ -1,5 +1,5 @@
 {
-  "name": "@tinykb/fp-utils",
+  "name": "@tundra/fp-utils",
   "version": "1.0.0",
   "description": "Functional programming utils",
   "main": "src/index.ts",

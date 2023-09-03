@@ -1,5 +1,5 @@
 {
-  "name": "@tinykb/dom-utils",
+  "name": "@tundra/dom-utils",
   "version": "1.0.0",
   "description": "DOM utils",
   "main": "src/index.ts",

@@ -1,4 +1,4 @@
-import { deleteMany, paramsToBindings, selectMany, upsertMany } from "@tinykb/sqlite-utils";
+import { deleteMany, paramsToBindings, selectMany, upsertMany } from "@tundra/sqlite-utils";
 import type { DbReadableFile, DbWritableFile } from "./schema";
 
 export function updateFiles(db: Sqlite3.DB, files: DbWritableFile[]) {

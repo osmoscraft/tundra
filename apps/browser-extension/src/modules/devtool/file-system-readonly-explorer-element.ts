@@ -1,4 +1,4 @@
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import "./file-system-readonly-explorer-element.css";
 import template from "./file-system-readonly-explorer-element.html";

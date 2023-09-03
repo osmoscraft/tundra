@@ -12,7 +12,7 @@ export async function ensureRepo(connection: GithubConnection): Promise<RepoResu
 
   // Use a dummy file to make sure the repo is initialized and a default branch is available
   const { commit } = await updateContent(connection, {
-    path: ".tinykb",
+    path: ".gitkeep",
     content: "",
   });
 

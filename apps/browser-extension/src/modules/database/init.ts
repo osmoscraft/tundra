@@ -1,5 +1,5 @@
-import { asyncPipe } from "@tinykb/fp-utils";
-import { sqlite3Opfs } from "@tinykb/sqlite-utils";
+import { asyncPipe } from "@tundra/fp-utils";
+import { sqlite3Opfs } from "@tundra/sqlite-utils";
 import { migrate } from "./migrate";
 import { migrations } from "./migrations";
 

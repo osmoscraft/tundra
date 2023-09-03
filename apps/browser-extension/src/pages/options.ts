@@ -1,5 +1,5 @@
-import { staticDependencies } from "@tinykb/dom-utils";
-import { client, dedicatedWorkerHostPort, server } from "@tinykb/rpc-utils";
+import { staticDependencies } from "@tundra/dom-utils";
+import { client, dedicatedWorkerHostPort, server } from "@tundra/rpc-utils";
 import { DevtoolElement } from "../modules/devtool/devtool-element";
 import { FileSystemReadonlyExplorerElement } from "../modules/devtool/file-system-readonly-explorer-element";
 import { GithubConfigElement } from "../modules/sync/github/github-config-element";

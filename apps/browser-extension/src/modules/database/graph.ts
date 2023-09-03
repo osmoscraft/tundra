@@ -1,5 +1,5 @@
-import { array } from "@tinykb/fp-utils";
-import { paramsToBindings } from "@tinykb/sqlite-utils";
+import { array } from "@tundra/fp-utils";
+import { paramsToBindings } from "@tundra/sqlite-utils";
 import * as fileApi from "./file";
 import { decodeMeta, encodeMeta } from "./meta";
 import { DbFileStatus, type DbWritableFile } from "./schema";

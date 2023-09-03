@@ -1,4 +1,4 @@
-import type { AsyncProxy } from "@tinykb/rpc-utils";
+import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 
 export async function deleteCurrentNote(proxy: AsyncProxy<DataWorkerRoutes>) {

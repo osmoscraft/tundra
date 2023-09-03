@@ -1,5 +1,5 @@
 {
-  "name": "@tinykb/sqlite-utils",
+  "name": "@tundra/sqlite-utils",
   "version": "1.0.0",
   "description": "Loader for SQLite jswasm",
   "main": "src/index.ts",
