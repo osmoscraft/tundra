@@ -5,6 +5,7 @@ import {
   fetch,
   getDirtyFiles,
   getFile,
+  getFileCount,
   getFiles,
   getRecentFiles,
   merge,
@@ -488,6 +489,39 @@ export async function testGetFiles() {
   const allFiles = getFiles(db);
 
   assertDeepEqual(allFiles.map((f) => f.path).sort(), ["file-1.md", "file-2.md", "file-7.md", "file-8.md"]);
+}
+
+export async function testCountFiles() {
+  const db = await createTestDb(migrations);
+
+  clone(db, [
+    { path: "file-2.md", content: "", updatedAt: 3 },
+    { path: "file-3.md", content: "", updatedAt: 5 },
+    { path: "file-5.md", content: null, updatedAt: 5 },
+    { path: "file-6.md", content: null, updatedAt: 6 },
+    { path: "file-8.md", content: "", updatedAt: 5 },
+  ]);
+
+  // prepare files with various sources and timestamps
+  commit(db, [
+    { path: "file-1.md", content: "", updatedAt: 9 }, // created
+    { path: "file-2.md", content: "modified", updatedAt: 4 }, // modified
+    { path: "file-3.md", content: null, updatedAt: 6 }, // deleted
+    { path: "file-4.md", content: null, updatedAt: 6 }, // clean (remote deleted last)
+    { path: "file-5.md", content: null, updatedAt: 6 }, // clean (local deleted last)
+    { path: "file-6.md", content: null, updatedAt: 6 }, // clean (deleted at same time)
+    { path: "file-7.md", content: "", updatedAt: 6 }, // clean (remote modified last)
+    { path: "file-8.md", content: "", updatedAt: 6 }, // clean (local modified last)
+  ]);
+
+  clone(db, [
+    { path: "file-4.md", content: null, updatedAt: 7 },
+    { path: "file-7.md", content: "", updatedAt: 7 },
+  ]);
+
+  const count = getFileCount(db);
+
+  assertDeepEqual(count, 4);
 }
 
 export async function testGetDirtyFiles() {

@@ -49,36 +49,19 @@ export type Filter = [
   value: string | number
 ];
 
-export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFile[] {
-  const clauses = [
-    ...(options.paths?.length || options.ignore?.length
-      ? [
-          "WITH",
-          [
-            ...(options.paths?.length
-              ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`]
-              : []),
-            ...(options.ignore?.length
-              ? [`Ignore(pattern) AS (SELECT json_each.value FROM json_each(json(:ignore)))`]
-              : []),
-          ].join("\n,"),
-        ]
-      : []),
-    `SELECT * FROM File`,
-    ...(options.filters?.length || options.paths?.length || options.ignore?.length
-      ? [
-          "WHERE",
-          [
-            ...(options.filters?.map(([col, op]) => `${col} ${op} :${col}`) ?? []),
-            ...(options.paths?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
-            ...(options.ignore?.length
-              ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`]
-              : []),
-          ].join(" AND "),
-        ]
-      : []),
+function orderAndLimit(options: ListOptions) {
+  return [
     ...(options.orderBy?.length ? [`ORDER BY ${options.orderBy.map(([col, dir]) => `${col} ${dir}`).join(",")}`] : []),
     ...(options.limit !== undefined ? [`LIMIT :limit`] : []),
+  ];
+}
+
+export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFile[] {
+  const clauses = [
+    ...withIncludeAndIgnore(options),
+    `SELECT * FROM File`,
+    ...whereFilterPathIgnore(options),
+    ...orderAndLimit(options),
   ];
 
   const dict = {
@@ -89,8 +72,55 @@ export function listFiles(db: Sqlite3.DB, options: ListOptions): DbReadableFile[
   };
 
   const sql = clauses.join("\n");
+
   const bind = paramsToBindings(sql, dict);
   return db.selectObjects<DbReadableFile>(sql, bind);
+}
+
+export function getFileCount(db: Sqlite3.DB, options: ListOptions): number {
+  const clauses = [...withIncludeAndIgnore(options), `SELECT COUNT(*) FROM File`, ...whereFilterPathIgnore(options)];
+
+  const dict = {
+    ...options.filters?.reduce((acc, [col, _op, value]) => ({ ...acc, [col]: value }), {}),
+    ...(options.paths ? { include: JSON.stringify(options.paths) } : {}),
+    ...(options.ignore ? { ignore: JSON.stringify(options.ignore) } : {}),
+  };
+
+  const sql = clauses.join("\n");
+
+  const bind = paramsToBindings(sql, dict);
+  return db.selectValue<number>(sql, bind) ?? 0;
+}
+
+function withIncludeAndIgnore(options: ListOptions) {
+  return options.paths?.length || options.ignore?.length
+    ? [
+        "WITH",
+        [
+          ...(options.paths?.length
+            ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`]
+            : []),
+          ...(options.ignore?.length
+            ? [`Ignore(pattern) AS (SELECT json_each.value FROM json_each(json(:ignore)))`]
+            : []),
+        ].join("\n,"),
+      ]
+    : [];
+}
+
+function whereFilterPathIgnore(options: ListOptions) {
+  const hasWhereClause = options.filters?.length || options.paths?.length || options.ignore?.length;
+
+  return hasWhereClause
+    ? [
+        "WHERE",
+        [
+          ...(options.filters?.map(([col, op]) => `${col} ${op} :${col}`) ?? []),
+          ...(options.paths?.length ? [`EXISTS ( SELECT 1 FROM Include WHERE File.path GLOB Include.pattern)`] : []),
+          ...(options.ignore?.length ? [`NOT EXISTS ( SELECT 1 FROM Ignore WHERE File.path GLOB Ignore.pattern)`] : []),
+        ].join(" AND "),
+      ]
+    : [];
 }
 
 export interface SearchOptions {
@@ -103,19 +133,7 @@ export interface SearchOptions {
 
 export function searchFiles(db: Sqlite3.DB, options: SearchOptions): DbReadableFile[] {
   const clauses = [
-    ...(options.paths?.length || options.ignore?.length
-      ? [
-          "WITH",
-          [
-            ...(options.paths?.length
-              ? [`Include(pattern) AS (SELECT json_each.value FROM json_each(json(:include)))`]
-              : []),
-            ...(options.ignore?.length
-              ? [`Ignore(pattern) AS (SELECT json_each.value FROM json_each(json(:ignore)))`]
-              : []),
-          ].join("\n,"),
-        ]
-      : []),
+    ...withIncludeAndIgnore(options),
     `SELECT File.meta,File.path,File.content,localAction,remoteAction,status,updatedAt FROM File JOIN FileFts ON File.path = FileFts.path`,
     ...[
       "WHERE",

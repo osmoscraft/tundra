@@ -157,6 +157,13 @@ export function getFiles(db: Sqlite3.DB, input?: GetFilesInput) {
   });
 }
 
+export function getFileCount(db: Sqlite3.DB, input?: GetFilesInput) {
+  return fileApi.getFileCount(db, {
+    paths: input?.paths,
+    ignore: input?.ignore,
+  });
+}
+
 export interface GetStatusSummaryInput {
   paths?: string[];
   ignore?: string[];
@@ -166,9 +173,12 @@ export interface SyncStats {
   ahead: number;
   behind: number;
   conflict: number;
+  total: number;
 }
 
 export function getSyncStats(db: Sqlite3.DB, input?: GetStatusSummaryInput): SyncStats {
+  const total = getFileCount(db, input);
+
   return getDirtyFiles(db, input).reduce(
     (acc, file) => {
       if (file.status === DbFileStatus.Ahead) {
@@ -184,7 +194,7 @@ export function getSyncStats(db: Sqlite3.DB, input?: GetStatusSummaryInput): Syn
       ahead: 0,
       behind: 0,
       conflict: 0,
-      synced: 0,
+      total,
     }
   );
 }

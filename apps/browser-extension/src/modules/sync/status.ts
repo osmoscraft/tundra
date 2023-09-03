@@ -5,16 +5,22 @@ export interface FormatStatusInput {
   stats: SyncStats;
 }
 export function formatStatus({ hasRemote, stats }: FormatStatusInput) {
-  const { ahead, behind, conflict } = stats;
+  const { ahead, behind, conflict, total } = stats;
 
-  if (!hasRemote) return "Local only";
+  // if (!hasRemote) return "Local only";
 
   const segments: string[] = [];
-  if (ahead) segments.push(`↑ ${ahead}`);
-  if (behind) segments.push(`↓ ${behind}`);
-  if (conflict) segments.push(`! ${conflict}`);
+  if (ahead && hasRemote) segments.push(`↑ ${ahead}`);
+  if (behind && hasRemote) segments.push(`↓ ${behind}`);
+  if (conflict && hasRemote) segments.push(`! ${conflict}`);
 
-  if (!segments.length) return "Up to date";
+  const synced = hasRemote ? total - conflict - ahead - behind : 0;
+  if (synced) segments.push(`${synced} synced`);
+
+  const localOnly = !hasRemote ? total : 0;
+  if (localOnly) segments.push(`${localOnly} local`);
+
+  if (!segments.length) return "Empty";
 
   return segments.join(" | ");
 }
