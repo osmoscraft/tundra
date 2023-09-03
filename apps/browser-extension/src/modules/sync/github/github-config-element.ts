@@ -32,7 +32,9 @@ export class GithubConfigElement extends HTMLElement {
       // start clone
       const { isValid, connection } = this.ensureValidConnection();
       if (isValid && connection) {
-        this.proxy.clone(connection);
+        this.proxy.clone(connection).then(() => {
+          confirm("Import complete. Reload now to see the changes?") && location.reload();
+        });
       }
     }
 
@@ -68,7 +70,7 @@ export class GithubConfigElement extends HTMLElement {
           if (!connection) break;
 
           window.confirm("This will wipe out the entire history of the remote repo. Do you want to continue?") &&
-            this.proxy.resetRemote(connection);
+            this.proxy.resetRemote(connection).then(() => alert("Export complete."));
           break;
         }
       }

@@ -68,8 +68,10 @@ const routes = {
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
     const processChunk = (chunk: RemoteChangeRecord[]) => dbApi.clone(db, chunk.map(sync.GithubChangeToLocalChange));
     performance.mark("clone-start");
-    db.transaction(() => chunks.forEach(processChunk));
-    sync.setGithubRemoteHeadCommit(db, oid);
+    db.transaction(() => {
+      chunks.forEach(processChunk);
+      sync.setGithubRemoteHeadCommit(db, oid);
+    });
     console.log("[perf] clone", performance.measure("clone", "clone-start").duration);
   },
   fetch: async (connection: GithubConnection) => {
@@ -78,10 +80,11 @@ const routes = {
 
     const { generator, remoteHeadRefId } = await sync.getGithubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
+
     db.transaction(() => {
       dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange));
+      if (remoteHeadRefId) sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     });
-    sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
   },
   merge: async () => {
     const db = await dbInit();
