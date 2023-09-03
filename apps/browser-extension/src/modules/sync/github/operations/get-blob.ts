@@ -1,13 +1,13 @@
-import type { GithubConnection } from "..";
+import type { GithubConnection } from "../github-config";
 
 export interface GetBlobInput {
   sha: string;
 }
 
-export interface GitHubBlob {
+export interface GithubBlob {
   content: string;
 }
-export async function getBlob(context: GithubConnection, input: GetBlobInput): Promise<GitHubBlob> {
+export async function getBlob(context: GithubConnection, input: GetBlobInput): Promise<GithubBlob> {
   const { token, owner, repo } = context;
 
   const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs/${input.sha}`, {

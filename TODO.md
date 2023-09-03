@@ -1,7 +1,5 @@
 # Alpha release checklist
 
-- Clean up spell: GitHub vs Github
-
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection

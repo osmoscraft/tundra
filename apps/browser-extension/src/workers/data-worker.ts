@@ -75,7 +75,7 @@ const routes = {
     const db = await dbInit();
     if (!sync.isRemoteTracked(db)) return;
 
-    const { generator, remoteHeadRefId } = await sync.getGitHubRemoteChanges(db, connection);
+    const { generator, remoteHeadRefId } = await sync.getGithubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
     db.transaction(() => {
       dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange));

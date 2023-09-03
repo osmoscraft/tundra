@@ -6,14 +6,14 @@ import { listDeletedFilesByPaths } from "./github/proxy/list-deleted-files-by-pa
 import { listFilesByPaths } from "./github/proxy/list-files-by-paths";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export interface GitHubRemoteChanges {
+export interface GithubRemoteChanges {
   generator: AsyncGenerator<RemoteChangeRecord>;
   remoteHeadRefId: string | null;
 }
-export async function getGitHubRemoteChanges(
+export async function getGithubRemoteChanges(
   db: Sqlite3.DB,
   connection: GithubConnection
-): Promise<GitHubRemoteChanges> {
+): Promise<GithubRemoteChanges> {
   const localHeadRefId = getGithubRemoteHeadCommit(db);
   const remoteHeadRefId = connection && localHeadRefId ? await getRemoteHeadRef(connection) : undefined;
 
@@ -22,11 +22,11 @@ export async function getGitHubRemoteChanges(
     return { generator: emptyGenerator(), remoteHeadRefId: null };
   }
 
-  const generator = iterateGitHubDiffs(connection, localHeadRefId, remoteHeadRefId);
+  const generator = iterateGithubDiffs(connection, localHeadRefId, remoteHeadRefId);
   return { generator, remoteHeadRefId };
 }
 
-async function* iterateGitHubDiffs(
+async function* iterateGithubDiffs(
   connection: GithubConnection,
   localHeadRefId: string,
   remoteHeadRefId: string
@@ -82,7 +82,7 @@ function gitDiffStatusToRemoteChangeStatus(gitDiffStatus: GitDiffStatus): Remote
   }
 }
 
-export async function getGitHubChangedFiles(
+export async function getGithubChangedFiles(
   connection: GithubConnection,
   localHeadRefId: string,
   remoteHeadRefId: string

@@ -1,3 +1,8 @@
+## Proper nouns
+
+- Prefer "github" and "Github" to "GitHub" in non-user facing areas.
+- Prefer "GitHub" in user facing areas
+
 ## Status
 
 - Try use github's diff status as source of truth
