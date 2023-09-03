@@ -56,7 +56,7 @@ export interface CommandMap {
   [key: string]: Command;
 }
 
-export function nativeCommands(): CommandLibrary {
+export function editorCommand(): CommandLibrary {
   return {
     editor: {
       moveLineUp,
