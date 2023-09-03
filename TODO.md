@@ -37,6 +37,8 @@
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Packaging: support Firefox by forking background script
+- Performance: share a single background worker across multiple tabs, using chrome offscreen API
+- Performance: preload background worker on install and browser startup, using chrome offscreen API
 - Quality: Migrate live test to node.js test once sqlite 3.43 ships
 - Quality: persist FSM spec generator output as version controlled asset
 - Quality: unit test for broadcast utils. It is not testable in a single tab
