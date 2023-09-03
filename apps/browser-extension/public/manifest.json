@@ -1,6 +1,6 @@
 {
-  "name": "TinyKB",
-  "description": "Personal knowledge base for the web",
+  "name": "Tundra",
+  "description": "Where knowledge grows",
   "version": "0.0.1",
   "manifest_version": 3,
   "action": {
