@@ -15,8 +15,6 @@
 - First run: generate gitignore on local boostrap init
 - First run: in context help menu
 - First run: initial clone progress reporting
-- First run: push locally bootstrapped app to remote
-- First run:
 - Formatting: heading level based indentation
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
