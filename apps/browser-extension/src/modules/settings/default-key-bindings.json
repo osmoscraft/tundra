@@ -11,6 +11,26 @@
       "key": "Alt-j"
     },
     {
+      "name": "Move cursor to block start",
+      "run": "editor.moveCursorBlockStart",
+      "key": "PageUp"
+    },
+    {
+      "name": "Move cursor to block end",
+      "run": "editor.moveCursorBlockEnd",
+      "key": "PageDown"
+    },
+    {
+      "name": "Select cursor to block start",
+      "run": "editor.selectCursorBlockStart",
+      "key": "Shift-PageUp"
+    },
+    {
+      "name": "Select cursor to block end",
+      "run": "editor.selectCursorBlockEnd",
+      "key": "Shift-PageDown"
+    },
+    {
       "name": "Copy line up",
       "run": "editor.copyLineUp",
       "key": "Alt-Shift-k"

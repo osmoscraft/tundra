@@ -5,6 +5,10 @@ import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { CommandKeyBinding } from "../editor/commands";
 import defaultKeyBindings from "./default-key-bindings.json";
 
+export function clearKeyBindingsCache() {
+  localStorage.removeItem(CACHE_KEY);
+}
+
 export function getKeyBindings(): CommandKeyBinding[] {
   const cachedRawFile = localStorage.getItem(CACHE_KEY);
   const initial = tryParseKeyBindings(cachedRawFile) ?? defaultKeyBindings.keyBindings;

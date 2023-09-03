@@ -16,6 +16,12 @@ import type { OmniboxElement } from "./menus/omnibox-element";
 import { stateToParams } from "../router/route-state";
 import { getGithubConnection } from "../sync/github/github-config";
 import { timestampToId } from "../sync/path";
+import {
+  moveCursorBlockEnd,
+  moveCursorBlockStart,
+  selectCursorBlockEnd,
+  selectCursorBlockStart,
+} from "./code-mirror-ext/block";
 import { deleteCurrentNote } from "./delete";
 import { getSelectedText } from "./reducers";
 import { saveCurrentNote } from "./save";
@@ -67,6 +73,10 @@ export function editorCommand(): CommandLibrary {
       indentMore,
       undo,
       redo,
+      moveCursorBlockStart,
+      moveCursorBlockEnd,
+      selectCursorBlockStart,
+      selectCursorBlockEnd,
     },
   };
 }
@@ -136,11 +146,13 @@ export function extendedCommands({
     },
     repo: {
       pull: () => {
-        proxy.fetch(getGithubConnection()).then(proxy.merge).then(onGraphChanged);
+        const connection = getGithubConnection();
+        if (connection) proxy.fetch(connection).then(proxy.merge).then(onGraphChanged);
         return true;
       },
       fetch: () => {
-        proxy.fetch(getGithubConnection()).then(onGraphChanged);
+        const connection = getGithubConnection();
+        if (connection) proxy.fetch(connection).then(onGraphChanged);
         return true;
       },
       merge: () => {
@@ -148,7 +160,10 @@ export function extendedCommands({
         return true;
       },
       push: () => {
-        proxy.push(getGithubConnection()).then(onGraphChanged);
+        const connection = getGithubConnection();
+        if (connection) {
+          proxy.push(connection).then(onGraphChanged);
+        }
         return true;
       },
       resolve: () => {
@@ -156,11 +171,14 @@ export function extendedCommands({
         return true;
       },
       sync: () => {
-        proxy
-          .fetch(getGithubConnection())
-          .then(proxy.merge)
-          .then(() => proxy.push(getGithubConnection()))
-          .then(onGraphChanged);
+        const connection = getGithubConnection();
+        if (connection) {
+          proxy
+            .fetch(connection)
+            .then(proxy.merge)
+            .then(() => proxy.push(connection))
+            .then(onGraphChanged);
+        }
         return true;
       },
     },

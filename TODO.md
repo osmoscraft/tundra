@@ -22,7 +22,6 @@
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
-- Keyboard: paragraph jumps with page up/down
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
