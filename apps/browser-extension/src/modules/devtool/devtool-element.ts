@@ -1,5 +1,6 @@
 import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
+import { clearKeyBindingsCache } from "../settings/key-bindings";
 import template from "./devtool-element.html";
 import { downloadFile } from "./download-file";
 
@@ -38,6 +39,10 @@ export class DevtoolElement extends HTMLElement {
         case "destory-all": {
           this.proxy.destoryDatabase();
           location.reload();
+          break;
+        }
+        case "clear-key-bindings-cache": {
+          clearKeyBindingsCache();
           break;
         }
       }
