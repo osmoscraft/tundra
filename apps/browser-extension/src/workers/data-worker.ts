@@ -52,10 +52,11 @@ const routes = {
   getDbFile,
   getRecentFiles: async () => searchRecentFiles(await dbInit(), 10),
   getRecentNotes: async () => searchRecentNotes(await dbInit(), 10),
-  getStatus: async () => {
+  getStatus: async (connection: GithubConnection | null) => {
     const db = await dbInit();
 
     return formatStatus({
+      hasConnection: !!connection,
       hasRemote: !!sync.getGithubRemoteHeadCommit(db),
       stats: dbApi.getSyncStats(db, { ignore: sync.getIgnorePatterns(db) }),
     });

@@ -31,8 +31,8 @@ export class GithubConfigElement extends HTMLElement {
 
       // start clone
       const { isValid, connection } = this.ensureValidConnection();
-      if (isValid) {
-        this.proxy.clone(getGithubConnection());
+      if (isValid && connection) {
+        this.proxy.clone(connection);
       }
     }
 
@@ -45,6 +45,7 @@ export class GithubConfigElement extends HTMLElement {
         case "test": {
           const { isValid, connection } = this.ensureValidConnection();
           if (!isValid) break;
+          if (!connection) break;
 
           this.proxy.testGithubConnection(connection).then((res) => console.log("Is connected?", res));
           break;
@@ -64,6 +65,7 @@ export class GithubConfigElement extends HTMLElement {
         case "export": {
           const { isValid, connection } = this.ensureValidConnection();
           if (!isValid) break;
+          if (!connection) break;
 
           window.confirm("This will wipe out the entire history of the remote repo. Do you want to continue?") &&
             this.proxy.resetRemote(connection);

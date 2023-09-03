@@ -16,19 +16,18 @@ export function setGithubConnection(connection: GithubConnection) {
   localStorage.setItem("config.github-connection", JSON.stringify(connection));
 }
 
-export function getGithubConnection(): GithubConnection {
+export function getGithubConnection(): GithubConnection | null {
   const raw = localStorage.getItem("config.github-connection");
-  if (!raw) return INITIAL_CONNECTION;
+  if (!raw) return null;
 
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return parsed;
   } catch {
-    return INITIAL_CONNECTION;
+    return null;
   }
 }
 
-const INITIAL_CONNECTION: GithubConnection = {
-  owner: "",
-  repo: "",
-  token: "",
-};
+function isEmpty(value: any): value is string {
+  return typeof value !== "string" || !value?.length;
+}

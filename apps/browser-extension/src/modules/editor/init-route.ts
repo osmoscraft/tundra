@@ -37,9 +37,9 @@ export async function initRoute({
   const file = id ? await proxy.getNote(id) : null;
   const existingContent = file?.content ?? null;
 
-  proxy
-    .fetch(getGithubConnection())
-    .then(proxy.getStatus)
+  const connection = getGithubConnection();
+  Promise.resolve(connection ? proxy.fetch(connection) : null)
+    .then(() => proxy.getStatus(connection))
     .then((status) => statusEvents.dispatchEvent(new CustomEvent("status", { detail: status })));
 
   const initialContent = existingContent ?? getDraftContent(title, metaUrl);
