@@ -1,5 +1,7 @@
 # Alpha release checklist
 
+- Editor: Ctrl+F search cannot scan document beyond viewport
+
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection
