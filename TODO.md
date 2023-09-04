@@ -52,6 +52,7 @@
 - Status: reflect git graph change status in HUD (separate from buffer status)
 - Status: semantic color-coding of status bar (separate from HUD indicator)
 - Storage: Hierarchical note directory path support
+- Storage: use relative path and file extension in storage, and use atomic ID string in UI
 - Sync: clone command
 - Sync: fallback to full import when history is too long to catch up
 - Sync: improve clone performance, goal <2ms per file, baseline 4.5ms per file
