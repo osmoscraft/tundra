@@ -114,7 +114,11 @@
     },
     {
       "name": "Sync",
-      "run": "repo.sync",
+      "run": "repo.sync"
+    },
+    {
+      "name": "Save and sync",
+      "run": "repo.saveAndSync",
       "key": "Mod-Shift-s"
     }
   ]

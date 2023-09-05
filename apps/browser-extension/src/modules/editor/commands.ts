@@ -82,18 +82,18 @@ export function editorCommand(): CommandLibrary {
 }
 
 export interface ExtendedCommandsConfig {
-  proxy: AsyncProxy<DataWorkerRoutes>;
   dialog: HTMLDialogElement;
   omnibox: OmniboxElement;
-  tabset: Tabset<TabMessage>;
   onGraphChanged: () => void;
+  proxy: AsyncProxy<DataWorkerRoutes>;
+  tabset: Tabset<TabMessage>;
 }
 
 export function extendedCommands({
-  proxy,
   dialog,
   omnibox,
   onGraphChanged,
+  proxy,
   tabset,
 }: ExtendedCommandsConfig): CommandLibrary {
   return {
@@ -179,6 +179,32 @@ export function extendedCommands({
             .then(() => proxy.push(connection))
             .then(onGraphChanged);
         }
+        return true;
+      },
+      saveAndSync: (view) => {
+        saveCurrentNote({
+          getContent: () => view.state.doc.toString(),
+          onCreated: (note) =>
+            tabset.broadcast({
+              noteCreated: {
+                id: note.id,
+                title: note.title,
+              },
+            }),
+          proxy,
+        })
+          .then(onGraphChanged)
+          .then(() => {
+            const connection = getGithubConnection();
+            if (connection) {
+              proxy
+                .fetch(connection)
+                .then(proxy.merge)
+                .then(() => proxy.push(connection))
+                .then(onGraphChanged);
+            }
+          });
+
         return true;
       },
     },

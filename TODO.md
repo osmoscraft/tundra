@@ -2,7 +2,6 @@
 
 - Editor: Ctrl+F search cannot scan document beyond viewport
 - Status template: (N ahead)? (N behind)? (N conflict)? (local)? (empty | N total)
-- Keyboard: Ctrl+Shift+S should be save & sync while sync alone should be command
 
 # Beta backlog
 
