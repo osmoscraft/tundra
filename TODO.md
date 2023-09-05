@@ -2,6 +2,7 @@
 
 - Editor: Ctrl+F search cannot scan document beyond viewport
 - Status template: (N ahead)? (N behind)? (N conflict)? (local)? (empty | N total)
+- Keyboard: Ctrl+Shift+S should be save & sync while sync alone should be command
 
 # Beta backlog
 
@@ -25,7 +26,6 @@
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
-- Keyboard: Ctrl+Shift+S should be save & sync while sync alone should be command
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
