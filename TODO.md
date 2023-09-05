@@ -39,6 +39,7 @@
 - Omnibox: handle ctrl p and ctrl shift p while inside omnibox
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
+- Omnibox: Move "create new" option to the bottom of the list
 - Packaging: support Firefox by forking background script
 - Performance: share a single background worker across multiple tabs, using chrome offscreen API
 - Performance: preload background worker on install and browser startup, using chrome offscreen API
