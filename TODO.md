@@ -25,6 +25,7 @@
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
+- Keyboard: Ctrl+Shift+S should be save & sync while sync alone should be command
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
@@ -40,6 +41,7 @@
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Omnibox: Move "create new" option to the bottom of the list
+- Omnibox: Simplify the modes by relying on post creation fragile selection state and undo stack
 - Packaging: support Firefox by forking background script
 - Performance: share a single background worker across multiple tabs, using chrome offscreen API
 - Performance: preload background worker on install and browser startup, using chrome offscreen API
