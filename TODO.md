@@ -18,6 +18,7 @@
 - First run: generate gitignore on local boostrap init
 - First run: in context help menu
 - First run: initial clone progress reporting
+- First run: load keybinding immediate after clone without page reload
 - Formatting: heading level based indentation
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
