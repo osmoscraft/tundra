@@ -1,7 +1,7 @@
 {
   "name": "Tundra",
   "description": "Where knowledge grows",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "manifest_version": 3,
   "action": {
     "default_icon": {

@@ -1,4 +1,4 @@
-# Unreleased
+# v0.0.2
 
 - Added: `saveFileAndSyncChanges` command (Ctrl/Cmd + Shift + S)
 - Added: Search panel (Ctrl/Cmd + F)
