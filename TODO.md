@@ -48,6 +48,7 @@
 - Quality: persist FSM spec generator output as version controlled asset
 - Quality: unit test for broadcast utils. It is not testable in a single tab
 - Quality: http request triggers blocking tooltip at bottom-left corner
+- Settings: When server side keyboard config has breaking change, client might not be able to open options page
 - Status: actionable messages
 - Status: detailed sync progress
 - Status: progressive discloure of multi-lines history
