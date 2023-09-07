@@ -2,128 +2,128 @@
   "keyBindings": [
     {
       "name": "Open search panel",
-      "run": "editor.openSearchPanel",
+      "run": "openSearchPanel",
       "key": "Mod-f"
     },
     {
       "name": "Move line up",
-      "run": "editor.moveLineUp",
+      "run": "moveLineUp",
       "key": "Alt-k"
     },
     {
       "name": "Move line down",
-      "run": "editor.moveLineDown",
+      "run": "moveLineDown",
       "key": "Alt-j"
     },
     {
       "name": "Move cursor to block start",
-      "run": "editor.moveCursorBlockStart",
+      "run": "moveCursorBlockStart",
       "key": "PageUp"
     },
     {
       "name": "Move cursor to block end",
-      "run": "editor.moveCursorBlockEnd",
+      "run": "moveCursorBlockEnd",
       "key": "PageDown"
     },
     {
       "name": "Select cursor to block start",
-      "run": "editor.selectCursorBlockStart",
+      "run": "selectCursorBlockStart",
       "key": "Shift-PageUp"
     },
     {
       "name": "Select cursor to block end",
-      "run": "editor.selectCursorBlockEnd",
+      "run": "selectCursorBlockEnd",
       "key": "Shift-PageDown"
     },
     {
       "name": "Copy line up",
-      "run": "editor.copyLineUp",
+      "run": "copyLineUp",
       "key": "Alt-Shift-k"
     },
     {
       "name": "Copy line down",
-      "run": "editor.copyLineDown",
+      "run": "copyLineDown",
       "key": "Alt-Shift-j"
     },
     {
       "name": "Indent less",
-      "run": "editor.indentLess",
+      "run": "indentLess",
       "key": "Alt-h"
     },
     {
       "name": "Indent more",
-      "run": "editor.indentMore",
+      "run": "indentMore",
       "key": "Alt-l"
     },
     {
       "name": "Undo",
-      "run": "editor.undo",
+      "run": "undo",
       "key": "Mod-z"
     },
     {
       "name": "Redo",
-      "run": "editor.redo",
+      "run": "redo",
       "key": "Mod-Z"
     },
     {
       "name": "Options",
-      "run": "shell.openOptions"
+      "run": "openOptions"
     },
     {
       "name": "Add link",
-      "run": "shell.addLink",
+      "run": "openOmniboxLinkMode",
       "key": "Mod-k"
     },
     {
       "name": "Search",
-      "run": "shell.startSearch",
+      "run": "openOmniboxSearchMode",
       "key": "Mod-p"
     },
     {
       "name": "Command",
-      "run": "shell.startCommand",
+      "run": "openOmniboxCommandMode",
       "key": "Mod-Shift-p"
     },
     {
       "name": "Save",
-      "run": "file.save",
+      "run": "saveFile",
       "key": "Mod-s"
     },
     {
       "name": "Fetch",
-      "run": "repo.fetch"
+      "run": "fetchChanges"
     },
     {
       "name": "New",
-      "run": "file.new"
+      "run": "newFile"
     },
     {
       "name": "Pull",
-      "run": "repo.pull"
+      "run": "pullChanges"
     },
     {
       "name": "Push",
-      "run": "repo.push"
+      "run": "pushChanges"
     },
     {
       "name": "Merge",
-      "run": "repo.merge"
+      "run": "mergeChanges"
     },
     {
       "name": "Delete",
-      "run": "file.delete"
+      "run": "deleteFile"
     },
     {
       "name": "Resolve",
-      "run": "repo.resolve"
+      "run": "resolveConflicts"
     },
     {
       "name": "Sync",
-      "run": "repo.sync"
+      "run": "syncChanges"
     },
     {
       "name": "Save and sync",
-      "run": "repo.saveAndSync",
+      "run": "saveFilesAndSyncChanges",
       "key": "Mod-Shift-s"
     }
   ]

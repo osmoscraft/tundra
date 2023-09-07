@@ -116,8 +116,7 @@ export async function handleMenuAction(context: OmnimenuActionContext, action: M
       router.push(`?${stateToParams(state)}`);
     }
   } else if (state.command) {
-    const [namespace, commandName] = state.command!.split(".");
-    const command = library[namespace]?.[commandName] as Command | undefined;
+    const command = library[state.command] as Command | undefined;
 
     command?.(view);
   } else {
