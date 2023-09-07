@@ -47,6 +47,7 @@
 - Quality: Migrate live test to node.js test once sqlite 3.43 ships
 - Quality: persist FSM spec generator output as version controlled asset
 - Quality: unit test for broadcast utils. It is not testable in a single tab
+- Quality: http request triggers blocking tooltip at bottom-left corner
 - Status: actionable messages
 - Status: detailed sync progress
 - Status: progressive discloure of multi-lines history
