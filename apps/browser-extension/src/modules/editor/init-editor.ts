@@ -1,5 +1,6 @@
 import { history } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { search } from "@codemirror/search";
 import type { Extension } from "@codemirror/state";
 import { drawSelection, dropCursor, highlightActiveLine, keymap, type KeyBinding } from "@codemirror/view";
 import { EditorView } from "codemirror";
@@ -36,6 +37,7 @@ export function initEditor(config: InitEdidorConfig) {
     highlightActiveLine(),
     drawSelection(),
     dropCursor(),
+    search(),
     EditorView.lineWrapping,
     markdown({
       base: markdownLanguage,

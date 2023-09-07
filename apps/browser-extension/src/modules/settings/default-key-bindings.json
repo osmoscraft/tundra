@@ -1,6 +1,11 @@
 {
   "keyBindings": [
     {
+      "name": "Open search panel",
+      "run": "editor.openSearchPanel",
+      "key": "Mod-f"
+    },
+    {
       "name": "Move line up",
       "run": "editor.moveLineUp",
       "key": "Alt-k"

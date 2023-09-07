@@ -28,6 +28,7 @@
     "@codemirror/lang-markdown": "^6.2.0",
     "@codemirror/language": "^6.9.0",
     "@codemirror/legacy-modes": "^6.3.3",
+    "@codemirror/search": "^6.5.2",
     "@codemirror/state": "^6.2.1",
     "@codemirror/view": "^6.16.0",
     "@lezer/markdown": "^1.1.0",

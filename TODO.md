@@ -1,7 +1,5 @@
 # Alpha release checklist
 
-- Editor: Ctrl+F search cannot scan document beyond viewport
-
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection
@@ -25,6 +23,8 @@
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
+- Keyboard: ESC to close search panel
+- Keyboard: Ctrl-F to toggle search panel
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
