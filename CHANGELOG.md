@@ -1,9 +1,10 @@
 # Unreleased
 
-- Added: `repo.saveAndSync` command (Ctrl/Cmd + Shift + S)
+- Added: `saveFileAndSyncChanges` command (Ctrl/Cmd + Shift + S)
 - Added: Search panel (Ctrl/Cmd + F)
 - Changed: `(New)` option moved to the bottom of omnimenu
 - Changed: Diff status display
+- Changed: Shortened command namespace
 
 # v0.0.1
 
