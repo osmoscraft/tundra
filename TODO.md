@@ -69,6 +69,7 @@
 - Theming: migrate all js color values to css class + variable
 - Theming: user stylesheet override
 - Workspace: multi-tab editing with conflict prevention
+- Workspace: status display should auto update when any tab updates
 - Workspace: restore cursor between SPA navigations
 
 # Future
