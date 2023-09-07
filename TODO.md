@@ -1,7 +1,6 @@
 # Alpha release checklist
 
 - Editor: Ctrl+F search cannot scan document beyond viewport
-- Status template: (N ahead)? (N behind)? (N conflict)? (local)? (empty | N total)
 
 # Beta backlog
 

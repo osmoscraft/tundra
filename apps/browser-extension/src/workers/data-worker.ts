@@ -56,8 +56,7 @@ const routes = {
     const db = await dbInit();
 
     return formatStatus({
-      hasConnection: !!connection,
-      hasRemote: !!sync.getGithubRemoteHeadCommit(db),
+      canDiff: Boolean(connection && sync.getGithubRemoteHeadCommit(db)),
       stats: dbApi.getSyncStats(db, { ignore: sync.getIgnorePatterns(db) }),
     });
   },

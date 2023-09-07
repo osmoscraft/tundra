@@ -1,27 +1,19 @@
 import type { SyncStats } from "../database";
 
 export interface FormatStatusInput {
-  hasConnection: boolean;
-  hasRemote: boolean;
+  canDiff: boolean;
   stats: SyncStats;
 }
-export function formatStatus({ hasConnection, hasRemote, stats }: FormatStatusInput) {
+export function formatStatus({ canDiff, stats }: FormatStatusInput) {
   const { ahead, behind, conflict, total } = stats;
 
-  const canCompare = hasConnection && hasRemote;
-
   const segments: string[] = [];
-  if (ahead && canCompare) segments.push(`↑ ${ahead}`);
-  if (behind && canCompare) segments.push(`↓ ${behind}`);
-  if (conflict && canCompare) segments.push(`! ${conflict}`);
+  if (conflict && canDiff) segments.push(`${conflict} conflict`);
+  if (behind && canDiff) segments.push(`${behind} in`);
+  if (ahead && canDiff) segments.push(`${ahead} out`);
 
-  const synced = canCompare ? total - conflict - ahead - behind : 0;
-  if (synced) segments.push(`${synced} synced`);
-
-  const localOnly = !canCompare ? total : 0;
-  if (localOnly) segments.push(`${localOnly} local`);
-
-  if (!segments.length) return "Empty";
+  segments.push(`${total} total`);
+  if (!canDiff) segments.push("local mode");
 
   return segments.join(" | ");
 }

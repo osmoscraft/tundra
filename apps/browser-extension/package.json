@@ -12,7 +12,8 @@
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/workers/*.ts  --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
     "pack": "node scripts/pack.js --dir dist/unpacked",
-    "test": "tsx ./src/index.test.ts"
+    "test": "tsx ./src/index.test.ts",
+    "test:watch": "tsx --watch ./src/index.test.ts"
   },
   "type": "module",
   "devDependencies": {
