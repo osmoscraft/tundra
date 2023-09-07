@@ -43,10 +43,6 @@ export async function handleMenuInput(
       const linkToUrl = isLinking && searchUrl ? searchUrl : undefined;
 
       const rawItems = [
-        {
-          title: `(New) ${searchTerms}`,
-          state: { id: newNoteId, url: newNoteUrl, title: newNoteTitle, linkToId, linkToUrl },
-        },
         ...notes.map((file) => ({
           title: file.meta?.title ?? "Untitled",
           state: {
@@ -55,6 +51,10 @@ export async function handleMenuInput(
             linkToId: isLinking ? file.id : undefined,
           },
         })),
+        {
+          title: `(New) ${searchTerms}`,
+          state: { id: newNoteId, url: newNoteUrl, title: newNoteTitle, linkToId, linkToUrl },
+        },
       ];
 
       omnimenu.setMenuItems(rawItems);
