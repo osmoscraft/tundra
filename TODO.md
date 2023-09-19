@@ -1,5 +1,7 @@
 # Alpha release checklist
 
+- Bug: document title with colon would crash the yaml parser
+
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection
