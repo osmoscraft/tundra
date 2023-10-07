@@ -1,3 +1,7 @@
+# v0.0.3
+
+- Chore: Dependency updates
+
 # v0.0.2
 
 - Added: `saveFileAndSyncChanges` command (Ctrl/Cmd + Shift + S)
