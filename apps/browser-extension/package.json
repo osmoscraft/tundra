@@ -17,7 +17,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/chrome": "^0.0.231",
+    "@types/chrome": "^0.0.246",
     "@types/node": "^20.2.5",
     "concurrently": "^8.0.1",
     "esbuild": "^0.19.2",
