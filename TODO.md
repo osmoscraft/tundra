@@ -1,6 +1,4 @@
-# Alpha release checklist
-
-- Bug: document title with colon would crash the yaml parser
+# Bugs
 
 # Beta backlog
 
