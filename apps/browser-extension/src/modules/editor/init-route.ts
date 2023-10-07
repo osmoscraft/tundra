@@ -1,6 +1,7 @@
 import { Transaction } from "@codemirror/state";
 import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { EditorView } from "codemirror";
+import yaml from "yaml";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import { resolveSearchParams } from "../router/resolve-search-params";
 import { paramsToRouteState, replaceSearchParams } from "../router/route-state";
@@ -76,11 +77,22 @@ export async function initRoute({
 }
 
 function getDraftContent(title?: string, metaUrl?: string) {
+  const frontmatter = yaml.stringify(
+    Object.fromEntries(
+      [
+        ["title", title ?? "Untitled"],
+        ["created", getLocalTimestamp(new Date())],
+        ["url", metaUrl],
+      ].filter((item) => item[1]),
+    ),
+    {
+      lineWidth: 0, // disable folding
+    },
+  );
+
   return `
 ---
-${[`title: ${title ?? "Untitled"}`, `created: ${getLocalTimestamp(new Date())}`, metaUrl ? `url: ${metaUrl}` : ``]
-  .filter(Boolean)
-  .join("\n")}
+${frontmatter.trim()}
 ---
 
 `.trimStart();

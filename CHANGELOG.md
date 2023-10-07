@@ -1,5 +1,6 @@
 # v0.0.3
 
+- Fixed: Escape special characters in frontmatter
 - Chore: Dependency updates
 
 # v0.0.2
