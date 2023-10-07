@@ -11,11 +11,12 @@ git config pager.branch false
 # Store creds inside container
 git config credential.helper store
 
-# Azure DevOps uses http path
-git config credential.useHttpPath true
-
 # Use rebase as default merge strategy
 git config pull.rebase false
+
+# Remove gh cli credential helper
+git config --global --unset-all credential.https://github.com.helper
+git config --global --unset-all credential.https://gist.github.com.helper
 
 # Stop echo commands
 set +x;

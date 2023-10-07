@@ -5,7 +5,7 @@
   },
   "remoteUser": "node",
   "forwardPorts": [8080],
-  "postCreateCommand": "./.devcontainer/init.sh",
+  "postAttachCommand": "./.devcontainer/init.sh",
   "customizations": {
     "vscode": {
       "extensions": ["esbenp.prettier-vscode"]
