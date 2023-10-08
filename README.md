@@ -1,6 +1,6 @@
 # Tundra
 
-Where knowledge grows
+Where knowledge grows.
 
 ## Screenshot
 
