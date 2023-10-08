@@ -9,6 +9,7 @@ Where knowledge grows
 ## Features
 
 - Write notes in Markdown syntax
+- Instant offline full-text search with WASM + SQLite
 - Link to other notes and track backlinks
 - Keyboard-centric workflow for navigation, search, and linking
 - Back up and sync notes with GitHub*
