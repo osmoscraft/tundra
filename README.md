@@ -4,7 +4,7 @@ Where knowledge grows.
 
 ## Screenshot
 
-![image](https://github.com/osmoscraft/tundra/assets/1895289/664662f4-7f37-43be-b827-4c45925a3043)
+![Screenshot](https://github.com/osmoscraft/tundra/assets/1895289/770b47ab-5fac-483b-88d8-3f3b145eda97)
 
 ## Features
 
