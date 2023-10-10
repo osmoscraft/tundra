@@ -1,8 +1,8 @@
 import assert from "assert/strict";
 import { exec } from "child_process";
+import { readFile } from "fs/promises";
 import path from "path";
 import { promisify } from "util";
-import { readJson } from "./fs.js";
 
 const execAsync = promisify(exec);
 
@@ -15,12 +15,20 @@ const dir = process.argv[process.argv.indexOf("--dir") + 1];
 async function pack(dir) {
   console.log("[pack] extension dir", path.resolve(dir));
   const manifest = await readJson(path.resolve(dir, "manifest.json"));
-  const version = manifest.version;
-  const outFilename = `tundra-${version}.chrome.zip`;
+  const { name, version } = manifest;
+  const outFilename = `${name.toLocaleLowerCase()}-${version}.chrome.zip`;
 
   await execAsync(`zip -r ../${outFilename} .`, { cwd: dir });
 
   console.log(`[pack] packed: ${outFilename}`);
+}
+
+/**
+ *
+ * @param {string} path
+ */
+async function readJson(path) {
+  return JSON.parse(await readFile(path, "utf-8"));
 }
 
 pack(dir);

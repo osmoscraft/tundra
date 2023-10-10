@@ -1,4 +1,4 @@
-# Alpha release checklist
+# Bugs
 
 # Beta backlog
 
@@ -12,6 +12,7 @@
 - Community: sponsorship options
 - Community: support forum
 - Community: web site
+- Editing: spell checker
 - First run: generate gitignore on local boostrap init
 - First run: in context help menu
 - First run: initial clone progress reporting
@@ -31,6 +32,7 @@
 - Lifecycle: enter read-only mode after note is deleted
 - Lifecycle: handle files that are deleted but still referenced by other files
 - Lifecycle: prevent autosave with invalid frontmatter metadata
+  Lifecycle: sync command cannot be issued while another sync is running (or newer result will be lost)
 - Links: link insertion via on-canvas autocompletion
 - Links: mouse click in text portion should allow edit
 - Links: the default option should be first matched link, rather than create new
