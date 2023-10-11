@@ -125,6 +125,10 @@
       "name": "Save and sync",
       "run": "saveFilesAndSyncChanges",
       "key": "Mod-Shift-s"
+    },
+    {
+      "name": "Toggle spellcheck",
+      "run": "toggleSpellcheck"
     }
   ]
 }

@@ -198,5 +198,14 @@ export function extendedCommands({
 
       return true;
     },
+    toggleSpellcheck: (view) => {
+      const spellcheckElement = view.dom?.querySelector("[spellcheck]");
+      if (spellcheckElement) {
+        const newValue = spellcheckElement?.getAttribute("spellcheck") === "true" ? "false" : "true";
+        spellcheckElement.setAttribute("spellcheck", newValue);
+      }
+
+      return true;
+    },
   };
 }

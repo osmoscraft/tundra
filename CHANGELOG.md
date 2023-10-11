@@ -1,3 +1,7 @@
+# unreleased
+
+- Added: Spellcheck command
+
 # v0.0.3
 
 - Fixed: Escape special characters in frontmatter
