@@ -14,19 +14,17 @@ export interface HandleMenuInputConfig {
 
 export async function handleMenuInput(
   { commandBindings, omnimenu, proxy }: HandleMenuInputConfig,
-  e: CustomEvent<string>
+  e: CustomEvent<string>,
 ) {
   const q = e.detail;
   if (q.startsWith(">")) {
     const command = q.slice(1).trim();
-    const matchedCommands = commandBindings.filter((cmd) =>
-      cmd.name.toLocaleLowerCase().startsWith(command.toLocaleLowerCase())
-    );
+    const matchedCommands = commandBindings.filter((cmd) => matchCommand({ query: command, candidate: cmd.name }));
     omnimenu.setMenuItems(
       matchedCommands.map((command) => ({
         title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
         state: { command: command.run },
-      }))
+      })),
     );
   } else {
     const isLinking = q.startsWith(":");
@@ -82,11 +80,28 @@ export async function handleMenuInput(
             title: note.meta?.title ?? "Untitled",
             linkToId: isLinking ? note.id : undefined,
           },
-        }))
+        })),
       );
       console.log(
-        `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`
+        `[perf] load recent latency ${performance.measure("search", "load-recent-start").duration.toFixed(2)}ms`,
       );
     }
   }
+}
+
+interface MatchConfig {
+  query: string;
+  candidate: string;
+}
+
+function matchCommand({ query, candidate }: MatchConfig) {
+  const queryNormalized = query.toLocaleLowerCase();
+  const queryParts = queryNormalized.split(" ").filter(Boolean);
+  const candidateNormalized = candidate.toLocaleLowerCase();
+  const candidateParts = candidateNormalized.split(" ").filter(Boolean);
+
+  return (
+    candidateNormalized.startsWith(queryNormalized) ||
+    queryParts.every((part) => candidateParts.some((candidatePart) => candidatePart.startsWith(part)))
+  );
 }

@@ -1,7 +1,8 @@
-# unreleased
+# v0.0.4
 
 - Added: Spellcheck command
 - Added: Merge custsom commands with defaults
+- Added: Per-word perfix search for commands
 
 # v0.0.3
 
