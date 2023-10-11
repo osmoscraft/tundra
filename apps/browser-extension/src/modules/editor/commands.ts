@@ -82,6 +82,7 @@ export interface ExtendedCommandsConfig {
   omnibox: OmniboxElement;
   onGraphChanged: () => void;
   proxy: AsyncProxy<DataWorkerRoutes>;
+  statusEvents: EventTarget;
   tabset: Tabset<TabMessage>;
 }
 
@@ -90,6 +91,7 @@ export function extendedCommands({
   omnibox,
   onGraphChanged,
   proxy,
+  statusEvents,
   tabset,
 }: ExtendedCommandsConfig): CommandLibrary {
   return {
@@ -203,6 +205,7 @@ export function extendedCommands({
       if (spellcheckElement) {
         const newValue = spellcheckElement?.getAttribute("spellcheck") === "true" ? "false" : "true";
         spellcheckElement.setAttribute("spellcheck", newValue);
+        statusEvents.dispatchEvent(new CustomEvent("status", { detail: `Spellcheck: ${newValue}` }));
       }
 
       return true;

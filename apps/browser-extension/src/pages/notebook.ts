@@ -56,7 +56,7 @@ function main() {
 
   const library = {
     ...editorCommand(),
-    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), tabset }),
+    ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), statusEvents, tabset }),
   };
   const commandBindings = getKeyBindings();
   const editorBindings = getEditorKeyBindings(commandBindings, library);
