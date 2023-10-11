@@ -59,7 +59,7 @@ function main() {
     ...extendedCommands({ proxy, dialog, omnibox, onGraphChanged: () => router.reload(), tabset }),
   };
   const commandBindings = getKeyBindings();
-  const editorBindings = getEditorKeyBindings(getKeyBindings(), library);
+  const editorBindings = getEditorKeyBindings(commandBindings, library);
 
   const { extension: focusWatcherExtension } = focusWatcher({ onChange: (isFocused) => hud.setIsFocused(isFocused) });
 

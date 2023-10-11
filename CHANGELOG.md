@@ -1,6 +1,7 @@
 # unreleased
 
 - Added: Spellcheck command
+- Added: Merge custsom commands with defaults
 
 # v0.0.3
 

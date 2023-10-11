@@ -11,21 +11,24 @@ export function clearKeyBindingsCache() {
 
 export function getKeyBindings(): CommandKeyBinding[] {
   const cachedRawFile = localStorage.getItem(CACHE_KEY);
-  const initial = tryParseKeyBindings(cachedRawFile) ?? defaultKeyBindings.keyBindings;
-  return initial;
+  const customBindings = tryParseKeyBindings(cachedRawFile) ?? [];
+  const mergedBindings = mergeKeyBindings(defaultKeyBindings.keyBindings, customBindings);
+  return mergedBindings;
 }
 
 export function checkKeyBindingsUpdate(proxy: AsyncProxy<DataWorkerRoutes>, onUpdateNeeded?: () => void) {
   const cachedRawFile = localStorage.getItem(CACHE_KEY);
 
   return proxy.getFile(KEY_BINDINGS_FILE_PATH).then((file) => {
-    if (!file?.content) return;
-    if (file.content === cachedRawFile) return;
+    const latest = file?.content ?? null;
+    if (latest === cachedRawFile) return;
 
-    const parsed = tryParseKeyBindings(file?.content);
-    if (!parsed) return;
-
-    localStorage.setItem(CACHE_KEY, file.content);
+    const parsed = tryParseKeyBindings(latest);
+    if (!file?.content || !parsed) {
+      localStorage.removeItem(CACHE_KEY);
+    } else {
+      localStorage.setItem(CACHE_KEY, file.content);
+    }
     onUpdateNeeded?.();
   });
 }
@@ -39,4 +42,14 @@ function tryParseKeyBindings(cachedRaw?: string | null): CommandKeyBinding[] | n
   } catch {
     return null;
   }
+}
+
+function mergeKeyBindings(defaultBindings: CommandKeyBinding[], customBindings: CommandKeyBinding[]) {
+  const keyMap = new Map<string, CommandKeyBinding>();
+
+  [...defaultBindings, ...customBindings].forEach((binding) => {
+    keyMap.set(binding.name, binding);
+  });
+
+  return Array.from(keyMap.values());
 }

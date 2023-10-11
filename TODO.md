@@ -43,6 +43,7 @@
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Omnibox: Simplify the modes by relying on post creation fragile selection state and undo stack
 - Omnibox: At least of menu item should always be selected
+- Omnibox: Search command with prefix per-word, not just per-line
 - Packaging: support Firefox by forking background script
 - Performance: share a single background worker across multiple tabs, using chrome offscreen API
 - Performance: preload background worker on install and browser startup, using chrome offscreen API
