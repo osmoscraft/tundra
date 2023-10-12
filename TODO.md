@@ -12,7 +12,8 @@
 - Community: sponsorship options
 - Community: support forum
 - Community: web site
-- Editing: spell checker
+- Editing: avoid spellcheck on URLs
+- Editing: avoid spellcheck on timestamps
 - First run: generate gitignore on local boostrap init
 - First run: in context help menu
 - First run: initial clone progress reporting
@@ -77,3 +78,6 @@
 - Workspace: restore cursor between SPA navigations
 
 # Future
+
+# Beta done
+- Editing: spell checker
