@@ -14,7 +14,7 @@ Where knowledge grows.
 - Keyboard-centric workflow for navigation, search, and linking
 - Back up and sync notes with GitHub*
 
-* Personal access token is required for connecting with GitHub
+\* Personal access token is required for connecting with GitHub
 
 ## Install
 
