@@ -43,9 +43,10 @@ export function initPanels({
 }: InitPanelsConfig) {
   statusEvents.addEventListener("status", (e) => statusBar.setText((e as CustomEvent<string>).detail));
 
+  omnibox.addEventListener("omnibox.navigate", (e) => omnimenu.focusItemRelative(e.detail));
   omnibox.addEventListener("omnibox.input", (e) => handleMenuInput({ commandBindings, omnimenu, proxy }, e));
   omnibox.addEventListener("omnibox.submit", (e) => {
-    omnimenu.submitFirst(e.detail.submitMode);
+    omnimenu.submitFocused(e.detail.submitMode);
   });
 
   omnimenu.addEventListener("omnimenu.back", () => {

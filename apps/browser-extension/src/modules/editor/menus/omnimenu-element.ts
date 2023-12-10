@@ -39,9 +39,9 @@ export class OmnimenuElement extends HTMLElement {
     });
   }
 
-  submitFirst(submitMode: MenuActionMode) {
-    const firstItem = this.nodeList.querySelector("[data-state]");
-    this.submitItem(firstItem as HTMLElement, submitMode);
+  submitFocused(submitMode: MenuActionMode) {
+    const focusedItem = this.nodeList.querySelector("[data-active]");
+    this.submitItem(focusedItem as HTMLElement, submitMode);
   }
 
   private submitItem(element: HTMLElement, mode: MenuActionMode = MenuActionMode.primary) {
@@ -50,12 +50,31 @@ export class OmnimenuElement extends HTMLElement {
       this.dispatchEvent(
         new CustomEvent<MenuAction>("omnimenu.action", {
           detail: { state: paramsToRouteState(new URLSearchParams(stateText)), mode },
-        })
+        }),
       );
       return true;
     }
 
     return false;
+  }
+
+  focusItem(index: number) {
+    // remove previous focus
+    this.nodeList.querySelector("[data-active]")?.removeAttribute("data-active");
+
+    // set new focus
+    const focusItem = [...this.nodeList.querySelectorAll("[data-state]")].at(index);
+    focusItem?.setAttribute("data-active", "");
+    focusItem?.scrollIntoView({ block: "nearest" });
+  }
+
+  focusItemRelative(offset: number) {
+    const allItems = [...this.nodeList.querySelectorAll("[data-state]")];
+    const activeIndex = allItems.findIndex((item) => item.hasAttribute("data-active"));
+
+    if (activeIndex === -1) return;
+
+    this.focusItem((activeIndex + offset) % allItems.length);
   }
 
   setMenuItems(items: MenuItem[]) {
@@ -71,6 +90,8 @@ export class OmnimenuElement extends HTMLElement {
     // set nodeList children to be the links
     this.nodeList.innerHTML = "";
     this.nodeList.appendChild(newMenuItems);
+
+    this.focusItem(0);
   }
 
   enrichUrlItem(url: string, updatedItem: { title?: string; state?: Partial<RouteState> }) {
@@ -89,6 +110,10 @@ export class OmnimenuElement extends HTMLElement {
     const triggerElement = this.getTriggerElement(updatedItem.title ?? matchingItem.textContent!, mutableState);
 
     matchingItem.insertAdjacentElement("afterend", triggerElement);
+    // preserve active state
+    if (matchingItem.hasAttribute("data-active")) {
+      triggerElement.setAttribute("data-active", "");
+    }
     matchingItem.remove();
   }
 
@@ -104,6 +129,7 @@ export class OmnimenuElement extends HTMLElement {
       triggerElement = button;
     }
 
+    triggerElement.tabIndex = -1;
     triggerElement.setAttribute("data-state", `${stateToParams(state)}`);
     triggerElement.textContent = title;
     return triggerElement;

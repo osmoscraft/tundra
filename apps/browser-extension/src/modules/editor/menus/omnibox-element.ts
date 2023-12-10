@@ -9,6 +9,7 @@ declare global {
     "omnibox.input": CustomEvent<string>;
     "omnibox.close": Event;
     "omnibox.submit": CustomEvent<OmniboxSubmitEvent>;
+    "omnibox.navigate": CustomEvent<number>; // offset is -1 or 1
   }
 }
 
@@ -38,7 +39,7 @@ export class OmniboxElement extends HTMLElement {
       this.dispatchEvent(
         new CustomEvent<QueryEventDetail>("omnibox.input", {
           detail: this.input.value.trim(),
-        })
+        }),
       );
     });
 
@@ -57,8 +58,16 @@ export class OmniboxElement extends HTMLElement {
               value: this.input.value.trim(),
               submitMode: getMenuActionMode(e),
             },
-          })
+          }),
         );
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.dispatchEvent(new CustomEvent<number>("omnibox.navigate", { detail: -1 }));
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.dispatchEvent(new CustomEvent<number>("omnibox.navigate", { detail: 1 }));
       }
     });
   }

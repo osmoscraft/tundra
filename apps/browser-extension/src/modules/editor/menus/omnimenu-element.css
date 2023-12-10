@@ -23,7 +23,7 @@ omnimenu-element li > *:where(a, button) {
   background-color: var(--bg);
   outline: none;
 
-  &:where(:hover, :focus) {
+  &:where(:hover, :focus, [data-active]) {
     color: var(--fg-active);
     background-color: var(--bg-active);
   }
