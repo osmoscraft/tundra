@@ -22,7 +22,7 @@ export async function handleMenuInput(
     const matchedCommands = commandBindings.filter((cmd) => matchCommand({ query: command, candidate: cmd.name }));
     omnimenu.setMenuItems(
       matchedCommands.map((command) => ({
-        title: `${[command.name, command.chord, command.key].filter(Boolean).join(" | ")}`,
+        title: `${[command.name, command.key].filter(Boolean).join(" | ")}`,
         state: { command: command.run },
       })),
     );

@@ -33,7 +33,7 @@ export interface CommandKeyBinding {
   name: string;
   run: string;
   key?: string;
-  chord?: string;
+  // chord?: string;
   // when?: string;
 }
 
