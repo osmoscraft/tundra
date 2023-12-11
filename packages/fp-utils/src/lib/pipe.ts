@@ -10,7 +10,7 @@ export function pipe<T extends Fn[]>(
 export function shortPipe<T extends Fn[]>(
   ...fns: T
 ): (...args: Parameters<FirstInArrayOrAny<T>>) => null | ReturnType<LastInArrayOrAny<T>> {
-  return (((x: any) => fns.reduce((v, f) => (v === null || v === undefined ? v : f(v)), x)) as any) ?? null;
+  return ((x: any) => fns.reduce((v, f) => (v === null || v === undefined ? v : f(v)), x) ?? null) as any;
 }
 
 export function asyncPipe<T extends Fn[]>(
