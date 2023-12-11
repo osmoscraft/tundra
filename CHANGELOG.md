@@ -1,3 +1,8 @@
+# v0.0.5
+
+- Added: Arrow key navigation for menus
+- Added: Auto height for backlink menu
+
 # v0.0.4
 
 - Added: Spellcheck command
