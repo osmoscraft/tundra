@@ -39,7 +39,7 @@ export class FocusTrapElement extends HTMLElement {
 
   private queryFocusableChildren() {
     return this.querySelectorAll<HTMLElement>(
-      `:where(a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])):not([data-is-sentinel])`
+      `:where(a[href], button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])):not([data-is-sentinel])`,
     );
   }
 }

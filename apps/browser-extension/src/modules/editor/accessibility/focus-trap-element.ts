@@ -11,16 +11,13 @@ export class FocusTrapElement extends HTMLElement {
     this.append(
       FocusTrapElement.createSentinel(() => {
         this.queryFocusableChildren()[0]?.focus();
-      })
+      }),
     );
     this.prepend(
       FocusTrapElement.createSentinel(() => {
         // This head element forwards the auto-focus behavior of the modal element to the first focusable child
         this.queryFocusableChildren()[0]?.focus();
       }),
-      FocusTrapElement.createSentinel(() => {
-        [...this.queryFocusableChildren()].pop()?.focus();
-      })
     );
   }
 
