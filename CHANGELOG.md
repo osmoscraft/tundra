@@ -8,7 +8,7 @@
 
 - Added: Spellcheck command
 - Added: Merge custsom commands with defaults
-- Added: Per-word perfix search for commands
+- Added: Per-word prefix search for commands
 - Fixed: Omnibox and GitHub connection string triggered spellcheck
 
 # v0.0.3
