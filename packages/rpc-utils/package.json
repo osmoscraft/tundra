@@ -13,6 +13,6 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.1.0",
-    "tsx": "^3.12.7"
+    "tsx": "^4.6.2"
   }
 }

@@ -17,11 +17,11 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/chrome": "^0.0.246",
+    "@types/chrome": "^0.0.254",
     "@types/node": "^20.2.5",
     "concurrently": "^8.0.1",
     "esbuild": "^0.19.2",
-    "tsx": "^3.12.7"
+    "tsx": "^4.6.2"
   },
   "dependencies": {
     "@codemirror/commands": "^6.2.4",
