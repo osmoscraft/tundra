@@ -13,7 +13,7 @@ import type { AsyncProxy } from "@tundra/rpc-utils";
 import type { DataWorkerRoutes } from "../../workers/data-worker";
 import type { OmniboxElement } from "./menus/omnibox-element";
 
-import { openSearchPanel } from "@codemirror/search";
+import { closeSearchPanel, openSearchPanel } from "@codemirror/search";
 import { stateToParams } from "../router/route-state";
 import { getGithubConnection } from "../sync/github/github-config";
 import { timestampToId } from "../sync/path";
@@ -33,8 +33,8 @@ export interface CommandKeyBinding {
   name: string;
   run: string;
   key?: string;
-  // chord?: string;
-  // when?: string;
+  /** @default editor */
+  scope?: string;
 }
 
 export function getEditorKeyBindings(bindings: CommandKeyBinding[], library: CommandLibrary): KeyBinding[] {
@@ -48,6 +48,7 @@ export function getEditorKeyBindings(bindings: CommandKeyBinding[], library: Com
         key: binding.key,
         preventDefault: true,
         run: command,
+        scope: binding.scope ?? "editor",
       });
     }
   });
@@ -74,6 +75,7 @@ export function editorCommand(): CommandLibrary {
     selectCursorBlockStart,
     selectCursorBlockEnd,
     openSearchPanel,
+    closeSearchPanel,
   };
 }
 

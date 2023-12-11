@@ -6,6 +6,12 @@
       "key": "Mod-f"
     },
     {
+      "name": "Close search panel",
+      "run": "closeSearchPanel",
+      "key": "Escape",
+      "scope": "search-panel"
+    },
+    {
       "name": "Move line up",
       "run": "moveLineUp",
       "key": "Alt-k"
