@@ -2,6 +2,7 @@
 
 - Added: Arrow key navigation for menus
 - Added: Auto height for backlink menu
+- Added: Escape key to close search panel
 
 # v0.0.4
 
