@@ -39,6 +39,16 @@ export class BacklinksElement extends HTMLElement {
         this.dispatchEvent(new Event("backlinks.back"));
         e.preventDefault();
       }
+
+      if (e.key === "ArrowUp") {
+        this.focusItemRelative(-1);
+        e.preventDefault();
+      }
+
+      if (e.key === "ArrowDown") {
+        this.focusItemRelative(1);
+        e.preventDefault();
+      }
     });
   }
 
@@ -47,8 +57,30 @@ export class BacklinksElement extends HTMLElement {
       this.backlinkList.innerHTML = ``;
     } else {
       this.backlinkList.innerHTML = [
-        ...items.map((item) => `<li><a href="?id=${item.id}" data-id="${item.id}">${item.title}</a></li>`).join(""),
+        ...items
+          .map(
+            (item, index) =>
+              `<li><a href="?id=${item.id}" tabindex="${index === 0 ? 0 : -1}" data-id="${item.id}">${
+                item.title
+              }</a></li>`,
+          )
+          .join(""),
       ].join("");
     }
+  }
+
+  focusItemRelative(offset: number) {
+    // remove previous focus
+    const allItems = [...this.backlinkList.querySelectorAll<HTMLElement>("[tabindex]")];
+    const focusedIndex = allItems.findIndex((item) => item.tabIndex === 0);
+    if (focusedIndex === -1) return;
+
+    // clear previous focus
+    allItems[focusedIndex].tabIndex = -1;
+
+    // set new focus
+    const focusItem = allItems.at((focusedIndex + offset) % allItems.length);
+    focusItem?.setAttribute("tabindex", "0");
+    focusItem?.focus();
   }
 }

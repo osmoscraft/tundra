@@ -1,6 +1,10 @@
 backlinks-element .c-backlink-list {
-  max-height: min(20rem, calc((100vh - 2rem) / 3)); /* roughly a third of viewport minus the top panel */
+  max-height: 6rem;
   overflow-y: auto;
+
+  &:focus-within {
+    max-height: min(20rem, calc((100vh - 2rem) / 3)); /* roughly a third of viewport minus the top panel */
+  }
 }
 
 backlinks-element:has(.c-backlink-list:empty) {
