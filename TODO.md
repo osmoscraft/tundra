@@ -22,11 +22,8 @@
 - Formatting: including Line item text wrap
 - Formatting: separation between display format and storage format
 - Keyboard: auto-focus first content line on opening note
-- Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: escape to cancel selection
 - Keyboard: fine-tune ESC behavior in omnibox
-- Keyboard: ESC to close search panel
-- Keyboard: Ctrl-F to toggle search panel
 - Lifecycle: allow reverting current file to last known remote state
 - Lifecycle: autosave edits
 - Lifecycle: deleted file should not appear in search results
@@ -36,15 +33,12 @@
   Lifecycle: sync command cannot be issued while another sync is running (or newer result will be lost)
 - Links: link insertion via on-canvas autocompletion
 - Links: mouse click in text portion should allow edit
-- Links: the default option should be first matched link, rather than create new
 - Migration: Add a web hook that pushes haiku into markdown repo
 - Migration: Convert all osmosmemo notes as bookmarks (stretch goal: retain timemstamp from git blame)
 - Omnibox: handle ctrl p and ctrl shift p while inside omnibox
 - Omnibox: display action mode, e.g. Linking, Opening, either in input or in menu options
 - Omnibox: RxJS stream like search input handling with debounce and throttle
 - Omnibox: Simplify the modes by relying on post creation fragile selection state and undo stack
-- Omnibox: At least of menu item should always be selected
-- Omnibox: Search command with prefix per-word, not just per-line
 - Packaging: support Firefox by forking background script
 - Performance: share a single background worker across multiple tabs, using chrome offscreen API
 - Performance: preload background worker on install and browser startup, using chrome offscreen API
@@ -80,4 +74,10 @@
 # Future
 
 # Beta done
+
 - Editing: spell checker
+- Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
+- Keyboard: ESC to close search panel
+- Omnibox: At least one of menu item should always be selected
+- Omnibox: Search command with prefix per-word, not just per-line
+- Links: the default option should be first matched link, rather than create new
