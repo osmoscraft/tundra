@@ -1,5 +1,7 @@
 # Bugs
 
+- Navigating from a file results in content update but the URL remains unchanged, leading to accidental overwrite of content
+
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection
