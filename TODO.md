@@ -1,6 +1,7 @@
 # Bugs
 
 - Navigating from a file results in content update but the URL remains unchanged, leading to accidental overwrite of content
+- GitHUb file rename causes sync error
 
 # Beta backlog
 
