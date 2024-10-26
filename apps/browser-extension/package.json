@@ -11,9 +11,12 @@
     "build:pages": "esbuild src/pages/*.ts --sourcemap --loader:.html=text --bundle --outdir=dist/unpacked",
     "build:assets": "node scripts/copy-assets.js --src public --target dist/unpacked",
     "build:worker": "esbuild src/workers/*.ts  --loader:.sql=text --loader:.graphql=text --external:*/sqlite3.mjs --format=esm --bundle --outdir=dist/unpacked",
+    "build:db-tests": "esbuild src/db.test.ts --bundle --outdir=dist/unpacked --loader:.sql=text --loader:.graphql=text",
     "pack": "node scripts/pack.js --dir dist/unpacked",
-    "test": "tsx ./src/index.test.ts",
-    "test:watch": "tsx --watch ./src/index.test.ts"
+    "test": "npm run test:core && npm run test:db",
+    "test:core": "tsx ./src/index.test.ts",
+    "test:db": "node dist/unpacked/db.test.js",
+    "test:core:watch": "tsx ./src/index.test.ts --watch"
   },
   "type": "module",
   "devDependencies": {
