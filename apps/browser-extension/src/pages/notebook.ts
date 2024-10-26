@@ -48,11 +48,11 @@ function main() {
   const {
     extension: bufferChangeManagerExtension,
     trackBufferChange,
-    handleBeforeunload,
+    preventDirtyUnload,
   } = bufferChangeManager({ onChange: (base, head) => hud.trackChange(base, head) });
 
-  router.addEventListener("router.beforeunload", handleBeforeunload);
-  window.addEventListener("beforeunload", handleBeforeunload);
+  router.addEventListener("router.afterunload", preventDirtyUnload);
+  window.addEventListener("beforeunload", preventDirtyUnload);
 
   const library = {
     ...editorCommand(),

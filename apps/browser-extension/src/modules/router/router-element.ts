@@ -2,7 +2,7 @@ export interface NavigateOptions {}
 
 declare global {
   interface HTMLElementEventMap {
-    "router.beforeunload": Event;
+    "router.afterunload": Event;
     "router.change": CustomEvent<RouterChangeDetails>;
   }
 }
@@ -18,14 +18,20 @@ export interface RouterChangeDetails {
 }
 
 export class RouterElement extends HTMLElement {
+  private mostRecentUrl = window.location.href;
+
   connectedCallback() {
-    window.addEventListener("popstate", (e) => {
+    window.addEventListener("popstate", () => {
       if (!this.canNavigate()) {
-        e.preventDefault();
+        history.replaceState(null, "", this.mostRecentUrl);
         return;
       }
 
       this.dispatchEvent(new CustomEvent<RouterChangeDetails>("router.change", { detail: { url: location.href } }));
+    });
+
+    this.addEventListener("router.change", () => {
+      this.mostRecentUrl = location.href;
     });
   }
 
@@ -52,9 +58,12 @@ export class RouterElement extends HTMLElement {
   }
 
   private canNavigate() {
-    const willChangeEvent = new Event("router.beforeunload", { cancelable: true });
-    this.dispatchEvent(willChangeEvent);
-    if (willChangeEvent.defaultPrevented) {
+    // Due to history API quirks, preventDefault has no effect for Back/Forward SPA navigation
+    // We can only fire "afterunload" event and tell user what happened. Then undo the navigation later.
+    const afterunloadEvent = new Event("router.afterunload", { cancelable: true });
+    this.dispatchEvent(afterunloadEvent);
+    if (afterunloadEvent.defaultPrevented) {
+      // at this point, the URL is already updated, but we create the illusion that it will be uploaded.
       return window.confirm("Leave page? Changes you made may not be saved.");
     }
 

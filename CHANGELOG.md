@@ -1,9 +1,9 @@
 # planned
 
 - TODO
-  - Fix navigate url issue
   - Upgrade dependencies
 - DONE
+  - Fixed: Navigate back may lead to data loss
   - Fixed: Options page theming broken in light mode
 
 # v0.0.5

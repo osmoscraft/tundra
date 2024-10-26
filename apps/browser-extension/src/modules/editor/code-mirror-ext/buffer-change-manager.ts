@@ -13,7 +13,7 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
   let baseState: null | string = null;
   let headState: null | string = null;
 
-  function handleBeforeunload(e: Event | BeforeUnloadEvent) {
+  function preventDirtyUnload(e: Event | BeforeUnloadEvent) {
     if (baseState === null || headState === null) return;
     if (baseState === headState) return;
 
@@ -47,13 +47,13 @@ export function bufferChangeManager(config: BufferChangeManagerConfig) {
           headState = viewUpdate.state.doc.toString();
           reportChange();
         },
-        { timeout: 1000 }
+        { timeout: 1000 },
       );
     }
   });
 
   return {
-    handleBeforeunload,
+    preventDirtyUnload,
     trackBufferChange,
     extension,
   };
