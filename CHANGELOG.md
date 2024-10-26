@@ -1,10 +1,8 @@
-# planned
+# v0.0.6
 
-- TODO
-  - Upgrade dependencies
-- DONE
-  - Fixed: Navigate back may lead to data loss
-  - Fixed: Options page theming broken in light mode
+- Fixed: Navigate back may lead to data loss
+- Fixed: Options page theming broken in light mode
+- Chore: Dependency updates
 
 # v0.0.5
 
