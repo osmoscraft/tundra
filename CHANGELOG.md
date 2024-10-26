@@ -1,3 +1,7 @@
+# v0.0.6
+
+- Fixed: Options page theming broken in light mode
+
 # v0.0.5
 
 - Added: Arrow key navigation for menus
