@@ -1,6 +1,10 @@
-# v0.0.6
+# planned
 
-- Fixed: Options page theming broken in light mode
+- TODO
+  - Fix navigate url issue
+  - Upgrade dependencies
+- DONE
+  - Fixed: Options page theming broken in light mode
 
 # v0.0.5
 
