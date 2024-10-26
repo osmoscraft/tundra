@@ -50,6 +50,8 @@ export function initEditor(config: InitEdidorConfig) {
     keymap.of(editorBindings),
   ];
 
+  // ref: https://github.com/codemirror/dev/issues/1458
+  (EditorView as any).EDIT_CONTEXT = false;
   const view = new EditorView({
     doc: "",
     extensions,

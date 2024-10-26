@@ -1,3 +1,9 @@
+# v0.0.6
+
+- Fixed: Navigate back may lead to data loss
+- Fixed: Options page theming broken in light mode
+- Chore: Dependency updates
+
 # v0.0.5
 
 - Added: Arrow key navigation for menus
