@@ -120,6 +120,10 @@
       "run": "deleteFile"
     },
     {
+      "name": "Rename",
+      "run": "rename"
+    },
+    {
       "name": "Resolve",
       "run": "resolveConflicts"
     },

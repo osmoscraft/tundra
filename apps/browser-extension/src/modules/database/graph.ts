@@ -20,7 +20,7 @@ export function commit(db: Sqlite3.DB, files: GraphWritableSource | GraphWritabl
   const now = Date.now();
   fileApi.updateFiles(
     db,
-    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "local"))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "local")),
   );
 }
 
@@ -28,7 +28,7 @@ export function fetch(db: Sqlite3.DB, files: GraphWritableSource | GraphWritable
   const now = Date.now();
   fileApi.updateFiles(
     db,
-    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "remote"))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "remote")),
   );
 }
 
@@ -36,7 +36,7 @@ export function clone(db: Sqlite3.DB, files: GraphWritableSource | GraphWritable
   const now = Date.now();
   fileApi.updateFiles(
     db,
-    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "synced"))
+    array(files).map((file) => serializeGraphSourceToDbFile(file, now, "synced")),
   );
 }
 
@@ -54,7 +54,7 @@ export function merge(db: Sqlite3.DB, input: MergeInput) {
   // move remote into synced
   fileApi.updateFiles(
     db,
-    files.map((file) => ({ path: file.path, synced: file.remote }))
+    files.map((file) => ({ path: file.path, synced: file.remote })),
   );
 }
 
@@ -72,7 +72,7 @@ export function push(db: Sqlite3.DB, input: PushInput) {
   // move local into synced
   fileApi.updateFiles(
     db,
-    files.map((file) => ({ path: file.path, synced: file.local }))
+    files.map((file) => ({ path: file.path, synced: file.local })),
   );
 }
 
@@ -109,6 +109,21 @@ WHERE EXISTS (
 
   const bind = paramsToBindings(sql, { filePaths: JSON.stringify(files.map((f) => f.path)) });
   db.exec(sql, { bind });
+}
+
+export interface RenameInput {
+  oldPath: string;
+  newPath: string;
+  content: string | null;
+  updatedAt?: number | null;
+  source: "local" | "remote";
+}
+
+export function rename(db: Sqlite3.DB, input: RenameInput) {
+  const sourceFn = input.source === "local" ? commit : fetch;
+
+  sourceFn(db, { path: input.oldPath, content: null, updatedAt: input.updatedAt });
+  sourceFn(db, { path: input.newPath, content: input.content, updatedAt: input.updatedAt });
 }
 
 export function untrack(db: Sqlite3.DB, patterns: string[]) {
@@ -195,7 +210,7 @@ export function getSyncStats(db: Sqlite3.DB, input?: GetStatusSummaryInput): Syn
       behind: 0,
       conflict: 0,
       total,
-    }
+    },
   );
 }
 
@@ -218,7 +233,7 @@ export function searchFiles(db: Sqlite3.DB, input: SearchFilesInput) {
 export function serializeGraphSourceToDbFile(
   graphSource: GraphWritableSource,
   now: number,
-  dbSourceType: "local" | "remote" | "synced"
+  dbSourceType: "local" | "remote" | "synced",
 ): DbWritableFile {
   return {
     path: graphSource.path,

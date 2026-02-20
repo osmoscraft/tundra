@@ -9,6 +9,8 @@ import type { Tabset } from "../tabs/create-tabset";
 import type { TabMessage } from "../tabs/tab-message";
 import type { OmniboxElement } from "./omnibox-element";
 
+export const RENAME_PREFIX = ">rename ";
+
 export interface MenuAction {
   state: RouteState;
   mode: MenuActionMode;
@@ -54,9 +56,36 @@ export interface OmnimenuActionContext {
   tabset: Tabset<TabMessage>;
 }
 
-export async function handleMenuAction(context: OmnimenuActionContext, action: MenuAction) {
+/**
+ * @returns `true` to keep the menu open, `false` to close it
+ */
+export async function handleMenuAction(context: OmnimenuActionContext, action: MenuAction): Promise<boolean> {
   const { proxy, omnibox, view, library, router, tabset } = context;
   const { state, mode } = action;
+
+  if (state.command === "rename") {
+    const currentId = new URLSearchParams(location.search).get("id");
+    const input = omnibox.getValue();
+    const newFilename = input.startsWith(RENAME_PREFIX) ? input.slice(RENAME_PREFIX.length).trim() : "";
+
+    // If input already contains ">rename <filename>", execute the rename
+    if (newFilename.length > 0) {
+      const newId = newFilename.replace(/\.md$/, "");
+
+      if (currentId && newId && newId !== currentId) {
+        const content = view.state.doc.toString();
+        await proxy.renameNote(currentId, newId, content);
+        router.push(`?id=${encodeURIComponent(newId)}`);
+      }
+      return false; // close dialog
+    } else {
+      // Otherwise, autocomplete the input to ">rename [current-filename].md"
+      if (currentId) {
+        omnibox.setValue(`${RENAME_PREFIX}${currentId}.md`);
+      }
+      return true; // keep dialog open
+    }
+  }
 
   if (state.linkToId) {
     const isNewNote = !(await proxy.getNote(state.linkToId));
@@ -67,8 +96,8 @@ export async function handleMenuAction(context: OmnimenuActionContext, action: M
       mode === MenuActionMode.secondary
         ? state.title
         : mode === MenuActionMode.tertiary
-        ? omnibox.getValue().slice(1).trim() // remove ":" prefix
-        : primaryTitle;
+          ? omnibox.getValue().slice(1).trim() // remove ":" prefix
+          : primaryTitle;
 
     view.dispatch(view.state.replaceSelection(`[${linkTitle!}](${state.linkToId})`));
     const titleEnd = view.state.selection.main.anchor - state.linkToId!.length - 3;
@@ -122,4 +151,5 @@ export async function handleMenuAction(context: OmnimenuActionContext, action: M
   } else {
     console.error("Unknown directive", state);
   }
+  return false;
 }

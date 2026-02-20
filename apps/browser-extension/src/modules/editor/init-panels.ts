@@ -53,9 +53,9 @@ export function initPanels({
     omnibox.focus();
   });
 
-  omnimenu.addEventListener("omnimenu.action", (e) => {
-    handleMenuAction({ proxy, omnibox, view: editorView, library, router, tabset }, e.detail);
-    dialog.close();
+  omnimenu.addEventListener("omnimenu.action", async (e) => {
+    const keepOpen = await handleMenuAction({ proxy, omnibox, view: editorView, library, router, tabset }, e.detail);
+    if (!keepOpen) dialog.close();
   });
 
   backlinks.addEventListener("backlinks.open", (e) => {

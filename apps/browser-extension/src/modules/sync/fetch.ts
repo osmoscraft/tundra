@@ -39,19 +39,50 @@ async function* iterateGithubDiffs(
   const comparisons = (await compare(connection, { base: localHeadRefId, head: remoteHeadRefId })).files;
   const sortedFileChanges = comparisons.reduce(
     (acc, file) => {
-      if (file.status === "removed") {
+      if (file.status === "renamed") {
+        // Renamed files: old path is deleted, new path is changed
+        if (file.previous_filename) {
+          acc.deletedPaths.push(file.previous_filename);
+          acc.renamedFromPaths.push(file.previous_filename);
+        }
+        acc.changedPaths.push(file.filename);
+        acc.renamedToPaths.push(file.filename);
+        acc.renameMap.set(file.filename, file.previous_filename ?? file.filename);
+      } else if (file.status === "removed") {
         acc.deletedPaths.push(file.filename);
       } else {
         acc.changedPaths.push(file.filename);
       }
       return acc;
     },
-    { changedPaths: [], deletedPaths: [] } as { changedPaths: string[]; deletedPaths: string[] }
+    {
+      changedPaths: [],
+      deletedPaths: [],
+      renamedFromPaths: [],
+      renamedToPaths: [],
+      renameMap: new Map<string, string>(),
+    } as {
+      changedPaths: string[];
+      deletedPaths: string[];
+      renamedFromPaths: string[];
+      renamedToPaths: string[];
+      renameMap: Map<string, string>;
+    }
   );
 
   const deletedFilesAsync = listDeletedFilesByPaths(connection, sortedFileChanges.deletedPaths);
   const changedFilesAsync = listFilesByPaths(connection, sortedFileChanges.changedPaths);
   const allPaths = [...sortedFileChanges.deletedPaths, ...sortedFileChanges.changedPaths];
+
+  // Build lookup maps for O(1) access
+  const renamedFromSet = new Set(sortedFileChanges.renamedFromPaths);
+  const comparisonByPath = new Map<string, CompareResultFile>();
+  for (const comp of comparisons) {
+    comparisonByPath.set(comp.filename, comp);
+    if (comp.previous_filename) {
+      comparisonByPath.set(comp.previous_filename, comp);
+    }
+  }
 
   const readFileAtIndex = async (index: number) => {
     return index < sortedFileChanges.deletedPaths.length
@@ -60,11 +91,20 @@ async function* iterateGithubDiffs(
   };
 
   for (let i = 0; i < allPaths.length; i++) {
+    const path = allPaths[i];
+    const isRenamedTo = sortedFileChanges.renameMap.has(path);
+    const isRenamedFrom = renamedFromSet.has(path);
+
     yield {
-      path: allPaths[i],
-      status: gitDiffStatusToRemoteChangeStatus(comparisons[i].status),
+      path,
+      status: isRenamedFrom
+        ? RemoteChangeStatus.Removed
+        : isRenamedTo
+          ? RemoteChangeStatus.Renamed
+          : gitDiffStatusToRemoteChangeStatus(comparisonByPath.get(path)?.status ?? "modified"),
       timestamp: (await readFileAtIndex(i)).committedDate,
       text: (await readFileAtIndex(i)).content,
+      ...(isRenamedTo ? { previousPath: sortedFileChanges.renameMap.get(path) } : {}),
     };
   }
 }
@@ -77,6 +117,8 @@ function gitDiffStatusToRemoteChangeStatus(gitDiffStatus: GitDiffStatus): Remote
     case "changed":
     case "modified":
       return RemoteChangeStatus.Modified;
+    case "renamed":
+      return RemoteChangeStatus.Renamed;
     default:
       throw new Error(`Unknown supported git diff status: ${gitDiffStatus}`);
   }

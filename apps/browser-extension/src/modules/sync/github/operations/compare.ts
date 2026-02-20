@@ -17,6 +17,7 @@ export interface CompareResultFile {
   filename: string;
   status: GitDiffStatus;
   patch?: string;
+  previous_filename?: string;
 }
 
 export type GitDiffStatus = "added" | "removed" | "modified" | "renamed" | "copied" | "changed" | "unchanged";

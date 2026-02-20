@@ -10,6 +10,7 @@ import {
   getRecentFiles,
   merge,
   push,
+  rename,
   resolve,
   searchFiles,
   searchFilesByMetaUrl,
@@ -418,7 +419,7 @@ export async function testGetRecentFiles() {
   const recentFiles = getRecentFiles(db, { limit: 10 });
   assertDeepEqual(
     recentFiles.map((f) => f.path),
-    ["file-5.md", "file-1.md", "file-4.md", "file-3.md", "file-2.md", "file-6.md"]
+    ["file-5.md", "file-1.md", "file-4.md", "file-3.md", "file-2.md", "file-6.md"],
   );
 }
 
@@ -436,7 +437,7 @@ export async function testGetRecentFilesWithScope() {
   const recentFilesDir1 = getRecentFiles(db, { limit: 10, paths: ["dir2/*"] });
   assertDeepEqual(
     recentFilesDir1.map((f) => f.path),
-    ["dir2/file-4.md", "dir2/file-3.md"]
+    ["dir2/file-4.md", "dir2/file-3.md"],
   );
 }
 
@@ -454,7 +455,7 @@ export async function testGetRecentFilesWithIgnore() {
   const recentFilesDir1 = getRecentFiles(db, { limit: 10, ignore: ["dir1/*"] });
   assertDeepEqual(
     recentFilesDir1.map((f) => f.path),
-    ["dir2/file-4.md", "dir2/file-3.md"]
+    ["dir2/file-4.md", "dir2/file-3.md"],
   );
 }
 
@@ -620,7 +621,7 @@ export async function testMetaCRUD() {
       hello: 42,
       world: true,
     },
-    "extended meta is allowed"
+    "extended meta is allowed",
   );
 
   commit(db, [{ path: "file-2.md", content: "---\ntitle: title 2\n---", updatedAt: 1 }]);
@@ -677,7 +678,7 @@ export async function testSearchMetaExact() {
   assertDeepEqual(
     result.map((r) => r.path),
     ["node-1.md", "node-1b.md"],
-    "Path matches"
+    "Path matches",
   );
 }
 
@@ -733,4 +734,189 @@ export async function testSearchFileContent() {
   assertEqual(outOfScopeResults.length, 0, "out of scope exclude result");
   assertEqual(outOfScopeNegResults.length, 0, "out of scope no result");
   assertEqual(multiScopeResults.length, 2, "multi scope result");
+}
+
+export async function testLocalRename() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  let file = getFile(db, "old-name.md")!;
+  assertEqual(file.status, DbFileStatus.Synced, "initially synced");
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 2,
+    source: "local",
+  });
+
+  let oldFile = getFile(db, "old-name.md")!;
+  assertEqual(oldFile.status, DbFileStatus.Ahead, "old file is ahead");
+  assertEqual(oldFile.localAction, DbFileAction.Remove, "old file local action is remove");
+  assertEqual(oldFile.content, null, "old file content is null");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Ahead, "new file is ahead");
+  assertEqual(newFile.localAction, DbFileAction.Add, "new file local action is add");
+  assertEqual(newFile.content, "hello world", "new file has content");
+}
+
+export async function testRemoteRename() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  let file = getFile(db, "old-name.md")!;
+  assertEqual(file.status, DbFileStatus.Synced, "initially synced");
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 2,
+    source: "remote",
+  });
+
+  let oldFile = getFile(db, "old-name.md")!;
+  assertEqual(oldFile.status, DbFileStatus.Behind, "old file is behind");
+  assertEqual(oldFile.remoteAction, DbFileAction.Remove, "old file remote action is remove");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Behind, "new file is behind");
+  assertEqual(newFile.remoteAction, DbFileAction.Add, "new file remote action is add");
+}
+
+export async function testRemoteRenameWithMerge() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 2,
+    source: "remote",
+  });
+
+  merge(db, { paths: ["old-name.md", "new-name.md"] });
+
+  assertUndefined(getFile(db, "old-name.md"), "old file is gone after merge");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Synced, "new file is synced after merge");
+  assertEqual(newFile.content, "hello world", "new file has correct content");
+}
+
+export async function testLocalRenameWithPush() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 2,
+    source: "local",
+  });
+
+  push(db, { paths: ["old-name.md", "new-name.md"] });
+
+  assertUndefined(getFile(db, "old-name.md"), "old file is gone after push");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Synced, "new file is synced after push");
+  assertEqual(newFile.content, "hello world", "new file has correct content");
+}
+
+export async function testRemoteRenameWithLocalEdit() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  commit(db, { path: "old-name.md", content: "hello world edited", updatedAt: 2 });
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 3,
+    source: "remote",
+  });
+
+  let oldFile = getFile(db, "old-name.md")!;
+  assertEqual(oldFile.status, DbFileStatus.Conflict, "old file is in conflict");
+  assertEqual(oldFile.localAction, DbFileAction.Modify, "old file local action is modify");
+  assertEqual(oldFile.remoteAction, DbFileAction.Remove, "old file remote action is remove");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Behind, "new file is behind");
+  assertEqual(newFile.remoteAction, DbFileAction.Add, "new file remote action is add");
+}
+
+export async function testRemoteRenameWithContentChange() {
+  const db = await createTestDb(migrations);
+
+  clone(db, { path: "old-name.md", content: "hello world", updatedAt: 1 });
+
+  rename(db, {
+    oldPath: "old-name.md",
+    newPath: "new-name.md",
+    content: "hello world v2",
+    updatedAt: 2,
+    source: "remote",
+  });
+
+  merge(db, { paths: ["old-name.md", "new-name.md"] });
+
+  assertUndefined(getFile(db, "old-name.md"), "old file is gone after merge");
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Synced, "new file is synced");
+  assertEqual(newFile.content, "hello world v2", "new file has updated content");
+}
+
+export async function testRenameNewFileOnly() {
+  const db = await createTestDb(migrations);
+
+  rename(db, {
+    oldPath: "nonexistent.md",
+    newPath: "new-name.md",
+    content: "hello world",
+    updatedAt: 1,
+    source: "remote",
+  });
+
+  let newFile = getFile(db, "new-name.md")!;
+  assertEqual(newFile.status, DbFileStatus.Behind, "new file is behind");
+  assertEqual(newFile.remoteAction, DbFileAction.Add, "new file remote action is add");
+}
+
+export async function testRenameSyncStats() {
+  const db = await createTestDb(migrations);
+
+  clone(db, [
+    { path: "file1.md", content: "content1", updatedAt: 1 },
+    { path: "file2.md", content: "content2", updatedAt: 1 },
+  ]);
+
+  rename(db, {
+    oldPath: "file1.md",
+    newPath: "file1-renamed.md",
+    content: "content1",
+    updatedAt: 2,
+    source: "remote",
+  });
+
+  const dirtyFiles = getDirtyFiles(db);
+  const behindFiles = dirtyFiles.filter((f) => f.status === DbFileStatus.Behind);
+  const aheadFiles = dirtyFiles.filter((f) => f.status === DbFileStatus.Ahead);
+  const conflictFiles = dirtyFiles.filter((f) => f.status === DbFileStatus.Conflict);
+
+  assertEqual(behindFiles.length, 2, "2 behind (old removed + new added)");
+  assertEqual(aheadFiles.length, 0, "0 ahead");
+  assertEqual(conflictFiles.length, 0, "0 conflict");
 }

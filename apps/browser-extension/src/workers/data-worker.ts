@@ -17,6 +17,7 @@ import { resetContentBulk } from "../modules/sync/github/operations/reset-conten
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { addIdByPath, noteIdToPath } from "../modules/sync/path";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
+import { RemoteChangeStatus } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
 
 export type DataWorkerRoutes = typeof routes;
@@ -61,6 +62,15 @@ const routes = {
     });
   },
   deleteNote: async (id: string) => dbApi.commit(await dbInit(), { path: noteIdToPath(id), content: null }),
+  renameNote: async (oldId: string, newId: string, content: string) => {
+    const db = await dbInit();
+    dbApi.rename(db, {
+      oldPath: noteIdToPath(oldId),
+      newPath: noteIdToPath(newId),
+      content,
+      source: "local",
+    });
+  },
   clone: async (connection: GithubConnection) => {
     const db = await dbInit();
     const { generator, oid } = await sync.getGithubRemote(connection);
@@ -80,8 +90,29 @@ const routes = {
     const { generator, remoteHeadRefId } = await sync.getGithubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
 
+    // Separate renamed items from regular items
+    const renamedItems = items.filter((item) => item.status === RemoteChangeStatus.Renamed);
+    const regularItems = items.filter((item) => item.status !== RemoteChangeStatus.Renamed);
+
     db.transaction(() => {
-      dbApi.fetch(db, items.map(sync.GithubChangeToLocalChange));
+      // Process regular items (non-renamed) via fetch
+      if (regularItems.length) {
+        dbApi.fetch(db, regularItems.map(sync.GithubChangeToLocalChange));
+      }
+
+      // Process renamed items via the rename operation
+      for (const item of renamedItems) {
+        if (item.previousPath) {
+          dbApi.rename(db, {
+            oldPath: item.previousPath,
+            newPath: item.path,
+            content: item.text,
+            updatedAt: new Date(item.timestamp).getTime(),
+            source: "remote",
+          });
+        }
+      }
+
       if (remoteHeadRefId) sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);
     });
   },

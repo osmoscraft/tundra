@@ -4,6 +4,7 @@ import { extractWebPage } from "../../extraction";
 import { timestampToId } from "../../sync/path";
 import { isAbsoluteUrl } from "../code-mirror-ext/live-link";
 import type { CommandKeyBinding } from "../commands";
+import { RENAME_PREFIX } from "./menu-action";
 import type { OmnimenuElement } from "./omnimenu-element";
 
 export interface HandleMenuInputConfig {
@@ -19,12 +20,35 @@ export async function handleMenuInput(
   const q = e.detail;
   if (q.startsWith(">")) {
     const command = q.slice(1).trim();
+
+    if (q.startsWith(RENAME_PREFIX)) {
+      const newFilename = q.slice(RENAME_PREFIX.length).trim();
+      if (newFilename.length) {
+        omnimenu.setMenuItems([
+          {
+            title: `Rename to ${newFilename}`,
+            state: { command: "rename" },
+          },
+        ]);
+        return;
+      }
+    }
+
     const matchedCommands = commandBindings.filter((cmd) => matchCommand({ query: command, candidate: cmd.name }));
+    const currentId = new URLSearchParams(location.search).get("id");
     omnimenu.setMenuItems(
-      matchedCommands.map((command) => ({
-        title: `${[command.name, command.key].filter(Boolean).join(" | ")}`,
-        state: { command: command.run },
-      })),
+      matchedCommands.map((command) => {
+        let title = `${[command.name, command.key].filter(Boolean).join(" | ")}`;
+
+        if (command.run === "rename" && currentId) {
+          title = `Rename ${currentId}.md`;
+        }
+
+        return {
+          title,
+          state: { command: command.run },
+        };
+      }),
     );
   } else {
     const isLinking = q.startsWith(":");
