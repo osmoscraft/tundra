@@ -1,8 +1,5 @@
 # Bugs
 
-- Navigating from a file results in content update but the URL remains unchanged, leading to accidental overwrite of content
-- GitHUb file rename causes sync error
-
 # Beta backlog
 
 - Capture: capture from browser context menu when there is a text selection
@@ -79,6 +76,8 @@
 
 # Beta done
 
+- Navigating from a file results in content update but the URL remains unchanged, leading to accidental overwrite of content
+- GitHUb file rename causes sync error
 - Editing: spell checker
 - Keyboard: backlink ref and omnibox menu should allow arrow key navigation with a single tab stop
 - Keyboard: ESC to close search panel

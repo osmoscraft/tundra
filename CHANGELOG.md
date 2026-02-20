@@ -1,3 +1,9 @@
+# v0.0.7
+
+- Added: Handle git rename operation in sync
+- Added: `Rename` command in omnimenu
+- Chore: Dependency updates
+
 # v0.0.6
 
 - Fixed: Navigate back may lead to data loss
