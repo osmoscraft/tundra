@@ -17,7 +17,6 @@ import { resetContentBulk } from "../modules/sync/github/operations/reset-conten
 import { updateContentBulk } from "../modules/sync/github/operations/update-content-bulk";
 import { addIdByPath, noteIdToPath } from "../modules/sync/path";
 import type { RemoteChangeRecord } from "../modules/sync/remote-change-record";
-import { RemoteChangeStatus } from "../modules/sync/remote-change-record";
 import { formatStatus } from "../modules/sync/status";
 
 export type DataWorkerRoutes = typeof routes;
@@ -75,7 +74,7 @@ const routes = {
     const db = await dbInit();
     const { generator, oid } = await sync.getGithubRemote(connection);
     const chunks = await sync.collectGithubRemoteToChunks(100, generator);
-    const processChunk = (chunk: RemoteChangeRecord[]) => dbApi.clone(db, chunk.map(sync.GithubChangeToLocalChange));
+    const processChunk = (chunk: RemoteChangeRecord[]) => dbApi.clone(db, chunk.flatMap(sync.GithubChangeToLocalChange));
     performance.mark("clone-start");
     db.transaction(() => {
       chunks.forEach(processChunk);
@@ -89,28 +88,11 @@ const routes = {
 
     const { generator, remoteHeadRefId } = await sync.getGithubRemoteChanges(db, connection);
     const items = await drainGenerator(generator);
-
-    // Separate renamed items from regular items
-    const renamedItems = items.filter((item) => item.status === RemoteChangeStatus.Renamed);
-    const regularItems = items.filter((item) => item.status !== RemoteChangeStatus.Renamed);
+    const changes = items.flatMap(sync.GithubChangeToLocalChange);
 
     db.transaction(() => {
-      // Process regular items (non-renamed) via fetch
-      if (regularItems.length) {
-        dbApi.fetch(db, regularItems.map(sync.GithubChangeToLocalChange));
-      }
-
-      // Process renamed items via the rename operation
-      for (const item of renamedItems) {
-        if (item.previousPath) {
-          dbApi.rename(db, {
-            oldPath: item.previousPath,
-            newPath: item.path,
-            content: item.text,
-            updatedAt: new Date(item.timestamp).getTime(),
-            source: "remote",
-          });
-        }
+      if (changes.length) {
+        dbApi.fetch(db, changes);
       }
 
       if (remoteHeadRefId) sync.setGithubRemoteHeadCommit(db, remoteHeadRefId);

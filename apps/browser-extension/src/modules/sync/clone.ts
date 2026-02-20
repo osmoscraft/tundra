@@ -5,17 +5,22 @@ import type { GithubConnection } from "./github/github-config";
 import { archivePathToGithubFilePath } from "./path";
 import { RemoteChangeStatus, type RemoteChangeRecord } from "./remote-change-record";
 
-export function GithubChangeToLocalChange(record: RemoteChangeRecord): GraphWritableSource {
-  return {
-    path: record.path,
-    content: record.text,
-    updatedAt: new Date(record.timestamp).getTime(),
-  };
+export function GithubChangeToLocalChange(record: RemoteChangeRecord): GraphWritableSource[] {
+  const updatedAt = new Date(record.timestamp).getTime();
+
+  if (record.status === RemoteChangeStatus.Renamed && record.previousPath) {
+    return [
+      { path: record.previousPath, content: null, updatedAt },
+      { path: record.path, content: record.text, updatedAt },
+    ];
+  }
+
+  return [{ path: record.path, content: record.text, updatedAt }];
 }
 
 export async function collectGithubRemoteToChunks(
   chunkSize: number,
-  generator: AsyncGenerator<RemoteChangeRecord>
+  generator: AsyncGenerator<RemoteChangeRecord>,
 ): Promise<RemoteChangeRecord[][]> {
   const chunkReducer = getChunkReducer(chunkSize);
   performance.mark("iterator-start");
@@ -23,7 +28,7 @@ export async function collectGithubRemoteToChunks(
   console.log(
     `[perf] collect files into ${chunks.length} chunks of size ${chunkSize}: ${
       performance.measure("iterator", "iterator-start").duration
-    }ms`
+    }ms`,
   );
 
   return chunks;
